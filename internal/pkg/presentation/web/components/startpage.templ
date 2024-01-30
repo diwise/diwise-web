@@ -1,0 +1,20 @@
+package components
+
+import (
+    "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+)
+
+templ StartPage(asset assets.AssetLoaderFunc) {
+    <!doctype html>
+    <html>
+        <head>
+            <meta charset="UTF-8"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            <script src={ asset("/js/htmx.min.js").Path() }></script>
+            <link href={ asset("/css/diwise.css").Path() } rel="stylesheet" />
+            <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet" />
+            <title>diwise</title>
+        </head>
+        @Body(asset)
+    </html>
+}
