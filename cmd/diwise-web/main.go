@@ -20,7 +20,9 @@ func main() {
 	ctx, logger, cleanup := o11y.Init(context.Background(), serviceName, serviceVersion)
 	defer cleanup()
 
-	webapi, _, err := initialize(ctx)
+	assetPath := env.GetVariableOrDefault(ctx, "DIWISEWEB_ASSET_PATH", "/opt/diwise/assets")
+
+	webapi, _, err := initialize(ctx, assetPath)
 	if err != nil {
 		fatal(ctx, "failed to initialize service", err)
 	}
@@ -34,13 +36,13 @@ func main() {
 	}
 }
 
-func initialize(ctx context.Context) (api.Api, application.WebApp, error) {
+func initialize(ctx context.Context, assetPath string) (api.Api, application.WebApp, error) {
 	app, err := application.New(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	api_, err := api.New(ctx, app)
+	api_, err := api.New(ctx, app, assetPath)
 	if err != nil {
 		return nil, nil, err
 	}

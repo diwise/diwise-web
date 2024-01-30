@@ -22,14 +22,14 @@ type impl struct {
 	router *chi.Mux
 }
 
-func New(ctx context.Context, app application.WebApp) (Api, error) {
+func New(ctx context.Context, app application.WebApp, assetPath string) (Api, error) {
 
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 
 	//logger := logging.GetFromContext(ctx)
 
-	assetLoader, _ := assets.NewLoader(ctx)
+	assetLoader, _ := assets.NewLoader(ctx, assets.BasePath(assetPath))
 
 	router.Get("/", func() http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {

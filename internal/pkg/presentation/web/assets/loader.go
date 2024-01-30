@@ -37,7 +37,7 @@ func BasePath(base string) LoaderOptionFunc {
 
 func NewLoader(ctx context.Context, opts ...LoaderOptionFunc) (Loader, error) {
 	loader := &impl{
-		basePath: "/Users/ismasarin/work/diwise/diwise-web/assets",
+		basePath: ".",
 		path2sha: map[string]string{},
 		assets:   map[string]Asset{},
 	}

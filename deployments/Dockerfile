@@ -20,7 +20,7 @@ RUN go mod download
 COPY . .
 
 RUN templ generate
-RUN ./tailwindcss -c ./css/tailwind.config.js -i ./css/input.css -o ./css/output.css
+RUN ./tailwindcss -c ./internal/pkg/presentation/web/css/tailwind.config.js -i ./internal/pkg/presentation/web/css/input.css -o ./assets/css/diwise.css
 
 WORKDIR /app/cmd/diwise-web
 
@@ -31,8 +31,7 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal
 WORKDIR /opt/diwise
 
 COPY --from=builder --chown=1001 /app/cmd/diwise-web/diwise-web /opt/diwise
-COPY --from=builder --chown=1001 /app/css/output.css /opt/diwise/css/output.css
-COPY --from=builder --chown=1001 /app/js/htmx.min.js /opt/diwise/js/htmx.min.js
+COPY --from=builder --chown=1001 /app/assets /opt/diwise/assets
 
 RUN chown 1001 /opt/diwise
 
