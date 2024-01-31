@@ -4,6 +4,57 @@ import (
     "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 )
 
-templ Sensors(asset assets.AssetLoaderFunc) {
+templ SearchField() {
+    <div class="w-[237px] h-12 flex-col justify-center items-start gap-2 inline-flex">
+        <div class="self-stretch pl-5 pr-4 py-3 bg-gray-900 bg-opacity-50 rounded-xl border border-white border-opacity-50 justify-start items-center gap-2 inline-flex">
+            <div class="w-[22px] h-[22px]">
+                <svg class="w-[22px] h-[22px] fill-[#e5e5e5] dark:fill-zinc-600">
+                    @templ.Raw(iconSVG("search"))
+                </svg>
+            </div>
+            <div class="grow shrink basis-0 text-white text-opacity-30 text-lg font-normal font-sans leading-normal inline-flex">
+                <input
+                    class="w-[175px] rounded-xl bg-zinc-700"
+                    type="search"
+                    placeholder="  Sök"
+                    />
+            </div>
+        </div>
+    </div>
+}
 
+templ PrimaryButton(title string) {
+    <div class="w-[200px] h-10 pl-[18px] pr-4 py-2 bg-amber-700 rounded-xl justify-center items-center gap-2 inline-flex">
+        <div class="text-white text-base font-bold font-sans leading-normal">
+            { title }
+        </div>
+        <div class="w-[18px] h-[18px]">
+            <svg class="w-[18px] h-[18px] fill-[#e5e5e5] dark:fill-zinc-600">
+                @templ.Raw(iconSVG("chevron-down"))
+            </svg>
+        </div>
+    </div>
+}
+
+templ SecondaryButton(title string) {
+    <div class="w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-white border-opacity-30 bg-gray-900 bg-opacity-20 dark:bg-white dark:bg-opacity-30 justify-center items-center gap-2 inline-flex">
+    <svg class="w-[18px] h-[18px] fill-[#e5e5e5] dark:fill-zinc-600">
+        @templ.Raw(iconSVG("filter"))
+    </svg>
+    <div class="text-neutral-200 text-base font-bold font-sans leading-normal">
+        { title }
+    </div>
+    </div>
+}
+
+templ Sensors(asset assets.AssetLoaderFunc) {
+    <div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
+        <div class="w-full h-12 justify-between items-center inline-flex">
+            <div class="inline-flex justify-start items-center gap-[34px]">
+                @SearchField()
+                @SecondaryButton("Filter")
+            </div>
+            @PrimaryButton("Lägg till sensor")
+        </div>
+    </div>
 }
