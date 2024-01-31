@@ -6,6 +6,7 @@ require (
 	github.com/a-h/templ v0.2.543
 	github.com/diwise/service-chassis v0.0.0-20240124164913-4f5fdbb597cb
 	github.com/go-chi/chi/v5 v5.0.11
+	github.com/google/uuid v1.3.1
 )
 
 require (

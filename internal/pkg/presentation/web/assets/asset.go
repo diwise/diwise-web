@@ -33,6 +33,7 @@ func contentTypeFromFileName(filename string) string {
 
 	contentType, ok := map[string]string{
 		".css": "text/css",
+		".ico": "image/x-icon",
 		".js":  "text/javascript",
 		".png": "image/png",
 		".svg": "image/svg+xml",

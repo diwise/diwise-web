@@ -3,138 +3,205 @@ package components
 import (
     "fmt"
     "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	"strings"
 )
 
 templ SectionDivider(titel string) {
     <div class="self-stretch justify-start items-center gap-2 inline-flex">
-        <div class="text-neutral-800 text-lg font-bold font-heading leading-normal">{titel}</div>
+        <div class="text-neutral-800 dark:text-neutral-300 text-lg font-bold font-heading leading-normal">{titel}</div>
         <div class="grow shrink basis-0 flex-col justify-start items-start gap-2 inline-flex">
-            <div class="self-stretch h-px bg-gray-900 bg-opacity-30"></div>
+            <div class="self-stretch h-px bg-gray-900 dark:bg-white bg-opacity-30"></div>
         </div>
     </div>
 }
 
-templ MenuSegment(title, icon string, asset assets.AssetLoaderFunc, selected bool) {
-    if selected {
-        <div class="self-stretch px-3.5 py-2.5 bg-amber-700 rounded-lg justify-start items-center gap-2 inline-flex">
-            <div class="w-5 h-5 relative">
-                <img src={ asset(fmt.Sprintf("/icons/%s.svg", icon)).Path() } />
-            </div>
-            <div class="text-white text-base font-bold font-sans leading-normal">{title}</div>
+var icons = map[string]string{
+    "alert-triangle": "<path fill-rule=\"evenodd\" d=\"M8.733 1.995a2.5 2.5 0 0 1 3.433.926v.001l6.664 11.661v.002a2.5 2.5 0 0 1-2.162 3.748H3.337a2.5 2.5 0 0 1-2.185-3.748l.001-.002 6.664-11.66V2.92a2.5 2.5 0 0 1 .916-.926Zm1.259 1.327a.833.833 0 0 0-.725.422l-.002.003-6.668 11.67a.834.834 0 0 0 .729 1.25h13.34a.833.833 0 0 0 .72-1.25l-.001-.004-6.667-11.666-.001-.003a.833.833 0 0 0-.725-.422Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M10 6.667c.46 0 .833.373.833.833v3.333a.833.833 0 0 1-1.666 0V7.5c0-.46.373-.833.833-.833ZM9.167 14.167c0-.46.373-.834.833-.834h.008a.833.833 0 0 1 0 1.667H10a.833.833 0 0 1-.833-.833Z\" clip-rule=\"evenodd\"/>",
+    "arrow-right": "<path fill-rule=\"evenodd\" d=\"M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z\" clip-rule=\"evenodd\"/>",
+    "cog": "<g fill-rule=\"evenodd\" clip-path=\"url(#a)\" clip-rule=\"evenodd\"><path d=\"M4.697 4.697a7.5 7.5 0 1 1 10.606 10.606A7.5 7.5 0 0 1 4.697 4.697ZM10 4.167a5.833 5.833 0 1 0 0 11.666 5.833 5.833 0 0 0 0-11.666Z\"/><path d=\"M8.232 8.232a2.5 2.5 0 1 1 3.536 3.536 2.5 2.5 0 0 1-3.536-3.536ZM10 9.167a.833.833 0 1 0 0 1.666.833.833 0 0 0 0-1.666ZM10 .833c.46 0 .833.373.833.834v1.666a.833.833 0 0 1-1.666 0V1.667c0-.46.373-.834.833-.834ZM10 15.833c.46 0 .833.373.833.834v1.666a.833.833 0 0 1-1.666 0v-1.666c0-.46.373-.834.833-.834ZM12.916 15.053a.833.833 0 0 1 1.139.305l.833 1.441a.833.833 0 0 1-1.443.835l-.833-1.442a.834.834 0 0 1 .304-1.139Z\"/><path d=\"M5.417 2.062a.833.833 0 0 1 1.138.305l3.333 5.775a.833.833 0 1 1-1.443.833L5.112 3.2a.833.833 0 0 1 .305-1.138ZM15.053 12.916a.834.834 0 0 1 1.139-.304l1.442.833a.833.833 0 1 1-.835 1.443l-1.441-.833a.833.833 0 0 1-.305-1.139ZM2.062 5.416A.833.833 0 0 1 3.2 5.112l1.442.833a.833.833 0 1 1-.834 1.443l-1.442-.833a.833.833 0 0 1-.304-1.139ZM10.833 10c0-.46.373-.833.834-.833h6.666a.833.833 0 0 1 0 1.666h-6.666a.833.833 0 0 1-.834-.833ZM.833 10c0-.46.373-.833.834-.833h1.666a.833.833 0 0 1 0 1.666H1.667A.833.833 0 0 1 .833 10ZM17.938 5.416a.833.833 0 0 1-.304 1.139l-1.442.833a.833.833 0 0 1-.834-1.443l1.441-.833a.833.833 0 0 1 1.14.304ZM4.946 12.916a.833.833 0 0 1-.304 1.139l-1.442.833a.833.833 0 0 1-.834-1.443l1.442-.833a.833.833 0 0 1 1.138.304ZM14.584 2.062c.398.23.534.74.304 1.138l-.833 1.442a.833.833 0 1 1-1.443-.834l.833-1.442a.833.833 0 0 1 1.139-.304ZM9.583 10.72c.399.23.535.74.305 1.138l-3.333 5.775a.833.833 0 1 1-1.443-.833l3.333-5.775a.833.833 0 0 1 1.138-.305Z\"/></g><defs><clipPath id=\"a\"><path d=\"M0 0h20v20H0z\"/></clipPath></defs>",
+    "home": "<path fill-rule=\"evenodd\" d=\"M9.488 1.009a.833.833 0 0 1 1.024 0l7.5 5.833c.203.158.321.4.321.658v9.167a2.5 2.5 0 0 1-2.5 2.5H4.167a2.5 2.5 0 0 1-2.5-2.5V7.5c0-.257.118-.5.321-.658l7.5-5.833ZM3.333 7.907v8.76a.833.833 0 0 0 .834.833h11.666a.833.833 0 0 0 .834-.833v-8.76L10 2.722 3.333 7.907Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M6.667 10c0-.46.373-.833.833-.833h5c.46 0 .833.373.833.833v8.333a.833.833 0 0 1-1.666 0v-7.5H8.333v7.5a.833.833 0 0 1-1.666 0V10Z\" clip-rule=\"evenodd\"/>",
+    "log-out": "<path fill-rule=\"evenodd\" d=\"M4.167 3.333a.833.833 0 0 0-.834.834v11.666a.833.833 0 0 0 .834.834H7.5a.833.833 0 0 1 0 1.666H4.167a2.5 2.5 0 0 1-2.5-2.5V4.167a2.5 2.5 0 0 1 2.5-2.5H7.5a.833.833 0 1 1 0 1.666H4.167ZM12.744 5.244a.833.833 0 0 1 1.179 0l4.166 4.167a.833.833 0 0 1 0 1.178l-4.166 4.167a.833.833 0 0 1-1.179-1.178L16.322 10l-3.578-3.577a.833.833 0 0 1 0-1.179Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M6.667 10c0-.46.373-.833.833-.833h10a.833.833 0 0 1 0 1.666h-10A.833.833 0 0 1 6.667 10Z\" clip-rule=\"evenodd\"/>",
+    "moon": "<path fill-rule=\"evenodd\" d=\"M8.228 3.573a6.667 6.667 0 1 0 8.199 8.2 6.136 6.136 0 0 1-8.199-8.2ZM5.37 3.071A8.333 8.333 0 0 1 10 1.667a.833.833 0 0 1 .59 1.422 4.47 4.47 0 0 0 6.32 6.322.833.833 0 0 1 1.423.59A8.333 8.333 0 1 1 5.37 3.07Z\" clip-rule=\"evenodd\"/>",
+    "rss": "<path fill-rule=\"evenodd\" d=\"M2.5 9.167c0-.46.373-.834.833-.834a8.333 8.333 0 0 1 8.334 8.334.833.833 0 0 1-1.667 0A6.667 6.667 0 0 0 3.333 10a.833.833 0 0 1-.833-.833Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M2.5 3.333c0-.46.373-.833.833-.833A14.167 14.167 0 0 1 17.5 16.667a.833.833 0 0 1-1.667 0 12.5 12.5 0 0 0-12.5-12.5.833.833 0 0 1-.833-.834ZM2.5 15.833a1.667 1.667 0 1 1 3.333 0 1.667 1.667 0 0 1-3.333 0Z\" clip-rule=\"evenodd\"/>",
+    "send-to-back": "<g fill-rule=\"evenodd\" clip-path=\"url(#a)\" clip-rule=\"evenodd\"><path d=\"M13.333 12.5a.833.833 0 0 0-.833.833v3.334c0 .46.373.833.833.833h3.334c.46 0 .833-.373.833-.833v-3.334a.833.833 0 0 0-.833-.833h-3.334Zm-2.5.833a2.5 2.5 0 0 1 2.5-2.5h3.334a2.5 2.5 0 0 1 2.5 2.5v3.334a2.5 2.5 0 0 1-2.5 2.5h-3.334a2.5 2.5 0 0 1-2.5-2.5v-3.334ZM3.333 2.5a.833.833 0 0 0-.833.833v3.334c0 .46.373.833.833.833h3.334c.46 0 .833-.373.833-.833V3.333a.833.833 0 0 0-.833-.833H3.333Zm-2.5.833a2.5 2.5 0 0 1 2.5-2.5h3.334a2.5 2.5 0 0 1 2.5 2.5v3.334a2.5 2.5 0 0 1-2.5 2.5H3.333a2.5 2.5 0 0 1-2.5-2.5V3.333ZM5.833 10.833c.46 0 .834.373.834.834v.833a.833.833 0 0 0 .833.833h.833a.833.833 0 1 1 0 1.667H7.5A2.5 2.5 0 0 1 5 12.5v-.833c0-.46.373-.834.833-.834ZM10.833 5.833c0-.46.373-.833.834-.833h.833A2.5 2.5 0 0 1 15 7.5v.833a.833.833 0 1 1-1.667 0V7.5a.833.833 0 0 0-.833-.833h-.833a.833.833 0 0 1-.834-.834Z\"/></g><defs><clipPath id=\"a\"><path d=\"M0 0h20v20H0z\"/></clipPath></defs>",
+    "settings-outline": "<path d=\"M17.43 10.98c.04-.32.07-.64.07-.98 0-.34-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98L12.49.42A.488.488 0 0 0 12 0H8c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1a.566.566 0 0 0-.18-.03c-.17 0-.34.09-.43.25l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98L.46 12.63c-.19.15-.24.42-.12.64l2 3.46a.5.5 0 0 0 .61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.06.02.12.03.18.03.17 0 .34-.09.43-.25l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65Zm-1.98-1.71c.04.31.05.52.05.73 0 .21-.02.43-.05.73l-.14 1.13.89.7 1.08.84-.7 1.21-1.27-.51-1.04-.42-.9.68c-.43.32-.84.56-1.25.73l-1.06.43-.16 1.13-.2 1.35H9.3l-.19-1.35-.16-1.13-1.06-.43c-.43-.18-.83-.41-1.23-.71l-.91-.7-1.06.43-1.27.51-.7-1.21 1.08-.84.89-.7-.14-1.13c-.03-.31-.05-.54-.05-.74 0-.2.02-.43.05-.73l.14-1.13-.89-.7-1.08-.84.7-1.21 1.27.51 1.04.42.9-.68c.43-.32.84-.56 1.25-.73l1.06-.43.16-1.13L9.3 2h1.39l.19 1.35.16 1.13 1.06.43c.43.18.83.41 1.23.71l.91.7 1.06-.43 1.27-.51.7 1.21-1.07.85-.89.7.14 1.13ZM10 6c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4Zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2Z\"/>",
+    "sun-medium": "<path fill-rule=\"evenodd\" d=\"M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-5 3a5 5 0 1 1 10 0 5 5 0 0 1-10 0ZM12 2a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1ZM12 19a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1ZM2 12a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1ZM19 12a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2h-1a1 1 0 0 1-1-1ZM19.071 4.929a1 1 0 0 1 0 1.414l-.707.707a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0ZM7.05 16.95a1 1 0 0 1 0 1.414l-.707.707a1 1 0 0 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0ZM4.929 4.929a1 1 0 0 1 1.414 0l.707.707A1 1 0 0 1 5.636 7.05l-.707-.707a1 1 0 0 1 0-1.414ZM16.95 16.95a1 1 0 0 1 1.414 0l.707.707a1 1 0 0 1-1.414 1.414l-.707-.707a1 1 0 0 1 0-1.414Z\" clip-rule=\"evenodd\"/>",
+}
+
+func iconSVG(name string) string {
+    svg, ok := icons[name]
+    if !ok {
+        fmt.Println("svg icon", name, "not found!")
+        return icons["rss"]
+    }
+    return svg
+}
+
+templ SVG(name string) {
+    <svg class="w-5 h-5 fill-[#1f1f25] dark:fill-zinc-100">
+        @templ.Raw(iconSVG(name))
+    </svg>
+}
+
+templ SVG24(name string) {
+    <svg class="w-6 h-6 fill-[#1f1f25] dark:fill-zinc-100">
+        @templ.Raw(iconSVG(name))
+    </svg>
+}
+
+templ SVG32(name string) {
+    <svg class="w-8 h-8 fill-[#1f1f25] dark:fill-zinc-100">
+        @templ.Raw(iconSVG(name))
+    </svg>
+}
+
+templ MenuSegment(title, slug, icon string, asset assets.AssetLoaderFunc, selected bool) {
+    <div class={ "self-stretch px-3.5 py-2.5 justify-start items-center gap-2 inline-flex",
+        templ.KV("rounded-xl", !selected),
+        templ.KV("rounded-lg", selected), templ.KV("bg-amber-700", selected) }
+         hx-get={ slug } hx-target="#main-content" hx-replace-url="true">
+
+        @SVG(icon)
+        
+        <div class={ "dark:text-neutral-300 text-base font-bold font-sans leading-normal",
+            templ.KV("text-neutral-800", !selected),
+            templ.KV("text-white", selected) }>
+            {title}
         </div>
-    } else {
-        <div class="self-stretch px-3.5 py-2.5 rounded-xl justify-start items-center gap-2 inline-flex">
-            <div class="w-5 h-5 relative">
-                <img src={ asset(fmt.Sprintf("/icons/%s.svg", icon)).Path() } />
+    </div>
+}
+
+templ Switch(isOn bool, onclick templ.ComponentScript) {
+    <div class="flex h-8 w-14 min-w-14 p-1.5 items-end dark:flex-col-reverse gap-1 rounded-[56px] bg-gray-900 bg-opacity-20 dark:bg-white dark:bg-opacity-30" onclick={ onclick }>
+        <div class="flex h-5 w-5 p-[3.33px] bg-gray-900 bg-opacity-60 dark:bg-white dark:bg-opacity-90 rounded-full justify-center items-center">
+            <div class="w-[13.33px] h-[13.33px] px-[1.67px] pt-[2.78px] pb-[3.33px] justify-center items-center inline-flex">
+                <svg class="h-[14px] min-w-[14px] fill-zinc-50 dark:fill-neutral-800">
+                    <path fill-rule="evenodd" d="M11.837 3.274a.556.556 0 0 1 0 .786l-6.11 6.11a.555.555 0 0 1-.787 0L2.163 7.394a.556.556 0 1 1 .785-.786l2.385 2.385 5.719-5.718a.556.556 0 0 1 .785 0Z" clip-rule="evenodd"/>
+                </svg>
             </div>
-            <div class="text-neutral-800 text-base font-bold font-sans leading-normal">{title}</div>
         </div>
+    </div>
+}
+
+script onPageLoad() {
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.body.classList.add('dark')
     }
 }
 
-templ Switch(isOn bool) {
-    <div class="flex h-8 w-14 min-w-14 p-1.5 items-center gap-1 rounded-[56px] bg-gray-900 bg-opacity-20">
-        <div class="flex h-5 w-5 p-[3.33px] bg-gray-900 bg-opacity-60 rounded-full justify-center items-center">
-            <div class="w-[13.33px] h-[13.33px] px-[1.67px] pt-[2.78px] pb-[3.33px] opacity-0 justify-center items-center inline-flex">
-            </div>
-        </div>
-    </div>
+script toggleDarkMode() {
+    if (localStorage.theme === 'light') {
+        document.body.classList.add('dark')
+        localStorage.theme = 'dark'
+    } else {
+        document.body.classList.remove('dark')
+        localStorage.theme = 'light'
+    }
 }
 
 templ DarkModeToggle(isOn bool, asset assets.AssetLoaderFunc) {
       <div class="px-3.5 justify-start items-center gap-3 inline-flex">
 
-        <div class="w-6 h-6 relative">
-            <img src={ asset("/icons/sun-medium.svg").Path() } />
-        </div>
+        @SVG24("sun-medium")
 
-        @Switch(isOn)
+        @Switch(isOn, toggleDarkMode())
 
-        <div class="w-5 h-5 relative">
-            <img src={ asset("/icons/moon.svg").Path() } />
-        </div>
+        @SVG("moon")
 
       </div>
 }
 
 templ Badge(count string) {
-    <div class="w-5 h-5 bg-gray-900 bg-opacity-95 rounded-lg justify-center items-center flex">
-        <div class="w-6 h-6 text-center text-white text-sm font-bold font-sans leading-6">
+    <div class="w-5 h-5 bg-gray-900 dark:bg-white bg-opacity-95 rounded-lg justify-center items-center flex">
+        <div class="w-6 h-6 text-center text-white dark:text-neutral-800 text-sm font-bold font-sans leading-6">
             {count}
         </div>
     </div>
 }
 
 templ OverviewCard(title, icon, count string, asset assets.AssetLoaderFunc) {
-    <div class="relative min-w-[263px] w-[263px] px-6 pt-4 pb-2 bg-white rounded-[15px] shadow flex-col justify-start items-start gap-[7px] inline-flex">
+    <div class="relative min-w-[263px] w-[263px] px-6 pt-4 pb-2 bg-white dark:bg-gray-800 rounded-[15px] shadow flex-col justify-start items-start gap-[7px] inline-flex">
       <div class="flex flex-col justify-center items-start gap-4">
-        <div class="w-8 h-8 relative">
-            <img src={ asset(fmt.Sprintf("/icons/%s.svg", icon)).Path() } />
-        </div>
-        <div class="text-neutral-800 text-[32px] font-bold font-heading leading-10">
+
+        @SVG32(icon)
+
+        <div class="text-neutral-800 dark:text-neutral-200 text-[32px] font-bold font-heading leading-10">
             {count}
         </div>
       </div>
-      <div class="text-zinc-700 text-lg font-normal font-sans leading-relaxed">
+      <div class="text-zinc-700 dark:text-zinc-200 text-lg font-normal font-sans leading-relaxed">
         {title}
       </div>
       <div class="absolute right-2 bottom-[5px] w-6 h-6 flex-col justify-start items-start inline-flex">
-        <img src={ asset("/icons/arrow-right.svg").Path() } />
+
+        @SVG24("arrow-right")
+
       </div>
     </div>
 }
 
 templ TableColumnHeader(title string) {
     <div class="grow shrink basis-0 self-stretch px-4 py-3 rounded-lg justify-start items-center gap-1 flex">
-        <div class="text-zinc-700 text-sm font-bold font-sans leading-none">
+        <div class="text-zinc-700 dark:text-neutral-200 text-sm font-bold font-sans leading-none">
             {title}
         </div>
     </div>
 }
 
 templ TableRow(name, deveui, network, battery, lastSeen string, active bool, alarms int, asset assets.AssetLoaderFunc) {
-      <div class="self-stretch py-1 bg-white border-b border-gray-900 border-opacity-30 justify-start items-start inline-flex">
+      <div class="self-stretch py-1 bg-white dark:bg-gray-800 border-b border-gray-900 dark:border-white border-opacity-30 justify-start items-start inline-flex">
         <div class="grow shrink basis-0 h-12 px-[18px] py-3 rounded-lg justify-start items-center gap-2 flex">
-          <div class="grow shrink basis-0 text-zinc-700 text-sm font-bold font-sans leading-[18px]">{name}</div>
+          <div class="grow shrink basis-0 text-zinc-700 dark:text-neutral-200 text-sm font-bold font-sans leading-[18px]">{name}</div>
         </div>
         <div class="grow shrink basis-0 h-12 px-[18px] py-3 rounded-lg justify-start items-center gap-2 flex">
         if active {
-            <div class="px-2.5 py-1 bg-[#c9e4d7] rounded-full justify-start items-center gap-1.5 flex">
-                <div class="text-emerald-900 text-sm font-bold font-sans leading-none">Aktiv</div>
+            <div class="px-2.5 py-1 bg-[#c9e4d7] dark:bg-emerald-800 rounded-full justify-start items-center gap-1.5 flex">
+                <div class="text-emerald-900 dark:text-gray-200 text-sm font-bold font-sans leading-none">Aktiv</div>
             </div>
         } else {
-          <div class="px-2.5 py-1 bg-gray-900 bg-opacity-10 rounded-full justify-start items-center gap-1.5 flex">
-            <div class="text-neutral-800 text-sm font-bold font-sans leading-none">Inaktiv</div>
+          <div class="px-2.5 py-1 bg-gray-900 dark:bg-white bg-opacity-10 dark:bg-opacity-20 rounded-full justify-start items-center gap-1.5 flex">
+            <div class="text-neutral-800 dark:text-neutral-300 text-sm font-bold font-sans leading-none">Inaktiv</div>
           </div>
         }
         </div>
         <div class="grow shrink basis-0 h-12 px-[18px] py-[15px] rounded-lg justify-start items-center gap-2 flex">
-          <div class="text-zinc-700 text-sm font-normal font-sans leading-[18px]">{deveui}</div>
+          <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{deveui}</div>
         </div>
         <div class="grow shrink basis-0 h-12 px-[18px] py-[15px] rounded-lg justify-start items-center gap-2 flex">
-          <div class="text-zinc-700 text-sm font-normal font-sans leading-[18px]">{network}</div>
+          <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{network}</div>
         </div>
         <div class="grow shrink basis-0 h-12 px-[18px] py-[15px] rounded-lg justify-start items-center gap-2 flex">
-          <div class="text-zinc-700 text-sm font-normal font-sans leading-[18px]">{battery}</div>
+          <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{battery}</div>
         </div>
         <div class="grow shrink basis-0 h-12 px-[18px] py-[15px] rounded-lg justify-start items-center gap-2 flex">
-          <div class="text-zinc-700 text-sm font-normal font-sans leading-[18px]">{lastSeen}</div>
+          <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{lastSeen}</div>
         </div>
         <div class="grow shrink basis-0 h-12 px-[18px] py-3 rounded-lg justify-start items-center gap-2 flex">
-          <div class="w-6 h-6 relative">
-            if alarms > 0 {
-                <img src={ asset("/icons/alert-triangle.svg").Path() } />
-            }
-          </div>
+        if alarms > 0 {
+            @SVG24("alert-triangle")
+        }
         </div>
       </div>
 }
 
-templ Body(asset assets.AssetLoaderFunc) {
-    <body>
-    <div class="w-[1512px] h-[982px] bg-zinc-50">
+func reloaderEndpoint(version string) string {
+    return fmt.Sprintf("/version/%s", version)
+}
 
-    <div class="w-64 h-[982px] px-3 py-8 left-0 top-0 absolute bg-zinc-100 shadow flex-col justify-start items-start gap-3 inline-flex">
+func reloaderFrequency(version string) string {
+    if strings.HasPrefix(version, "develop-") {
+        return "every 1s"
+    }
+
+    return "every 60s"
+}
+
+templ Body(version string, asset assets.AssetLoaderFunc, mainContent templ.Component) {
+    <body id="body" onload={ onPageLoad() }>
+    <div id="reloader" hx-get={ reloaderEndpoint(version) } hx-trigger={ reloaderFrequency(version) }></div>
+    <div class="w-[1512px] h-[982px] bg-zinc-50 dark:bg-neutral-800">
+
+    <div class="w-64 h-[982px] px-3 py-8 left-0 top-0 absolute bg-zinc-100 dark:bg-gray-800 shadow flex-col justify-start items-start gap-3 inline-flex">
     <div class="self-stretch h-[859px] flex-col justify-start items-start gap-20 flex">
 
       <div class="w-36 h-[63px] justify-center items-center inline-flex">
@@ -145,22 +212,20 @@ templ Body(asset assets.AssetLoaderFunc) {
 
         @SectionDivider("Översikt")
 
-        @MenuSegment("Hem", "home", asset, true)
-        @MenuSegment("Sensorer", "rss", asset, false)
-        @MenuSegment("Funktioner", "send-to-back", asset, false)
+        @MenuSegment("Hem", "/home", "home", asset, true)
+        @MenuSegment("Sensorer", "/sensors", "rss", asset, false)
+        @MenuSegment("Funktioner", "/functions", "send-to-back", asset, false)
 
         <div class="self-stretch px-3.5 py-2.5 rounded-xl justify-between items-center inline-flex">
           <div class="justify-start items-center gap-2 flex">
-            <div class="w-5 h-5 relative">
-                <img src={ asset("/icons/alert-triangle.svg").Path() } />
-            </div>
-            <div class="text-neutral-800 text-base font-bold font-sans leading-normal">Larm</div>
+            @SVG("alert-triangle")
+            <div class="text-neutral-800 dark:text-neutral-300 text-base font-bold font-sans leading-normal">Larm</div>
           </div>
 
           @Badge("5")
         </div>
 
-        @MenuSegment("Integrationer", "cog", asset, false)
+        @MenuSegment("Integrationer", "/integrations", "cog", asset, false)
 
       </div>
 
@@ -168,8 +233,8 @@ templ Body(asset assets.AssetLoaderFunc) {
 
         @SectionDivider("Konto")
 
-        @MenuSegment("Inställningar", "settings-outline", asset, false)
-        @MenuSegment("Logga ut", "log-out", asset, false)
+        @MenuSegment("Inställningar", "/settings", "settings-outline", asset, false)
+        @MenuSegment("Logga ut", "/logout", "log-out", asset, false)
 
       </div>
 
@@ -179,111 +244,8 @@ templ Body(asset assets.AssetLoaderFunc) {
 
   </div>
 
-  <div class="w-[1108px] h-[340px] left-[320px] top-[568px] absolute rounded-2xl shadow flex-col justify-start items-start inline-flex">
-    <div class="self-stretch h-14 py-1 rounded-t-2xl bg-white border-b border-neutral-800 justify-start items-start inline-flex">
-      @TableColumnHeader("Namn")
-      @TableColumnHeader("Status")
-      @TableColumnHeader("DevEUI")
-      @TableColumnHeader("Nät")
-      @TableColumnHeader("Batterinivå")
-      @TableColumnHeader("Senaste värde")
-      @TableColumnHeader("Larm")
-    </div>
-    <div class="self-stretch h-[284px] flex-col justify-start items-start gap-px flex">
-      @TableRow("Fregattgatan 2", "70b3d52c0001a4b4", "LoRa", "25% (30 dagar)", "2024-01-29, 12:00", true, 5, asset)
-      @TableRow("air-sens-07", "a81758fffe051d02", "LoRa", "25% (30 dagar)", "2022-12-24, 12:00", false, 0, asset)
-      @TableRow("06076898", "8c83fc05005cb9e2", "LoRa", "25% (30 dagar)", "2024-01-30, 10:27", true, 0, asset)
-      @TableRow("EM500_UDL_1", "24e124126d154470", "LoRa", "25% (30 dagar)", "2024-01-30, 13:51", true, 2, asset)
-      @TableRow("NIAB_lidar_50001c", "3231383771308416", "LoRa", "25% (30 dagar)", "2024-01-29, 23:57", true, 5, asset)
-    </div>
-    <div class="self-stretch h-2 py-1 rounded-b-2xl bg-white justify-start items-start inline-flex">
-    </div>
-  </div>
-
-  <div class="left-[320px] top-[522px] absolute justify-start items-center gap-4 inline-flex">
-    <div class="text-black text-2xl font-bold font-heading leading-loose">Larm</div>
-    <div class="bg-gray-900 bg-opacity-10 rounded-lg justify-start items-center flex">
-      <div class="w-6 h-6 text-center text-neutral-800 text-sm font-bold font-sans leading-6">5</div>
-    </div>
-  </div>
-
-  <div class="left-[324px] top-[73px] absolute justify-start items-center gap-4 inline-flex">
-    <div class="text-black text-2xl font-bold font-heading leading-loose">Översikt</div>
-  </div>
-  <div class="left-[938px] top-[73px] absolute justify-start items-center gap-4 inline-flex">
-    <div class="text-black text-2xl font-bold font-heading leading-loose">Status</div>
-  </div>
-
-  <div class="w-[581px] left-[320px] top-[115px] absolute justify-start items-start gap-10 inline-flex flex-wrap">
-
-    @OverviewCard("Aktiva sensorer", "rss", "22 358", asset)
-    @OverviewCard("Inaktiva sensorer", "rss", "150", asset)
-    @OverviewCard("Inaktiva sensorer", "rss", "150", asset)
-    @OverviewCard("Inaktiva funktioner", "send-to-back", "6", asset)
-
-  </div>
-
-  <div class="h-[333px] w-[497px] p-8 left-[940px] top-[115px] absolute bg-white rounded-[15px] shadow flex-col justify-start items-start gap-4 inline-flex">
-    <div class="justify-start items-start gap-4 inline-flex">
-      <div class="justify-start items-center gap-1 flex">
-        <div class="w-2 h-2 bg-green-700 rounded-full"></div>
-        <div class="text-black text-sm font-normal font-sans leading-[18px]">Aktiva</div>
-      </div>
-      <div class="justify-start items-center gap-1 flex">
-        <div class="w-2 h-2 bg-red-700 rounded-full"></div>
-        <div class="text-black text-sm font-normal font-sans leading-[18px]">Inaktiva</div>
-      </div>
-    </div>
-
-    <div class="flex flex-col justify-start items-end">
-      <div class="flex-col justify-start items-end gap-[19px] flex">
-        <div class="justify-start items-center gap-1.5 inline-flex">
-          <div class="text-neutral-500 text-sm font-normal font-sans leading-[18px]">25</div>
-          <div class="w-[411px] h-[0px] border border-zinc-400"></div>
-        </div>
-        <div class="justify-start items-center gap-1.5 inline-flex">
-          <div class="text-neutral-500 text-sm font-normal font-sans leading-[18px]">20</div>
-          <div class="w-[411px] h-[0px] border border-zinc-400"></div>
-        </div>
-        <div class="relative w-[433px] justify-end items-center gap-1.5 inline-flex">
-          <div class="w-4 text-neutral-500 text-sm font-normal font-sans leading-[18px]">15</div>
-          <div class="w-[411px] h-[0px] border border-zinc-400"></div>
-          <div class="w-[408px] h-24 absolute right-[3px] bottom-[-55px]">
-            <svg xmlns="http://www.w3.org/2000/svg" width="410" height="98" viewBox="0 0 410 98" fill="none">
-              <path d="M1 1L5 6.38895C9 11.7779 17 22.5558 25 25.6675C33 28.7791 41 24.2245 49 32.2111C57 40.1976 65 60.7252 73 73.7998C81 86.8744 89 92.496 97 91.2042C105 89.9125 113 81.7074 121 71.498C129 61.2886 137 49.0747 145 46.6824C153 44.2901 161 51.7192 169 46.3346C177 40.95 185 22.7517 193 31.2522C201 39.7526 209 74.9518 217 89.1059C225 103.26 233 96.3689 241 84.208C249 72.0471 257 54.6165 265 47.3198C273 40.0231 281 42.8603 289 40.9557C297 39.0511 305 32.4045 313 44.1837C321 55.9629 329 86.1679 337 93.6305C345 101.093 353 85.8134 361 76.6028C369 67.3922 377 64.2508 385 55.3172C393 46.3835 401 31.6576 405 24.2946C406.562 21.4192 409 16.9317 409 16.9317" stroke="#B92424" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="w-[409px] h-[182px] absolute right-[1px] bottom-[-99px]">
-            <svg xmlns="http://www.w3.org/2000/svg" width="411" height="184" viewBox="0 0 411 184" fill="none">
-              <path d="M1 1L7.81667 8.10549C14.6333 15.211 28.2667 29.422 41.9 35.5117C55.5333 41.6014 69.1667 39.5698 82.8 50.8238C96.4333 62.0777 110.067 86.6171 123.7 103.261C137.333 119.905 150.967 128.654 164.6 130.079C178.233 131.503 191.867 125.605 205.5 117.583C219.133 109.561 232.767 99.4155 246.4 99.6745C260.033 99.9336 273.667 110.597 287.3 107.686C300.933 104.775 314.567 88.2904 328.2 100.089C341.833 111.887 355.467 151.969 369.1 169.756C382.733 187.544 396.367 183.037 403.183 180.784L410 178.53" stroke="#12874E" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-        </div>
-        <div class="w-[433px] justify-end items-center gap-1.5 inline-flex">
-          <div class="w-4 text-neutral-500 text-sm font-normal font-sans leading-[18px]">10</div>
-          <div class="w-[411px] h-[0px] border border-zinc-400"></div>
-        </div>
-        <div class="w-[433px] justify-end items-center gap-1.5 inline-flex">
-          <div class="w-4 text-neutral-500 text-sm font-normal font-sans leading-[18px]">5</div>
-          <div class="w-[411px] h-[0px] border border-zinc-400"></div>
-        </div>
-        <div class="w-[433px] justify-end items-center gap-1.5 inline-flex">
-          <div class="w-4 text-neutral-500 text-sm font-normal font-sans leading-[18px]">0</div>
-          <div class="w-[411px] h-[0px] border border-zinc-400"></div>
-        </div>
-      </div>
-
-      <div class="w-[411px] justify-start items-start gap-[26px] inline-flex">
-        <div class="text-neutral-500 text-sm font-normal font-sans leading-[18px]">08.00</div>
-        <div class="text-neutral-500 text-sm font-normal font-sans leading-[18px]">09.00</div>
-        <div class="text-neutral-500 text-sm font-normal font-sans leading-[18px]">10.00</div>
-        <div class="text-neutral-500 text-sm font-normal font-sans leading-[18px]">11.00</div>
-        <div class="text-neutral-500 text-sm font-normal font-sans leading-[18px]">12.00</div>
-        <div class="text-neutral-500 text-sm font-normal font-sans leading-[18px]">13.00</div>
-        <div class="text-neutral-500 text-sm font-normal font-sans leading-[18px]">14.00</div>
-      </div>
-
-    </div>
+  <div id="main-content">
+    @mainContent
   </div>
 
     </div>

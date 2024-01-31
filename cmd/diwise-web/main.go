@@ -17,12 +17,16 @@ const serviceName string = "diwise-web"
 
 func main() {
 	serviceVersion := buildinfo.SourceVersion()
+	if serviceVersion == "" {
+		serviceVersion = "develop"
+	}
+
 	ctx, logger, cleanup := o11y.Init(context.Background(), serviceName, serviceVersion)
 	defer cleanup()
 
 	assetPath := env.GetVariableOrDefault(ctx, "DIWISEWEB_ASSET_PATH", "/opt/diwise/assets")
 
-	webapi, _, err := initialize(ctx, assetPath)
+	webapi, _, err := initialize(ctx, serviceVersion, assetPath)
 	if err != nil {
 		fatal(ctx, "failed to initialize service", err)
 	}
@@ -36,13 +40,13 @@ func main() {
 	}
 }
 
-func initialize(ctx context.Context, assetPath string) (api.Api, application.WebApp, error) {
+func initialize(ctx context.Context, version, assetPath string) (api.Api, application.WebApp, error) {
 	app, err := application.New(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	api_, err := api.New(ctx, app, assetPath)
+	api_, err := api.New(ctx, app, version, assetPath)
 	if err != nil {
 		return nil, nil, err
 	}

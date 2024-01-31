@@ -4,7 +4,7 @@ import (
     "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 )
 
-templ StartPage(asset assets.AssetLoaderFunc) {
+templ StartPage(version string, asset assets.AssetLoaderFunc, mainContent templ.Component) {
     <!doctype html>
     <html>
         <head>
@@ -13,8 +13,9 @@ templ StartPage(asset assets.AssetLoaderFunc) {
             <script src={ asset("/js/htmx.min.js").Path() }></script>
             <link href={ asset("/css/diwise.css").Path() } rel="stylesheet" />
             <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet" />
+            <link rel="icon" type="image/x-icon" href={ asset("/icons/favicon.ico").Path() } />
             <title>diwise</title>
         </head>
-        @Body(asset)
+        @Body(version, asset, mainContent)
     </html>
 }
