@@ -5,6 +5,9 @@ module.exports = {
     darkMode: 'class',
     theme: {
       extend: {
+        colors: {
+          'err-prim-surf': '#fbc1c1',
+        },
         fontFamily: {
           heading: ['Raleway'],
           sans: ['Arial', 'sans-serif'],

@@ -2,8 +2,9 @@ package components
 
 import (
     "fmt"
+    "strings"
+
     "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"strings"
 )
 
 templ SectionDivider(titel string) {
@@ -17,12 +18,15 @@ templ SectionDivider(titel string) {
 
 var icons = map[string]string{
     "alert-triangle": "<path fill-rule=\"evenodd\" d=\"M8.733 1.995a2.5 2.5 0 0 1 3.433.926v.001l6.664 11.661v.002a2.5 2.5 0 0 1-2.162 3.748H3.337a2.5 2.5 0 0 1-2.185-3.748l.001-.002 6.664-11.66V2.92a2.5 2.5 0 0 1 .916-.926Zm1.259 1.327a.833.833 0 0 0-.725.422l-.002.003-6.668 11.67a.834.834 0 0 0 .729 1.25h13.34a.833.833 0 0 0 .72-1.25l-.001-.004-6.667-11.666-.001-.003a.833.833 0 0 0-.725-.422Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M10 6.667c.46 0 .833.373.833.833v3.333a.833.833 0 0 1-1.666 0V7.5c0-.46.373-.833.833-.833ZM9.167 14.167c0-.46.373-.834.833-.834h.008a.833.833 0 0 1 0 1.667H10a.833.833 0 0 1-.833-.833Z\" clip-rule=\"evenodd\"/>",
+    "arrow-left": "<g fill-rule=\"evenodd\" clip-rule=\"evenodd\"><path d=\"M11.09 3.577a.833.833 0 0 1 0 1.179L5.844 10l5.244 5.244a.833.833 0 0 1-1.178 1.179l-5.834-5.834a.833.833 0 0 1 0-1.178l5.834-5.834a.833.833 0 0 1 1.178 0Z\"/><path d=\"M3.833 10c0-.46.373-.833.834-.833h11.666a.833.833 0 0 1 0 1.666H4.667A.833.833 0 0 1 3.833 10Z\"/></g>",
     "arrow-right": "<path fill-rule=\"evenodd\" d=\"M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z\" clip-rule=\"evenodd\"/>",
     "chevron-down": "<path fill-rule=\"evenodd\" d=\"M3.97 6.22a.75.75 0 0 1 1.06 0L9 10.19l3.97-3.97a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 0 1 0-1.06Z\" clip-rule=\"evenodd\"/>",
     "cog": "<g fill-rule=\"evenodd\" clip-path=\"url(#a)\" clip-rule=\"evenodd\"><path d=\"M4.697 4.697a7.5 7.5 0 1 1 10.606 10.606A7.5 7.5 0 0 1 4.697 4.697ZM10 4.167a5.833 5.833 0 1 0 0 11.666 5.833 5.833 0 0 0 0-11.666Z\"/><path d=\"M8.232 8.232a2.5 2.5 0 1 1 3.536 3.536 2.5 2.5 0 0 1-3.536-3.536ZM10 9.167a.833.833 0 1 0 0 1.666.833.833 0 0 0 0-1.666ZM10 .833c.46 0 .833.373.833.834v1.666a.833.833 0 0 1-1.666 0V1.667c0-.46.373-.834.833-.834ZM10 15.833c.46 0 .833.373.833.834v1.666a.833.833 0 0 1-1.666 0v-1.666c0-.46.373-.834.833-.834ZM12.916 15.053a.833.833 0 0 1 1.139.305l.833 1.441a.833.833 0 0 1-1.443.835l-.833-1.442a.834.834 0 0 1 .304-1.139Z\"/><path d=\"M5.417 2.062a.833.833 0 0 1 1.138.305l3.333 5.775a.833.833 0 1 1-1.443.833L5.112 3.2a.833.833 0 0 1 .305-1.138ZM15.053 12.916a.834.834 0 0 1 1.139-.304l1.442.833a.833.833 0 1 1-.835 1.443l-1.441-.833a.833.833 0 0 1-.305-1.139ZM2.062 5.416A.833.833 0 0 1 3.2 5.112l1.442.833a.833.833 0 1 1-.834 1.443l-1.442-.833a.833.833 0 0 1-.304-1.139ZM10.833 10c0-.46.373-.833.834-.833h6.666a.833.833 0 0 1 0 1.666h-6.666a.833.833 0 0 1-.834-.833ZM.833 10c0-.46.373-.833.834-.833h1.666a.833.833 0 0 1 0 1.666H1.667A.833.833 0 0 1 .833 10ZM17.938 5.416a.833.833 0 0 1-.304 1.139l-1.442.833a.833.833 0 0 1-.834-1.443l1.441-.833a.833.833 0 0 1 1.14.304ZM4.946 12.916a.833.833 0 0 1-.304 1.139l-1.442.833a.833.833 0 0 1-.834-1.443l1.442-.833a.833.833 0 0 1 1.138.304ZM14.584 2.062c.398.23.534.74.304 1.138l-.833 1.442a.833.833 0 1 1-1.443-.834l.833-1.442a.833.833 0 0 1 1.139-.304ZM9.583 10.72c.399.23.535.74.305 1.138l-3.333 5.775a.833.833 0 1 1-1.443-.833l3.333-5.775a.833.833 0 0 1 1.138-.305Z\"/></g><defs><clipPath id=\"a\"><path d=\"M0 0h20v20H0z\"/></clipPath></defs>",
     "filter": "<path fill-rule=\"evenodd\" d=\"M1.5 4.5a.75.75 0 0 1 .75-.75h13.5a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1-.75-.75ZM4.5 9a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 4.5 9ZM6.75 13.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1-.75-.75Z\" clip-rule=\"evenodd\"/>",
     "home": "<path fill-rule=\"evenodd\" d=\"M9.488 1.009a.833.833 0 0 1 1.024 0l7.5 5.833c.203.158.321.4.321.658v9.167a2.5 2.5 0 0 1-2.5 2.5H4.167a2.5 2.5 0 0 1-2.5-2.5V7.5c0-.257.118-.5.321-.658l7.5-5.833ZM3.333 7.907v8.76a.833.833 0 0 0 .834.833h11.666a.833.833 0 0 0 .834-.833v-8.76L10 2.722 3.333 7.907Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M6.667 10c0-.46.373-.833.833-.833h5c.46 0 .833.373.833.833v8.333a.833.833 0 0 1-1.666 0v-7.5H8.333v7.5a.833.833 0 0 1-1.666 0V10Z\" clip-rule=\"evenodd\"/>",
+    "list": "<path fill-rule=\"evenodd\" d=\"M5.75 4.5a.75.75 0 0 1 .75-.75h9.75a.75.75 0 0 1 0 1.5H6.5a.75.75 0 0 1-.75-.75ZM5.75 9a.75.75 0 0 1 .75-.75h9.75a.75.75 0 0 1 0 1.5H6.5A.75.75 0 0 1 5.75 9ZM5.75 13.5a.75.75 0 0 1 .75-.75h9.75a.75.75 0 0 1 0 1.5H6.5a.75.75 0 0 1-.75-.75ZM2 4.5a.75.75 0 0 1 .75-.75h.007a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 4.5ZM2 9a.75.75 0 0 1 .75-.75h.007a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 9ZM2 13.5a.75.75 0 0 1 .75-.75h.007a.75.75 0 0 1 0 1.5H2.75A.75.75 0 0 1 2 13.5Z\" clip-rule=\"evenodd\"/>",
     "log-out": "<path fill-rule=\"evenodd\" d=\"M4.167 3.333a.833.833 0 0 0-.834.834v11.666a.833.833 0 0 0 .834.834H7.5a.833.833 0 0 1 0 1.666H4.167a2.5 2.5 0 0 1-2.5-2.5V4.167a2.5 2.5 0 0 1 2.5-2.5H7.5a.833.833 0 1 1 0 1.666H4.167ZM12.744 5.244a.833.833 0 0 1 1.179 0l4.166 4.167a.833.833 0 0 1 0 1.178l-4.166 4.167a.833.833 0 0 1-1.179-1.178L16.322 10l-3.578-3.577a.833.833 0 0 1 0-1.179Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M6.667 10c0-.46.373-.833.833-.833h10a.833.833 0 0 1 0 1.666h-10A.833.833 0 0 1 6.667 10Z\" clip-rule=\"evenodd\"/>",
+    "map": "<path fill-rule=\"evenodd\" d=\"M16.144 1.612a.75.75 0 0 1 .356.638V13.5a.75.75 0 0 1-.415.67l-4.5 2.25a.75.75 0 0 1-.67 0L6.75 14.339l-4.165 2.083A.75.75 0 0 1 1.5 15.75V4.5a.75.75 0 0 1 .415-.67l4.5-2.25a.75.75 0 0 1 .67 0L11.25 3.66l4.165-2.082a.75.75 0 0 1 .73.033ZM3 4.964v9.572l3.415-1.707a.75.75 0 0 1 .67 0l4.165 2.082L15 13.037V3.463L11.585 5.17a.75.75 0 0 1-.67 0L6.75 3.089 3 4.964Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M6.75 1.5a.75.75 0 0 1 .75.75V13.5a.75.75 0 0 1-1.5 0V2.25a.75.75 0 0 1 .75-.75ZM11.25 3.75a.75.75 0 0 1 .75.75v11.25a.75.75 0 0 1-1.5 0V4.5a.75.75 0 0 1 .75-.75Z\" clip-rule=\"evenodd\"/>",
     "moon": "<path fill-rule=\"evenodd\" d=\"M8.228 3.573a6.667 6.667 0 1 0 8.199 8.2 6.136 6.136 0 0 1-8.199-8.2ZM5.37 3.071A8.333 8.333 0 0 1 10 1.667a.833.833 0 0 1 .59 1.422 4.47 4.47 0 0 0 6.32 6.322.833.833 0 0 1 1.423.59A8.333 8.333 0 1 1 5.37 3.07Z\" clip-rule=\"evenodd\"/>",
     "rss": "<path fill-rule=\"evenodd\" d=\"M2.5 9.167c0-.46.373-.834.833-.834a8.333 8.333 0 0 1 8.334 8.334.833.833 0 0 1-1.667 0A6.667 6.667 0 0 0 3.333 10a.833.833 0 0 1-.833-.833Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M2.5 3.333c0-.46.373-.833.833-.833A14.167 14.167 0 0 1 17.5 16.667a.833.833 0 0 1-1.667 0 12.5 12.5 0 0 0-12.5-12.5.833.833 0 0 1-.833-.834ZM2.5 15.833a1.667 1.667 0 1 1 3.333 0 1.667 1.667 0 0 1-3.333 0Z\" clip-rule=\"evenodd\"/>",
     "search": "<path fill-rule=\"evenodd\" d=\"M10.083 3.667a6.417 6.417 0 1 0 0 12.833 6.417 6.417 0 0 0 0-12.833Zm-8.25 6.416a8.25 8.25 0 1 1 16.5 0 8.25 8.25 0 0 1-16.5 0Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M14.66 14.66a.917.917 0 0 1 1.296 0l3.942 3.942a.917.917 0 1 1-1.296 1.296l-3.942-3.941a.917.917 0 0 1 0-1.297Z\" clip-rule=\"evenodd\"/>",
@@ -40,20 +44,70 @@ func iconSVG(name string) string {
     return svg
 }
 
-templ SVG(name string) {
-    <svg class="w-5 h-5 fill-[#1f1f25] dark:fill-zinc-100">
-        @templ.Raw(iconSVG(name))
-    </svg>
+type svgCfg map[string][]string
+
+func newSVGCfg(fn ...func(*svgCfg)) string {
+    cfg := svgCfg{
+        "fill": []string{"fill-[#1f1f25]", "dark:fill-zinc-100"},
+        "size": []string{"w-5", "h-5"},
+    }
+
+    for _, f := range fn {
+        f(&cfg)
+    }
+
+    classNames := make([]string, 0, 6)
+
+    for _, v := range cfg {
+        classNames = append(classNames, v...)
+    }
+
+    return strings.Join(classNames, " ")
 }
 
-templ SVG24(name string) {
-    <svg class="w-6 h-6 fill-[#1f1f25] dark:fill-zinc-100">
-        @templ.Raw(iconSVG(name))
-    </svg>
+func AlertStyle() func(*svgCfg) {
+    return func(cfg *svgCfg) {
+        (*cfg)["fill"] = []string{"fill-red-700", "dark:fill-err-prim-surf"}
+    }
 }
 
-templ SVG32(name string) {
-    <svg class="w-8 h-8 fill-[#1f1f25] dark:fill-zinc-100">
+func DisabledStyle() func(*svgCfg) {
+    return func(cfg *svgCfg) {
+        (*cfg)["fill"] = []string{"fill-black", "opacity-20", "dark:fill-white", "dark:opacity-60"}
+    }
+}
+
+func WarningStyle() func(*svgCfg) {
+    return func(cfg *svgCfg) {
+        (*cfg)["fill"] = []string{"fill-orange-400", "dark:fill-amber-500"}
+    }
+}
+
+func OKStyle() func(*svgCfg) {
+    return func(cfg *svgCfg) {
+        (*cfg)["fill"] = []string{"fill-green-700", "dark:fill-green-500"}
+    }
+}
+
+func Size(x int) func(*svgCfg) {
+    mapSize := func(prefix string, size int) string {
+        if size <= 100 {
+            return prefix + fmt.Sprintf("%d", x / 4)
+        }
+
+        return prefix + fmt.Sprintf("[%dpx]", x)
+    }
+
+    return func(cfg *svgCfg) {
+        (*cfg)["size"] = []string{
+            mapSize("h-", x),
+            mapSize("w-", x),
+        }
+    }
+}
+
+templ SVG(name string, config ...func(*svgCfg)) {
+    <svg class={ newSVGCfg(config...) }>
         @templ.Raw(iconSVG(name))
     </svg>
 }
@@ -105,11 +159,11 @@ script toggleDarkMode() {
 templ DarkModeToggle(isOn bool, asset assets.AssetLoaderFunc) {
       <div class="px-3.5 justify-start items-center gap-3 inline-flex">
 
-        @SVG24("sun-medium")
+        @SVG("sun-medium", Size(24))
 
         @Switch(isOn, toggleDarkMode())
 
-        @SVG("moon")
+        @SVG("moon", Size(20))
 
       </div>
 }
@@ -122,11 +176,11 @@ templ Badge(count string) {
     </div>
 }
 
-templ OverviewCard(title, icon, count string, asset assets.AssetLoaderFunc) {
+templ OverviewCard(title, count string, icon templ.Component, asset assets.AssetLoaderFunc) {
     <div class="relative px-6 pt-2.5 pb-2 bg-white dark:bg-gray-800 rounded-[15px] shadow flex-col justify-start items-start gap-[7px] inline-flex">
       <div class="flex flex-col justify-center items-start gap-4">
 
-        @SVG32(icon)
+        @icon
 
         <div class="text-neutral-800 dark:text-neutral-200 text-[32px] font-bold font-heading leading-10">
             {count}
@@ -137,54 +191,10 @@ templ OverviewCard(title, icon, count string, asset assets.AssetLoaderFunc) {
       </div>
       <div class="absolute right-2 bottom-[5px] w-6 h-6 flex-col justify-start items-start inline-flex">
 
-        @SVG24("arrow-right")
+        @SVG("arrow-right", Size(24))
 
       </div>
     </div>
-}
-
-templ TableColumnHeader(title string) {
-    <div class="grow shrink basis-0 self-stretch px-4 py-3 rounded-lg justify-start items-center gap-1 flex">
-        <div class="text-zinc-700 dark:text-neutral-200 text-sm font-bold font-sans leading-none">
-            {title}
-        </div>
-    </div>
-}
-
-templ TableRow(name, deveui, network, battery, lastSeen string, active bool, alarms int, asset assets.AssetLoaderFunc) {
-      <div class="self-stretch py-1 bg-white dark:bg-gray-800 border-b border-gray-900 dark:border-white border-opacity-30 justify-start items-start inline-flex">
-        <div class="grow shrink basis-0 h-12 px-[18px] py-3 rounded-lg justify-start items-center gap-2 flex">
-          <div class="grow shrink basis-0 text-zinc-700 dark:text-neutral-200 text-sm font-bold font-sans leading-[18px]">{name}</div>
-        </div>
-        <div class="grow shrink basis-0 h-12 px-[18px] py-3 rounded-lg justify-start items-center gap-2 flex">
-        if active {
-            <div class="px-2.5 py-1 bg-[#c9e4d7] dark:bg-emerald-800 rounded-full justify-start items-center gap-1.5 flex">
-                <div class="text-emerald-900 dark:text-gray-200 text-sm font-bold font-sans leading-none">Aktiv</div>
-            </div>
-        } else {
-          <div class="px-2.5 py-1 bg-gray-900 dark:bg-white bg-opacity-10 dark:bg-opacity-20 rounded-full justify-start items-center gap-1.5 flex">
-            <div class="text-neutral-800 dark:text-neutral-300 text-sm font-bold font-sans leading-none">Inaktiv</div>
-          </div>
-        }
-        </div>
-        <div class="grow shrink basis-0 h-12 px-[18px] py-[15px] rounded-lg justify-start items-center gap-2 flex">
-          <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{deveui}</div>
-        </div>
-        <div class="grow shrink basis-0 h-12 px-[18px] py-[15px] rounded-lg justify-start items-center gap-2 flex">
-          <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{network}</div>
-        </div>
-        <div class="grow shrink basis-0 h-12 px-[18px] py-[15px] rounded-lg justify-start items-center gap-2 flex">
-          <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{battery}</div>
-        </div>
-        <div class="grow shrink basis-0 h-12 px-[18px] py-[15px] rounded-lg justify-start items-center gap-2 flex">
-          <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{lastSeen}</div>
-        </div>
-        <div class="grow shrink basis-0 h-12 px-[18px] py-3 rounded-lg justify-start items-center gap-2 flex">
-        if alarms > 0 {
-            @SVG24("alert-triangle")
-        }
-        </div>
-      </div>
 }
 
 func reloaderEndpoint(version string) string {
@@ -205,10 +215,12 @@ templ Body(version string, asset assets.AssetLoaderFunc, mainContent templ.Compo
     <div class="grid grid-cols-12 gap-2 bg-zinc-50 dark:bg-neutral-800">
 
     <div class="col-span-2 px-3 py-8 bg-zinc-100 dark:bg-gray-800 shadow justify-start gap-3">
-    <div class="self-stretch h-[859px] flex-col justify-start items-start gap-20 flex">
+    <div class="self-stretch h-[859px] flex-col justify-start items-start gap-3 flex">
 
-      <div class="w-36 h-[63px] justify-center items-center inline-flex">
-        <img class="w-36 h-[71px]" src={ asset("/images/diwise-logo.png").Path() } />
+      <div class="w-full h-[163px] justify-center items-center inline-flex bg-center bg-cover bg-no-repeat
+                bg-[url('/assets/d19a8ed8f207ecc2aafb61ed575aa6cf0bb1f0f533f752228fe6ce94c3575e5c/diwise-logo.svg')]
+                dark:bg-[url('/assets/f373626f4d07d2544069df8033e25d6d3a13fa150d6e53c5419179917fc434f7/diwise-logo-dark.svg')]
+                ">
       </div>
 
       <div class="self-stretch h-[364px] flex-col justify-start items-start gap-6 flex">

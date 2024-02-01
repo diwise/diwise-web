@@ -14,10 +14,10 @@ templ Home(asset assets.AssetLoaderFunc) {
 
     <div class="grid grid-cols-2 gap-10">
 
-      @OverviewCard("Aktiva sensorer", "rss", "22 358", asset)
-      @OverviewCard("Inaktiva sensorer", "rss", "150", asset)
-      @OverviewCard("Inaktiva sensorer", "rss", "150", asset)
-      @OverviewCard("Inaktiva funktioner", "send-to-back", "6", asset)
+      @OverviewCard("Aktiva sensorer", "22 358", SVG("rss", Size(32)), asset)
+      @OverviewCard("Inaktiva sensorer", "150", SVG("rss", Size(32), AlertStyle()), asset)
+      @OverviewCard("Okända sensorer", "1281", SVG("rss", Size(32), WarningStyle()), asset)
+      @OverviewCard("Aktiva funktioner", "6", SVG("send-to-back", Size(32), OKStyle()), asset)
 
     </div>
   </div>
@@ -99,27 +99,26 @@ templ Home(asset assets.AssetLoaderFunc) {
     </div>
   </div>
 
-  <div class="rounded-2xl shadow">
-    <div class="w-full h-14 py-1 rounded-t-2xl bg-white dark:bg-gray-800 border-b border-neutral-800 dark:border-white justify-start items-start inline-flex">
-      @TableColumnHeader("Namn")
-      @TableColumnHeader("Status")
-      @TableColumnHeader("DevEUI")
-      @TableColumnHeader("Nät")
-      @TableColumnHeader("Batterinivå")
-      @TableColumnHeader("Senaste värde")
-      @TableColumnHeader("Larm")
-    </div>
-    <div class="self-stretch h-[284px] flex-col justify-start items-start gap-px flex">
-      @TableRow("Fregattgatan 2", "70b3d52c0001a4b4", "LoRa", "25% (30 dagar)", "2024-01-29, 12:00", true, 5, asset)
-      @TableRow("air-sens-07", "a81758fffe051d02", "LoRa", "25% (30 dagar)", "2022-12-24, 12:00", false, 0, asset)
-      @TableRow("06076898", "8c83fc05005cb9e2", "LoRa", "25% (30 dagar)", "2024-01-30, 10:27", true, 0, asset)
-      @TableRow("EM500_UDL_1", "24e124126d154470", "LoRa", "25% (30 dagar)", "2024-01-30, 13:51", true, 2, asset)
-      @TableRow("NIAB_lidar_50001c", "3231383771308416", "LoRa", "25% (30 dagar)", "2024-01-29, 23:57", true, 5, asset)
-    </div>
-    <div class="h-6 py-1 rounded-b-2xl bg-white dark:bg-gray-800">
-    </div>
-  </div>
-  </div>
+  @Table(
+    HeaderRow(TH("Namn"), TH("Status"), TH("DevEUI"), TH("Nät"), TH("Batterinivå"), TH("Senaste Värde"), TH("Larm")),
+    TableData(
+        TableRow(
+            TextCell("Fregattgatan 2"), LabelCell("Aktiv", true), TextCell("70b3d52c0001a4b4"), TextCell("LoRa"), TextCell("25%"), TextCell("2024-01-29, 12:00"), Cell(SVG("alert-triangle", Size(24), AlertStyle())),
+        ),
+        TableRow(
+            TextCell("air-sens-7"), LabelCell("Inaktiv", false), TextCell("a81758fffe051d02"), TextCell("LoRa"), TextCell("25%"), TextCell("2024-01-29, 12:00"), TextCell(""),
+        ),
+        TableRow(
+            TextCell("06076898"), LabelCell("Aktiv", true), TextCell("8c83fc05005cb9e2"), TextCell("LoRa"), TextCell("25%"), TextCell("2024-01-29, 12:00"), TextCell(""),
+        ),
+        TableRow(
+            TextCell("EM500_UDL_1"), LabelCell("Aktiv", true), TextCell("24e124126d154470"), TextCell("LoRa"), TextCell("25%"), TextCell("2024-01-29, 12:00"), Cell(SVG("alert-triangle", Size(24), AlertStyle())),
+        ),
+        TableRow(
+            TextCell("NIAB_lidar_50001c"), LabelCell("Aktiv", true), TextCell("3231383771308416"), TextCell("LoRa"), TextCell("25%"), TextCell("2024-01-29, 12:00"), Cell(SVG("alert-triangle", Size(24), AlertStyle())),
+        ),
+    ))
 
+  </div>
   </div>
 }

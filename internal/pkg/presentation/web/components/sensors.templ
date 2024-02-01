@@ -47,6 +47,151 @@ templ SecondaryButton(title string) {
     </div>
 }
 
+templ DTF() {
+    <div class="w-full h-[60px] px-4 py-3.5 bg-white dark:bg-gray-800 rounded-b-2xl border-t border-white border-opacity-30 justify-between items-center inline-flex">
+        <div class="h-8 justify-start items-center gap-2 flex">
+            <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</div>
+            <div class="h-8 px-3 py-1.5 bg-gray-900 bg-opacity-50 rounded-xl border border-white border-opacity-50 justify-start items-center gap-1.5 flex">
+                <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-tight">30</div>
+                <div class="w-4 h-4">
+                    @SVG("chevron-down", Size(16))
+                </div>
+            </div>
+        </div>
+        <div class="h-8 justify-between items-center flex">
+            <div class="p-1.5 rounded-full justify-center items-center gap-1 flex">
+                <div class="w-5 h-5">
+                    @SVG("arrow-left", DisabledStyle())
+                </div>
+            </div>
+
+            <div class="h-7 px-3 justify-between items-center flex">
+                <div class="flex-col justify-start items-start inline-flex">
+                    <div class="w-[40.89px] p-0.5 rounded-lg justify-start items-center gap-0.5 inline-flex">
+                    <div class="grow shrink basis-0 text-center text-zinc-700 dark:text-neutral-200 text-base font-bold font-sans leading-normal">1</div>
+                    </div>
+                </div>
+                <div class="flex-col justify-start items-start inline-flex">
+                    <div class="w-[40.89px] py-0.5 rounded-lg justify-start items-center gap-0.5 inline-flex">
+                    <div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-300 text-base font-normal font-sans underline leading-normal">2</div>
+                    </div>
+                </div>
+                <div class="flex-col justify-start items-start inline-flex">
+                    <div class="w-[40.89px] py-0.5 rounded-lg justify-start items-center gap-0.5 inline-flex">
+                    <div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-300 text-base font-normal font-sans underline leading-normal">3</div>
+                    </div>
+                </div>
+                <div class="flex-col justify-start items-start inline-flex">
+                    <div class="w-[40.89px] p-0.5 rounded-lg justify-start items-center gap-0.5 inline-flex">
+                    <div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-100 text-base font-normal font-sans leading-normal">…</div>
+                    </div>
+                </div>
+                <div class="flex-col justify-start items-start inline-flex">
+                    <div class="w-[40.89px] py-0.5 rounded-lg justify-start items-center gap-0.5 inline-flex">
+                    <div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-300 text-base font-normal font-sans underline leading-normal">31</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-1.5 rounded-full justify-center items-center gap-1 flex">
+                <div class="w-5 h-5">
+                    @SVG("arrow-right")
+                </div>
+            </div>
+        </div>
+        <div class="h-8 justify-end items-center gap-2 flex">
+            <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Radhöjd:</div>
+            <div class="pl-3 pr-2.5 py-2 bg-white bg-opacity-20 rounded-xl justify-center items-center gap-1 flex">
+                <div class="grow shrink basis-0 text-white text-sm font-bold font-sans leading-none">Normal</div>
+                <div class="w-4 h-4">
+                    @SVG("chevron-down", Size(16))
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+templ TH(title string) {
+    <div class="w-[162.71px] h-12 px-4 py-3 rounded-lg justify-start items-center gap-1 inline-flex">
+        <div class="text-zinc-700 dark:text-neutral-200 text-sm font-bold font-sans leading-none">
+            { title }
+        </div>
+    </div>
+}
+
+templ HeaderRow(titles ...templ.Component) {
+    <div class="w-full h-14 py-1 bg-white dark:bg-gray-800 border-b border-neutral-800 dark:border-white rounded-t-2xl justify-start items-start inline-flex">
+    for _, title := range titles {
+        @title
+    }
+    </div>
+}
+
+templ TableData(rows ...templ.Component) {
+    <div class="w-full">
+        for _, row := range rows {
+            @row
+        }
+        @DTF()
+    </div>
+}
+
+templ TableRow(cells ...templ.Component) {
+    <div class="w-full h-14 py-1 bg-white dark:bg-gray-800 border-b border-gray-900 dark:border-white border-opacity-30 justify-start items-start inline-flex">
+        for _, cell := range cells {
+            @cell
+        }
+    </div>
+}
+
+templ Label(label string, active bool) {
+    <div class={
+        "px-2.5 py-1 rounded-full justify-start items-center gap-1.5 flex",
+        templ.KV("bg-[#c9e4d7]", active),
+        templ.KV("dark:bg-emerald-800", active),
+        templ.KV("bg-gray-900", !active),
+        templ.KV("bg-opacity-10", !active),
+        templ.KV("dark:bg-white", !active),
+        templ.KV("dark:bg-opacity-20", !active) }>
+
+        <div class={
+            "text-sm font-bold font-sans leading-none",
+            templ.KV("text-emerald-900", active),
+            templ.KV("dark:text-gray-200", active),
+            templ.KV("text-neutral-800", !active),
+            templ.KV("dark:text-neutral-300", !active) }>
+            { label }
+        </div>
+    </div>
+}
+
+templ T(data string) {
+    <div class="grow shrink basis-0 text-zinc-700 dark:text-neutral-200 text-sm font-bold font-sans leading-[18px]">
+        { data }
+    </div>
+}
+
+templ Cell(contents templ.Component) {
+    <div class="grow shrink basis-0 h-12 px-[18px] py-3 rounded-lg justify-start items-center gap-2 flex">
+        @contents
+    </div>
+}
+
+templ TextCell(data string) {
+    @Cell(T(data))
+}
+
+templ LabelCell(label string, active bool) {
+    @Cell(Label(label, active))
+}
+
+templ Table(header templ.Component, data templ.Component) {
+    <div class="w-full rounded-2xl shadow flex flex-col justify-start items-start shrink-0 self-stretch">
+        @header
+        @data
+    </div>
+}
+
 templ Sensors(asset assets.AssetLoaderFunc) {
     <div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
         <div class="w-full h-12 justify-between items-center inline-flex">
@@ -55,6 +200,38 @@ templ Sensors(asset assets.AssetLoaderFunc) {
                 @SecondaryButton("Filter")
             </div>
             @PrimaryButton("Lägg till sensor")
+        </div>
+
+        <div class="w-full flex flex-col gap-6 items-start inline-flex">
+
+            <div class="h-14 flex justify-between items-center self-stretch">
+                <div class="w-[689px] h-14 p-2 rounded-[20px]">
+                </div>
+
+                <div class="w-[200px] h-[42px] p-1.5 bg-white bg-opacity-20 rounded-2xl justify-start items-center inline-flex">
+                    <div class="h-[30px] px-3.5 py-1.5 bg-white bg-opacity-95 rounded-xl justify-center items-center gap-2 flex">
+                        // fill-opacity=".88"
+                        <svg class="w-[18px] h-[18px] fill-[#1c1c28] dark:fill-zinc-600">
+                            @templ.Raw(iconSVG("list"))
+                        </svg>
+                        <div class="text-gray-900 text-opacity-90 text-sm font-bold font-sans leading-[18px]">Lista</div>
+                    </div>
+                    <div class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex">
+                        <svg class="w-[18px] h-[18px] fill-black dark:fill-zinc-200">
+                            @templ.Raw(iconSVG("map"))
+                        </svg>
+                        <div class="text-white text-sm font-bold font-sans leading-[18px]">Karta</div>
+                    </div>
+                </div>
+            </div>
+
+            @Table(
+                HeaderRow(TH("Namn"), TH("Status"), TH("DevEUI"), TH("Nät"), TH("Batterinivå"), TH("Senaste Värde"), TH("Larm")),
+                TableData(
+                    TableRow(
+                        TextCell("Fregattgatan 2"), LabelCell("Aktiv", true), TextCell("70b3d52c0001a4b4"), TextCell("LoRa"), TextCell("25%"), TextCell("2024-01-29, 12:00"), Cell(SVG("alert-triangle", Size(24), AlertStyle())),
+                    )))
+
         </div>
     </div>
 }
