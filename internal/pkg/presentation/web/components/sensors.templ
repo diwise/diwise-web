@@ -47,7 +47,7 @@ templ SecondaryButton(title string) {
     </div>
 }
 
-templ DTF() {
+templ DataTableFooter() {
     <div class="w-full h-[60px] px-4 py-3.5 bg-white dark:bg-gray-800 rounded-b-2xl border-t border-white border-opacity-30 justify-between items-center inline-flex">
         <div class="h-8 justify-start items-center gap-2 flex">
             <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</div>
@@ -132,7 +132,7 @@ templ TableData(rows ...templ.Component) {
         for _, row := range rows {
             @row
         }
-        @DTF()
+        @DataTableFooter()
     </div>
 }
 

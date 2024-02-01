@@ -46,13 +46,19 @@ func NewLoader(ctx context.Context, opts ...LoaderOptionFunc) (Loader, error) {
 		opt(loader)
 	}
 
+	ignoredFiles := map[string]struct{}{
+		".DS_Store": {},
+	}
+
 	filepath.Walk(loader.basePath,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
 
-			if !info.IsDir() {
+			_, ignored := ignoredFiles[info.Name()]
+
+			if !ignored && !info.IsDir() {
 				loader.Load(
 					strings.TrimPrefix(path, loader.basePath),
 				)
