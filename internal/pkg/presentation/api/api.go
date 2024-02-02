@@ -8,6 +8,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	"github.com/go-chi/chi/v5"
@@ -78,15 +79,22 @@ func New(ctx context.Context, app application.WebApp, version, assetPath string)
 
 		assetLoader, _ := assets.NewLoader(ctx, assets.BasePath(assetPath))
 
+		l10n := locale.NewLocalizer(assetPath, "sv", "en")
+
 		r.Get("/", func() http.HandlerFunc {
 			return func(w http.ResponseWriter, r *http.Request) {
+
+				acceptLanguage := r.Header.Get("Accept-Language")
 
 				w.Header().Add("Content-Type", "text/html")
 				w.Header().Add("Cache-Control", "no-cache")
 				w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 				w.WriteHeader(http.StatusOK)
 
-				component := components.StartPage(version, assetLoader.Load, components.Home(assetLoader.Load))
+				component := components.StartPage(
+					version, l10n.For(acceptLanguage),
+					assetLoader.Load, components.Home(assetLoader.Load),
+				)
 				component.Render(r.Context(), w)
 			}
 		}())
@@ -116,7 +124,10 @@ func New(ctx context.Context, app application.WebApp, version, assetPath string)
 					return
 				}
 
-				component = components.StartPage(version, assetLoader.Load, component)
+				component = components.StartPage(
+					version, l10n.For(r.Header.Get("Accept-Language")),
+					assetLoader.Load, component,
+				)
 				component.Render(r.Context(), w)
 			}
 		}())

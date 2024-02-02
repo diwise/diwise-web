@@ -2,9 +2,10 @@ package components
 
 import (
     "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 )
 
-templ StartPage(version string, asset assets.AssetLoaderFunc, mainContent templ.Component) {
+templ StartPage(version string, localizer locale.Localizer, asset assets.AssetLoaderFunc, mainContent templ.Component) {
     <!doctype html>
     <html>
         <head>
@@ -16,6 +17,6 @@ templ StartPage(version string, asset assets.AssetLoaderFunc, mainContent templ.
             <link rel="icon" type="image/x-icon" href={ asset("/icons/favicon.ico").Path() } />
             <title>diwise</title>
         </head>
-        @Body(version, asset, mainContent)
+        @Body(version, localizer, asset, mainContent)
     </html>
 }

@@ -1,0 +1,11 @@
+[overview]
+other = "Overview"
+
+[home]
+other = "Home"
+
+[sensors]
+other = "Sensors"
+
+[functions]
+other = "Functions"

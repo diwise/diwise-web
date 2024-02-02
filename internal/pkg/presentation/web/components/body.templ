@@ -4,6 +4,7 @@ import (
     "fmt"
     "strings"
 
+    "github.com/diwise/diwise-web/internal/pkg/presentation/locale"
     "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 )
 
@@ -209,7 +210,7 @@ func reloaderFrequency(version string) string {
     return "every 60s"
 }
 
-templ Body(version string, asset assets.AssetLoaderFunc, mainContent templ.Component) {
+templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, mainContent templ.Component) {
     <body id="body" onload={ onPageLoad() }>
     <div id="reloader" hx-get={ reloaderEndpoint(version) } hx-trigger={ reloaderFrequency(version) }></div>
     <div class="grid grid-cols-12 gap-2 bg-zinc-50 dark:bg-neutral-800">
@@ -225,11 +226,11 @@ templ Body(version string, asset assets.AssetLoaderFunc, mainContent templ.Compo
 
       <div class="self-stretch h-[364px] flex-col justify-start items-start gap-6 flex">
 
-        @SectionDivider("Översikt")
+        @SectionDivider(l10n.Get("overview"))
 
-        @MenuSegment("Hem", "/home", "home", asset, true)
-        @MenuSegment("Sensorer", "/sensors", "rss", asset, false)
-        @MenuSegment("Funktioner", "/functions", "send-to-back", asset, false)
+        @MenuSegment(l10n.Get("home"), "/home", "home", asset, true)
+        @MenuSegment(l10n.Get("sensors"), "/sensors", "rss", asset, false)
+        @MenuSegment(l10n.Get("functions"), "/functions", "send-to-back", asset, false)
 
         <div class="self-stretch px-3.5 py-2.5 rounded-xl justify-between items-center inline-flex">
           <div class="justify-start items-center gap-2 flex">

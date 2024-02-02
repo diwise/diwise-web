@@ -3,10 +3,13 @@ module github.com/diwise/diwise-web
 go 1.21.6
 
 require (
+	github.com/BurntSushi/toml v1.3.2
 	github.com/a-h/templ v0.2.543
 	github.com/diwise/service-chassis v0.0.0-20240124164913-4f5fdbb597cb
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/google/uuid v1.3.1
+	github.com/nicksnyder/go-i18n/v2 v2.4.0
+	golang.org/x/text v0.14.0
 )
 
 require (
@@ -33,7 +36,6 @@ require (
 	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20231127180814-3a041ad873d4 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231127180814-3a041ad873d4 // indirect
 	google.golang.org/grpc v1.59.0 // indirect
