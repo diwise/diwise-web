@@ -7,12 +7,12 @@ tmp_dir = ".tmp"
   bin = "./.tmp/main"
   cmd = "tailwindcss -c ./internal/pkg/presentation/web/css/tailwind.config.js -i ./internal/pkg/presentation/web/css/input.css -o ./assets/css/diwise.css && templ generate && go build -o ./.tmp/main ./cmd/diwise-web/main.go"
   delay = 1000
-  exclude_dir = ["assets/css", "tmp", "vendor", "testdata"]
+  exclude_dir = ["assets/css", "tmp", "vendor", "testdata", ".vscode"]
   exclude_file = []
   exclude_regex = [".*_templ.go","_test.go","output.css"]
   exclude_unchanged = false
   follow_symlink = false
-  full_bin = ""
+  full_bin = "dlv exec ./.tmp/main --listen=127.0.0.1:2345 --headless=true --api-version=2 --accept-multiclient --continue --log -- "
   include_dir = []
   include_ext = ["go", "tpl", "tmpl", "templ", "toml", "html", "css", "js"]
   include_file = []
