@@ -9,6 +9,18 @@ go install github.com/a-h/templ/cmd/templ@latest
 go install github.com/cosmtrek/air@latest
 ```
 
+### tailwind css
+https://github.com/tailwindlabs/tailwindcss
+
+### Visual Studio Code add-on
+https://marketplace.visualstudio.com/items?itemName=a-h.templ
+
+### Configuration
+
+```bash
+export DIWISEWEB_ASSET_PATH=~/<your path to>/diwise-web/assets
+```
+
 ## Development workflow
 
 ```bash
