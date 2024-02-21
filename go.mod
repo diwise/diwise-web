@@ -1,12 +1,11 @@
 module github.com/diwise/diwise-web
 
-go 1.21.6
+go 1.22
 
 require (
 	github.com/BurntSushi/toml v1.3.2
 	github.com/a-h/templ v0.2.543
 	github.com/diwise/service-chassis v0.0.0-20240124164913-4f5fdbb597cb
-	github.com/go-chi/chi/v5 v5.0.11
 	github.com/google/uuid v1.3.1
 	github.com/nicksnyder/go-i18n/v2 v2.4.0
 	golang.org/x/text v0.14.0
@@ -16,6 +15,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/go-chi/chi/v5 v5.0.11 // indirect
 	github.com/go-logr/logr v1.3.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"net/http"
 	"os"
 
@@ -15,7 +16,10 @@ import (
 
 const serviceName string = "diwise-web"
 
+var webAssetPath string
+
 func main() {
+
 	serviceVersion := buildinfo.SourceVersion()
 	if serviceVersion == "" {
 		serviceVersion = "develop"
@@ -24,29 +28,37 @@ func main() {
 	ctx, logger, cleanup := o11y.Init(context.Background(), serviceName, serviceVersion)
 	defer cleanup()
 
-	assetPath := env.GetVariableOrDefault(ctx, "DIWISEWEB_ASSET_PATH", "/opt/diwise/assets")
+	webAssetPath = env.GetVariableOrDefault(ctx, "DIWISEWEB_ASSET_PATH", "/opt/diwise/assets")
 
-	webapi, _, err := initialize(ctx, serviceVersion, assetPath)
+	flag.StringVar(&webAssetPath, "web-assets", webAssetPath, "path to web assets folder")
+	flag.Parse()
+
+	mux := http.NewServeMux()
+
+	webapi, _, err := initialize(ctx, serviceVersion, mux, webAssetPath)
 	if err != nil {
 		fatal(ctx, "failed to initialize service", err)
 	}
 
 	apiPort := env.GetVariableOrDefault(ctx, "SERVICE_PORT", "8080")
+
+	webServer := &http.Server{Addr: ":" + apiPort, Handler: webapi.Router()}
+
 	logger.Info("starting to listen for incoming connections", "port", apiPort)
-	err = http.ListenAndServe(":"+apiPort, webapi.Router())
+	err = webServer.ListenAndServe()
 
 	if err != nil {
 		fatal(ctx, "failed to start request router", err)
 	}
 }
 
-func initialize(ctx context.Context, version, assetPath string) (api.Api, application.WebApp, error) {
+func initialize(ctx context.Context, version string, mux *http.ServeMux, assetPath string) (api.Api, application.WebApp, error) {
 	app, err := application.New(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	api_, err := api.New(ctx, app, version, assetPath)
+	api_, err := api.New(ctx, mux, app, version, assetPath)
 	if err != nil {
 		return nil, nil, err
 	}
