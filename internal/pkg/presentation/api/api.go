@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -110,11 +109,13 @@ func New(ctx context.Context, mux *http.ServeMux, app application.WebApp, versio
 		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
+		ctx := context.WithValue(r.Context(), components.CurrentComponent, "home")
+
 		component := components.StartPage(
 			version, l10n.For(acceptLanguage),
 			assetLoader.Load, components.Home(assetLoader.Load),
 		)
-		component.Render(r.Context(), w)
+		component.Render(ctx, w)
 	})
 
 	r.HandleFunc("GET /{component}", func() http.HandlerFunc {
@@ -126,8 +127,8 @@ func New(ctx context.Context, mux *http.ServeMux, app application.WebApp, versio
 
 		return func(w http.ResponseWriter, r *http.Request) {
 
-			name := r.PathValue("component")
-			component, ok := comps[name]
+			componentName := r.PathValue("component")
+			component, ok := comps[componentName]
 			if !ok {
 				http.Error(w, "not found", http.StatusNotFound)
 				return
@@ -138,22 +139,18 @@ func New(ctx context.Context, mux *http.ServeMux, app application.WebApp, versio
 			w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 			w.WriteHeader(http.StatusOK)
 
-			if isHxRequest(r) {
-				component.Render(r.Context(), w)
-				return
-			}
+			ctx := context.WithValue(r.Context(), components.CurrentComponent, componentName)
 
 			component = components.StartPage(
 				version, l10n.For(r.Header.Get("Accept-Language")),
 				assetLoader.Load, component,
 			)
-			component.Render(r.Context(), w)
+			component.Render(ctx, w)
 		}
 	}())
 
 	r.HandleFunc("GET /assets/{sha}/{filename}", func(w http.ResponseWriter, r *http.Request) {
-		pathComponents := strings.Split(r.URL.Path, "/")
-		sha := pathComponents[2]
+		sha := r.PathValue("sha")
 
 		a, err := assetLoader.LoadFromSha256(sha)
 		if err != nil {

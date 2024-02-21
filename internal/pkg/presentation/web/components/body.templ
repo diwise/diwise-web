@@ -8,6 +8,11 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 )
 
+type ComponentName string
+
+var CurrentComponent ComponentName = "current-component"
+
+
 templ SectionDivider(titel string) {
 	<div class="self-stretch justify-start items-center gap-2 inline-flex">
 		<div class="text-neutral-800 dark:text-neutral-300 text-lg font-bold font-heading leading-normal">{ titel }</div>
@@ -119,7 +124,7 @@ templ MenuSegment(title, slug, icon string, asset assets.AssetLoaderFunc, select
         templ.KV("rounded-xl", !selected),
         templ.KV("rounded-lg", selected), templ.KV("bg-amber-700", selected) }
 		hx-get={ slug }
-		hx-target="#main-content"
+		hx-target="#body"
 		hx-replace-url="true"
 	>
 		@SVG(icon)
@@ -206,6 +211,11 @@ func reloaderFrequency(version string) string {
 	return "every 60s"
 }
 
+func isCurrent(ctx context.Context, expect string) bool {
+	name := fmt.Sprintf("%s", ctx.Value(CurrentComponent))
+	return name == expect
+}
+
 templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, mainContent templ.Component) {
 	<body id="body" onload={ onPageLoad() }>
 		<div id="reloader" hx-get={ reloaderEndpoint(version) } hx-trigger={ reloaderFrequency(version) }></div>
@@ -220,9 +230,9 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 					></div>
 					<div class="self-stretch h-[364px] flex-col justify-start items-start gap-6 flex">
 						@SectionDivider(l10n.Get("overview"))
-						@MenuSegment(l10n.Get("home"), "/home", "home", asset, true)
-						@MenuSegment(l10n.Get("sensors"), "/sensors", "rss", asset, false)
-						@MenuSegment(l10n.Get("functions"), "/functions", "send-to-back", asset, false)
+						@MenuSegment(l10n.Get("home"), "/home", "home", asset, isCurrent(ctx, "home"))
+						@MenuSegment(l10n.Get("sensors"), "/sensors", "rss", asset, isCurrent(ctx, "sensors"))
+						@MenuSegment(l10n.Get("functions"), "/functions", "send-to-back", asset, isCurrent(ctx, "functions"))
 						<div class="self-stretch px-3.5 py-2.5 rounded-xl justify-between items-center inline-flex">
 							<div class="justify-start items-center gap-2 flex">
 								@SVG("alert-triangle")
@@ -230,11 +240,11 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 							</div>
 							@Badge("5")
 						</div>
-						@MenuSegment("Integrationer", "/integrations", "cog", asset, false)
+						@MenuSegment("Integrationer", "/integrations", "cog", asset, isCurrent(ctx, "integrations"))
 					</div>
 					<div class="self-stretch h-40 flex-col justify-start items-start gap-6 flex">
 						@SectionDivider("Konto")
-						@MenuSegment("Inställningar", "/settings", "settings-outline", asset, false)
+						@MenuSegment("Inställningar", "/settings", "settings-outline", asset, isCurrent(ctx, "settings"))
 						@MenuSegment("Logga ut", "/logout", "log-out", asset, false)
 					</div>
 					@DarkModeToggle(false, asset)
