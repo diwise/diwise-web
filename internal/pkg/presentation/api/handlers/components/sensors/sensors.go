@@ -30,7 +30,7 @@ func NewTableSensorsComponentHandler(l10n locale.Bundle, assets assets.AssetLoad
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
 		page := helpers.UrlParamOrDefault(r, "page", "1")
-		limit := helpers.UrlParamOrDefault(r, "limit", "30")
+		limit := helpers.UrlParamOrDefault(r, "limit", "15")
 
 		ctx := r.Context()
 

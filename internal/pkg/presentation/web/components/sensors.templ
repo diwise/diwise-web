@@ -72,6 +72,16 @@ func pageIndex(ctx context.Context) int64 {
     return current
 }
 
+func prevPage(ctx context.Context) int64 {
+    current := pageIndex(ctx)
+    return current - 1
+}
+
+func nextPage(ctx context.Context) int64 {
+    current := pageIndex(ctx)
+    return current + 1
+}
+
 func pagerIndexes(ctx context.Context) []int64 {
     start := pageIndex(ctx)
     last := pageCount(ctx)
@@ -149,7 +159,13 @@ templ DataTableFooter() {
             </div>
         </div>
         <div class="h-8 justify-between items-center flex">
-            <div class="p-1.5 rounded-full justify-center items-center gap-1 flex">
+            <button class="p-1.5 rounded-full justify-center items-center gap-1 flex"
+                if !isFirstPage(ctx) {
+                    hx-get={ fmt.Sprintf("/components/tables/sensors?page=%d&limit=%s", prevPage(ctx), ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click"
+                } else {
+                    disabled
+                }
+            >
                 <div class="w-5 h-5">
                     if isFirstPage(ctx) {
                         @SVG("arrow-left", DisabledStyle())
@@ -157,7 +173,7 @@ templ DataTableFooter() {
                         @SVG("arrow-left")
                     }
                 </div>
-            </div>
+            </button>
 
             <div class="h-7 px-3 justify-between items-center flex">
                 for _, page := range pagerIndexes(ctx) {
@@ -165,7 +181,13 @@ templ DataTableFooter() {
                 }
             </div>
 
-            <div class="p-1.5 rounded-full justify-center items-center gap-1 flex">
+            <button class="p-1.5 rounded-full justify-center items-center gap-1 flex"
+                if !isLastPage(ctx) {
+                    hx-get={ fmt.Sprintf("/components/tables/sensors?page=%d&limit=%s", nextPage(ctx), ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click"
+                } else {
+                    disabled
+                }
+            >
                 <div class="w-5 h-5">
                     if isLastPage(ctx) {
                         @SVG("arrow-right", DisabledStyle())
@@ -173,7 +195,7 @@ templ DataTableFooter() {
                         @SVG("arrow-right", Box(24, 24))
                     }
                 </div>
-            </div>
+            </button>
         </div>
         <div class="h-8 justify-end items-center gap-2 flex">
             <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Radhöjd:</div>
