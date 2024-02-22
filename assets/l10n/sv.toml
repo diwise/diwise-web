@@ -7,5 +7,8 @@ other = "Hem"
 [sensors]
 other = "Sensorer"
 
+[objects]
+other = "Entiteter"
+
 [functions]
 other = "Funktioner"

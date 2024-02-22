@@ -1,7 +1,10 @@
 package components
 
 import (
+    "fmt"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
     "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	"strconv"
 )
 
 templ SearchField() {
@@ -47,12 +50,99 @@ templ SecondaryButton(title string) {
     </div>
 }
 
+func ctx2str(ctx context.Context, key any) string {
+    return fmt.Sprintf("%s", ctx.Value(key))
+}
+
+func isFirstPage(ctx context.Context) bool {
+    return ctx2str(ctx, PageIndex) == "1"
+}
+
+func isLastPage(ctx context.Context) bool {
+    return ctx2str(ctx, PageIndex) == ctx2str(ctx, PageLast)
+}
+
+func pageCount(ctx context.Context) int64 {
+    count, _ := strconv.ParseInt(ctx2str(ctx, PageLast), 10, 64)
+    return count
+}
+
+func pageIndex(ctx context.Context) int64 {
+    current, _ := strconv.ParseInt(ctx2str(ctx, PageIndex), 10, 64)
+    return current
+}
+
+func pagerIndexes(ctx context.Context) []int64 {
+    start := pageIndex(ctx)
+    last := pageCount(ctx)
+
+    const PagerWidth int64 = 6
+
+    start -= (PagerWidth / 2)
+
+    if start > (last - PagerWidth) {
+        start = last - PagerWidth
+    }
+
+    if start < 1 {
+        start = 1
+    }
+
+    result := []int64{}
+
+    if start != 1 {
+        start = start + 1
+        result = append(result, 1, start)
+    } else {
+        result = append(result, 1)
+    }
+
+    page := start + 1
+
+    for len(result) < int(PagerWidth) {
+        if page >= last {
+            break
+        }
+
+        result = append(result, page)
+        page = page + 1
+    }
+
+    if result[len(result)-1] < last {
+        result = append(result, last)
+    }
+
+    return result
+}
+
+templ PageSelector(index string) {
+    if index == ctx2str(ctx, PageIndex) {
+        <div class="flex-col justify-start items-start inline-flex">
+            <div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex p-0.5 ">
+                <div class="grow shrink basis-0 text-center text-zinc-700 dark:text-neutral-200 text-base font-bold font-sans leading-normal">
+                    { index }
+                </div>
+            </div>
+        </div>
+    } else {
+        <button class="flex-col justify-start items-start inline-flex" hx-get={ fmt.Sprintf("/components/tables/sensors?page=%s&limit=%s", index, ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click">
+            <div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex py-0.5 ">
+                <div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-300 text-base font-normal font-sans underline leading-normal">
+                    { index }
+                </div>
+            </div>
+        </button>
+    }
+}
+
 templ DataTableFooter() {
     <div class="w-full h-[60px] px-4 py-3.5 bg-white dark:bg-gray-800 rounded-b-2xl border-t border-white border-opacity-30 justify-between items-center inline-flex">
         <div class="h-8 justify-start items-center gap-2 flex">
             <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</div>
             <div class="h-8 px-3 py-1.5 bg-gray-900 bg-opacity-50 rounded-xl border border-white border-opacity-50 justify-start items-center gap-1.5 flex">
-                <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-tight">30</div>
+                <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-tight">
+                    { ctx2str(ctx, PageSize) }
+                </div>
                 <div class="w-4 h-4">
                     @SVG("chevron-down", Size(16))
                 </div>
@@ -61,41 +151,27 @@ templ DataTableFooter() {
         <div class="h-8 justify-between items-center flex">
             <div class="p-1.5 rounded-full justify-center items-center gap-1 flex">
                 <div class="w-5 h-5">
-                    @SVG("arrow-left", DisabledStyle())
+                    if isFirstPage(ctx) {
+                        @SVG("arrow-left", DisabledStyle())
+                    } else {
+                        @SVG("arrow-left")
+                    }
                 </div>
             </div>
 
             <div class="h-7 px-3 justify-between items-center flex">
-                <div class="flex-col justify-start items-start inline-flex">
-                    <div class="w-[40.89px] p-0.5 rounded-lg justify-start items-center gap-0.5 inline-flex">
-                    <div class="grow shrink basis-0 text-center text-zinc-700 dark:text-neutral-200 text-base font-bold font-sans leading-normal">1</div>
-                    </div>
-                </div>
-                <div class="flex-col justify-start items-start inline-flex">
-                    <div class="w-[40.89px] py-0.5 rounded-lg justify-start items-center gap-0.5 inline-flex">
-                    <div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-300 text-base font-normal font-sans underline leading-normal">2</div>
-                    </div>
-                </div>
-                <div class="flex-col justify-start items-start inline-flex">
-                    <div class="w-[40.89px] py-0.5 rounded-lg justify-start items-center gap-0.5 inline-flex">
-                    <div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-300 text-base font-normal font-sans underline leading-normal">3</div>
-                    </div>
-                </div>
-                <div class="flex-col justify-start items-start inline-flex">
-                    <div class="w-[40.89px] p-0.5 rounded-lg justify-start items-center gap-0.5 inline-flex">
-                    <div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-100 text-base font-normal font-sans leading-normal">…</div>
-                    </div>
-                </div>
-                <div class="flex-col justify-start items-start inline-flex">
-                    <div class="w-[40.89px] py-0.5 rounded-lg justify-start items-center gap-0.5 inline-flex">
-                    <div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-300 text-base font-normal font-sans underline leading-normal">31</div>
-                    </div>
-                </div>
+                for _, page := range pagerIndexes(ctx) {
+                    @PageSelector(fmt.Sprintf("%d", page))
+                }
             </div>
 
             <div class="p-1.5 rounded-full justify-center items-center gap-1 flex">
                 <div class="w-5 h-5">
-                    @SVG("arrow-right")
+                    if isLastPage(ctx) {
+                        @SVG("arrow-right", DisabledStyle())
+                    } else {
+                        @SVG("arrow-right", Box(24, 24))
+                    }
                 </div>
             </div>
         </div>
@@ -192,7 +268,58 @@ templ Table(header templ.Component, data templ.Component) {
     </div>
 }
 
-templ Sensors(asset assets.AssetLoaderFunc) {
+type PagingConfigKey string
+
+var PageSize PagingConfigKey = "page.size"
+var PageIndex PagingConfigKey = "page.index"
+var PageLast PagingConfigKey = "page.last"
+
+type SensorViewModel interface {
+    Bool(property string) bool
+    Date(property, layout string) string
+    String(property string) string
+}
+
+func tableRowsFromSensors(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors []SensorViewModel) []templ.Component {
+    rows := []templ.Component{}
+
+    labelText := map[bool]string{false: "Inaktiv", true: "Aktiv"}
+
+    for _, sensor := range sensors {
+        isActive := sensor.Bool("active")
+
+        cells := []templ.Component{TextCell(sensor.String("name"))}
+        cells = append(cells, LabelCell(labelText[isActive], isActive))
+        cells = append(cells, TextCell(sensor.String("deveui")))
+        cells = append(cells, TextCell(sensor.String("network")))
+        cells = append(cells, TextCell(sensor.String("battery")))
+        cells = append(cells, TextCell(sensor.Date("lastseen", "2006-01-02, 15:04")))
+
+        if sensor.Bool("has-alerts") {
+            cells = append(cells, Cell(SVG("alert-triangle", Size(24), AlertStyle())))
+        } else {
+            cells = append(cells, TextCell(""))
+        }
+
+        rows = append(rows, TableRow(cells...))
+    }
+
+    return rows
+}
+
+templ SensorTable(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors []SensorViewModel) {
+    /*@Table(
+        HeaderRow(TH("Namn"), TH("Status"), TH("DevEUI"), TH("Nät"), TH("Batterinivå"), TH("Senaste Värde"), TH("Larm")),
+        TableData(tableRowsFromSensors(localizer, asset, sensors)),
+    )*/
+
+    <div class="w-full rounded-2xl shadow flex flex-col justify-start items-start shrink-0 self-stretch">
+        @HeaderRow(TH("Namn"), TH("Status"), TH("DevEUI"), TH("Nät"), TH("Batterinivå"), TH("Senaste Värde"), TH("Larm"))
+        @TableData(tableRowsFromSensors(localizer, asset, sensors)...)
+    </div>
+}
+
+templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
     <div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
         <div class="w-full h-12 justify-between items-center inline-flex">
             <div class="inline-flex justify-start items-center gap-[34px]">
@@ -225,13 +352,9 @@ templ Sensors(asset assets.AssetLoaderFunc) {
                 </div>
             </div>
 
-            @Table(
-                HeaderRow(TH("Namn"), TH("Status"), TH("DevEUI"), TH("Nät"), TH("Batterinivå"), TH("Senaste Värde"), TH("Larm")),
-                TableData(
-                    TableRow(
-                        TextCell("Fregattgatan 2"), LabelCell("Aktiv", true), TextCell("70b3d52c0001a4b4"), TextCell("LoRa"), TextCell("25%"), TextCell("2024-01-29, 12:00"), Cell(SVG("alert-triangle", Size(24), AlertStyle())),
-                    )))
-
+            <div id="sensor-table" class="w-full" hx-get="/components/tables/sensors" hx-trigger="load">
+                //@SensorTable(localizer, asset)
+            </div>
         </div>
     </div>
 }

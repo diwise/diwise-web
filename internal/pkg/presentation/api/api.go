@@ -8,6 +8,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/sensors"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
@@ -22,11 +24,6 @@ type Api interface {
 type impl struct {
 	webapp application.WebApp
 	router *http.ServeMux
-}
-
-func isHxRequest(r *http.Request) bool {
-	isHxRequest := r.Header.Get("HX-Request")
-	return isHxRequest == "true"
 }
 
 type writerMiddleware struct {
@@ -74,6 +71,18 @@ func logger(ctx context.Context, next http.Handler) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
+func RequireHX(next http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		isHxRequest := r.Header.Get("HX-Request")
+		if isHxRequest != "true" {
+			http.Error(w, "bad request", http.StatusBadRequest)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	}
+}
+
 func New(ctx context.Context, mux *http.ServeMux, app application.WebApp, version, assetPath string) (Api, error) {
 
 	if version == "develop" {
@@ -81,7 +90,7 @@ func New(ctx context.Context, mux *http.ServeMux, app application.WebApp, versio
 	}
 
 	mux.HandleFunc("GET /version/{v}", func(w http.ResponseWriter, r *http.Request) {
-		if isHxRequest(r) {
+		if helpers.IsHxRequest(r) {
 			if r.PathValue("v") != version {
 				currentURL := r.Header.Get("HX-Current-URL")
 				if currentURL == "" {
@@ -111,24 +120,26 @@ func New(ctx context.Context, mux *http.ServeMux, app application.WebApp, versio
 
 		ctx := context.WithValue(r.Context(), components.CurrentComponent, "home")
 
+		localizer := l10n.For(acceptLanguage)
+
 		component := components.StartPage(
-			version, l10n.For(acceptLanguage),
-			assetLoader.Load, components.Home(assetLoader.Load),
+			version, localizer,
+			assetLoader.Load, components.Home(localizer, assetLoader.Load),
 		)
 		component.Render(ctx, w)
 	})
 
 	r.HandleFunc("GET /{component}", func() http.HandlerFunc {
 
-		comps := map[string]templ.Component{
-			"home":    components.Home(assetLoader.Load),
-			"sensors": components.Sensors(assetLoader.Load),
+		comps := map[string]func(locale.Localizer, assets.AssetLoaderFunc) templ.Component{
+			"home":    components.Home,
+			"sensors": components.Sensors,
 		}
 
 		return func(w http.ResponseWriter, r *http.Request) {
 
 			componentName := r.PathValue("component")
-			component, ok := comps[componentName]
+			template, ok := comps[componentName]
 			if !ok {
 				http.Error(w, "not found", http.StatusNotFound)
 				return
@@ -141,13 +152,19 @@ func New(ctx context.Context, mux *http.ServeMux, app application.WebApp, versio
 
 			ctx := context.WithValue(r.Context(), components.CurrentComponent, componentName)
 
-			component = components.StartPage(
-				version, l10n.For(r.Header.Get("Accept-Language")),
-				assetLoader.Load, component,
+			localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+			component := components.StartPage(
+				version, localizer,
+				assetLoader.Load, template(localizer, assetLoader.Load),
 			)
 			component.Render(ctx, w)
 		}
 	}())
+
+	r.HandleFunc("GET /components/tables/sensors", RequireHX(
+		sensors.NewTableSensorsComponentHandler(l10n, assetLoader.Load, app),
+	))
 
 	r.HandleFunc("GET /assets/{sha}/{filename}", func(w http.ResponseWriter, r *http.Request) {
 		sha := r.PathValue("sha")

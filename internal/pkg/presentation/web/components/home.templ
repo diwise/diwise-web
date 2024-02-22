@@ -1,11 +1,12 @@
 package components
 
 import (
+	  "github.com/diwise/diwise-web/internal/pkg/presentation/locale"
     "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 )
 
 
-templ Home(asset assets.AssetLoaderFunc) {
+templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
 
   <div class="grid grid-cols-4 gap-8">
   <div class="col-span-2">
