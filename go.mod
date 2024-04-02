@@ -4,8 +4,8 @@ go 1.22
 
 require (
 	github.com/BurntSushi/toml v1.3.2
-	github.com/a-h/templ v0.2.543
-	github.com/diwise/service-chassis v0.0.0-20240124164913-4f5fdbb597cb
+	github.com/a-h/templ v0.2.648
+	github.com/diwise/service-chassis v0.0.0-20240322150318-bfd966f97527
 	github.com/google/uuid v1.3.1
 	github.com/nicksnyder/go-i18n/v2 v2.4.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.48.0
@@ -17,7 +17,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
-	github.com/go-chi/chi/v5 v5.0.11 // indirect
+	github.com/go-chi/chi/v5 v5.0.12 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
@@ -41,5 +41,5 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20231127180814-3a041ad873d4 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231127180814-3a041ad873d4 // indirect
 	google.golang.org/grpc v1.59.0 // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
+	google.golang.org/protobuf v1.33.0 // indirect
 )
