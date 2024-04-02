@@ -163,7 +163,7 @@ func New(ctx context.Context, mux *http.ServeMux, app application.WebApp, versio
 	}())
 
 	r.HandleFunc("GET /components/tables/sensors", RequireHX(
-		sensors.NewTableSensorsComponentHandler(l10n, assetLoader.Load, app),
+		sensors.NewTableSensorsComponentHandler(ctx, l10n, assetLoader.Load, app),
 	))
 
 	r.HandleFunc("GET /assets/{sha}/{filename}", func(w http.ResponseWriter, r *http.Request) {

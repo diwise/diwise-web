@@ -20,7 +20,9 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-func NewTableSensorsComponentHandler(l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.WebApp) http.HandlerFunc {
+func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.WebApp) http.HandlerFunc {
+	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Cache-Control", "no-cache")
@@ -34,7 +36,7 @@ func NewTableSensorsComponentHandler(l10n locale.Bundle, assets assets.AssetLoad
 
 		ctx := r.Context()
 
-		_, pages, sensors, _ := getSensors(ctx, page, limit)
+		_, pages, sensors, _ := getSensors(ctx, deviceManagementURL, page, limit)
 
 		ctx = helpers.Decorate(
 			ctx,
@@ -112,13 +114,11 @@ func NewSens(ctx context.Context, data map[string]any) *sens {
 	return &sens{data: data}
 }
 
-func getSensors(ctx context.Context, page, limit string) (int, int, []components.SensorViewModel, error) {
+func getSensors(ctx context.Context, url, page, limit string) (int, int, []components.SensorViewModel, error) {
 	count, _ := strconv.ParseInt(limit, 10, 32)
 	pageidx, _ := strconv.ParseInt(page, 10, 32)
 
 	token := env.GetVariableOrDefault(ctx, "TOKEN", "invalid")
-
-	url := "https://test.diwise.io/api/v0/devices"
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
