@@ -3,12 +3,12 @@ FROM --platform=$BUILDPLATFORM docker.io/golang:1.22 AS builder
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
-RUN go install github.com/a-h/templ/cmd/templ@v0.2.476
+RUN go install github.com/a-h/templ/cmd/templ@v0.2.648
 
 ARG TARGETARCH
 ARG TARGETOS
 
-RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-$TARGETOS-$TARGETARCH
+RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.3/tailwindcss-$TARGETOS-$TARGETARCH
 RUN chmod +x tailwindcss-$TARGETOS-$TARGETARCH
 RUN mv tailwindcss-$TARGETOS-$TARGETARCH tailwindcss
 
