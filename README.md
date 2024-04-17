@@ -37,7 +37,6 @@ Add to configurations in launch.json
         }
 ```
 
-
 ## Development workflow
 
 ```bash

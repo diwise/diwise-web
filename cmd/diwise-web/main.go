@@ -25,11 +25,14 @@ func main() {
 		serviceVersion = "develop"
 	}
 
+	// Initialise the observability package
 	ctx, logger, cleanup := o11y.Init(context.Background(), serviceName, serviceVersion)
 	defer cleanup()
 
+	// Get path to web assets folder via environment variable (or a default) ...
 	webAssetPath = env.GetVariableOrDefault(ctx, "DIWISEWEB_ASSET_PATH", "/opt/diwise/assets")
 
+	// ... but allow an override using a command line argument
 	flag.StringVar(&webAssetPath, "web-assets", webAssetPath, "path to web assets folder")
 	flag.Parse()
 
@@ -52,15 +55,15 @@ func main() {
 	}
 }
 
-func initialize(ctx context.Context, version string, mux *http.ServeMux, assetPath string) (api.Api, application.WebApp, error) {
-	app, err := application.New(ctx)
+func initialize(ctx context.Context, version string, mux *http.ServeMux, assetPath string) (api_ api.Api, app application.WebApp, err error) {
+	app, err = application.New(ctx)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
-	api_, err := api.New(ctx, mux, app, version, assetPath)
+	api_, err = api.New(ctx, mux, app, version, assetPath)
 	if err != nil {
-		return nil, nil, err
+		return
 	}
 
 	return api_, app, nil
