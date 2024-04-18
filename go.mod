@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/BurntSushi/toml v1.3.2
-	github.com/a-h/templ v0.2.648
+	github.com/a-h/templ v0.2.663
 	github.com/diwise/service-chassis v0.0.0-20240322150318-bfd966f97527
 	github.com/google/uuid v1.3.1
 	github.com/nicksnyder/go-i18n/v2 v2.4.0

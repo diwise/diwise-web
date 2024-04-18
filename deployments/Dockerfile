@@ -3,7 +3,7 @@ FROM --platform=$BUILDPLATFORM docker.io/golang:1.22 AS builder
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
-RUN go install github.com/a-h/templ/cmd/templ@v0.2.648
+RUN go install github.com/a-h/templ/cmd/templ@v0.2.663
 
 ARG TARGETARCH
 ARG TARGETOS
