@@ -303,10 +303,27 @@ templ FirstT(data string) {
     </span>
 }
 
-templ PB(data string) {
-    <div class="bg-gray-200 w-full rounded-lg">
-        <div class="bg-green-500 rounded-lg" style="width:` + data + `%;">{ data }%</div>
-    </div>
+func progressBar(data string) templ.Component {
+    value, _ := strconv.Atoi(data)
+
+    colourClass := ""
+    switch {
+        case value >= 70: 
+        colourClass = "bg-red-500"
+        case value <= 40: 
+        colourClass = "bg-green-500"
+        default:
+            colourClass = "bg-yellow-500"
+    }
+
+    return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+        _, err := io.WriteString(w, fmt.Sprintf(
+            `<div class="bg-gray-200 w-full rounded-lg">
+                <div class="%s rounded-lg" style="width: %s%%;">%s%%</div>
+            </div>`, colourClass, data, data,
+        ))
+        return err
+    })    
 }
 
 templ Cell(contents templ.Component) {
@@ -327,7 +344,7 @@ templ TextCell(data string) {
 }
 
 templ ProgressBarCell(data string) {
-    @Cell(PB(data))
+    @Cell(progressBar(data))
 }
 
 templ LabelCell(label string, active bool) {
