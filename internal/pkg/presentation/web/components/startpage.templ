@@ -15,6 +15,7 @@ templ StartPage(version string, localizer locale.Localizer, asset assets.AssetLo
             <link href={ asset("/css/diwise.css").Path() } rel="stylesheet" />
             <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet" />
             <link rel="icon" type="image/x-icon" href={ asset("/icons/favicon.ico").Path() } />
+            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
             <title>diwise</title>
         </head>
         @Body(version, localizer, asset, mainContent)

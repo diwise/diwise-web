@@ -132,6 +132,7 @@ func New(ctx context.Context, mux *http.ServeMux, app application.WebApp, versio
 	r.HandleFunc("GET /{component}", func() http.HandlerFunc {
 
 		comps := map[string]func(locale.Localizer, assets.AssetLoaderFunc) templ.Component{
+			"anna":    components.Anna,
 			"home":    components.Home,
 			"sensors": components.Sensors,
 		}

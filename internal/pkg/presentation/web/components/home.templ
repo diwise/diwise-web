@@ -25,7 +25,9 @@ templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
 
   <div class="col-span-2">
 
-    <div class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Status</div>
+    <div class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">
+      <h2>Status</h2>
+    </div>
 
     <div class="p-8 bg-white dark:bg-gray-800 rounded-[15px] shadow justify-start items-start gap-4">
 
@@ -118,7 +120,9 @@ templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
         TableRow(
             TextCell("NIAB_lidar_50001c"), LabelCell("Aktiv", true), TextCell("3231383771308416"), TextCell("LoRa"), TextCell("25%"), TextCell("2024-01-29, 12:00"), Cell(SVG("alert-triangle", Size(24), AlertStyle())),
         ),
-    ))
+    ),
+    DataTableFooter("7"),
+    )
 
   </div>
   </div>

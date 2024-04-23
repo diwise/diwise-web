@@ -9,15 +9,15 @@ import (
 
 templ SearchField() {
     <div class="w-[237px] h-12 flex-col justify-center items-start gap-2 inline-flex">
-        <div class="self-stretch pl-5 pr-4 py-3 bg-gray-900 bg-opacity-50 rounded-xl border border-white border-opacity-50 justify-start items-center gap-2 inline-flex">
+        <div class="self-stretch pl-5 pr-4 py-3 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50 justify-start items-center gap-2 inline-flex">
             <div class="w-[22px] h-[22px]">
-                <svg class="w-[22px] h-[22px] fill-[#e5e5e5] dark:fill-zinc-600">
+                <svg class="w-[22px] h-[22px] fill-[#444450] dark:fill-zinc-600">
                     @templ.Raw(iconSVG("search"))
                 </svg>
             </div>
-            <div class="grow shrink basis-0 text-white text-opacity-30 text-lg font-normal font-sans leading-normal inline-flex">
+            <div class="grow shrink basis-0 text-[#0A0C0F] text-opacity-30 text-lg font-normal font-sans leading-normal inline-flex">
                 <input
-                    class="w-[175px] rounded-xl bg-zinc-700"
+                    class="w-[175px] rounded-xl bg-white"
                     type="search"
                     placeholder="  Sök"
                     />
@@ -27,26 +27,26 @@ templ SearchField() {
 }
 
 templ PrimaryButton(title string) {
-    <div class="w-[200px] h-10 pl-[18px] pr-4 py-2 bg-amber-700 rounded-xl justify-center items-center gap-2 inline-flex">
+    <div class="w-[200px] h-10 pl-[18px] pr-4 py-2 bg-amber-700 rounded-xl flex items-center gap-2">
+        <div class="w-[20px] h-[23px]">
+            <svg class="w-[20px] h-[23px] stroke-white stroke-2">
+                @templ.Raw(iconSVG("plus"))
+            </svg>
+        </div>
         <div class="text-white text-base font-bold font-sans leading-normal">
             { title }
-        </div>
-        <div class="w-[18px] h-[18px]">
-            <svg class="w-[18px] h-[18px] fill-[#e5e5e5] dark:fill-zinc-600">
-                @templ.Raw(iconSVG("chevron-down"))
-            </svg>
         </div>
     </div>
 }
 
 templ SecondaryButton(title string) {
-    <div class="w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-white border-opacity-30 bg-gray-900 bg-opacity-20 dark:bg-white dark:bg-opacity-30 justify-center items-center gap-2 inline-flex">
-    <svg class="w-[18px] h-[18px] fill-[#e5e5e5] dark:fill-zinc-600">
-        @templ.Raw(iconSVG("filter"))
-    </svg>
-    <div class="text-neutral-200 text-base font-bold font-sans leading-normal">
-        { title }
-    </div>
+    <div class="w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-[#1C1C284D] border-opacity-30 bg-white bg-opacity-20 dark:bg-white dark:bg-opacity-30 justify-center items-center gap-2 inline-flex">
+        <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+            @templ.Raw(iconSVG("filter"))
+        </svg>
+        <div class="text-[#444450] text-base font-bold font-sans leading-normal">
+            { title }
+        </div>
     </div>
 }
 
@@ -145,105 +145,110 @@ templ PageSelector(index string) {
     }
 }
 
-templ DataTableFooter() {
-    <div class="w-full h-[60px] px-4 py-3.5 bg-white dark:bg-gray-800 rounded-b-2xl border-t border-white border-opacity-30 justify-between items-center inline-flex">
-        <div class="h-8 justify-start items-center gap-2 flex">
-            <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</div>
-            <div class="h-8 px-3 py-1.5 bg-gray-900 bg-opacity-50 rounded-xl border border-white border-opacity-50 justify-start items-center gap-1.5 flex">
-                <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-tight">
-                    { ctx2str(ctx, PageSize) }
-                </div>
-                <div class="w-4 h-4">
-                    @SVG("chevron-down", Size(16))
-                </div>
-            </div>
-        </div>
-        <div class="h-8 justify-between items-center flex">
-            <button class="p-1.5 rounded-full justify-center items-center gap-1 flex"
-                if !isFirstPage(ctx) {
-                    hx-get={ fmt.Sprintf("/components/tables/sensors?page=%d&limit=%s", prevPage(ctx), ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click"
-                } else {
-                    disabled
-                }
-            >
-                <div class="w-5 h-5">
-                    if isFirstPage(ctx) {
-                        @SVG("arrow-left", DisabledStyle())
-                    } else {
-                        @SVG("arrow-left")
-                    }
-                </div>
-            </button>
+templ DataTableFooter(colspan string) {
+    <tfoot>
+        <tr>
+            <td colspan={colspan}>
+                <div id="paginering" class="w-full h-[60px] px-4 py-3.5 dark:bg-gray-800 rounded-b-2xl border-t border-white border-opacity-30 justify-between items-center flex">
+                    <div class="h-8 justify-start items-center gap-2 flex">
+                        <span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</span>
+                        <span class="h-8 px-3 py-1.5 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50 justify-start items-center gap-1.5 flex">
+                            <span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-tight">
+                                { ctx2str(ctx, PageSize) }
+                            </span>
+                            <span class="w-4 h-4">
+                                @SVG("chevron-down", Size(16))
+                            </span>
+                        </span>
+                    </div>
+                    <div class="h-8 justify-between items-center flex">
+                        <button class="p-1.5 rounded-full justify-center items-center gap-1 flex"
+                            if !isFirstPage(ctx) {
+                                hx-get={ fmt.Sprintf("/components/tables/sensors?page=%d&limit=%s", prevPage(ctx), ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click"
+                            } else {
+                                disabled
+                            }
+                        >
+                            <span class="w-5 h-5">
+                                if isFirstPage(ctx) {
+                                    @SVG("arrow-left", DisabledStyle())
+                                } else {
+                                    @SVG("arrow-left")
+                                }
+                            </span>
+                        </button>
 
-            <div class="h-7 px-3 justify-between items-center flex">
-                for _, page := range pagerIndexes(ctx) {
-                    @PageSelector(fmt.Sprintf("%d", page))
-                }
-            </div>
+                        <span class="h-7 px-3 justify-between items-center flex">
+                            for _, page := range pagerIndexes(ctx) {
+                                @PageSelector(fmt.Sprintf("%d", page))
+                            }
+                        </span>
 
-            <button class="p-1.5 rounded-full justify-center items-center gap-1 flex"
-                if !isLastPage(ctx) {
-                    hx-get={ fmt.Sprintf("/components/tables/sensors?page=%d&limit=%s", nextPage(ctx), ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click"
-                } else {
-                    disabled
-                }
-            >
-                <div class="w-5 h-5">
-                    if isLastPage(ctx) {
-                        @SVG("arrow-right", DisabledStyle())
-                    } else {
-                        @SVG("arrow-right", Box(24, 24))
-                    }
+                        <button class="p-1.5 rounded-full justify-center items-center gap-1 flex"
+                            if !isLastPage(ctx) {
+                                hx-get={ fmt.Sprintf("/components/tables/sensors?page=%d&limit=%s", nextPage(ctx), ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click"
+                            } else {
+                                disabled
+                            }
+                        >
+                            <span class="w-5 h-5">
+                                if isLastPage(ctx) {
+                                    @SVG("arrow-right", DisabledStyle())
+                                } else {
+                                    @SVG("arrow-right", Box(24, 24))
+                                }
+                            </span>
+                        </button>
+                    </div>
+                    <div class="h-8 justify-end items-center gap-2 flex">
+                        <span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Radhöjd:</span>
+                        <span class="pl-3 pr-2.5 py-2 bg-gray-900 bg-opacity-10 rounded-xl justify-center items-center gap-1 flex">
+                            <span class="grow shrink basis-0 text-zinc-700 text-sm font-bold font-sans leading-none">Normal</span>
+                            <span class="w-4 h-4">
+                                @SVG("chevron-down", Size(16))
+                            </span>
+                        </span>
+                    </div>
                 </div>
-            </button>
-        </div>
-        <div class="h-8 justify-end items-center gap-2 flex">
-            <div class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Radhöjd:</div>
-            <div class="pl-3 pr-2.5 py-2 bg-white bg-opacity-20 rounded-xl justify-center items-center gap-1 flex">
-                <div class="grow shrink basis-0 text-white text-sm font-bold font-sans leading-none">Normal</div>
-                <div class="w-4 h-4">
-                    @SVG("chevron-down", Size(16))
-                </div>
-            </div>
-        </div>
-    </div>
+            </td>
+        </tr>
+    </tfoot>
 }
 
 templ TH(title string) {
-    <div class="w-[162.71px] h-12 px-4 py-3 rounded-lg justify-start items-center gap-1 inline-flex">
-        <div class="text-zinc-700 dark:text-neutral-200 text-sm font-bold font-sans leading-none">
-            { title }
-        </div>
-    </div>
+    <th class="px-6 py-3">
+        { title }
+    </th>
 }
 
 templ HeaderRow(titles ...templ.Component) {
-    <div class="w-full h-14 py-1 bg-white dark:bg-gray-800 border-b border-neutral-800 dark:border-white rounded-t-2xl justify-start items-start inline-flex">
-    for _, title := range titles {
-        @title
-    }
-    </div>
+    <thead class="border-b border-gray-500">
+        <tr>
+            for _, title := range titles {
+            @title
+        }   
+        </tr>
+    </thead>
 }
 
 templ TableData(rows ...templ.Component) {
-    <div class="w-full">
+    <tbody>
         for _, row := range rows {
             @row
-        }
-        @DataTableFooter()
-    </div>
+        }    
+    </tbody>
 }
 
 templ TableRow(cells ...templ.Component) {
-    <div class="w-full h-14 py-1 bg-white dark:bg-gray-800 border-b border-gray-900 dark:border-white border-opacity-30 justify-start items-start inline-flex">
+    <tr class="border-b border-[#1C1C284D] border-opacity-70 hover:bg-[#FAFAFA]">
         for _, cell := range cells {
             @cell
         }
-    </div>
+    </tr>
 }
 
 templ Label(label string, active bool) {
-    <div class={
+    /*<div class={
         "px-2.5 py-1 rounded-full justify-start items-center gap-1.5 flex",
         templ.KV("bg-[#c9e4d7]", active),
         templ.KV("dark:bg-emerald-800", active),
@@ -260,34 +265,83 @@ templ Label(label string, active bool) {
             templ.KV("dark:text-neutral-300", !active) }>
             { label }
         </div>
-    </div>
+    </div>*/
+
+    <span class={
+        "px-2.5 py-1 rounded-full justify-start items-center gap-1.5",
+        templ.KV("bg-[#c9e4d7]", active),
+        templ.KV("dark:bg-emerald-800", active),
+        templ.KV("bg-gray-900", !active),
+        templ.KV("bg-opacity-10", !active),
+        templ.KV("dark:bg-white", !active),
+        templ.KV("dark:bg-opacity-20", !active) }>
+
+        <span class={
+            "text-sm font-bold font-sans leading-none",
+            templ.KV("text-emerald-900", active),
+            templ.KV("dark:text-gray-200", active),
+            templ.KV("text-neutral-800", !active),
+            templ.KV("dark:text-neutral-300", !active) }>
+            { label }
+        </span>
+    </span>
 }
 
 templ T(data string) {
-    <div class="grow shrink basis-0 text-zinc-700 dark:text-neutral-200 text-sm font-bold font-sans leading-[18px]">
+    /*<div class="grow shrink basis-0 text-zinc-700 dark:text-neutral-200 text-sm font-bold font-sans leading-[18px]">
         { data }
+    </div>*/
+    { data }
+}
+
+templ FirstT(data string) {
+    /*<div class="grow shrink basis-0 text-zinc-700 dark:text-neutral-200 text-sm font-bold font-sans leading-[18px]">
+        { data }
+    </div>*/
+    <span class="font-bold">
+        { data }
+    </span>
+}
+
+templ PB(data string) {
+    <div class="bg-gray-200 w-full rounded-lg">
+        <div class="bg-green-500 rounded-lg" style="width:` + data + `%;">{ data }%</div>
     </div>
 }
 
 templ Cell(contents templ.Component) {
-    <div class="grow shrink basis-0 h-12 px-[18px] py-3 rounded-lg justify-start items-center gap-2 flex">
+    /*<div class="grow shrink basis-0 h-12 px-[18px] py-3 rounded-lg justify-start items-center gap-2 flex">
         @contents
-    </div>
+    </div>*/
+    <td class="px-6 py-3">
+        @contents
+    </td>
+}
+
+templ TextFirstCell(data string) {
+    @Cell(FirstT(data))
 }
 
 templ TextCell(data string) {
     @Cell(T(data))
 }
 
+templ ProgressBarCell(data string) {
+    @Cell(PB(data))
+}
+
 templ LabelCell(label string, active bool) {
     @Cell(Label(label, active))
 }
 
-templ Table(header templ.Component, data templ.Component) {
-    <div class="w-full rounded-2xl shadow flex flex-col justify-start items-start shrink-0 self-stretch">
+templ Table(header templ.Component, data templ.Component, footer templ.Component) {
+    /*<table class="w-full rounded-2xl shadow flex flex-col justify-start items-start shrink-0 self-stretch"> */
+
+    <table class="table-auto min-w-full shadow-lg rounded-2xl text-sm text-left bg-white">
         @header
         @data
-    </div>
+        @footer
+    </table>
 }
 
 type PagingConfigKey string
@@ -310,7 +364,7 @@ func tableRowsFromSensors(localizer locale.Localizer, asset assets.AssetLoaderFu
     for _, sensor := range sensors {
         isActive := sensor.Bool("active")
 
-        cells := []templ.Component{TextCell(sensor.String("name"))}
+        cells := []templ.Component{TextFirstCell(sensor.String("name"))}
         cells = append(cells, LabelCell(labelText[isActive], isActive))
         cells = append(cells, TextCell(sensor.String("deveui")))
         cells = append(cells, TextCell(sensor.String("network")))
@@ -327,22 +381,26 @@ func tableRowsFromSensors(localizer locale.Localizer, asset assets.AssetLoaderFu
     }
 
     return rows
+    
 }
 
 templ SensorTable(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors []SensorViewModel) {
-    /*@Table(
-        HeaderRow(TH("Namn"), TH("Status"), TH("DevEUI"), TH("Nät"), TH("Batterinivå"), TH("Senaste Värde"), TH("Larm")),
-        TableData(tableRowsFromSensors(localizer, asset, sensors)),
-    )*/
+    @Table(
+        HeaderRow(TH("Namn"), TH("Status"), TH("DevEUI"), TH("Nät"), TH("Batterinivå"), TH("Senaste värde"), TH("Larm")),
+        TableData(tableRowsFromSensors(localizer, asset, sensors)...),
+        DataTableFooter("7"),
+    )
+   /*@DataTableFooter()*/
 
-    <div class="w-full rounded-2xl shadow flex flex-col justify-start items-start shrink-0 self-stretch">
+    /*<div class="w-full rounded-2xl shadow flex flex-col justify-start items-start shrink-0 self-stretch">
         @HeaderRow(TH("Namn"), TH("Status"), TH("DevEUI"), TH("Nät"), TH("Batterinivå"), TH("Senaste Värde"), TH("Larm"))
         @TableData(tableRowsFromSensors(localizer, asset, sensors)...)
-    </div>
+    </div>*/
 }
 
 templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
     <div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
+        <h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensorer</h2>
         <div class="w-full h-12 justify-between items-center inline-flex">
             <div class="inline-flex justify-start items-center gap-[34px]">
                 @SearchField()
