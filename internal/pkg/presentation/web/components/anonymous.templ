@@ -1,0 +1,13 @@
+package components
+
+import (
+    "github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+)
+
+templ NotLoggedIn(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
+    <center>
+    <h1>You are not logged in!</h1>
+    <button><a href="/login">Login</a></button>
+    </center>
+}

@@ -20,7 +20,9 @@ https://marketplace.visualstudio.com/items?itemName=a-h.templ
 
 ```bash
 export DIWISEWEB_ASSET_PATH=~/<your path to>/diwise-web/assets
-export TOKEN=<a valid jwt token to a diwise instance>
+export OAUTH2_REALM_URL="https://<iam host>/realms/<realm name>"
+export OAUTH2_CLIENT_ID="<client id>"
+export OAUTH2_CLIENT_SECRET="<client secret>"
 ```
 
 ### Debug
@@ -48,7 +50,9 @@ Add to configurations in launch.json
     "env": {
         "DIWISEWEB_ASSET_PATH": "${workspaceFolder}/assets",
         "SERVICE_PORT": "8081",
-        "TOKEN": "replaceme"
+        "OAUTH2_REALM_URL": "https://<iam host>/realms/<realm name>",
+        "OAUTH2_CLIENT_ID": "<client id>",
+        "OAUTH2_CLIENT_SECRET": "<client secret>"
     },
     "args": []
 }

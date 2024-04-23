@@ -10,6 +10,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api"
 	"github.com/diwise/service-chassis/pkg/infrastructure/buildinfo"
 	"github.com/diwise/service-chassis/pkg/infrastructure/env"
+	"github.com/diwise/service-chassis/pkg/infrastructure/net/http/authn"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
@@ -38,7 +39,28 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	webapi, _, err := initialize(ctx, serviceVersion, mux, webAssetPath)
+	realmURL := env.GetVariableOrDie(ctx, "OAUTH2_REALM_URL", "a valid oauth2 realm URL")
+	clientID := env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_ID", "a valid oauth2 client id")
+	clientSecret := env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_SECRET", "a valid oauth2 client secret")
+
+	pte, err := authn.NewPhantomTokenExchange(
+		authn.WithAppRoot("http://localhost:8080"),
+		authn.WithClientCredentials(clientID, clientSecret),
+		authn.WithLogger(logger),
+	)
+	if err != nil {
+		fatal(ctx, "failed to create phantom token exchange", err)
+	}
+	defer pte.Shutdown()
+
+	err = pte.Connect(ctx, realmURL)
+	if err != nil {
+		fatal(ctx, "failed to connect to iam", err)
+	}
+
+	pte.InstallHandlers(mux)
+
+	webapi, _, err := initialize(ctx, serviceVersion, mux, pte, webAssetPath)
 	if err != nil {
 		fatal(ctx, "failed to initialize service", err)
 	}
@@ -55,13 +77,13 @@ func main() {
 	}
 }
 
-func initialize(ctx context.Context, version string, mux *http.ServeMux, assetPath string) (api_ api.Api, app application.WebApp, err error) {
+func initialize(ctx context.Context, version string, mux *http.ServeMux, pte authn.PhantomTokenExchange, assetPath string) (api_ api.Api, app application.WebApp, err error) {
 	app, err = application.New(ctx)
 	if err != nil {
 		return
 	}
 
-	api_, err = api.New(ctx, mux, app, version, assetPath)
+	api_, err = api.New(ctx, mux, pte, app, version, assetPath)
 	if err != nil {
 		return
 	}

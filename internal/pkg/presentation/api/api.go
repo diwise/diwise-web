@@ -8,11 +8,13 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/sensors"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+	"github.com/diwise/service-chassis/pkg/infrastructure/net/http/authn"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"github.com/google/uuid"
 )
@@ -22,8 +24,9 @@ type Api interface {
 }
 
 type impl struct {
-	webapp application.WebApp
-	router *http.ServeMux
+	webapp        application.WebApp
+	router        *http.ServeMux
+	tokenExchange authn.PhantomTokenExchange
 }
 
 type writerMiddleware struct {
@@ -83,12 +86,11 @@ func RequireHX(next http.Handler) http.HandlerFunc {
 	}
 }
 
-func New(ctx context.Context, mux *http.ServeMux, app application.WebApp, version, assetPath string) (Api, error) {
+func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange, app application.WebApp, version, assetPath string) (Api, error) {
 
 	if version == "develop" {
 		version = version + "-" + uuid.NewString()
 	}
-
 	mux.HandleFunc("GET /version/{v}", func(w http.ResponseWriter, r *http.Request) {
 		if helpers.IsHxRequest(r) {
 			if r.PathValue("v") != version {
@@ -115,7 +117,7 @@ func New(ctx context.Context, mux *http.ServeMux, app application.WebApp, versio
 
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
 		ctx := context.WithValue(r.Context(), components.CurrentComponent, "home")
@@ -194,11 +196,14 @@ func New(ctx context.Context, mux *http.ServeMux, app application.WebApp, versio
 		}
 	}())
 
-	mux.Handle("GET /", logger(ctx, r))
+	mux.Handle(
+		"GET /", logger(ctx, pte.Middleware()(authz.Middleware()(r))),
+	)
 
 	return &impl{
-		webapp: app,
-		router: mux,
+		webapp:        app,
+		router:        mux,
+		tokenExchange: pte,
 	}, nil
 }
 

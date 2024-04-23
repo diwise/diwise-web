@@ -1,6 +1,7 @@
 package components
 
 import (
+    "github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
     "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 )
@@ -18,6 +19,10 @@ templ StartPage(version string, localizer locale.Localizer, asset assets.AssetLo
             <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
             <title>diwise</title>
         </head>
-        @Body(version, localizer, asset, mainContent)
+        if authz.IsLoggedIn(ctx) {
+            @Body(version, localizer, asset, mainContent)
+        } else {
+            @NotLoggedIn(localizer, asset)
+        }
     </html>
 }

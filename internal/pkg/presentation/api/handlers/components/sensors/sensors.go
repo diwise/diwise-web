@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
@@ -36,7 +37,11 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 
 		ctx := r.Context()
 
-		_, pages, sensors, _ := getSensors(ctx, deviceManagementURL, page, limit)
+		_, pages, sensors, err := getSensors(ctx, deviceManagementURL, page, limit)
+
+		if err != nil {
+			logging.GetFromContext(ctx).Error("get sensors error", "err", err.Error())
+		}
 
 		ctx = helpers.Decorate(
 			ctx,
@@ -118,7 +123,7 @@ func getSensors(ctx context.Context, url, page, limit string) (int, int, []compo
 	count, _ := strconv.ParseInt(limit, 10, 32)
 	pageidx, _ := strconv.ParseInt(page, 10, 32)
 
-	token := env.GetVariableOrDefault(ctx, "TOKEN", "invalid")
+	token := authz.Token(ctx)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
