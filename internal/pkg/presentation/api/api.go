@@ -134,10 +134,9 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	r.HandleFunc("GET /{component}", func() http.HandlerFunc {
 
 		comps := map[string]func(locale.Localizer, assets.AssetLoaderFunc) templ.Component{
-			"anna":          components.Anna,
-			"home":          components.Home,
-			"sensors":       components.Sensors,
-			"sensordetails": components.Sensordetails,
+			"anna":    components.Anna,
+			"home":    components.Home,
+			"sensors": components.Sensors,
 		}
 
 		return func(w http.ResponseWriter, r *http.Request) {
@@ -166,9 +165,20 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 		}
 	}())
 
+	r.HandleFunc("GET /components/sensors/details", RequireHX(
+		sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app),
+	))
+
 	r.HandleFunc("GET /components/tables/sensors", RequireHX(
 		sensors.NewTableSensorsComponentHandler(ctx, l10n, assetLoader.Load, app),
 	))
+
+	// Handle requests for leaflet images /assets/<leafletcss-sha>/images/<image>.png
+	leafletSHA := assetLoader.Load("/css/leaflet.css").SHA256()
+	r.HandleFunc(fmt.Sprintf("GET /assets/%s/images/{img}", leafletSHA), func(w http.ResponseWriter, r *http.Request) {
+		image := r.PathValue("img")
+		http.Redirect(w, r, assetLoader.Load("/images/leaflet-"+image).Path(), http.StatusMovedPermanently)
+	})
 
 	r.HandleFunc("GET /assets/{sha}/{filename}", func(w http.ResponseWriter, r *http.Request) {
 		sha := r.PathValue("sha")

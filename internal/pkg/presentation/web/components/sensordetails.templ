@@ -8,7 +8,6 @@ import (
 templ Map() {
     <div id="map" class="h-96 w-full rounded-lg shadow-lg"></div>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([62.3908, 17.3069], 13);
 
@@ -48,7 +47,7 @@ templ Map() {
 
 }
 
-templ Sensordetails(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
+templ Sensordetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorViewModel) {
 
     <div class="flex items-center justify-between pb-4">
         <h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensordetaljer</h2>

@@ -330,16 +330,23 @@ func progressBar(data string) templ.Component {
 }
 
 templ Cell(contents templ.Component) {
-    /*<div class="grow shrink basis-0 h-12 px-[18px] py-3 rounded-lg justify-start items-center gap-2 flex">
-        @contents
-    </div>*/
     <td class="px-6 py-3">
+        @contents
+    </td>
+}
+
+templ LinkCell(contents templ.Component, url string) {
+    <td class="px-6 py-3" hx-get={ url } hx-target="#sensor-view" hx-trigger="click">
         @contents
     </td>
 }
 
 templ TextFirstCell(data string) {
     @Cell(FirstT(data))
+}
+
+templ TextLinkCell(data, url string) {
+    @LinkCell(T(data), url)
 }
 
 templ TextCell(data string) {
@@ -376,7 +383,7 @@ type SensorViewModel interface {
     String(property string) string
 }
 
-func tableRowsFromSensors(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors []SensorViewModel) []templ.Component {
+func tableRowsFromSensors(_ locale.Localizer, _ assets.AssetLoaderFunc, sensors []SensorViewModel) []templ.Component {
     rows := []templ.Component{}
 
     labelText := map[bool]string{false: "Inaktiv", true: "Aktiv"}
@@ -386,7 +393,7 @@ func tableRowsFromSensors(localizer locale.Localizer, asset assets.AssetLoaderFu
 
         cells := []templ.Component{TextFirstCell(sensor.String("name"))}
         cells = append(cells, LabelCell(labelText[isActive], isActive))
-        cells = append(cells, TextCell(sensor.String("deveui")))
+        cells = append(cells, TextLinkCell(sensor.String("deveui"), "/components/sensors/details?id=" + sensor.String("id")))
         cells = append(cells, TextCell(sensor.String("network")))
         cells = append(cells, TextCell(sensor.String("battery")))
         cells = append(cells, TextCell(sensor.Date("lastseen", "2006-01-02, 15:04")))
@@ -419,6 +426,7 @@ templ SensorTable(localizer locale.Localizer, asset assets.AssetLoaderFunc, sens
 }
 
 templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
+    <div class="w-full" id="sensor-view">
     <div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
         <h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensorer</h2>
         <div class="w-full h-12 justify-between items-center inline-flex">
@@ -456,5 +464,6 @@ templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
                 //@SensorTable(localizer, asset)
             </div>
         </div>
+    </div>
     </div>
 }

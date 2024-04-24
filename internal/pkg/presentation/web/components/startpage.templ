@@ -12,11 +12,12 @@ templ StartPage(version string, localizer locale.Localizer, asset assets.AssetLo
         <head>
             <meta charset="UTF-8"/>
             <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-            <script src={ asset("/js/htmx.min.js").Path() }></script>
             <link href={ asset("/css/diwise.css").Path() } rel="stylesheet" />
+            <link href={ asset("/css/leaflet.css").Path() } rel="stylesheet" />
+            <script src={ asset("/js/htmx.min.js").Path() }></script>
+            <script src={ asset("/js/leaflet.js").Path() }></script>
             <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet" />
             <link rel="icon" type="image/x-icon" href={ asset("/icons/favicon.ico").Path() } />
-            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
             <title>diwise</title>
         </head>
         if authz.IsLoggedIn(ctx) {
