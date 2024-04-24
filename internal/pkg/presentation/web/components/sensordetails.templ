@@ -1,0 +1,101 @@
+package components
+
+import (
+	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+    "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+)
+
+templ Map() {
+    <div id="map" class="h-96 w-full rounded-lg shadow-lg"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([62.3908, 17.3069], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        
+        var coordinates = [
+            [62.3908, 17.3069]
+        ];
+        
+
+        /*var svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        </svg>`;
+        var encodedSvgString = encodeURIComponent(svgString);
+        var dataUrl = "data:image/svg+xml," + encodedSvgString;
+
+        var greenIcon = L.icon({
+            iconUrl: dataUrl,  // Sökväg till din ikonbild
+            iconSize: [25, 41],  // Storleken på ikonen
+            iconAnchor: [12, 41],  // Punkt där ikonen "möter" kartan
+            popupAnchor: [1, -34]  // Justering av var popupen ska visas
+        });
+
+        // Lägg till en markör med den anpassade ikonen
+        L.marker([62.3908, 17.3069], {icon: greenIcon}).addTo(map)
+        .bindPopup('En anpassad grön markör.');
+        */
+        
+        coordinates.forEach(function(coord) {
+            L.marker(coord).addTo(map)
+                .bindPopup('Latitude: ' + coord[0] + '<br>Longitude: ' + coord[1]);
+        });
+    </script>
+
+}
+
+templ Sensordetails(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
+
+    <div class="flex items-center justify-between pb-4">
+        <h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensordetaljer</h2>
+        
+        <div class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28] bg-opacity-20 rounded-xl flex items-center gap-2">
+            <div class="w-[24px] h-[24px]">
+                <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
+                    @templ.Raw(iconSVG("pencil"))
+                </svg>
+            </div>
+            <div class="text-[#1F1F25] text-base font-sans font-bold leading-normal">
+                Redigera
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full rounded-2xl shadow flex">
+
+        <div class="flex-1 p-4">
+            
+            <div class="space-y-2 pt-4">
+            
+                <div class="flex justify-between items-center p-2">
+                    <div class="text-left text-[#444450]">Typ</div>
+                    <div class="text-right font-bold">Typ</div>
+                </div>
+                <div class="flex justify-between items-center p-2">
+                    <div class="text-left text-[#444450]">Namn</div>
+                    <div class="text-right font-bold">Namn</div>
+                </div>
+                <div class="flex justify-between items-center p-2">
+                    <div class="text-left text-[#444450]">Position</div>
+                    <div class="text-right font-bold">Position</div>
+                </div>
+                <div class="flex justify-between items-center p-2">
+                    <div class="text-left text-[#444450]">Larm</div>
+                    <div class="text-right font-bold">Larmtyp</div>
+                </div>
+                <div class="p-2">
+                    <div class="text-left text-[#444450]">Beskrivning</div>
+                    <div class="font-bold">Lorem ipsum används ofta som exempeltext inom trycksaksframställning och grafisk design för att visa hur till exempel ett dokument kommer att se ut när väl den riktiga texten är på plats.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex-1 text-center p-4">
+            @Map()
+        </div>
+    </div>
+}
