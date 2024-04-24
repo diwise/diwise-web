@@ -169,6 +169,10 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 		sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app),
 	))
 
+	r.HandleFunc("GET /components/sensors/edit", RequireHX(
+		sensors.NewSensorEditorComponentHandler(ctx, l10n, assetLoader.Load, app),
+	))
+
 	r.HandleFunc("GET /components/tables/sensors", RequireHX(
 		sensors.NewTableSensorsComponentHandler(ctx, l10n, assetLoader.Load, app),
 	))

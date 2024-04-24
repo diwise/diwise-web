@@ -58,9 +58,14 @@ templ Sensordetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
                     @templ.Raw(iconSVG("pencil"))
                 </svg>
             </div>
-            <div class="text-[#1F1F25] text-base font-sans font-bold leading-normal">
+            <button
+                class="text-[#1F1F25] text-base font-sans font-bold leading-normal"
+                hx-get={ "/components/sensors/edit?id=" + sensor.String("id") }
+                hx-target="#sensor-view"
+                hx-trigger="click"
+                >
                 Redigera
-            </div>
+            </button>
         </div>
     </div>
 
@@ -113,17 +118,10 @@ templ Sensordetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
             @Map()
         </div>
     </div>
-
-    
-    @EditSensorComponent()
-    
 }
 
 
-
-
-
-templ EditSensorComponent() {
+templ EditSensorComponent(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorViewModel) {
     <div class="flex items-center justify-between pb-4">
         <h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensordetaljer</h2>
     </div>

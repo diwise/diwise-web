@@ -50,6 +50,35 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 	return http.HandlerFunc(fn)
 }
 
+func NewSensorEditorComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.WebApp) http.HandlerFunc {
+	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		sensorID := r.URL.Query().Get("id")
+
+		ctx := r.Context()
+
+		sensor, err := getSensor(ctx, deviceManagementURL, sensorID)
+
+		if err != nil {
+			logging.GetFromContext(ctx).Error("unable to get sensor details", "err", err.Error())
+			http.Error(w, "unable to get sensor details", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+		w.WriteHeader(http.StatusOK)
+
+		component := components.EditSensorComponent(localizer, assets, sensor)
+		component.Render(ctx, w)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
 func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.WebApp) http.HandlerFunc {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
 
