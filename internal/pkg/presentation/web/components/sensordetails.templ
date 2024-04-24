@@ -54,9 +54,7 @@ templ Sensordetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
         
         <div class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28] bg-opacity-20 rounded-xl flex items-center gap-2 cursor-pointer">
             <div class="w-[24px] h-[24px]">
-                <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
-                    @templ.Raw(iconSVG("pencil"))
-                </svg>
+                @SVG("pencil", Box(24, 24), Size(24), NoFill())
             </div>
             <button
                 class="text-[#1F1F25] text-base font-sans font-bold leading-normal"
