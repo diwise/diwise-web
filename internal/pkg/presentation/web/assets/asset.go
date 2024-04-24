@@ -10,6 +10,7 @@ type Asset interface {
 	ContentLength() int
 	ContentType() string
 	Path() string
+	SHA256() string
 }
 
 var ErrNotFound = errors.New("not found")
@@ -19,12 +20,6 @@ type asset struct {
 	sha256      string
 	contentType string
 	body        []byte
-}
-
-func newAsset(path string) Asset {
-	return &asset{
-		path: path,
-	}
 }
 
 func contentTypeFromFileName(filename string) string {
@@ -60,4 +55,8 @@ func (a asset) ContentType() string {
 
 func (a asset) Path() string {
 	return a.path
+}
+
+func (a asset) SHA256() string {
+	return a.sha256
 }

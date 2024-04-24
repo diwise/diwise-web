@@ -21,6 +21,35 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
+func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.WebApp) http.HandlerFunc {
+	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		sensorID := r.URL.Query().Get("id")
+
+		ctx := r.Context()
+
+		sensor, err := getSensor(ctx, deviceManagementURL, sensorID)
+
+		if err != nil {
+			logging.GetFromContext(ctx).Error("unable to get sensor details", "err", err.Error())
+			http.Error(w, "unable to get sensor details", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+		w.WriteHeader(http.StatusOK)
+
+		component := components.Sensordetails(localizer, assets, sensor)
+		component.Render(ctx, w)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
 func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.WebApp) http.HandlerFunc {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
 
@@ -107,6 +136,7 @@ func (s *sens) String(property string) string {
 
 	value := map[string]string{
 		"deveui":  lookup("sensorID"),
+		"id":      lookup("deviceID"),
 		"name":    lookup("name"),
 		"network": "LoRa",
 	}[property]
@@ -117,6 +147,58 @@ func (s *sens) String(property string) string {
 func NewSens(ctx context.Context, data map[string]any) *sens {
 	logging.GetFromContext(ctx).Info("creating sens", "data", data)
 	return &sens{data: data}
+}
+
+func getSensor(ctx context.Context, url, sensorID string) (sensor components.SensorViewModel, err error) {
+	token := authz.Token(ctx)
+
+	url = url + "/" + sensorID
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		err = fmt.Errorf("failed to create http request: %w", err)
+		return
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	client := http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		err = fmt.Errorf("failed to retrieve information for device: %w", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		err = fmt.Errorf("request failed, not authorized")
+		return
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
+		return
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		err = fmt.Errorf("failed to read response body: %w", err)
+		return
+	}
+
+	fmt.Println("received", string(respBody))
+
+	impl := map[string]any{}
+	err = json.Unmarshal(respBody, &impl)
+	if err != nil {
+		err = fmt.Errorf("failed to unmarshal response body: %w", err)
+		return
+	}
+
+	return NewSens(ctx, impl), nil
 }
 
 func getSensors(ctx context.Context, url, page, limit string) (int, int, []components.SensorViewModel, error) {
