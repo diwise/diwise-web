@@ -51,20 +51,19 @@ templ Sensordetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 
     <div class="flex items-center justify-between pb-4">
         <h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensordetaljer</h2>
-        
-        <div class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28] bg-opacity-20 rounded-xl flex items-center gap-2 cursor-pointer">
+
+        <button
+            class="w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28] bg-opacity-20 rounded-xl flex items-center gap-2 cursor-pointer text-[#1F1F25] text-base font-sans font-bold leading-normal"
+            hx-get={ "/components/sensors/edit?id=" + sensor.String("id") }
+            hx-target="#sensor-view"
+            hx-trigger="click"
+            >
             <div class="w-[24px] h-[24px]">
                 @SVG("pencil", Box(24, 24), Size(24), NoFill())
             </div>
-            <button
-                class="text-[#1F1F25] text-base font-sans font-bold leading-normal"
-                hx-get={ "/components/sensors/edit?id=" + sensor.String("id") }
-                hx-target="#sensor-view"
-                hx-trigger="click"
-                >
-                Redigera
-            </button>
-        </div>
+            Redigera
+        </button>
+
     </div>
 
     <div class="w-full rounded-2xl shadow flex">
