@@ -336,7 +336,7 @@ templ Cell(contents templ.Component) {
 }
 
 templ LinkCell(contents templ.Component, url string) {
-    <td class="px-6 py-3" hx-get={ url } hx-target="#sensor-view" hx-trigger="click">
+    <td class="px-6 py-3 hover:cursor-pointer" hx-get={ url } hx-target="#sensor-view" hx-trigger="click">
         @contents
     </td>
 }
