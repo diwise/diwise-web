@@ -252,16 +252,20 @@ func isCurrent(ctx context.Context, expect string) bool {
 templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, mainContent templ.Component) {
 	<body id="body" onload={ onPageLoad() }>
 		<div id="reloader" hx-get={ reloaderEndpoint(version) } hx-trigger={ reloaderFrequency(version) }></div>
-		<div class="grid grid-cols-12 gap-2 bg-zinc-50 dark:bg-neutral-800">
-			<div class="col-span-2 px-3 py-8 bg-zinc-100 dark:bg-gray-800 shadow justify-start gap-3">
-				<div class="h-screen self-stretch h-full flex-col justify-between items-start gap-3 flex">
+		<div class="flex h-screen grid grid-cols-12 gap-2 bg-zinc-50 dark:bg-neutral-800">
+			
+			<div class="col-span-2 px-3 py-1 bg-zinc-100 dark:bg-gray-800 shadow gap-3 flex flex-col justify-between h-full fixed inset-y-0 left-0 w-64">
+				
+				<div class="self-stretch flex flex-col gap-2">
+					
 					<div
-						class="w-full h-[163px] justify-center items-center inline-flex bg-center bg-cover bg-no-repeat
+						class="w-full h-[90px] justify-center items-center flex bg-center bg-cover bg-no-repeat
                 bg-[url('/assets/d19a8ed8f207ecc2aafb61ed575aa6cf0bb1f0f533f752228fe6ce94c3575e5c/diwise-logo.svg')]
                 dark:bg-[url('/assets/f373626f4d07d2544069df8033e25d6d3a13fa150d6e53c5419179917fc434f7/diwise-logo-dark.svg')]
                 "
 					></div>
-					<div class="self-stretch flex-col justify-start items-start gap-6 flex">
+					
+					<div class="self-stretch flex flex-col gap-3 p-3">
 						@SectionDivider(l10n.Get("overview"))
 
 						@MenuSegment(l10n.Get("home"), "/home", SVG("home"), asset, isCurrent(ctx, "home"))
@@ -279,15 +283,19 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 						@MenuSegment("Integrationer", "/integrations", "cog", asset, isCurrent(ctx, "integrations"))
 						*/
 					</div>
-					<div class="self-stretch flex flex-col justify-start items-start gap-6">
+				</div>
+				<div class="flex flex-col gap-3 p-3">	
+					<div class="flex flex-col gap-3 p-3">
 						@SectionDivider("Konto")
 						@MenuSegment("Inställningar", "/settings", SVG("settings-outline"), asset, isCurrent(ctx, "settings"))
 						@MenuSegment("Logga ut", "/logout", SVG("log-out"), asset, false)
 					</div>
-					@DarkModeToggle(false, asset)
+					<div class="flex flex-col gap-3 p-3">
+						@DarkModeToggle(false, asset)
+					</div>
 				</div>
 			</div>
-			<div class="col-span-10 p-8 gap-8" id="main-content">
+			<div class="flex-1 ml-64 w-full col-span-10 p-8 gap-8" id="main-content">
 				@mainContent
 			</div>
 		</div>
