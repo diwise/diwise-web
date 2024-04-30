@@ -8,7 +8,7 @@ other = "Home"
 other = "Sensors"
 
 [objects]
-other = "Entities"
+other = "Objects"
 
 [functions]
 other = "Functions"

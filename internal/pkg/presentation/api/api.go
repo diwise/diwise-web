@@ -137,6 +137,7 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 			"anna":    components.Anna,
 			"home":    components.Home,
 			"sensors": components.Sensors,
+			"objects": components.Objects,
 		}
 
 		return func(w http.ResponseWriter, r *http.Request) {

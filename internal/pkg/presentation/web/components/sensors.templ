@@ -145,6 +145,23 @@ templ PageSelector(index string) {
     }
 }
 
+func option(pageSize string, selected bool)templ.ComponentFunc {
+    
+    option := `<option value="%s" %s}>%s</option>`
+
+    if selected {
+        option = fmt.Sprintf(option, pageSize, `selected="true"`, pageSize)
+    } else {
+        option = fmt.Sprintf(option, pageSize, "", pageSize)
+    }
+
+    return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+        _, err := io.WriteString(w, option)
+        return err
+    })    
+
+}
+
 templ DataTableFooter(colspan string) {
     <tfoot>
         <tr>
@@ -152,14 +169,44 @@ templ DataTableFooter(colspan string) {
                 <div id="paginering" class="w-full h-[60px] px-4 py-3.5 dark:bg-gray-800 rounded-b-2xl border-t border-white border-opacity-30 justify-between items-center flex">
                     <div class="h-8 justify-start items-center gap-2 flex">
                         <span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</span>
-                        <span class="h-8 px-3 py-1.5 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50 justify-start items-center gap-1.5 flex">
+                        
+                        <div class="relative inline-flex h-8 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50">
+                            <select 
+                                class="appearance-none outline-none px-3 py-1.5 bg-transparent text-sm font-normal font-sans leading-tight w-full h-full cursor-pointer"
+                                onchange="updatePageSize(this.value)"> <!-- Lägg till en händelsehanterare för att ändra sidstorlek -->
+                                @option("10", true)
+                                @option("20", false)
+                                @option("50", false)
+                                @option("100", false)
+                                /*<option value="10" selected="true">10</option>
+                                <option value="20" selected="false">20</option>
+                                <option value="50" selected={ctx2str(ctx, PageSize) == "50"}>50</option>
+                                <option value="100" selected={ctx2str(ctx, PageSize) == "100"}>100</option>*/
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-1 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 text-zinc-700 dark:text-neutral-200">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <script>
+                            function updatePageSize(size) {
+                                // Implementera logik för att ändra sidstorlek
+                                console.log('Updated page size to:', size);
+                                // Här kan du göra en API-anrop eller uppdatera UI baserat på vald sidstorlek
+                            }
+                        </script>
+                        
+                        
+                        /*<span class="h-8 px-3 py-1.5 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50 justify-start items-center gap-1.5 flex">
                             <span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-tight">
                                 { ctx2str(ctx, PageSize) }
                             </span>
                             <span class="w-4 h-4">
                                 @SVG("chevron-down", Size(16))
                             </span>
-                        </span>
+                        </span>*/
                     </div>
                     <div class="h-8 justify-between items-center flex">
                         <button class="p-1.5 rounded-full justify-center items-center gap-1 flex"
