@@ -269,7 +269,7 @@ templ TH(title string) {
 }
 
 templ HeaderRow(titles ...templ.Component) {
-    <thead class="border-b border-gray-500">
+    <thead class="border-b border-gray-500 dark:border-white">
         <tr>
             for _, title := range titles {
             @title
@@ -287,7 +287,7 @@ templ TableData(rows ...templ.Component) {
 }
 
 templ TableRow(cells ...templ.Component) {
-    <tr class="border-b border-[#1C1C284D] border-opacity-70 hover:bg-[#FAFAFA]">
+    <tr class="border-b border-[#1C1C284D] border-opacity-70 hover:bg-[#FAFAFA] dark:border-white dark:bg-opacity-20">
         for _, cell := range cells {
             @cell
         }
@@ -411,7 +411,7 @@ templ LabelCell(label string, active bool) {
 templ Table(header templ.Component, data templ.Component, footer templ.Component) {
     /*<table class="w-full rounded-2xl shadow flex flex-col justify-start items-start shrink-0 self-stretch"> */
 
-    <table class="table-auto min-w-full shadow-lg rounded-2xl text-sm text-left bg-white">
+    <table class="table-auto min-w-full shadow-lg rounded-2xl text-sm text-left bg-white dark:bg-gray-800 dark:text-white">
         @header
         @data
         @footer
@@ -502,7 +502,7 @@ templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
                         <svg class="w-[18px] h-[18px] fill-black dark:fill-zinc-200">
                             @templ.Raw(iconSVG("map"))
                         </svg>
-                        <div class="text-black text-sm font-bold font-sans leading-[18px]">Karta</div>
+                        <div class="text-black text-sm font-bold font-sans leading-[18px] dark:text-white">Karta</div>
                     </div>
                 </div>
             </div>
