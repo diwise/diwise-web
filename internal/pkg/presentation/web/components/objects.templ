@@ -8,53 +8,55 @@ import (
 
 
 templ Objects(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
-    <h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Objects</h2>
+    <div class="w-full" id="object-view">
+        <div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
+            <h1 class="dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Objects</h1>
 
-    <div class="w-full flex">    
+            <div class="w-full flex">    
 
-        <div class="flex-1 text-center pr-4">
-    
+                <div class="flex-1 text-center pr-4">
             
+                    
 
-            /*<div id="sensor-table" class="w-full" hx-get="/components/tables/sensors" hx-trigger="load">
-                //@SensorTable(localizer, asset)
-            </div>*/
+                    /*<div id="sensor-table" class="w-full" hx-get="/components/tables/sensors" hx-trigger="load">
+                        //@SensorTable(localizer, asset)
+                    </div>*/
 
 
-            @Table(
-            HeaderRow(TH("Typ"), TH("Namn"), TH("Status")),
-            TableData(
-                TableRow(
-                    TextCell("Soptunna"), TextCell("Fregattgatan 2"), ProgressBarCell("50"),
-                ),
-                TableRow(
-                    TextCell("Livboj"), TextCell("air-sens-7"), LabelCell("På plats", true),
-                ),
-                TableRow(
-                    TextCell("Termometer"), TextCell("06076898"), TextCell("27°"),
-                ),
-                TableRow(
-                    TextCell("Soptunna"), TextCell("NIAB_lidar_50001c"), ProgressBarCell("10"),
-                ),
-                TableRow(
-                    TextCell("Sandficka"), TextCell("EM500_UDL_1"), ProgressBarCell("75"),
-                ),
-                TableRow(
-                    TextCell("Avlopp"), TextCell("NIAB_lidar_50001c"), ProgressBarCell("30"),
-                ),
-                TableRow(
-                    TextCell("Livboj"), TextCell("NIAB_lidar_50001c"), LabelCell("Saknas", false),
-                ),
-            ),
-            DataTableFooter("3"),
-            )
+                    @Table(
+                    HeaderRow(TH("Typ"), TH("Namn"), TH("Status")),
+                    TableData(
+                        TableRow(
+                            TextCell("Soptunna"), TextCell("Fregattgatan 2"), ProgressBarCell("50"),
+                        ),
+                        TableRow(
+                            TextCell("Livboj"), TextCell("air-sens-7"), LabelCell("På plats", true),
+                        ),
+                        TableRow(
+                            TextCell("Termometer"), TextCell("06076898"), TextCell("27°"),
+                        ),
+                        TableRow(
+                            TextCell("Soptunna"), TextCell("NIAB_lidar_50001c"), ProgressBarCell("10"),
+                        ),
+                        TableRow(
+                            TextCell("Sandficka"), TextCell("EM500_UDL_1"), ProgressBarCell("75"),
+                        ),
+                        TableRow(
+                            TextCell("Avlopp"), TextCell("NIAB_lidar_50001c"), ProgressBarCell("30"),
+                        ),
+                        TableRow(
+                            TextCell("Livboj"), TextCell("NIAB_lidar_50001c"), LabelCell("Saknas", false),
+                        ),
+                    ),
+                    DataTableFooter("3"),
+                    )
+                </div>
+
+
+                <div class="flex-1 text-center pr-4">
+                    @Map()
+                </div>
+            </div>
         </div>
-
-
-        <div class="flex-1 text-center pr-4">
-            @Map()
-        </div>
-    
-        
-</div>  
+    </div>  
 }

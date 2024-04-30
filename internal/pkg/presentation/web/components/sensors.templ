@@ -475,7 +475,7 @@ templ SensorTable(localizer locale.Localizer, asset assets.AssetLoaderFunc, sens
 templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
     <div class="w-full" id="sensor-view">
     <div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
-        <h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensorer</h2>
+        <h1 class="dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensorer</h1>
         <div class="w-full h-12 justify-between items-center inline-flex">
             <div class="inline-flex justify-start items-center gap-[34px]">
                 @SearchField()
@@ -486,11 +486,11 @@ templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
 
         <div class="w-full flex flex-col gap-6 items-start inline-flex">
 
-            <div class="h-14 flex justify-between items-center self-stretch">
-                <div class="w-[689px] h-14 p-2 rounded-[20px]">
-                </div>
+            <div class="h-14 flex justify-end items-center self-stretch">
+                /*<div class="w-[689px] h-14 p-2 rounded-[20px]">
+                </div>*/
 
-                <div class="w-[200px] h-[42px] p-1.5 bg-white bg-opacity-20 rounded-2xl justify-start items-center inline-flex">
+                <div class="w-[200px] h-[42px] p-1.5 bg-[#1C1C281F] bg-opacity-20 rounded-2xl justify-end items-center inline-flex">
                     <div class="h-[30px] px-3.5 py-1.5 bg-white bg-opacity-95 rounded-xl justify-center items-center gap-2 flex">
                         // fill-opacity=".88"
                         <svg class="w-[18px] h-[18px] fill-[#1c1c28] dark:fill-zinc-600">
@@ -502,7 +502,7 @@ templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
                         <svg class="w-[18px] h-[18px] fill-black dark:fill-zinc-200">
                             @templ.Raw(iconSVG("map"))
                         </svg>
-                        <div class="text-white text-sm font-bold font-sans leading-[18px]">Karta</div>
+                        <div class="text-black text-sm font-bold font-sans leading-[18px]">Karta</div>
                     </div>
                 </div>
             </div>
