@@ -12,6 +12,119 @@ templ Objects(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
         <div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
             <h1 class="dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Objects</h1>
 
+            <div class="w-full h-12 justify-between items-center inline-flex">
+                <div class="inline-flex justify-start items-center gap-[34px]">
+                    @SearchField()
+                        <div class="w-28 h-10 rounded-xl border-2 border-[#1C1C284D] border-opacity-30 bg-white bg-opacity-20 dark:bg-gray-800 justify-center items-center gap-2 inline-flex dark:border-zinc-600">
+                        
+                            <div class="text-[#444450] text-base font-bold font-sans leading-normal dark:text-white">
+                                <div class="relative">
+                                <button id="dropdownButton" type="button" class="flex items-center justify-start w-28 h-10 text-left" onclick="toggleDropdown()">
+                                    <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+                                        @templ.Raw(iconSVG("filter"))
+                                    </svg>
+                                    Filter
+                                </button>
+                                <div id="dropdownMenu" class="absolute z-10 bg-white rounded-md shadow-lg hidden">
+                                    <ul class="p-3 space-y-2">
+                                        <li>
+                                            <label class="flex items-center">
+                                                <input type="checkbox" class="form-checkbox" value="option1" /><span class="ml-2 text-gray-700">Avlopp</span>
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label class="flex items-center">
+                                                <input type="checkbox" class="form-checkbox" value="option2" /><span class="ml-2 text-gray-700">Livboj</span>
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label class="flex items-center">
+                                                <input type="checkbox" class="form-checkbox" value="option3" /><span class="ml-2 text-gray-700">Sandficka</span>
+                                            </label>
+                                        </li>
+                                        <li>
+                                            <label class="flex items-center">
+                                                <input type="checkbox" class="form-checkbox" value="option4" /><span class="ml-2 text-gray-700">Soptunna</span>
+                                            </label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <script>
+                                function toggleDropdown() {
+                                    var dropdownMenu = document.getElementById("dropdownMenu");
+                                    dropdownMenu.classList.toggle("hidden");
+                                }
+
+                                // Klicka utanför dropdown för att stänga den
+                                window.onclick = function(event) {
+                                    var dropdownButton = document.getElementById("dropdownButton");
+                                    var dropdownMenu = document.getElementById("dropdownMenu");
+                                    // Kontrollera om klicket är utanför både knappen och menyn
+                                    if (!dropdownMenu.contains(event.target) && !dropdownButton.contains(event.target)) {
+                                        dropdownMenu.classList.add("hidden");
+                                    }
+                                }
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <div class="flex flex-col gap-4 w-full">
+
+            <div class="w-full h-12 justify-items-start inline-flex bg-[#F0F0F0] rounded-xl font-bold text-[#1F1F25] gap-8">
+                <button id="dropdownButton" type="button" class="flex items-center justify-start text-left pl-6 gap-2" onclick="toggleDropdown()">
+                    Typ
+                    <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+                        @templ.Raw(iconSVG("chevron-down"))
+                    </svg>
+                </button>
+                <button id="dropdownButton" type="button" class="flex items-center justify-start text-left gap-2" onclick="toggleDropdown()">
+                    Fyllnadsnivå
+                    <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+                        @templ.Raw(iconSVG("chevron-down"))
+                    </svg>
+                </button>
+                <button id="dropdownButton" type="button" class="flex items-center justify-start text-left gap-2" onclick="toggleDropdown()">
+                    Område
+                    <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+                        @templ.Raw(iconSVG("chevron-down"))
+                    </svg>
+                </button>
+            </div>
+
+
+            <div class="w-full h-10 justify-items-start inline-flex text-[#1F1F25] gap-3">
+                <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 rounded-xl">
+                    Soptunna
+                    <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
+                        @templ.Raw(iconSVG("close"))
+                    </svg>
+                </div>
+                <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 rounded-xl">
+                    Centrum
+                    <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
+                        @templ.Raw(iconSVG("close"))
+                    </svg>
+                </div>
+                <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 rounded-xl">
+                    Kvissleby
+                    <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
+                        @templ.Raw(iconSVG("close"))
+                    </svg>
+                </div>
+                <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 rounded-xl">
+                    0-70%
+                    <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
+                        @templ.Raw(iconSVG("close"))
+                    </svg>
+                </div>
+            </div>
+
+        </div>
+
             <div class="w-full flex">    
 
                 <div class="flex-1 text-center pr-4">
