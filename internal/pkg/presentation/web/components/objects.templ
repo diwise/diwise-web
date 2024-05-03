@@ -5,6 +5,39 @@ import (
     "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 )
 
+script toggleDropdownType() {
+    //Dropdown Typ
+    var dropdownMenuType = document.getElementById("dropdownMenuType");
+    dropdownMenuType.classList.toggle("hidden");
+}
+
+script toggleDropdownFillingLevel() {
+    var dropdownMenuFillingLevel = document.getElementById("dropdownMenuFillingLevel");
+    dropdownMenuFillingLevel.classList.toggle("hidden");
+}
+
+script toggleDropdownArea() {
+    var dropdownMenuArea = document.getElementById("dropdownMenuArea");
+    dropdownMenuArea.classList.toggle("hidden");
+}
+
+    //Stäng om man klickar utanför
+    
+
+    /*//Dropdown Område                                                                
+    function toggleDropdown() {
+        var dropdownMenu = document.getElementById("dropdownMenu");
+        dropdownMenu.classList.toggle("hidden");
+    }
+
+    window.onclick = function(event) {
+        var dropdownButton = document.getElementById("dropdownButton");
+        var dropdownMenu = document.getElementById("dropdownMenu");
+        // Kontrollera om klicket är utanför både knappen och menyn
+        if (!dropdownMenu.contains(event.target) && !dropdownButton.contains(event.target)) {
+            dropdownMenu.classList.add("hidden");
+        }
+    }*/
 
 
 templ Objects(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
@@ -15,84 +48,110 @@ templ Objects(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
             <div class="w-full h-12 justify-between items-center inline-flex">
                 <div class="inline-flex justify-start items-center gap-[34px]">
                     @SearchField()
-                        <div class="w-28 h-10 rounded-xl border-2 border-[#1C1C284D] border-opacity-30 bg-white bg-opacity-20 dark:bg-gray-800 justify-center items-center gap-2 inline-flex dark:border-zinc-600">
-                        
-                            <div class="text-[#444450] text-base font-bold font-sans leading-normal dark:text-white">
-                                <div class="relative">
-                                <button id="dropdownButton" type="button" class="flex items-center justify-start w-28 h-10 text-left" onclick="toggleDropdown()">
-                                    <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
-                                        @templ.Raw(iconSVG("filter"))
-                                    </svg>
-                                    Filter
-                                </button>
-                                <div id="dropdownMenu" class="absolute z-10 bg-white rounded-md shadow-lg hidden">
-                                    <ul class="p-3 space-y-2">
-                                        <li>
-                                            <label class="flex items-center">
-                                                <input type="checkbox" class="form-checkbox" value="option1" /><span class="ml-2 text-gray-700">Avlopp</span>
-                                            </label>
-                                        </li>
-                                        <li>
-                                            <label class="flex items-center">
-                                                <input type="checkbox" class="form-checkbox" value="option2" /><span class="ml-2 text-gray-700">Livboj</span>
-                                            </label>
-                                        </li>
-                                        <li>
-                                            <label class="flex items-center">
-                                                <input type="checkbox" class="form-checkbox" value="option3" /><span class="ml-2 text-gray-700">Sandficka</span>
-                                            </label>
-                                        </li>
-                                        <li>
-                                            <label class="flex items-center">
-                                                <input type="checkbox" class="form-checkbox" value="option4" /><span class="ml-2 text-gray-700">Soptunna</span>
-                                            </label>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <script>
-                                function toggleDropdown() {
-                                    var dropdownMenu = document.getElementById("dropdownMenu");
-                                    dropdownMenu.classList.toggle("hidden");
-                                }
-
-                                // Klicka utanför dropdown för att stänga den
-                                window.onclick = function(event) {
-                                    var dropdownButton = document.getElementById("dropdownButton");
-                                    var dropdownMenu = document.getElementById("dropdownMenu");
-                                    // Kontrollera om klicket är utanför både knappen och menyn
-                                    if (!dropdownMenu.contains(event.target) && !dropdownButton.contains(event.target)) {
-                                        dropdownMenu.classList.add("hidden");
-                                    }
-                                }
-                            </script>
-                        </div>
-                    </div>
                 </div>
             </div>
 
         <div class="flex flex-col gap-4 w-full">
 
             <div class="w-full h-12 justify-items-start inline-flex bg-[#F0F0F0] rounded-xl font-bold text-[#1F1F25] gap-8">
-                <button id="dropdownButton" type="button" class="flex items-center justify-start text-left pl-6 gap-2" onclick="toggleDropdown()">
-                    Typ
-                    <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
-                        @templ.Raw(iconSVG("chevron-down"))
-                    </svg>
-                </button>
-                <button id="dropdownButton" type="button" class="flex items-center justify-start text-left gap-2" onclick="toggleDropdown()">
-                    Fyllnadsnivå
-                    <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
-                        @templ.Raw(iconSVG("chevron-down"))
-                    </svg>
-                </button>
-                <button id="dropdownButton" type="button" class="flex items-center justify-start text-left gap-2" onclick="toggleDropdown()">
-                    Område
-                    <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
-                        @templ.Raw(iconSVG("chevron-down"))
-                    </svg>
-                </button>
+                <div class="relative p-3">
+                    <button id="dropdownButtonType" type="button" class="flex items-center justify-start text-left pl-6 gap-2" onclick={ toggleDropdownType() }>
+                        Typ
+                        <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+                            @templ.Raw(iconSVG("chevron-down"))
+                        </svg>
+                    </button>
+
+                    <div id="dropdownMenuType" class="absolute z-10 bg-[#F0F0F0] rounded-md shadow-lg hidden">
+                        <ul class="p-3 space-y-2">
+                            <li>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="avlopp" /><span class="ml-2 text-gray-700">Avlopp</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="livboj" /><span class="ml-2 text-gray-700">Livboj</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="sandficka" /><span class="ml-2 text-gray-700">Sandficka</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="soptunna" /><span class="ml-2 text-gray-700">Soptunna</span>
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+
+                <div class="relative p-3">
+                    <button id="dropdownButtonFillinglevel" type="button" class="flex items-center justify-start text-left gap-2" onclick={ toggleDropdownFillingLevel() }>
+                        Fyllnadsnivå
+                        <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+                            @templ.Raw(iconSVG("chevron-down"))
+                        </svg>
+                    </button>
+                   <div id="dropdownMenuFillingLevel" class="absolute z-10 bg-[#F0F0F0] rounded-md shadow-lg hidden">
+                        <div class="bg-[#F0F0F0] rounded-md shadow-lg p-4">
+                            <div class="flex justify-between gap-4">
+                                <div class="flex flex-col gap-1">
+                                    <label for="min-value" class="font-bold">Min</label>
+                                     <input type="text" id="min-value" placeholder="0%" class="w-20 border border-[#1C1C2880] rounded-lg p-2 text-sm focus:border-black focus:ring-1 focus:ring-black focus:outline-none" />
+                                </div>
+                                
+                                <div class="flex flex-col gap-1">
+                                    <label for="max-value" class="font-bold">Max</label>
+                                    <input type="text" id="max-value" placeholder="100%" class="w-20 border border-[#1C1C2880] rounded-lg p-2 text-sm focus:border-black focus:ring-1 focus:ring-black focus:outline-none" />
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <input type="range" id="range-slider" name="range-slider" min="0" max="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative p-3">
+                    <button id="dropdownButtonArea" type="button" class="flex items-center justify-start text-left gap-2" onclick={ toggleDropdownArea() }>
+                        Område
+                        <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+                            @templ.Raw(iconSVG("chevron-down"))
+                        </svg>
+                    </button>
+                    <div id="dropdownMenuArea" class="absolute z-10 bg-[#F0F0F0] rounded-md shadow-lg hidden">
+                        <ul class="p-3 space-y-2">
+                            <li>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="Bydalen" /><span class="ml-2 text-gray-700">Bydalen</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="Haga" /><span class="ml-2 text-gray-700">Haga</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="centrum" /><span class="ml-2 text-gray-700">Centrum</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="östermalm" /><span class="ml-2 text-gray-700">Östermalm</span>
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="skönsmon" /><span class="ml-2 text-gray-700">Skönsmon</span>
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
 
