@@ -273,7 +273,7 @@ func isCurrent(ctx context.Context, expect string) bool {
 templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, mainContent templ.Component) {
 	<body id="body" onload={ onPageLoad() }>
 		<div id="reloader" hx-get={ reloaderEndpoint(version) } hx-trigger={ reloaderFrequency(version) }></div>
-		<div class="flex h-full grid grid-cols-12 gap-2 bg-zinc-50 dark:bg-neutral-800">
+		<div class="flex grid grid-cols-12 gap-2 bg-zinc-50 dark:bg-neutral-800 min-h-screen">
 			
 			<div class="col-span-2 px-3 py-1 bg-zinc-100 dark:bg-gray-800 shadow gap-3 flex flex-col justify-between h-full fixed inset-y-0 left-0 w-64">
 				
@@ -316,7 +316,7 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 					</div>
 				</div>
 			</div>
-			<div class="flex-1 ml-64 w-full col-span-10 p-8 gap-8" id="main-content">
+			<div class="flex-1 ml-64 w-full col-span-10 p-8 gap-8 h-full" id="main-content">
 				@mainContent
 			</div>
 		</div>
