@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -43,8 +44,16 @@ func main() {
 	clientID := env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_ID", "a valid oauth2 client id")
 	clientSecret := env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_SECRET", "a valid oauth2 client secret")
 
+	apiPort := env.GetVariableOrDefault(ctx, "SERVICE_PORT", "8080")
+	defaultAppRoot := fmt.Sprintf("http://localhost:%s", apiPort)
+
+	appRoot := env.GetVariableOrDefault(ctx, "APP_ROOT", defaultAppRoot)
+	if appRoot == defaultAppRoot {
+		logger.Warn("environment variable APP_ROOT not set, using default (" + defaultAppRoot + ")")
+	}
+
 	pte, err := authn.NewPhantomTokenExchange(
-		authn.WithAppRoot("http://localhost:8080"),
+		authn.WithAppRoot(appRoot),
 		authn.WithClientCredentials(clientID, clientSecret),
 		authn.WithLogger(logger),
 	)
@@ -64,8 +73,6 @@ func main() {
 	if err != nil {
 		fatal(ctx, "failed to initialize service", err)
 	}
-
-	apiPort := env.GetVariableOrDefault(ctx, "SERVICE_PORT", "8080")
 
 	webServer := &http.Server{Addr: ":" + apiPort, Handler: webapi.Router()}
 
