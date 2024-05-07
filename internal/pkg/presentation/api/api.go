@@ -134,7 +134,6 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	r.HandleFunc("GET /{component}", func() http.HandlerFunc {
 
 		comps := map[string]func(locale.Localizer, assets.AssetLoaderFunc) templ.Component{
-			"anna":    components.Anna,
 			"home":    components.Home,
 			"sensors": components.Sensors,
 			"objects": components.Objects,
