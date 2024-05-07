@@ -103,7 +103,7 @@ templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
   </div>
 
   @Table(
-    HeaderRow(TH("Namn"), TH("Status"), TH("DevEUI"), TH("Nät"), TH("Batterinivå"), TH("Senaste Värde"), TH("Larm")),
+    HeaderRow(TableHeaderText("Namn"), TableHeaderText("Status"), TableHeaderText("DevEUI"), TableHeaderText("Nät"), TableHeaderText("Batterinivå"), TableHeaderText("Senaste Värde"), TableHeaderText("Larm")),
     TableData(
         TableRow(
             TextCell("Fregattgatan 2"), LabelCell("Aktiv", true), TextCell("70b3d52c0001a4b4"), TextCell("LoRa"), TextCell("25%"), TextCell("2024-01-29, 12:00"), Cell(SVG("alert-triangle", Size(24), AlertStyle())),

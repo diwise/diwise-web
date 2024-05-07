@@ -1,0 +1,346 @@
+package components
+
+import (
+    "fmt"
+    "strconv"
+)
+
+templ Table(header templ.Component, data templ.Component, footer templ.Component) {
+    <table class="table-auto min-w-full shadow-lg rounded-2xl text-sm text-left bg-white dark:bg-gray-800 dark:text-white">
+        @header
+        @data
+        @footer
+    </table>
+}
+
+templ HeaderRow(titles ...templ.Component) {
+    <thead class="border-b border-gray-500 dark:border-white">
+        <tr>
+            for _, title := range titles {
+            @title
+        }   
+        </tr>
+    </thead>
+}
+
+templ TableData(rows ...templ.Component) {
+    <tbody>
+        for _, row := range rows {
+            @row
+        }    
+    </tbody>
+}
+
+templ TableRow(cells ...templ.Component) {
+    <tr class="border-b border-[#1C1C284D] border-opacity-70 hover:bg-[#FAFAFA] dark:border-white dark:bg-opacity-20">
+        for _, cell := range cells {
+            @cell
+        }
+    </tr>
+}
+
+templ Label(label string, active bool) {
+    <span class={
+        "px-2.5 py-1 rounded-full justify-start items-center gap-1.5",
+        templ.KV("bg-[#c9e4d7]", active),
+        templ.KV("dark:bg-emerald-800", active),
+        templ.KV("bg-gray-900", !active),
+        templ.KV("bg-opacity-10", !active),
+        templ.KV("dark:bg-white", !active),
+        templ.KV("dark:bg-opacity-20", !active) }>
+
+        <span class={
+            "text-sm font-bold font-sans leading-none",
+            templ.KV("text-emerald-900", active),
+            templ.KV("dark:text-gray-200", active),
+            templ.KV("text-neutral-800", !active),
+            templ.KV("dark:text-neutral-300", !active) }>
+            { label }
+        </span>
+    </span>
+}
+
+templ DataTableFooter(colspan string) {
+    <tfoot>
+        <tr>
+            <td colspan={colspan}>
+                <div id="paginering" class="w-full h-[60px] px-4 py-3.5 dark:bg-gray-800 rounded-b-2xl border-t border-white border-opacity-30 justify-between items-center flex">
+                    <div class="h-8 justify-start items-center gap-2 flex">
+                        <span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</span>
+                        
+                        <div class="relative inline-flex h-8 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50">
+                            <select 
+                                class="appearance-none outline-none px-3 py-1.5 bg-transparent text-sm font-normal font-sans leading-tight w-full h-full cursor-pointer"
+                                onchange="updatePageSize(this.value)"> <!-- Lägg till en händelsehanterare för att ändra sidstorlek -->
+                                @option("10", true)
+                                @option("20", false)
+                                @option("50", false)
+                                @option("100", false)
+                                /*<option value="10" selected="true">10</option>
+                                <option value="20" selected="false">20</option>
+                                <option value="50" selected={ctx2str(ctx, PageSize) == "50"}>50</option>
+                                <option value="100" selected={ctx2str(ctx, PageSize) == "100"}>100</option>*/
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-1 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 text-zinc-700 dark:text-neutral-200">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <script>
+                            function updatePageSize(size) {
+                                // Implementera logik för att ändra sidstorlek
+                                console.log('Updated page size to:', size);
+                                // Här kan du göra en API-anrop eller uppdatera UI baserat på vald sidstorlek
+                            }
+                        </script>
+                        
+                    </div>
+                    <div class="h-8 justify-between items-center flex">
+                        <button class="p-1.5 rounded-full justify-center items-center gap-1 flex"
+                            if !isFirstPage(ctx) {
+                                hx-get={ fmt.Sprintf("/components/tables/sensors?page=%d&limit=%s", prevPage(ctx), ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click"
+                            } else {
+                                disabled
+                            }
+                        >
+                            <span class="w-5 h-5">
+                                if isFirstPage(ctx) {
+                                    @SVG("arrow-left", DisabledStyle())
+                                } else {
+                                    @SVG("arrow-left")
+                                }
+                            </span>
+                        </button>
+
+                        <span class="h-7 px-3 justify-between items-center flex">
+                            for _, page := range pagerIndexes(ctx) {
+                                @PageSelector(fmt.Sprintf("%d", page))
+                            }
+                        </span>
+
+                        <button class="p-1.5 rounded-full justify-center items-center gap-1 flex"
+                            if !isLastPage(ctx) {
+                                hx-get={ fmt.Sprintf("/components/tables/sensors?page=%d&limit=%s", nextPage(ctx), ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click"
+                            } else {
+                                disabled
+                            }
+                        >
+                            <span class="w-5 h-5">
+                                if isLastPage(ctx) {
+                                    @SVG("arrow-right", DisabledStyle())
+                                } else {
+                                    @SVG("arrow-right", Box(24, 24))
+                                }
+                            </span>
+                        </button>
+                    </div>
+                    <div class="h-8 justify-end items-center gap-2 flex">
+                        <span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Radhöjd:</span>
+                        <span class="pl-3 pr-2.5 py-2 bg-gray-900 bg-opacity-10 rounded-xl justify-center items-center gap-1 flex">
+                            <span class="grow shrink basis-0 text-zinc-700 text-sm font-bold font-sans leading-none">Normal</span>
+                            <span class="w-4 h-4">
+                                @SVG("chevron-down", Size(16))
+                            </span>
+                        </span>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </tfoot>
+}
+
+templ TableHeaderText(title string) {
+    <th class="px-6 py-3">
+        { title }
+    </th>
+}
+
+templ Text(data string) {
+    { data }
+}
+
+templ FirstText(data string) {
+    <span class="font-bold">
+        { data }
+    </span>
+}
+
+templ Cell(contents templ.Component) {
+    <td class="px-6 py-3">
+        @contents
+    </td>
+}
+
+templ LinkCell(contents templ.Component, url string) {
+    <td class="px-6 py-3 hover:cursor-pointer" hx-get={ url } hx-target="#sensor-view" hx-trigger="click">
+        @contents
+    </td>
+}
+
+templ TextFirstCell(data string) {
+    @Cell(FirstText(data))
+}
+
+templ TextLinkCell(data, url string) {
+    @LinkCell(Text(data), url)
+}
+
+templ TextCell(data string) {
+    @Cell(Text(data))
+}
+
+templ ProgressBarCell(data string) {
+    @Cell(progressBar(data))
+}
+
+func progressBar(data string) templ.Component {
+    value, _ := strconv.Atoi(data)
+
+    colourClass := ""
+    switch {
+        case value >= 70: 
+        colourClass = "bg-[#B92424]" //red
+        case value <= 40: 
+        colourClass = "bg-[#00733B]" //green
+        default:
+            colourClass = "bg-[#DB6900]" //orange
+    }
+
+    return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+        _, err := io.WriteString(w, fmt.Sprintf(
+            `<div>
+                %s%%
+            </div>
+            <div class="bg-gray-200 w-full rounded-lg">
+                <div class="%s rounded-lg" style="width: %s%%; height: 6px"></div>
+            </div>`, data, colourClass, data,
+        ))
+        return err
+    })    
+}
+
+templ LabelCell(label string, active bool) {
+    @Cell(Label(label, active))
+}
+
+//PAGING
+type PagingConfigKey string
+
+var PageSize PagingConfigKey = "page.size"
+var PageIndex PagingConfigKey = "page.index"
+var PageLast PagingConfigKey = "page.last"
+
+templ PageSelector(index string) {
+    if index == ctx2str(ctx, PageIndex) {
+        <div class="flex-col justify-start items-start inline-flex">
+            <div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex p-0.5 ">
+                <div class="grow shrink basis-0 text-center text-zinc-700 dark:text-neutral-200 text-base font-bold font-sans leading-normal">
+                    { index }
+                </div>
+            </div>
+        </div>
+    } else {
+        <button class="flex-col justify-start items-start inline-flex" hx-get={ fmt.Sprintf("/components/tables/sensors?page=%s&limit=%s", index, ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click">
+            <div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex py-0.5 ">
+                <div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-300 text-base font-normal font-sans underline leading-normal">
+                    { index }
+                </div>
+            </div>
+        </button>
+    }
+}
+
+//HELPERS
+func isFirstPage(ctx context.Context) bool {
+    return ctx2str(ctx, PageIndex) == "1"
+}
+
+func isLastPage(ctx context.Context) bool {
+    return ctx2str(ctx, PageIndex) == ctx2str(ctx, PageLast)
+}
+
+func pageCount(ctx context.Context) int64 {
+    count, _ := strconv.ParseInt(ctx2str(ctx, PageLast), 10, 64)
+    return count
+}
+
+func pageIndex(ctx context.Context) int64 {
+    current, _ := strconv.ParseInt(ctx2str(ctx, PageIndex), 10, 64)
+    return current
+}
+
+func prevPage(ctx context.Context) int64 {
+    current := pageIndex(ctx)
+    return current - 1
+}
+
+func nextPage(ctx context.Context) int64 {
+    current := pageIndex(ctx)
+    return current + 1
+}
+
+func pagerIndexes(ctx context.Context) []int64 {
+    start := pageIndex(ctx)
+    last := pageCount(ctx)
+
+    const PagerWidth int64 = 6
+
+    start -= (PagerWidth / 2)
+
+    if start > (last - PagerWidth) {
+        start = last - PagerWidth
+    }
+
+    if start < 1 {
+        start = 1
+    }
+
+    result := []int64{}
+
+    if start != 1 {
+        start = start + 1
+        result = append(result, 1, start)
+    } else {
+        result = append(result, 1)
+    }
+
+    page := start + 1
+
+    for len(result) < int(PagerWidth) {
+        if page >= last {
+            break
+        }
+
+        result = append(result, page)
+        page = page + 1
+    }
+
+    if result[len(result)-1] < last {
+        result = append(result, last)
+    }
+
+    return result
+}
+
+func ctx2str(ctx context.Context, key any) string {
+    return fmt.Sprintf("%s", ctx.Value(key))
+}
+
+func option(pageSize string, selected bool) templ.ComponentFunc {
+    
+    option := `<option value="%s" %s}>%s</option>`
+
+    if selected {
+        option = fmt.Sprintf(option, pageSize, `selected="true"`, pageSize)
+    } else {
+        option = fmt.Sprintf(option, pageSize, "", pageSize)
+    }
+
+    return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+        _, err := io.WriteString(w, option)
+        return err
+    })    
+
+}

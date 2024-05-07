@@ -196,7 +196,7 @@ templ Objects(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
 
 
                     @Table(
-                    HeaderRow(TH("Typ"), TH("Namn"), TH("Status")),
+                    HeaderRow(TableHeaderText("Typ"), TableHeaderText("Namn"), TableHeaderText("Status")),
                     TableData(
                         TableRow(
                             TextCell("Soptunna"), TextCell("Fregattgatan 2"), ProgressBarCell("50"),

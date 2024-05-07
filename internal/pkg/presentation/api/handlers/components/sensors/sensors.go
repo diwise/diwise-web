@@ -43,7 +43,7 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
-		component := components.Sensordetails(localizer, assets, sensor)
+		component := components.SensorDetails(localizer, assets, sensor)
 		component.Render(ctx, w)
 	}
 
