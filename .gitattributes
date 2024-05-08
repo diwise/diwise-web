@@ -1,1 +1,3 @@
 * text eof=lf
+*.png binary
+*.webp binary
