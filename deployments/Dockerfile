@@ -10,7 +10,7 @@ ARG BUILDOS
 ARG TARGETARCH
 ARG TARGETOS
 
-RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.3/tailwindcss-$BUILDOS-$BUILDARCH
+RUN curl --fail -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.3/tailwindcss-$BUILDOS-$BUILDARCH
 RUN mv tailwindcss-$BUILDOS-$BUILDARCH tailwindcss
 RUN chmod +x tailwindcss
 
