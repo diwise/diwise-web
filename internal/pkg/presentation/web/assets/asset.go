@@ -27,11 +27,12 @@ func contentTypeFromFileName(filename string) string {
 	extension := filepath.Ext(filename)
 
 	contentType, ok := map[string]string{
-		".css": "text/css",
-		".ico": "image/x-icon",
-		".js":  "text/javascript",
-		".png": "image/png",
-		".svg": "image/svg+xml",
+		".css":  "text/css",
+		".ico":  "image/x-icon",
+		".js":   "text/javascript",
+		".png":  "image/png",
+		".svg":  "image/svg+xml",
+		".webp": "image/webp",
 	}[extension]
 
 	if !ok {
