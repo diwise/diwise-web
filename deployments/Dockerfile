@@ -5,12 +5,14 @@ WORKDIR /app
 
 RUN go install github.com/a-h/templ/cmd/templ@v0.2.663
 
+ARG BUILDARCH
+ARG BUILDOS
 ARG TARGETARCH
 ARG TARGETOS
 
-RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.3/tailwindcss-$TARGETOS-$TARGETARCH
-RUN chmod +x tailwindcss-$TARGETOS-$TARGETARCH
-RUN mv tailwindcss-$TARGETOS-$TARGETARCH tailwindcss
+RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.3/tailwindcss-$BUILDOS-$BUILDARCH
+RUN mv tailwindcss-$BUILDOS-$BUILDARCH tailwindcss
+RUN chmod +x tailwindcss
 
 COPY go.mod .
 COPY go.sum .
