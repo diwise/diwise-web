@@ -9,8 +9,8 @@ ARG BUILDARCH
 
 RUN echo $BUILDARCH
 
-RUN curl --fail -sLO "https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.3/tailwindcss-linux-$BUILDARCH"
-RUN mv tailwindcss-linux-$BUILDARCH tailwindcss
+RUN curl --fail -sL "https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.3/tailwindcss-linux-$BUILDARCH" -o tailwindcss
+#RUN mv tailwindcss-linux-$BUILDARCH tailwindcss
 RUN chmod +x tailwindcss
 
 COPY go.mod .
