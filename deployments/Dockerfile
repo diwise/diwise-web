@@ -7,7 +7,7 @@ RUN go install github.com/a-h/templ/cmd/templ@v0.2.663
 
 ARG BUILDARCH
 
-RUN curl --fail -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.3/tailwindcss-linux-${BUILDARCH}
+RUN curl --fail -sLO "https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.3/tailwindcss-linux-$BUILDARCH"
 RUN mv tailwindcss-linux-$BUILDARCH tailwindcss
 RUN chmod +x tailwindcss
 
