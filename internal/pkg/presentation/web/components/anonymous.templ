@@ -15,11 +15,9 @@ templ NotLoggedIn(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
             <div class="flex-1 bg-[#AA4E1F] text-white p-6 flex flex-col justify-center items-left rounded-r-xl">
                 <div class="pl-6 space-y-4">
                     <h1>You are not logged in!</h1>
-                    <button class="w-28 h-10 rounded-xl border-2 border-white border-opacity-30 dark:bg-gray-800 justify-center items-center dark:border-zinc-600">
-                        <a href="/login" class="text-[#E5E5E5] text-base font-bold font-sans leading-normal dark:text-white">
-                            Login
-                        </a>
-                    </button>
+                    <a href="/login" class="inline-block w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-white border-opacity-30 dark:bg-gray-800 justify-center items-center dark:border-zinc-600 flex items-center justify-center text-[#E5E5E5] text-base font-bold font-sans leading-normal dark:text-white">
+                        Login
+                    </a>
                 </div>
             </div>
 
