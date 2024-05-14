@@ -56,9 +56,9 @@ type SensorViewModel interface {
 
 templ SensorTable(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors []SensorViewModel) {
     @Table(
-        HeaderRow(TableHeaderText("Namn"), TableHeaderText("Status"), TableHeaderText("DevEUI"), TableHeaderText("Nät"), TableHeaderText("Batterinivå"), TableHeaderText("Senaste värde"), TableHeaderText("Larm")),
+        HeaderRow(TableHeaderText("Namn"), TableHeaderText("Status"), TableHeaderText("DevEUI"), TableHeaderText("Batterinivå"), TableHeaderText("Senaste värde"), TableHeaderText("Larm")),
         TableData(tableRowsFromSensors(localizer, asset, sensors)...),
-        DataTableFooter("7"),
+        DataTableFooter("6"),
     )
 }
 
@@ -115,7 +115,7 @@ func tableRowsFromSensors(_ locale.Localizer, _ assets.AssetLoaderFunc, sensors 
         cells := []templ.Component{TextFirstCell(sensor.String("name"))}
         cells = append(cells, LabelCell(labelText[isActive], isActive))
         cells = append(cells, TextLinkCell(sensor.String("deveui"), "/components/sensors/details?id=" + sensor.String("id")))
-        cells = append(cells, TextCell(sensor.String("network")))
+        //cells = append(cells, TextCell(sensor.String("network")))
         cells = append(cells, TextCell(sensor.String("battery")))
         cells = append(cells, TextCell(sensor.Date("lastseen", "2006-01-02, 15:04")))
 
