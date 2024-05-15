@@ -7,42 +7,77 @@ import (
 
 templ Map() {
     <div id="map" class="h-96 w-full rounded-lg shadow-lg"></div>
-
+    <div>
+        <input type="checkbox" id="showTrashcan" checked /> Soptunna <br />
+        <input type="checkbox" id="showLifebuoy" checked /> Livboj <br />
+        <input type="checkbox" id="showThermometer" checked /> Termometer <br />
+        <input type="checkbox" id="showDrain" checked /> Avlopp
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         var map = L.map('map').setView([62.3908, 17.3069], 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '© OpenStreetMap'
+            //attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        
-        var coordinates = [
-            [62.3908, 17.3069]
-        ];
-        
+        var trashcan = L.layerGroup([]); 
+        var lifebuoy = L.layerGroup([]);
+        var drain = L.layerGroup([]);
+        var thermometer = L.layerGroup([]);
 
-        /*var svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        </svg>`;
-        var encodedSvgString = encodeURIComponent(svgString);
-        var dataUrl = "data:image/svg+xml," + encodedSvgString;
+        var popupContent = `
+            <div class="p-2 rounded-lg">
+                <h1 class="text-lg font-bold text-gray-900 mb-2">Soptunna NP3 Arena</h1>
+                <p class="text-gray-700 text-sm">Här är information om soptunnan</p>
+            </div>
+        `;
 
-        var greenIcon = L.icon({
-            iconUrl: dataUrl,  // Sökväg till din ikonbild
-            iconSize: [25, 41],  // Storleken på ikonen
-            iconAnchor: [12, 41],  // Punkt där ikonen "möter" kartan
-            popupAnchor: [1, -34]  // Justering av var popupen ska visas
-        });
+        L.marker([62.393816, 17.300115]).bindPopup(popupContent).addTo(trashcan);
+        L.marker([62.388349, 17.324359]).bindPopup('Termometer Hamnen').addTo(thermometer);
+        L.marker([62.393124, 17.321486]).bindPopup('Livboj Norra kajen').addTo(lifebuoy);
+        L.marker([62.3908, 17.3069]).bindPopup('Soptunna Centrum').addTo(trashcan);
+        L.marker([62.384603, 17.290923]).bindPopup('Avlopp Södermalm').addTo(drain);
 
-        // Lägg till en markör med den anpassade ikonen
-        L.marker([62.3908, 17.3069], {icon: greenIcon}).addTo(map)
-        .bindPopup('En anpassad grön markör.');
-        */
-        
-        coordinates.forEach(function(coord) {
-            L.marker(coord).addTo(map)
-                .bindPopup('Latitude: ' + coord[0] + '<br>Longitude: ' + coord[1]);
-        });
+        trashcan.addTo(map);
+        thermometer.addTo(map);        
+        lifebuoy.addTo(map);
+        drain.addTo(map);
+
+        L.control.scale({maxWidth: 200, metric: true, imperial: false}).addTo(map);
+
+        document.getElementById('showTrashcan').onchange = function() {
+            if (this.checked) {
+                trashcan.addTo(map);
+            } else {
+                map.removeLayer(trashcan);
+            }
+        };
+
+        document.getElementById('showLifebuoy').onchange = function() {
+            if (this.checked) {
+                lifebuoy.addTo(map);
+            } else {
+                map.removeLayer(lifebuoy);
+            }
+        };
+
+        document.getElementById('showThermometer').onchange = function() {
+            if (this.checked) {
+                thermometer.addTo(map);
+            } else {
+                map.removeLayer(thermometer);
+            }
+        };
+
+        document.getElementById('showDrain').onchange = function() {
+            if (this.checked) {
+                drain.addTo(map);
+            } else {
+                map.removeLayer(drain);
+            }
+        };
     </script>
 
 }
