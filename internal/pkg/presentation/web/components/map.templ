@@ -1,0 +1,67 @@
+package components
+
+templ Map() {
+    <div id="map" class="h-96 w-full rounded-lg shadow-lg"></div>
+    <div>
+        <input type="checkbox" class="map-checkbox" id="showTrashcan" checked /> Soptunna <br />
+        <input type="checkbox" class="map-checkbox" id="showLifebuoy" checked /> Livboj <br />
+        <input type="checkbox" class="map-checkbox" id="showThermometer" checked /> Termometer <br />
+        <input type="checkbox" class="map-checkbox" id="showDrain" checked /> Avlopp
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([62.3908, 17.3069], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            //attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var locations = [
+            { type: 'trashcan', points: [{ coords: [62.393816, 17.300115], desc: 'Soptunna NP3 Arena' }, { coords: [62.3908, 17.3069], desc: 'Soptunna Centrum' }] },
+            { type: 'lifebuoy', points: [{ coords: [62.393124, 17.321486], desc: 'Livboj Norra kajen' }] },
+            { type: 'thermometer', points: [{ coords: [62.388349, 17.324359], desc: 'Termometer Hamnen' }] },
+            { type: 'drain', points: [{ coords: [62.384603, 17.290923], desc: 'Avlopp Södermalm' }] }
+        ];
+
+        var layers = {};
+
+        locations.forEach(group => {
+            var layerGroup = layers[group.type] = L.layerGroup().addTo(map);
+            group.points.forEach(point => {
+                L.marker(point.coords).bindPopup(point.desc).addTo(layerGroup);
+            });
+        });
+
+        L.control.scale({maxWidth: 200, metric: true, imperial: false}).addTo(map);
+
+        document.querySelectorAll('.map-checkbox').forEach(checkbox => {
+            checkbox.onchange = function() {
+                var layerGroup = layers[this.id.replace('show', '').toLowerCase()];
+                if (this.checked) {
+                    layerGroup.addTo(map);
+                } else {
+                    map.removeLayer(layerGroup);
+                }
+            }
+        });
+
+    </script>
+
+}
+
+
+//HELPERS
+/*func createMapMarkerFromTypeName(typeName string) {
+    
+    var layerGroup = L.layerGroup([]);
+
+    return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+        _, err := io.WriteString(w, fmt.Sprintf(
+            `<script>
+                
+            </script>`, typeName,
+        ))
+        return err
+    })         
+}*/
