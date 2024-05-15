@@ -60,7 +60,7 @@ templ Label(label string, active bool) {
     </span>
 }
 
-templ DataTableFooter(colspan string) {
+templ DataTableFooter(colspan, tableName string) {
     <tfoot>
         <tr>
             <td colspan={colspan}>
@@ -100,7 +100,7 @@ templ DataTableFooter(colspan string) {
                     <div class="h-8 justify-between items-center flex">
                         <button class="p-1.5 rounded-full justify-center items-center gap-1 flex"
                             if !isFirstPage(ctx) {
-                                hx-get={ fmt.Sprintf("/components/tables/sensors?page=%d&limit=%s", prevPage(ctx), ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click"
+                                hx-get={ fmt.Sprintf("/components/tables/%s?page=%d&limit=%s", tableName, prevPage(ctx), ctx2str(ctx, PageSize)) } hx-target={ fmt.Sprintf("#%s-table", tableName) } hx-trigger="click"
                             } else {
                                 disabled
                             }
@@ -116,13 +116,13 @@ templ DataTableFooter(colspan string) {
 
                         <span class="h-7 px-3 justify-between items-center flex">
                             for _, page := range pagerIndexes(ctx) {
-                                @PageSelector(fmt.Sprintf("%d", page))
+                                @PageSelector(fmt.Sprintf("%d", page), tableName)
                             }
                         </span>
 
                         <button class="p-1.5 rounded-full justify-center items-center gap-1 flex"
                             if !isLastPage(ctx) {
-                                hx-get={ fmt.Sprintf("/components/tables/sensors?page=%d&limit=%s", nextPage(ctx), ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click"
+                                hx-get={ fmt.Sprintf("/components/tables/%s?page=%d&limit=%s", tableName, (ctx), ctx2str(ctx, PageSize)) } hx-target={ fmt.Sprintf("#%s-table", tableName) } hx-trigger="click"
                             } else {
                                 disabled
                             }
@@ -173,8 +173,8 @@ templ Cell(contents templ.Component) {
     </td>
 }
 
-templ LinkCell(contents templ.Component, url string) {
-    <td class="px-6 py-3 hover:cursor-pointer" hx-get={ url } hx-target="#sensor-view" hx-trigger="click">
+templ LinkCell(contents templ.Component, url, viewName string) {
+    <td class="px-6 py-3 hover:cursor-pointer" hx-get={ url } hx-target={ fmt.Sprintf("#%s-view", viewName) } hx-trigger="click">
         @contents
     </td>
 }
@@ -183,8 +183,8 @@ templ TextFirstCell(data string) {
     @Cell(FirstText(data))
 }
 
-templ TextLinkCell(data, url string) {
-    @LinkCell(Text(data), url)
+templ TextLinkCell(data, url, viewName string) {
+    @LinkCell(Text(data), url, viewName)
 }
 
 templ TextCell(data string) {
@@ -232,7 +232,7 @@ var PageSize PagingConfigKey = "page.size"
 var PageIndex PagingConfigKey = "page.index"
 var PageLast PagingConfigKey = "page.last"
 
-templ PageSelector(index string) {
+templ PageSelector(index, tableName string) {
     if index == ctx2str(ctx, PageIndex) {
         <div class="flex-col justify-start items-start inline-flex">
             <div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex p-0.5 ">
@@ -242,7 +242,7 @@ templ PageSelector(index string) {
             </div>
         </div>
     } else {
-        <button class="flex-col justify-start items-start inline-flex" hx-get={ fmt.Sprintf("/components/tables/sensors?page=%s&limit=%s", index, ctx2str(ctx, PageSize)) } hx-target="#sensor-table" hx-trigger="click">
+        <button class="flex-col justify-start items-start inline-flex" hx-get={ fmt.Sprintf("/components/tables/%s?page=%s&limit=%s", tableName, index, ctx2str(ctx, PageSize)) } hx-target={ fmt.Sprintf("#%s-table", tableName) } hx-trigger="click">
             <div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex py-0.5 ">
                 <div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-300 text-base font-normal font-sans underline leading-normal">
                     { index }

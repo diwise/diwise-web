@@ -58,7 +58,7 @@ templ SensorTable(localizer locale.Localizer, asset assets.AssetLoaderFunc, sens
     @Table(
         HeaderRow(TableHeaderText("Namn"), TableHeaderText("Status"), TableHeaderText("DevEUI"), TableHeaderText("Batterinivå"), TableHeaderText("Senaste värde"), TableHeaderText("Larm")),
         TableData(tableRowsFromSensors(localizer, asset, sensors)...),
-        DataTableFooter("6"),
+        DataTableFooter("6", "sensors"),
     )
 }
 
@@ -95,7 +95,7 @@ templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
                 </div>
             </div>
 
-            <div id="sensor-table" class="w-full" hx-get="/components/tables/sensors" hx-trigger="load">
+            <div id="sensors-table" class="w-full" hx-get="/components/tables/sensors" hx-trigger="load">
                 //@SensorTable(localizer, asset)
             </div>
         </div>
@@ -114,7 +114,7 @@ func tableRowsFromSensors(_ locale.Localizer, _ assets.AssetLoaderFunc, sensors 
 
         cells := []templ.Component{TextFirstCell(sensor.String("name"))}
         cells = append(cells, LabelCell(labelText[isActive], isActive))
-        cells = append(cells, TextLinkCell(sensor.String("deveui"), "/components/sensors/details?id=" + sensor.String("id")))
+        cells = append(cells, TextLinkCell(sensor.String("deveui"), "/components/sensors/details?id=" + sensor.String("id"), "sensor"))
         //cells = append(cells, TextCell(sensor.String("network")))
         cells = append(cells, TextCell(sensor.String("battery")))
         cells = append(cells, TextCell(sensor.Date("lastseen", "2006-01-02, 15:04")))
