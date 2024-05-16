@@ -62,26 +62,58 @@ templ Objects(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
                         </svg>
                     </button>
 
-                    <div id="dropdownMenuType" class="absolute z-10 bg-[#F0F0F0] rounded-md shadow-lg hidden">
+                    <div id="dropdownMenuType" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5">
                         <ul class="p-3 space-y-2">
+                           <li>
+                                <label for="avlopp-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+                                    <span class="ml-2 text-gray-700 dark:text-gray-300">Avlopp</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="avlopp-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="avlopp" />
+                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+                                                @templ.Raw(iconSVG("check"))
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </label>
+                            </li> 
                             <li>
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="avlopp" /><span class="ml-2 text-gray-700">Avlopp</span>
+                                <label for="livboj-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+                                    <span class="ml-2 text-gray-700 dark:text-gray-300">Livboj</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="livboj-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="livboj" />
+                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+                                                @templ.Raw(iconSVG("check"))
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </label>
+                            </li>                           
+                            <li>
+                                <label for="sandficka-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+                                    <span class="ml-2 text-gray-700 dark:text-gray-300">Sandficka</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="sandficka-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="sandficka" />
+                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+                                                @templ.Raw(iconSVG("check"))
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </label>
                             </li>
                             <li>
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="livboj" /><span class="ml-2 text-gray-700">Livboj</span>
-                                </label>
-                            </li>
-                            <li>
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="sandficka" /><span class="ml-2 text-gray-700">Sandficka</span>
-                                </label>
-                            </li>
-                            <li>
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="soptunna" /><span class="ml-2 text-gray-700">Soptunna</span>
+                                <label for="soptunna-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+                                    <span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Soptunna</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="soptunna-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="soptunna" />
+                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+                                                @templ.Raw(iconSVG("check"))
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </label>
                             </li>
                         </ul>
@@ -96,8 +128,8 @@ templ Objects(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
                             @templ.Raw(iconSVG("chevron-down"))
                         </svg>
                     </button>
-                   <div id="dropdownMenuFillingLevel" class="absolute z-10 bg-[#F0F0F0] rounded-md shadow-lg hidden">
-                        <div class="bg-[#F0F0F0] rounded-md shadow-lg p-4">
+                   <div id="dropdownMenuFillingLevel" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5">
+                        <div class="rounded-md shadow-lg p-4">
                             <div class="flex justify-between gap-4">
                                 <div class="flex flex-col gap-1">
                                     <label for="min-value" class="font-bold">Min</label>
@@ -122,31 +154,71 @@ templ Objects(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
                             @templ.Raw(iconSVG("chevron-down"))
                         </svg>
                     </button>
-                    <div id="dropdownMenuArea" class="absolute z-10 bg-[#F0F0F0] rounded-md shadow-lg hidden">
+                    <div id="dropdownMenuArea" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5">
                         <ul class="p-3 space-y-2">
                             <li>
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="Bydalen" /><span class="ml-2 text-gray-700">Bydalen</span>
+                                <label for="bydalen-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+                                    <span class="ml-2 text-gray-700 dark:text-gray-300">Bydalen</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="bydalen-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="bydalen" />
+                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+                                                @templ.Raw(iconSVG("check"))
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </label>
                             </li>
                             <li>
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="Haga" /><span class="ml-2 text-gray-700">Haga</span>
+                                <label for="haga-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+                                    <span class="ml-2 text-gray-700 dark:text-gray-300">Haga</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="haga-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="haga" />
+                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+                                                @templ.Raw(iconSVG("check"))
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </label>
                             </li>
                             <li>
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="centrum" /><span class="ml-2 text-gray-700">Centrum</span>
+                                <label for="centrum-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+                                    <span class="ml-2 text-gray-700 dark:text-gray-300">Centrum</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="centrum-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="centrum" />
+                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+                                                @templ.Raw(iconSVG("check"))
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </label>
                             </li>
                             <li>
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="östermalm" /><span class="ml-2 text-gray-700">Östermalm</span>
+                                <label for="östermalm-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+                                    <span class="ml-2 text-gray-700 dark:text-gray-300">Östermalm</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="östermalm-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="östermalm" />
+                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+                                                @templ.Raw(iconSVG("check"))
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </label>
                             </li>
                             <li>
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" class="form-checkbox cursor-pointer" value="skönsmon" /><span class="ml-2 text-gray-700">Skönsmon</span>
+                                <label for="skönsmon-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+                                    <span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Skönsmon</span>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="skönsmon-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="skönsmon" />
+                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+                                                @templ.Raw(iconSVG("check"))
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </label>
                             </li>
                         </ul>
