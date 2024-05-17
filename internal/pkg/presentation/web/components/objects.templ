@@ -53,16 +53,16 @@ templ Objects(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
 
         <div class="flex flex-col gap-4 w-full">
 
-            <div class="w-full h-12 justify-items-start inline-flex bg-[#F0F0F0] rounded-xl font-bold text-[#1F1F25] gap-8">
+            <div class="w-full h-12 justify-items-start inline-flex bg-[#F0F0F0] rounded-xl font-bold text-[#1F1F25] gap-8 dark:bg-gray-800 dark:text-white">
                 <div class="relative p-3">
                     <button id="dropdownButtonType" type="button" class="flex items-center justify-start text-left pl-6 gap-2" onclick={ toggleDropdownType() }>
                         Typ
-                        <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+                        <svg class="w-[18px] h-[18px] dark:fill-white">
                             @templ.Raw(iconSVG("chevron-down"))
                         </svg>
                     </button>
 
-                    <div id="dropdownMenuType" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5">
+                    <div id="dropdownMenuType" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5 ml-6 dark:bg-gray-800 dark:text-white">
                         <ul class="p-3 space-y-2">
                            <li>
                                 <label for="avlopp-checkbox" class="flex items-center justify-between w-full cursor-pointer">
@@ -124,11 +124,11 @@ templ Objects(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
                 <div class="relative p-3">
                     <button id="dropdownButtonFillinglevel" type="button" class="flex items-center justify-start text-left gap-2" onclick={ toggleDropdownFillingLevel() }>
                         Fyllnadsnivå
-                        <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+                        <svg class="w-[18px] h-[18px] dark:fill-white">
                             @templ.Raw(iconSVG("chevron-down"))
                         </svg>
                     </button>
-                   <div id="dropdownMenuFillingLevel" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5">
+                   <div id="dropdownMenuFillingLevel" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5 dark:bg-gray-800 dark:text-white">
                         <div class="rounded-md shadow-lg p-4">
                             <div class="flex justify-between gap-4">
                                 <div class="flex flex-col gap-1">
@@ -150,11 +150,11 @@ templ Objects(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
                 <div class="relative p-3">
                     <button id="dropdownButtonArea" type="button" class="flex items-center justify-start text-left gap-2" onclick={ toggleDropdownArea() }>
                         Område
-                        <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+                        <svg class="w-[18px] h-[18px] dark:fill-white">
                             @templ.Raw(iconSVG("chevron-down"))
                         </svg>
                     </button>
-                    <div id="dropdownMenuArea" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5">
+                    <div id="dropdownMenuArea" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5 ">
                         <ul class="p-3 space-y-2">
                             <li>
                                 <label for="bydalen-checkbox" class="flex items-center justify-between w-full cursor-pointer">
