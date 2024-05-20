@@ -1,6 +1,7 @@
 package components
 
 import (
+    "fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
     "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 )
@@ -25,16 +26,19 @@ templ SearchField() {
 }
 
 templ PrimaryButton(title string) {
-    <div class="w-[200px] h-10 pl-[18px] pr-4 py-2 bg-amber-700 rounded-xl flex items-center gap-2">
-        <div class="w-[20px] h-[23px]">
-            <svg class="w-[20px] h-[23px] stroke-white stroke-2">
-                @templ.Raw(iconSVG("plus"))
-            </svg>
-        </div>
-        <div class="text-white text-base font-bold font-sans leading-normal">
-            { title }
+    <div class="w-[200px] h-10 pl-[18px] pr-4 py-2 bg-amber-700 rounded-xl justify-center items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600 dark:border-2 cursor-pointer">
+        <div class="flex items-center gap-2">
+            <div class="text-white text-base font-bold font-sans leading-normal">
+                { title }
+            </div>
+            <div class="w-[18px] h-[18px] flex items-center">
+                <svg class="w-[18px] h-[18px] stroke-white fill-white">
+                    @templ.Raw(iconSVG("chevron-down"))
+                </svg>
+            </div>
         </div>
     </div>
+
 }
 
 templ SecondaryButton(title string) {
@@ -62,44 +66,69 @@ templ SensorTable(localizer locale.Localizer, asset assets.AssetLoaderFunc, sens
     )
 }
 
+func listMapSwitch(name, icon string) templ.Component {	
+    
+    /*selectedButtonClass := "bg-black text-white"
+    selectedIconClass := "fill-white"*/
+    
+    defaultButtonClass := "bg-white bg-opacity-95 text-gray-900 text-opacity-90"
+    defaultIconClass := "fill-[#1c1c28] dark:fill-zinc-600"
+
+    buttonClass := defaultButtonClass
+    iconClass := defaultIconClass
+
+    /*if isActive {
+        buttonClass = selectedButtonClass
+        iconClass = selectedIconClass
+    }*/
+    
+
+    return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+        _, err := io.WriteString(w, fmt.Sprintf(
+            `
+                <button class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer %s"
+                    hx-get={"?selected=%s"}
+                    hx-push-url="true"
+                    hx-vals='{"state":"selected"}'
+                    hx-trigger="click">
+                    <svg class="w-[18px] h-[18px] %s"> 
+                        %s
+                    </svg>
+                    <div class="text-sm font-bold font-sans leading-[18px]">%s</div>
+                </button>
+            `, buttonClass, name, iconClass, icon, name,
+        ))
+        return err
+    })
+}
+
 templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
+
     <div class="w-full" id="sensor-view">
-    <div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
-        <h1 class="dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensorer</h1>
-        <div class="w-full h-12 justify-between items-center inline-flex">
-            <div class="inline-flex justify-start items-center gap-[34px]">
-                @SearchField()
-                @SecondaryButton("Filter")
+        <div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
+            <h1 class="dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensorer</h1>
+            <div class="w-full h-12 justify-between items-center inline-flex">
+                <div class="inline-flex justify-start items-center gap-[34px]">
+                    @SearchField()
+                    @SecondaryButton("Filter")
+                </div>
+                @PrimaryButton("Lägg till sensor")
             </div>
-            @PrimaryButton("Lägg till sensor")
-        </div>
 
-        <div class="w-full flex flex-col gap-6 items-start inline-flex">
+            <div class="w-full flex flex-col gap-6 items-start inline-flex">
 
-            <div class="h-14 flex justify-end items-center self-stretch">
-
-                <div class="w-[200px] h-[42px] p-1.5 bg-[#1C1C281F] bg-opacity-20 rounded-2xl justify-end items-center inline-flex">
-                    <div class="h-[30px] px-3.5 py-1.5 bg-white bg-opacity-95 rounded-xl justify-center items-center gap-2 flex">
-                        // fill-opacity=".88"
-                        <svg class="w-[18px] h-[18px] fill-[#1c1c28] dark:fill-zinc-600">
-                            @templ.Raw(iconSVG("list"))
-                        </svg>
-                        <div class="text-gray-900 text-opacity-90 text-sm font-bold font-sans leading-[18px]">Lista</div>
-                    </div>
-                    <div class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex">
-                        <svg class="w-[18px] h-[18px] fill-black dark:fill-zinc-200">
-                            @templ.Raw(iconSVG("map"))
-                        </svg>
-                        <div class="text-black text-sm font-bold font-sans leading-[18px] dark:text-white">Karta</div>
+                <div class="h-14 flex justify-end items-center self-stretch">
+                    <div id="#list-map" class="w-[200px] h-[42px] p-1.5 bg-[#1C1C281F] bg-opacity-20 rounded-2xl gap-2 justify-end items-center inline-flex">
+                        @listMapSwitch("Lista", iconSVG("list"))
+                        @listMapSwitch("Karta", iconSVG("map"))
                     </div>
                 </div>
-            </div>
 
-            <div id="sensors-table" class="w-full" hx-get="/components/tables/sensors" hx-trigger="load">
-                //@SensorTable(localizer, asset)
+                <div id="sensors-table" class="w-full" hx-get="/components/tables/sensors" hx-trigger="load">
+                    //@SensorTable(localizer, asset)
+                </div>
             </div>
         </div>
-    </div>
     </div>
 }
 
