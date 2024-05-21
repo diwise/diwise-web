@@ -56,6 +56,7 @@ type SensorViewModel interface {
     Bool(property string) bool
     Date(property, layout string) string
     String(property string) string
+    Float(property string) float64
 }
 
 templ SensorTable(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors []SensorViewModel) {

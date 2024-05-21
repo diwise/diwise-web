@@ -142,6 +142,16 @@ func (s *sens) Bool(property string) bool {
 	return value.(bool)
 }
 
+func (s *sens) Float(property string) float64 {
+	if property == "latitude" {
+		return getDataValue[float64](s.data, "location.latitude")
+	}
+	if property == "longitude" {
+		return getDataValue[float64](s.data, "location.longitude")
+	}
+	return 0.0
+}
+
 func (s *sens) Date(property, layout string) string {
 	if property == "lastseen" {
 		value := getDataValue[string](s.data, "deviceState.observedAt")
@@ -164,10 +174,13 @@ func (s *sens) String(property string) string {
 	}
 
 	value := map[string]string{
-		"deveui":  lookup("sensorID"),
-		"id":      lookup("deviceID"),
-		"name":    lookup("name"),
-		"network": "LoRa",
+		"deveui":        lookup("sensorID"),
+		"id":            lookup("deviceID"),
+		"name":          lookup("name"),
+		"tenant":        lookup("tenant"),
+		"description":   lookup("description"),
+		"deviceprofile": getDataValue[string](s.data, "deviceProfile.name"),
+		"network":       "LoRa",
 	}[property]
 
 	return value
@@ -227,7 +240,7 @@ func getSensor(ctx context.Context, url, sensorID string) (sensor components.Sen
 		return
 	}
 
-	return NewSens(ctx, impl), nil
+	return NewSens(ctx, impl["data"].(map[string]any)), nil
 }
 
 func getSensors(ctx context.Context, url, page, limit string) (int, int, []components.SensorViewModel, error) {
