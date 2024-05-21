@@ -271,7 +271,10 @@ func getSensors(ctx context.Context, url, page, limit string) (int, int, []compo
 		return 0, 0, nil, err
 	}
 
-	impl := []map[string]any{}
+	//TODO: print out body to see changes
+
+	fmt.Printf("body: %s", respBody)
+	impl := Body{}
 
 	err = json.Unmarshal(respBody, &impl)
 	if err != nil {
@@ -283,10 +286,14 @@ func getSensors(ctx context.Context, url, page, limit string) (int, int, []compo
 	pageoffset := (pageidx - 1) * count
 
 	for idx := range count {
-		if int(pageoffset+idx) >= len(impl) {
+		if int(pageoffset+idx) >= len(impl.Data) {
 			break
 		}
-		result = append(result, NewSens(ctx, impl[pageoffset+idx]))
+		result = append(result, NewSens(ctx, impl.Data[pageoffset+idx]))
 	}
-	return len(impl), (len(impl) + int(count) - 1) / int(count), result, nil
+	return len(impl.Data), (len(impl.Data) + int(count) - 1) / int(count), result, nil
+}
+
+type Body struct {
+	Data []map[string]any
 }
