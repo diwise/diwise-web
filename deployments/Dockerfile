@@ -5,12 +5,12 @@ WORKDIR /app
 
 RUN go install github.com/a-h/templ/cmd/templ@v0.2.663
 
-ARG TARGETARCH
-ARG TARGETOS
+ARG BUILDARCH
 
-RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.3/tailwindcss-$TARGETOS-$TARGETARCH
-RUN chmod +x tailwindcss-$TARGETOS-$TARGETARCH
-RUN mv tailwindcss-$TARGETOS-$TARGETARCH tailwindcss
+RUN echo $BUILDARCH
+
+RUN curl --fail -sL "https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.3/tailwindcss-linux-$BUILDARCH" -o tailwindcss
+RUN chmod +x tailwindcss
 
 COPY go.mod .
 COPY go.sum .
@@ -23,6 +23,9 @@ RUN templ generate
 RUN ./tailwindcss -c ./internal/pkg/presentation/web/css/tailwind.config.js -i ./internal/pkg/presentation/web/css/input.css -o ./assets/css/diwise.css
 
 WORKDIR /app/cmd/diwise-web
+
+ARG TARGETARCH
+ARG TARGETOS
 
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build
 
