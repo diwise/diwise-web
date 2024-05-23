@@ -144,7 +144,7 @@ func tableRowsFromSensors(_ locale.Localizer, _ assets.AssetLoaderFunc, sensors 
 
         cells := []templ.Component{TextFirstCell(sensor.String("name"))}
         cells = append(cells, LabelCell(labelText[isActive], isActive))
-        cells = append(cells, TextLinkCell(sensor.String("deveui"), "/components/sensors/details?id=" + sensor.String("id"), "sensor"))
+        cells = append(cells, TextCell(sensor.String("deveui")))
         //cells = append(cells, TextCell(sensor.String("network")))
         cells = append(cells, TextCell(sensor.String("battery")))
         cells = append(cells, TextCell(sensor.Date("lastseen", "2006-01-02, 15:04")))
@@ -155,7 +155,8 @@ func tableRowsFromSensors(_ locale.Localizer, _ assets.AssetLoaderFunc, sensors 
             cells = append(cells, TextCell(""))
         }
 
-        rows = append(rows, TableRow(cells...))
+        row := LinkRow(cells, "/components/sensors/details?id=" + sensor.String("id"), "sensor")
+        rows = append(rows, row)
     }
 
     return rows

@@ -39,6 +39,17 @@ templ TableRow(cells ...templ.Component) {
     </tr>
 }
 
+templ LinkRow(cells []templ.Component, url, viewName string) {
+    <tr class="border-b border-[#1C1C284D] border-opacity-70 hover:bg-[#FAFAFA] dark:border-white dark:bg-opacity-20 hover:cursor-pointer" 
+        hx-get={ url } 
+        hx-target={ fmt.Sprintf("#%s-view", viewName) } 
+        hx-trigger="click">
+        for _, cell := range cells {
+            @cell
+        }
+    </tr>
+}
+
 templ Label(label string, active bool) {
     <span class={
         "px-2.5 py-1 rounded-full justify-start items-center gap-1.5",
