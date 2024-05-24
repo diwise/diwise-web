@@ -1,5 +1,7 @@
 package components
 
+
+
 templ Map() {
     <div id="map" class="h-96 w-full rounded-lg shadow-lg"></div>
     <div>
@@ -16,6 +18,38 @@ templ Map() {
             maxZoom: 19,
             //attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
+
+        var trashcanIcon = L.icon({
+            iconUrl: '/assets/9bd4aeb2359eb2bc87a6efc62db884c7beea143a0f7f822330b075bb9e613922/trashcan.svg',  
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        var lifebuoyIcon = L.icon({
+            iconUrl: '/assets/70586d0ec04481509c957c9c53e29e8dff01ccdff43490521c6748cef7301dea/lifebuoy.svg',
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        var thermometerIcon = L.icon({
+            iconUrl: '/assets/f1fb89b6ac04649840b18d82bd99c07e0bd15dabb4e1a571d5268f89e7b90c33/thermometer.svg',
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        var drainIcon = L.icon({
+            iconUrl: '/assets/4b6f555f94417954a8a1d3eace3803fed8bed1a57821134a6f75079d85b4989b/drain.svg',
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
 
         var geojsonData = [
             {
@@ -49,11 +83,34 @@ templ Map() {
 
         geojsonData.forEach(data => {
             var type = data.features[0].properties.type;
+            var icon;
+
+            switch (type) {
+                case 'trashcan':
+                    icon = trashcanIcon;
+                    break;
+                case 'lifebuoy':
+                    icon = lifebuoyIcon;
+                    break;
+                case 'thermometer':
+                    icon = thermometerIcon;
+                    break;
+                case 'drain':
+                    icon = drainIcon;
+                    break;
+                default:
+                    icon = null;
+            }
+
             var layerGroup = layers[type] = L.geoJSON(data, {
+                pointToLayer: function(feature, latlng) {
+                    return L.marker(latlng, { icon: icon });
+                },
                 onEachFeature: function(feature, layer) {
                     layer.bindPopup(feature.properties.desc);
                 }
             }).addTo(map);
+
         });
 
         L.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
