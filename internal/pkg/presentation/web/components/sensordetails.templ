@@ -158,8 +158,9 @@ templ EditSensorComponent(localizer locale.Localizer, asset assets.AssetLoaderFu
 						Lorem ipsum används ofta som exempeltext inom trycksaksframställning och grafisk design för att visa hur till exempel ett dokument kommer att se ut när väl den riktiga texten är på plats.
 					</textarea>
 				</div>
+				<input type="hidden" name="id"  />
 				<div class="flex items-center gap-4">
-					<div class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-[#B92424] bg-opacity-20 rounded-xl flex items-center cursor-pointer">
+					<button class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-[#B92424] bg-opacity-20 rounded-xl flex items-center cursor-pointer">
 						<div class="w-[24px] h-[24px]">
 							<svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
 								@templ.Raw(iconSVG("close"))
@@ -168,8 +169,8 @@ templ EditSensorComponent(localizer locale.Localizer, asset assets.AssetLoaderFu
 						<div class="text-[#1F1F25] text-base font-sans font-bold leading-normal">
 							Avbryt
 						</div>
-					</div>
-					<div class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-[#00733B] bg-opacity-20 rounded-xl flex items-center cursor-pointer">
+					</button>
+					<button type="submit" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-[#00733B] bg-opacity-20 rounded-xl flex items-center cursor-pointer">
 						<div class="w-[24px] h-[24px]">
 							<svg class="fill-none w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
 								@templ.Raw(iconSVG("check"))
@@ -178,7 +179,7 @@ templ EditSensorComponent(localizer locale.Localizer, asset assets.AssetLoaderFu
 						<div class="text-[#1F1F25] text-base font-sans font-bold leading-normal">
 							Spara
 						</div>
-					</div>
+					</button>
 				</div>
 			</div>
 		</div>
