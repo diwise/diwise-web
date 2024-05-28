@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -22,15 +23,13 @@ import (
 )
 
 func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.WebApp) http.HandlerFunc {
-	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
-
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		sensorID := r.URL.Query().Get("id")
 
 		ctx := r.Context()
 
-		sensor, err := getSensor(ctx, deviceManagementURL, sensorID)
+		sensor, err := getSensor(ctx, sensorID)
 
 		if err != nil {
 			logging.GetFromContext(ctx).Error("unable to get sensor details", "err", err.Error())
@@ -51,37 +50,52 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 }
 
 func NewSensorEditorComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.WebApp) http.HandlerFunc {
-	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
-
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		localizer := l10n.For(r.Header.Get("Accept-Language"))
-		sensorID := r.URL.Query().Get("id")
+
+		var err error
+		var sensor components.SensorViewModel
 
 		ctx := r.Context()
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		sensor, err := getSensor(ctx, deviceManagementURL, sensorID)
+		if r.Method == http.MethodGet {
+			deviceID := r.URL.Query().Get("id")
 
-		if err != nil {
-			logging.GetFromContext(ctx).Error("unable to get sensor details", "err", err.Error())
-			http.Error(w, "unable to get sensor details", http.StatusInternalServerError)
+			sensor, err = getSensor(ctx, deviceID)
+
+			if err != nil {
+				logging.GetFromContext(ctx).Error("unable to get sensor details", "err", err.Error())
+				http.Error(w, "unable to get sensor details", http.StatusInternalServerError)
+				return
+			}
+
+			w.Header().Add("Content-Type", "text/html")
+			w.Header().Add("Cache-Control", "no-cache")
+			w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+			w.WriteHeader(http.StatusOK)
+
+			component := components.EditSensorComponent(localizer, assets, sensor)
+			component.Render(ctx, w)
+
 			return
 		}
 
-		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
-		w.WriteHeader(http.StatusOK)
+		deviceID := r.PostFormValue("id")
+		sensor, err = getSensor(ctx, deviceID)
+		if err != nil {
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
 
-		component := components.EditSensorComponent(localizer, assets, sensor)
-		component.Render(ctx, w)
+		//TOOD: set new values and PATCH to backend
+
+		http.Redirect(w, r, "/components/sensors/details?id="+deviceID, http.StatusFound)
 	}
 
 	return http.HandlerFunc(fn)
 }
 
 func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.WebApp) http.HandlerFunc {
-	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
-
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Cache-Control", "no-cache")
@@ -91,11 +105,18 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
 		page := helpers.UrlParamOrDefault(r, "page", "1")
-		limit := helpers.UrlParamOrDefault(r, "limit", "15")
+		pageSize := helpers.UrlParamOrDefault(r, "limit", "15")
+
+		limit, _ := strconv.Atoi(pageSize)
+
+		offset := func() int {
+			p, _ := strconv.Atoi(page)
+			return (p - 1) * limit
+		}
 
 		ctx := r.Context()
 
-		_, pages, sensors, err := getSensors(ctx, deviceManagementURL, page, limit)
+		_, pages, sensors, err := getSensors(ctx, offset(), limit)
 
 		if err != nil {
 			logging.GetFromContext(ctx).Error("get sensors error", "err", err.Error())
@@ -191,122 +212,122 @@ func NewSens(ctx context.Context, data map[string]any) *sens {
 	return &sens{data: data}
 }
 
-func getSensor(ctx context.Context, url, sensorID string) (sensor components.SensorViewModel, err error) {
-	token := authz.Token(ctx)
-
-	url = url + "/" + sensorID
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+func getSensor(ctx context.Context, deviceID string) (sensor components.SensorViewModel, err error) {
+	res, err := get(ctx, deviceID, url.Values{})
 	if err != nil {
-		err = fmt.Errorf("failed to create http request: %w", err)
-		return
+		return nil, err
 	}
 
-	req.Header.Add("Authorization", "Bearer "+token)
-
-	client := http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	data := res.Data
+	if d, ok := data.(map[string]any); ok {
+		return NewSens(ctx, d), nil
 	}
 
-	resp, err := client.Do(req)
-	if err != nil {
-		err = fmt.Errorf("failed to retrieve information for device: %w", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusUnauthorized {
-		err = fmt.Errorf("request failed, not authorized")
-		return
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
-		return
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		err = fmt.Errorf("failed to read response body: %w", err)
-		return
-	}
-
-	fmt.Println("received", string(respBody))
-
-	impl := map[string]any{}
-	err = json.Unmarshal(respBody, &impl)
-	if err != nil {
-		err = fmt.Errorf("failed to unmarshal response body: %w", err)
-		return
-	}
-
-	return NewSens(ctx, impl["data"].(map[string]any)), nil
+	return nil, fmt.Errorf("could not fetch sensor")
 }
 
-func getSensors(ctx context.Context, url, page, limit string) (int, int, []components.SensorViewModel, error) {
-	count, _ := strconv.ParseInt(limit, 10, 32)
-	pageidx, _ := strconv.ParseInt(page, 10, 32)
+func getSensors(ctx context.Context, offset, limit int) (int, int, []components.SensorViewModel, error) {
+	params := url.Values{}
+	params.Add("limit", fmt.Sprintf("%d", limit))
+	params.Add("offset", fmt.Sprintf("%d", offset))
 
-	token := authz.Token(ctx)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	resp, err := get(ctx, "", params)
 	if err != nil {
-		err = fmt.Errorf("failed to create http request: %w", err)
-		return 0, 0, nil, err
+		return 0, 0, []components.SensorViewModel{}, err
 	}
 
-	req.Header.Add("Authorization", "Bearer "+token)
-
-	client := http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		err = fmt.Errorf("failed to retrieve information for device: %w", err)
-		return 0, 0, nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusUnauthorized {
-		err = fmt.Errorf("request failed, not authorized")
-		return 0, 0, nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
-		return 0, 0, nil, err
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		err = fmt.Errorf("failed to read response body: %w", err)
-		return 0, 0, nil, err
-	}
-
-	//TODO: print out body to see changes
-
-	fmt.Printf("body: %s", respBody)
-	impl := Body{}
-
-	err = json.Unmarshal(respBody, &impl)
-	if err != nil {
-		err = fmt.Errorf("failed to unmarshal response body: %w", err)
-		return 0, 0, nil, err
-	}
-
-	result := []components.SensorViewModel{}
-	pageoffset := (pageidx - 1) * count
-
-	for idx := range count {
-		if int(pageoffset+idx) >= len(impl.Data) {
-			break
+	sensors := []components.SensorViewModel{}
+	if data, ok := resp.Data.([]any); ok {
+		for _, v := range data {
+			if m, ok := v.(map[string]any); ok {
+				sensors = append(sensors, NewSens(ctx, m))
+			}
 		}
-		result = append(result, NewSens(ctx, impl.Data[pageoffset+idx]))
 	}
-	return len(impl.Data), (len(impl.Data) + int(count) - 1) / int(count), result, nil
+
+	return int(resp.Meta.TotalRecords), int(*resp.Meta.Limit), sensors, err
 }
 
-type Body struct {
-	Data []map[string]any
+func get(ctx context.Context, path string, params url.Values) (*ApiResponse, error) {
+	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
+
+	if strings.ContainsAny(path, "/") {
+		path = strings.TrimPrefix(path, "/")
+		path = strings.TrimSuffix(path, "/")
+	}
+
+	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", deviceManagementURL, path), "/"))
+	if err != nil {
+		return nil, err
+	}
+
+	u.RawQuery = params.Encode()
+
+	token := authz.Token(ctx)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		err = fmt.Errorf("failed to create http request: %w", err)
+		return nil, err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	client := http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		err = fmt.Errorf("failed to retrieve information: %w", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		err = fmt.Errorf("request failed, not authorized")
+		return nil, err
+	}
+
+	if resp.StatusCode > http.StatusIMUsed {
+		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
+		return nil, err
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		err = fmt.Errorf("failed to read response body: %w", err)
+		return nil, err
+	}
+
+	impl := ApiResponse{}
+
+	err = json.Unmarshal(respBody, &impl)
+	if err != nil {
+		err = fmt.Errorf("failed to unmarshal response body: %w", err)
+		return nil, err
+	}
+
+	return &impl, nil
+}
+
+type Meta struct {
+	TotalRecords uint64  `json:"totalRecords"`
+	Offset       *uint64 `json:"offset,omitempty"`
+	Limit        *uint64 `json:"limit,omitempty"`
+	Count        uint64  `json:"count"`
+}
+
+type Links struct {
+	Self  *string `json:"self,omitempty"`
+	First *string `json:"first,omitempty"`
+	Prev  *string `json:"prev,omitempty"`
+	Next  *string `json:"next,omitempty"`
+	Last  *string `json:"last,omitempty"`
+}
+
+type ApiResponse struct {
+	Meta  *Meta  `json:"meta,omitempty"`
+	Data  any    `json:"data"`
+	Links *Links `json:"links,omitempty"`
 }

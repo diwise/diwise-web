@@ -1,92 +1,90 @@
 package components
 
 import (
-    "fmt"
+	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-    "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 )
 
 templ SearchField() {
-    <div class="w-[237px] h-12 flex-col justify-center items-start gap-2 inline-flex">
-        <div class="self-stretch pl-5 pr-4 py-3 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50 justify-start items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600">
-            <div class="w-[22px] h-[22px]">
-                <svg class="w-[22px] h-[22px] fill-[#444450] dark:fill-zinc-600">
-                    @templ.Raw(iconSVG("search"))
-                </svg>
-            </div>
-            <div class="grow shrink basis-0 text-[#0A0C0F] text-opacity-30 text-lg font-normal font-sans leading-normal inline-flex">
-                <input
-                    class="w-[175px] rounded-xl bg-white dark:bg-gray-800 dark:rounded-none dark:text-white dark:font-normal"
-                    type="search"
-                    placeholder="  Sök"
-                    />
-            </div>
-        </div>
-    </div>
+	<div class="w-[237px] h-12 flex-col justify-center items-start gap-2 inline-flex">
+		<div class="self-stretch pl-5 pr-4 py-3 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50 justify-start items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600">
+			<div class="w-[22px] h-[22px]">
+				<svg class="w-[22px] h-[22px] fill-[#444450] dark:fill-zinc-600">
+					@templ.Raw(iconSVG("search"))
+				</svg>
+			</div>
+			<div class="grow shrink basis-0 text-[#0A0C0F] text-opacity-30 text-lg font-normal font-sans leading-normal inline-flex">
+				<input
+					class="w-[175px] rounded-xl bg-white dark:bg-gray-800 dark:rounded-none dark:text-white dark:font-normal"
+					type="search"
+					placeholder="  Sök"
+				/>
+			</div>
+		</div>
+	</div>
 }
 
 templ PrimaryButton(title string) {
-    <div class="w-[200px] h-10 pl-[18px] pr-4 py-2 bg-amber-700 rounded-xl justify-center items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600 dark:border-2 cursor-pointer">
-        <div class="flex items-center gap-2">
-            <div class="text-white text-base font-bold font-sans leading-normal">
-                { title }
-            </div>
-            <div class="w-[18px] h-[18px] flex items-center">
-                <svg class="w-[18px] h-[18px] stroke-white fill-white">
-                    @templ.Raw(iconSVG("chevron-down"))
-                </svg>
-            </div>
-        </div>
-    </div>
-
+	<div class="w-[200px] h-10 pl-[18px] pr-4 py-2 bg-amber-700 rounded-xl justify-center items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600 dark:border-2 cursor-pointer">
+		<div class="flex items-center gap-2">
+			<div class="text-white text-base font-bold font-sans leading-normal">
+				{ title }
+			</div>
+			<div class="w-[18px] h-[18px] flex items-center">
+				<svg class="w-[18px] h-[18px] stroke-white fill-white">
+					@templ.Raw(iconSVG("chevron-down"))
+				</svg>
+			</div>
+		</div>
+	</div>
 }
 
 templ SecondaryButton(title string) {
-    <div class="w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-[#1C1C284D] border-opacity-30 bg-white bg-opacity-20 dark:bg-gray-800 justify-center items-center gap-2 inline-flex dark:border-zinc-600">
-        <svg class="w-[18px] h-[18px] dark:fill-zinc-600">
-            @templ.Raw(iconSVG("filter"))
-        </svg>
-        <div class="text-[#444450] text-base font-bold font-sans leading-normal dark:text-white">
-            { title }
-        </div>
-    </div>
+	<div class="w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-[#1C1C284D] border-opacity-30 bg-white bg-opacity-20 dark:bg-gray-800 justify-center items-center gap-2 inline-flex dark:border-zinc-600">
+		<svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+			@templ.Raw(iconSVG("filter"))
+		</svg>
+		<div class="text-[#444450] text-base font-bold font-sans leading-normal dark:text-white">
+			{ title }
+		</div>
+	</div>
 }
 
 type SensorViewModel interface {
-    Bool(property string) bool
-    Date(property, layout string) string
-    String(property string) string
-    Float(property string) float64
+	Bool(property string) bool
+	Date(property, layout string) string
+	String(property string) string
+	Float(property string) float64
 }
 
 templ SensorTable(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors []SensorViewModel) {
-    @Table(
-        HeaderRow(TableHeaderText("Namn"), TableHeaderText("Status"), TableHeaderText("DevEUI"), TableHeaderText("Batterinivå"), TableHeaderText("Senaste värde"), TableHeaderText("Larm")),
-        TableData(tableRowsFromSensors(localizer, asset, sensors)...),
-        DataTableFooter("6", "sensors"),
-    )
+	@Table(
+		HeaderRow(TableHeaderText("Namn"), TableHeaderText("Status"), TableHeaderText("DevEUI"), TableHeaderText("Batterinivå"), TableHeaderText("Senaste värde"), TableHeaderText("Larm")),
+		TableData(tableRowsFromSensors(localizer, asset, sensors)...),
+		DataTableFooter("6", "sensors"),
+	)
 }
 
-func listMapSwitch(name, icon string) templ.Component {	
-    
-    /*selectedButtonClass := "bg-black text-white"
-    selectedIconClass := "fill-white"*/
-    
-    defaultButtonClass := "bg-white bg-opacity-95 text-gray-900 text-opacity-90"
-    defaultIconClass := "fill-[#1c1c28] dark:fill-zinc-600"
+func listMapSwitch(name, icon string) templ.Component {
 
-    buttonClass := defaultButtonClass
-    iconClass := defaultIconClass
+	/*selectedButtonClass := "bg-black text-white"
+	  selectedIconClass := "fill-white"*/
 
-    /*if isActive {
-        buttonClass = selectedButtonClass
-        iconClass = selectedIconClass
-    }*/
-    
+	defaultButtonClass := "bg-white bg-opacity-95 text-gray-900 text-opacity-90"
+	defaultIconClass := "fill-[#1c1c28] dark:fill-zinc-600"
 
-    return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-        _, err := io.WriteString(w, fmt.Sprintf(
-            `
+	buttonClass := defaultButtonClass
+	iconClass := defaultIconClass
+
+	/*if isActive {
+	    buttonClass = selectedButtonClass
+	    iconClass = selectedIconClass
+	}*/
+
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		_, err := io.WriteString(w, fmt.Sprintf(
+			`
                 <button class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer %s"
                     hx-get={"?selected=%s"}
                     hx-push-url="true"
@@ -98,67 +96,63 @@ func listMapSwitch(name, icon string) templ.Component {
                     <div class="text-sm font-bold font-sans leading-[18px]">%s</div>
                 </button>
             `, buttonClass, name, iconClass, icon, name,
-        ))
-        return err
-    })
+		))
+		return err
+	})
 }
 
 templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
-
-    <div class="w-full" id="sensor-view">
-        <div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
-            <h1 class="dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensorer</h1>
-            <div class="w-full h-12 justify-between items-center inline-flex">
-                <div class="inline-flex justify-start items-center gap-[34px]">
-                    @SearchField()
-                    @SecondaryButton("Filter")
-                </div>
-                @PrimaryButton("Lägg till sensor")
-            </div>
-
-            <div class="w-full flex flex-col gap-6 items-start inline-flex">
-
-                <div class="h-14 flex justify-end items-center self-stretch">
-                    <div id="#list-map" class="w-[200px] h-[42px] p-1.5 bg-[#1C1C281F] bg-opacity-20 rounded-2xl gap-2 justify-end items-center inline-flex">
-                        @listMapSwitch("Lista", iconSVG("list"))
-                        @listMapSwitch("Karta", iconSVG("map"))
-                    </div>
-                </div>
-
-                <div id="sensors-table" class="w-full" hx-get="/components/tables/sensors" hx-trigger="load">
-                    //@SensorTable(localizer, asset)
-                </div>
-            </div>
-        </div>
-    </div>
+	<div class="w-full" id="sensor-view">
+		<div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
+			<h1 class="dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensorer</h1>
+			<div class="w-full h-12 justify-between items-center inline-flex">
+				<div class="inline-flex justify-start items-center gap-[34px]">
+					@SearchField()
+					@SecondaryButton("Filter")
+				</div>
+				@PrimaryButton("Lägg till sensor")
+			</div>
+			<div class="w-full flex flex-col gap-6 items-start inline-flex">
+				<div class="h-14 flex justify-end items-center self-stretch">
+					<div id="#list-map" class="w-[200px] h-[42px] p-1.5 bg-[#1C1C281F] bg-opacity-20 rounded-2xl gap-2 justify-end items-center inline-flex">
+						@listMapSwitch("Lista", iconSVG("list"))
+						@listMapSwitch("Karta", iconSVG("map"))
+					</div>
+				</div>
+				<div id="sensors-table" class="w-full" hx-get="/components/tables/sensors" hx-trigger="load">
+					//@SensorTable(localizer, asset)
+				</div>
+			</div>
+		</div>
+	</div>
 }
 
 //HELPERS
 func tableRowsFromSensors(_ locale.Localizer, _ assets.AssetLoaderFunc, sensors []SensorViewModel) []templ.Component {
-    rows := []templ.Component{}
+	rows := []templ.Component{}
 
-    labelText := map[bool]string{false: "Inaktiv", true: "Aktiv"}
+	labelText := map[bool]string{false: "Inaktiv", true: "Aktiv"}
 
-    for _, sensor := range sensors {
-        isActive := sensor.Bool("active")
+	for _, sensor := range sensors {
+		isActive := sensor.Bool("active")
 
-        cells := []templ.Component{TextFirstCell(sensor.String("name"))}
-        cells = append(cells, LabelCell(labelText[isActive], isActive))
-        cells = append(cells, TextCell(sensor.String("deveui")))
-        //cells = append(cells, TextCell(sensor.String("network")))
-        cells = append(cells, TextCell(sensor.String("battery")))
-        cells = append(cells, TextCell(sensor.Date("lastseen", "2006-01-02, 15:04")))
+		cells := []templ.Component{TextFirstCell(sensor.String("name"))}
+		cells = append(cells, LabelCell(labelText[isActive], isActive))
+		cells = append(cells, TextCell(sensor.String("deveui")))
+		//cells = append(cells, TextCell(sensor.String("network")))
+		cells = append(cells, TextCell(sensor.String("battery")))
+		cells = append(cells, TextCell(sensor.Date("lastseen", "2006-01-02, 15:04")))
 
-        if sensor.Bool("has-alerts") {
-            cells = append(cells, Cell(SVG("alert-triangle", Size(24), AlertStyle())))
-        } else {
-            cells = append(cells, TextCell(""))
-        }
+		if sensor.Bool("has-alerts") {
+			cells = append(cells, Cell(SVG("alert-triangle", Size(24), AlertStyle())))
+		} else {
+			cells = append(cells, TextCell(""))
+		}
 
-        row := LinkRow(cells, "/components/sensors/details?id=" + sensor.String("id"), "sensor")
-        rows = append(rows, row)
-    }
+		row := LinkRow(cells, "/components/sensors/details?id="+sensor.String("id"), "sensor")
+		rows = append(rows, row)
+	}
 
-    return rows
-    
+	return rows
+
 }

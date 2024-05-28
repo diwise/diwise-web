@@ -91,6 +91,7 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	if version == "develop" {
 		version = version + "-" + uuid.NewString()
 	}
+
 	mux.HandleFunc("GET /version/{v}", func(w http.ResponseWriter, r *http.Request) {
 		if helpers.IsHxRequest(r) {
 			if r.PathValue("v") != version {
@@ -173,6 +174,10 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 		sensors.NewSensorEditorComponentHandler(ctx, l10n, assetLoader.Load, app),
 	))
 
+	r.HandleFunc("POST /components/sensors/edit",
+		sensors.NewSensorEditorComponentHandler(ctx, l10n, assetLoader.Load, app),
+	)
+
 	r.HandleFunc("GET /components/tables/sensors", RequireHX(
 		sensors.NewTableSensorsComponentHandler(ctx, l10n, assetLoader.Load, app),
 	))
@@ -213,6 +218,10 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 
 	mux.Handle(
 		"GET /", logger(ctx, pte.Middleware()(authz.Middleware()(r))),
+	)
+
+	mux.Handle(
+		"POST /", logger(ctx, pte.Middleware()(authz.Middleware()(r))),
 	)
 
 	return &impl{
