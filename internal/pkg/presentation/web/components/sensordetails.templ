@@ -7,52 +7,91 @@ import (
 )
 
 templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorViewModel) {
+	
+	
 	<div class="flex items-center justify-between pb-4">
-		<h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensordetaljer</h2>
-		<button
-			class="w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28F2] bg-opacity-95 rounded-xl flex items-center gap-2 cursor-pointer text-white text-base font-bold font-sans leading-normal"
-			hx-get={ "/components/sensors/edit?id=" + sensor.String("id") }
-			hx-target="#sensor-view"
-			hx-trigger="click"
-		>
-			<div class="w-[20px] h-[20px]">
-				@SVG("pen", Box(24, 24), NoFill(), StrokeColor("white"))
-			</div>
-			Redigera
-		</button>
+		<div class="flex items-center gap-6 align-middle">
+			<h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">{ sensor.String("name") }</h2>
+			
+			@Label("Aktiv", sensor.Bool("active"))
+		</div>
+		<div class="">
+			<button
+				class="w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28F2] bg-opacity-95 rounded-xl flex items-center gap-2 cursor-pointer text-white text-base font-bold font-sans leading-normal"
+				hx-get={ "/components/sensors/edit?id=" + sensor.String("id") }
+				hx-target="#sensor-view"
+				hx-trigger="click"
+			>
+				<div class="w-[20px] h-[20px]">
+					@SVG("pen", Box(24, 24), NoFill(), StrokeColor("white"))
+				</div>
+				Redigera
+			</button>
+		</div>
 	</div>
-	<div class="w-full rounded-2xl shadow flex">
-		<div class="flex-1 p-4">
-			<div class="space-y-2 pt-4">
-				<div class="flex justify-between items-center p-2">
-					<div class="text-left text-[#444450]">Namn</div>
-					<div class="text-right font-bold">{ sensor.String("name") }</div>
+	<div class="w-full flex py-6 gap-10"> //Yttersta diven
+		<div class="flex flex-col items-start gap-20 flex-[1_0_0]"> //Uppgifter och larm
+			<div class="flex flex-col items-start self-stretch"> //Uppgifter
+				<div class="flex items-center gap-3 self-stretch"> //Rubrik
+					@SVG("info", Size(24), NoFill())
+					<h2>Uppgifter</h2>
+					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 				</div>
-				<div class="flex flex-col p-2">
-					<div class="flex justify-between items-center mb-2">
-						<div class="text-left text-[#444450]">Position</div>
-						<div class="text-right font-bold"></div>
+				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9"> //Innehåll Uppgifter
+					<div class="flex flex-start gap-2">
+						<div class="text-[#444450]">Namn</div>
+						<div class="font-bold">{ sensor.String("name") }</div>
 					</div>
-					<div class="flex justify-end items-center">
-						<div class="text-right font-bold">{ fmt.Sprintf("%f, %f", sensor.Float("latitude"), sensor.Float("longitude")) }</div>
+					<div class="flex flex-start gap-2">
+						<div class="text-[#444450]">Position</div>
+						<div class="font-bold">{ fmt.Sprintf("%f, %f", sensor.Float("latitude"), sensor.Float("longitude")) }</div>
+					</div>
+					<div class="flex flex-start gap-2">
+						<div class="text-[#444450]">Sensortyp</div>
+						<div class="font-bold">{ sensor.String("deviceprofile") }</div>
+					</div>
+					<div class="flex flex-start gap-2">
+						<div class="text-[#444450]">Organisation</div>
+						<div class="font-bold">{ sensor.String("tenant") }</div>
+					</div>
+					<div class="flex flex-col gap-2">
+						<div class="text-[#444450]">Beskrivning</div>
+						<div class="font-bold">{ sensor.String("description") }</div>
 					</div>
 				</div>
-				<div class="flex justify-between items-center p-2">
-					<div class="text-left text-[#444450]">Sensortyp</div>
-					<div class="text-right font-bold">{ sensor.String("deviceprofile") }</div>
-				</div>
-				<div class="flex justify-between items-center p-2">
-					<div class="text-left text-[#444450]">Organisation</div>
-					<div class="text-right font-bold">{ sensor.String("tenant") }</div>
-				</div>
-				<div class="p-2">
-					<div class="text-left text-[#444450]">Beskrivning</div>
-					<div class="font-bold">{ sensor.String("description") }</div>
+			</div>
+
+			<div class="flex flex-col items-start self-stretch"> //Larm
+				<div class="flex items-center gap-3 self-stretch">
+					@SVG("alert-triangle", Size(24))
+					<h2>Larm</h2>
+					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 				</div>
 			</div>
 		</div>
-		<div class="flex-1 text-center p-4">
-			@Map()
+
+		<div class="border-l border-[#1C1C284D] h-auto"></div> //Vertikal divider mellan uppgifter och position
+		
+		<div class="flex flex-col items-start gap-6 flex-[1_0_0]"> //Karta
+			<div class="flex items-center gap-3 self-stretch"> //Position rubrik
+				@SVG("map-pin", Size(24), NoFill())
+				<h2>Position</h2>
+				<div class="h-px border-t border-[#1C1C284D] w-full"></div>
+			</div>
+
+			
+
+			<div class="flex flex-col items-start gap-6 self-stretch py-6 px-9"> //
+				<div class="flex flex-start gap-2">
+					<div class="text-[#444450]">Latitud</div>
+					<div class="font-bold">{ fmt.Sprintf("%f", sensor.Float("latitude")) }</div>
+				</div>
+				<div class="flex flex-start gap-2">
+					<div class="text-[#444450]">Longitud</div>
+					<div class="font-bold">{ fmt.Sprintf("%f", sensor.Float("longitude")) }</div>
+				</div>
+				@Map()
+			</div>
 		</div>
 	</div>
 }
