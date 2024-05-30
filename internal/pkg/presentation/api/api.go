@@ -10,6 +10,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/sensors"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/pages"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
@@ -24,9 +25,11 @@ type Api interface {
 }
 
 type impl struct {
-	webapp        application.WebApp
+	webapp        *application.App
 	router        *http.ServeMux
 	tokenExchange authn.PhantomTokenExchange
+
+	version string
 }
 
 type writerMiddleware struct {
@@ -86,7 +89,7 @@ func RequireHX(next http.Handler) http.HandlerFunc {
 	}
 }
 
-func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange, app application.WebApp, version, assetPath string) (Api, error) {
+func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange, app *application.App, version, assetPath string) (Api, error) {
 
 	if version == "develop" {
 		version = version + "-" + uuid.NewString()
@@ -136,7 +139,6 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 
 		comps := map[string]func(locale.Localizer, assets.AssetLoaderFunc) templ.Component{
 			"home":    components.Home,
-			"sensors": components.Sensors,
 			"objects": components.Objects,
 		}
 
@@ -166,16 +168,15 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 		}
 	}())
 
+	r.HandleFunc("GET /sensors", pages.NewSensorListPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /sensors/details/{id}", pages.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
+
 	r.HandleFunc("GET /components/sensors/details", RequireHX(
 		sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app),
 	))
 
-	r.HandleFunc("GET /components/sensors/edit", RequireHX(
-		sensors.NewSensorEditorComponentHandler(ctx, l10n, assetLoader.Load, app),
-	))
-
-	r.HandleFunc("POST /components/sensors/edit",
-		sensors.NewSensorEditorComponentHandler(ctx, l10n, assetLoader.Load, app),
+	r.HandleFunc("POST /components/sensors/details",
+		sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app),
 	)
 
 	r.HandleFunc("GET /components/tables/sensors", RequireHX(
@@ -228,6 +229,7 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 		webapp:        app,
 		router:        mux,
 		tokenExchange: pte,
+		version:       version,
 	}, nil
 }
 

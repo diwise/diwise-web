@@ -84,7 +84,7 @@ func main() {
 	}
 }
 
-func initialize(ctx context.Context, version string, mux *http.ServeMux, pte authn.PhantomTokenExchange, assetPath string) (api_ api.Api, app application.WebApp, err error) {
+func initialize(ctx context.Context, version string, mux *http.ServeMux, pte authn.PhantomTokenExchange, assetPath string) (api_ api.Api, app *application.App, err error) {
 	app, err = application.New(ctx)
 	if err != nil {
 		return

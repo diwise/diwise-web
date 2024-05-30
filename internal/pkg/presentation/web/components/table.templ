@@ -336,7 +336,7 @@ func pagerIndexes(ctx context.Context) []int64 {
 }
 
 func ctx2str(ctx context.Context, key any) string {
-    return fmt.Sprintf("%s", ctx.Value(key))
+    return fmt.Sprintf("%d", ctx.Value(key))
 }
 
 func option(pageSize string, selected bool) templ.ComponentFunc {
