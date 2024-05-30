@@ -61,6 +61,7 @@ func iconSVG(name string) string {
 
 type svgCfg struct {
 	classes map[string][]string
+	stroke templ.Attributes
 	viewBox string
 }
 
@@ -72,6 +73,10 @@ func (cfg *svgCfg) Classes() string {
 	}
 
 	return strings.Join(classNames, " ")
+}
+
+func (cfg *svgCfg) Stroke() templ.Attributes {
+	return cfg.stroke
 }
 
 func (cfg *svgCfg) ViewBox() string {
@@ -148,6 +153,12 @@ func SelectedIconNoFill(isSelected bool) func(*svgCfg) {
     }
 }
 
+func Stroke(attrs templ.Attributes) func(*svgCfg) {
+	return func(cfg *svgCfg) {
+		cfg.stroke = attrs
+	}
+}
+
 func Size(x int) func(*svgCfg) {
 	mapSize := func(prefix string, size int) string {
 		if size <= 100 {
@@ -172,7 +183,7 @@ func Box(x, y int) func(*svgCfg) {
 }
 
 templ SVG(name string, config ...func(*svgCfg)) {
-	<svg class={ newSVGCfg(config...).Classes() } viewBox={ newSVGCfg(config...).ViewBox() }>
+	<svg class={ newSVGCfg(config...).Classes() } viewBox={ newSVGCfg(config...).ViewBox() } { newSVGCfg(config...).Stroke()... } >
 		@templ.Raw(iconSVG(name))
 	</svg>
 }

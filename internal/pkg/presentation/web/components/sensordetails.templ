@@ -12,8 +12,13 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 	<div class="flex items-center justify-between pb-4">
 		<div class="flex items-center gap-6 align-middle">
 			<h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">{ sensor.String("name") }</h2>
-			
-			@Label("Aktiv", sensor.Bool("active"))
+ 
+			if sensor.Bool("active") {
+				@Label("Aktiv", sensor.Bool("active"))
+			} else {
+				@Label("Inaktiv", sensor.Bool("active"))
+			}
+
 		</div>
 		<div class="">
 			<button
@@ -33,7 +38,7 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 		<div class="flex flex-col items-start gap-20 flex-[1_0_0]"> //Uppgifter och larm
 			<div class="flex flex-col items-start self-stretch"> //Uppgifter
 				<div class="flex items-center gap-3 self-stretch"> //Rubrik
-					@SVG("info", Size(24), NoFill())
+					@SVG("info", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"})) 
 					<h2>Uppgifter</h2>
 					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 				</div>
@@ -62,10 +67,43 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 			</div>
 
 			<div class="flex flex-col items-start self-stretch"> //Larm
-				<div class="flex items-center gap-3 self-stretch">
+				<div class="flex items-center gap-3 self-stretch"> //Rubrik larm
 					@SVG("alert-triangle", Size(24))
 					<h2>Larm</h2>
 					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
+				</div>
+				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9"> //Tabell larm
+					<table class="table-auto w-full border-collapse border outline-[#1C1C284D] outline outline-1 overflow-hidden rounded-2xl">
+						<thead>
+							<tr class="bg-[#F0F0F0] font-bold">
+								<td class="px-6 py-3">Starttid</td>
+								<td class="px-6 py-3">Typ</td>
+								<td class="px-6 py-3">Status</td>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td class="px-6 py-3">2024-05-30, 14:22</td>
+								<td class="px-6 py-3">07.00</td>
+								<td class="px-6 py-3">07.00</td>
+							</tr>
+							<tr>
+								<td class="px-6 py-3">2024-05-29, 12:20</td>
+								<td class="px-6 py-3">07.00</td>
+								<td class="px-6 py-3">07.00</td>
+							</tr>
+							<tr>
+								<td class="px-6 py-3">2024-05-28, 10:32</td>
+								<td class="px-6 py-3">07.00</td>
+								<td class="px-6 py-3">07.00</td>
+							</tr>
+							<tr>
+								<td class="px-6 py-3">2024-05-27, 14:22</td>
+								<td class="px-6 py-3">07.00</td>
+								<td class="px-6 py-3">07.00</td>
+							</tr>
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>
@@ -74,13 +112,10 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 		
 		<div class="flex flex-col items-start gap-6 flex-[1_0_0]"> //Karta
 			<div class="flex items-center gap-3 self-stretch"> //Position rubrik
-				@SVG("map-pin", Size(24), NoFill())
+				@SVG("map-pin", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"}))
 				<h2>Position</h2>
 				<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 			</div>
-
-			
-
 			<div class="flex flex-col items-start gap-6 self-stretch py-6 px-9"> //
 				<div class="flex flex-start gap-2">
 					<div class="text-[#444450]">Latitud</div>
