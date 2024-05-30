@@ -11,6 +11,7 @@ import (
 
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/service-chassis/pkg/infrastructure/env"
+	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -41,7 +42,6 @@ func (a *App) GetSensor(ctx context.Context, id string) (Sensor, error) {
 }
 
 func (a *App) GetSensors(ctx context.Context, offset, limit int) (SensorResult, error) {
-
 	params := url.Values{}
 	params.Add("limit", fmt.Sprintf("%d", limit))
 	params.Add("offset", fmt.Sprintf("%d", offset))
@@ -64,6 +64,19 @@ func (a *App) GetSensors(ctx context.Context, offset, limit int) (SensorResult, 
 		Limit:        int(*res.Meta.Limit),
 		Count:        len(sensors),
 	}, nil
+}
+
+func (a *App) UpdateSensor(ctx context.Context, sensor Sensor) error {
+	log := logging.GetFromContext(ctx)
+
+	b, err := json.Marshal(sensor)
+	if err != nil {
+		return err
+	}
+
+	log.Debug(string(b))
+
+	return nil
 }
 
 func (a *App) get(ctx context.Context, path string, params url.Values) (*ApiResponse, error) {

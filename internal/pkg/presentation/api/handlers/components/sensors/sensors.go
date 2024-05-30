@@ -3,6 +3,7 @@ package sensors
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
@@ -13,6 +14,8 @@ import (
 )
 
 func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+	log := logging.GetFromContext(ctx)
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
@@ -27,7 +30,7 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 
 		sensor, err := app.GetSensor(ctx, id)
 		if err != nil {
-			logging.GetFromContext(ctx).Error("unable to get sensor details", "err", err.Error())
+			log.Error("unable to get sensor details", "err", err.Error())
 			http.Error(w, "unable to get sensor details", http.StatusInternalServerError)
 			return
 		}
@@ -61,7 +64,73 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 	return http.HandlerFunc(fn)
 }
 
+func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+	log := logging.GetFromContext(ctx)
+	
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		ctx := logging.NewContextWithLogger(r.Context(), log)
+
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "could not parse form data", http.StatusBadRequest)
+			return
+		}
+
+		asBool := func(s string) bool {
+			return s == "on"
+		}
+
+		asFloat := func(s string) float64 {
+			if f, err := strconv.ParseFloat(s, 64); err == nil {
+				return f
+			}
+			return 0.0
+		}
+
+		id := r.Form.Get("id")
+		active := r.Form.Get("active")
+		name := r.Form.Get("name")
+		longitude := r.Form.Get("longitude")
+		latitude := r.Form.Get("latitude")
+		//sensorType := r.Form.Get("sensorType")
+		//measurementType := r.Form["measurementType"]
+		organisation := r.Form.Get("organisation")
+		description := r.Form.Get("description")
+
+		if r.Form.Has("save") {
+			sensor := application.Sensor{
+				DeviceID: id,
+				Active: asBool(active),
+				Name:   name,
+				Tenant: organisation,
+				Location: application.Location{
+					Latitude:  asFloat(latitude),
+					Longitude: asFloat(longitude),
+				},
+				Description: description,
+			}
+
+			err = app.UpdateSensor(ctx, sensor)
+			if err != nil {
+				http.Error(w, "could not update sensor", http.StatusInternalServerError)
+				return
+			}
+		}
+
+		http.Redirect(w, r, "/sensors/"+id, http.StatusFound)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
 func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+	log := logging.GetFromContext(ctx)
+	
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Cache-Control", "no-cache")
@@ -73,7 +142,7 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		page := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
 
-		ctx := r.Context()
+		ctx := logging.NewContextWithLogger(r.Context(), log)
 
 		sensorResult, err := app.GetSensors(ctx, offset, limit)
 		if err != nil {

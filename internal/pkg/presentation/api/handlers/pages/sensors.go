@@ -12,12 +12,16 @@ import (
 )
 
 func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+	version := helpers.GetVersion(ctx)
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
 		offset, limit := helpers.GetOffsetAndLimit(r)
 
-		ctx := r.Context()
+		ctx := helpers.Decorate(r.Context(),
+			components.CurrentComponent, "sensors",
+		)
 
 		sensorResult, err := app.GetSensors(ctx, offset, limit)
 		if err != nil {
@@ -39,7 +43,7 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 		}
 
 		sensorList := components.Sensors(localizer, assets, listViewModel)
-		page := components.StartPage("", localizer, assets, sensorList)
+		page := components.StartPage(version, localizer, assets, sensorList)
 
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Cache-Control", "no-cache")
@@ -64,6 +68,8 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 }
 
 func NewSensorDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+	version := helpers.GetVersion(ctx)
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
@@ -73,8 +79,10 @@ func NewSensorDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets
 			return
 		}
 
-		ctx := r.Context()
-
+		ctx := helpers.Decorate(r.Context(),
+			components.CurrentComponent, "sensors",
+		)
+		
 		sensor, err := app.GetSensor(ctx, id)
 		if err != nil {
 			http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
@@ -93,7 +101,7 @@ func NewSensorDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets
 		}
 
 		sensorDetails := components.SensorDetails(localizer, assets, detailsViewModel)
-		page := components.StartPage("", localizer, assets, sensorDetails)
+		page := components.StartPage(version, localizer, assets, sensorDetails)
 
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Cache-Control", "no-cache")

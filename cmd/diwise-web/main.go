@@ -9,11 +9,13 @@ import (
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/service-chassis/pkg/infrastructure/buildinfo"
 	"github.com/diwise/service-chassis/pkg/infrastructure/env"
 	"github.com/diwise/service-chassis/pkg/infrastructure/net/http/authn"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
+	"github.com/google/uuid"
 )
 
 const serviceName string = "diwise-web"
@@ -24,12 +26,14 @@ func main() {
 
 	serviceVersion := buildinfo.SourceVersion()
 	if serviceVersion == "" {
-		serviceVersion = "develop"
+		serviceVersion = "develop" + "-" + uuid.NewString()
 	}
 
 	// Initialise the observability package
 	ctx, logger, cleanup := o11y.Init(context.Background(), serviceName, serviceVersion)
 	defer cleanup()
+
+	ctx = helpers.WithVersion(ctx, serviceVersion)
 
 	// Get path to web assets folder via environment variable (or a default) ...
 	webAssetPath = env.GetVariableOrDefault(ctx, "DIWISEWEB_ASSET_PATH", "/opt/diwise/assets")
@@ -69,7 +73,7 @@ func main() {
 
 	pte.InstallHandlers(mux)
 
-	webapi, _, err := initialize(ctx, serviceVersion, mux, pte, webAssetPath)
+	webapi, _, err := initialize(ctx, mux, pte, webAssetPath)
 	if err != nil {
 		fatal(ctx, "failed to initialize service", err)
 	}
@@ -84,13 +88,13 @@ func main() {
 	}
 }
 
-func initialize(ctx context.Context, version string, mux *http.ServeMux, pte authn.PhantomTokenExchange, assetPath string) (api_ api.Api, app *application.App, err error) {
+func initialize(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange, assetPath string) (api_ api.Api, app *application.App, err error) {
 	app, err = application.New(ctx)
 	if err != nil {
 		return
 	}
 
-	api_, err = api.New(ctx, mux, pte, app, version, assetPath)
+	api_, err = api.New(ctx, mux, pte, app, assetPath)
 	if err != nil {
 		return
 	}

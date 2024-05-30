@@ -8,19 +8,18 @@ import (
 )
 
 type SensorViewModel struct {
-	Active bool
-	DevEUI string
-	DeviceID string
-	Name string	
+	Active       bool
+	DevEUI       string
+	DeviceID     string
+	Name         string
 	BatteryLevel int
-	LastSeen time.Time
-	HasAlerts bool	
+	LastSeen     time.Time
+	HasAlerts    bool
 }
 
 type SensorListViewModel struct {
 	Sensors []SensorViewModel
 }
-
 
 templ SearchField() {
 	<div class="w-[237px] h-12 flex-col justify-center items-start gap-2 inline-flex">
@@ -141,8 +140,8 @@ func tableRowsFromSensors(localizer locale.Localizer, _ assets.AssetLoaderFunc, 
 	rows := []templ.Component{}
 
 	labelText := map[bool]string{
-		false: localizer.Get("Inaktiv"), 
-		true:localizer.Get( "Aktiv"),
+		false: localizer.Get("Inaktiv"),
+		true:  localizer.Get("Aktiv"),
 	}
 
 	for _, sensor := range sensors {
@@ -150,7 +149,7 @@ func tableRowsFromSensors(localizer locale.Localizer, _ assets.AssetLoaderFunc, 
 
 		cells := []templ.Component{TextFirstCell(sensor.Name)}
 		cells = append(cells, LabelCell(labelText[isActive], isActive))
-		cells = append(cells, TextCell(sensor.DevEUI))		
+		cells = append(cells, TextCell(sensor.DevEUI))
 		cells = append(cells, TextCell(fmt.Sprintf("%d", sensor.BatteryLevel)))
 		cells = append(cells, TextCell(sensor.LastSeen.Format(time.RFC3339)))
 
@@ -160,7 +159,7 @@ func tableRowsFromSensors(localizer locale.Localizer, _ assets.AssetLoaderFunc, 
 			cells = append(cells, TextCell(""))
 		}
 
-		row := LinkRow(cells, "/components/sensors/details?id="+sensor.DeviceID, "sensor")
+		row := LinkRow(cells, "/components/sensors/details?id="+sensor.DeviceID, "/sensors/"+sensor.DeviceID, "sensor")
 		rows = append(rows, row)
 	}
 
