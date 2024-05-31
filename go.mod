@@ -7,6 +7,7 @@ require (
 	github.com/a-h/templ v0.2.697
 	github.com/diwise/service-chassis v0.0.0-20240419142609-99f2d4b33a90
 	github.com/google/uuid v1.3.1
+	github.com/matryer/is v1.4.1
 	github.com/nicksnyder/go-i18n/v2 v2.4.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.48.0
 	golang.org/x/text v0.14.0

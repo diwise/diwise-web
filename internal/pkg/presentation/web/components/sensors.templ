@@ -4,7 +4,22 @@ import (
 	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	"time"
 )
+
+type SensorViewModel struct {
+	Active       bool
+	DevEUI       string
+	DeviceID     string
+	Name         string
+	BatteryLevel int
+	LastSeen     time.Time
+	HasAlerts    bool
+}
+
+type SensorListViewModel struct {
+	Sensors []SensorViewModel
+}
 
 templ SearchField() {
 	<div class="w-[237px] h-12 flex-col justify-center items-start gap-2 inline-flex">
@@ -51,17 +66,10 @@ templ SecondaryButton(title string) {
 	</div>
 }
 
-type SensorViewModel interface {
-	Bool(property string) bool
-	Date(property, layout string) string
-	String(property string) string
-	Float(property string) float64
-}
-
-templ SensorTable(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors []SensorViewModel) {
+templ SensorTable(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
 	@Table(
 		HeaderRow(TableHeaderText("Namn"), TableHeaderText("Status"), TableHeaderText("DevEUI"), TableHeaderText("Batterinivå"), TableHeaderText("Senaste värde"), TableHeaderText("Larm")),
-		TableData(tableRowsFromSensors(localizer, asset, sensors)...),
+		TableData(tableRowsFromSensors(localizer, asset, sensors.Sensors)...),
 		DataTableFooter("6", "sensors"),
 	)
 }
@@ -101,7 +109,7 @@ func listMapSwitch(name, icon string) templ.Component {
 	})
 }
 
-templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
+templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
 	<div class="w-full" id="sensor-view">
 		<div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
 			<h1 class="dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensorer</h1>
@@ -119,8 +127,8 @@ templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
 						@listMapSwitch("Karta", iconSVG("map"))
 					</div>
 				</div>
-				<div id="sensors-table" class="w-full" hx-get="/components/tables/sensors" hx-trigger="load">
-					//@SensorTable(localizer, asset)
+				<div id="sensors-table" class="w-full">
+					@SensorTable(localizer, asset, sensors)
 				</div>
 			</div>
 		</div>
@@ -128,28 +136,30 @@ templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
 }
 
 //HELPERS
-func tableRowsFromSensors(_ locale.Localizer, _ assets.AssetLoaderFunc, sensors []SensorViewModel) []templ.Component {
+func tableRowsFromSensors(localizer locale.Localizer, _ assets.AssetLoaderFunc, sensors []SensorViewModel) []templ.Component {
 	rows := []templ.Component{}
 
-	labelText := map[bool]string{false: "Inaktiv", true: "Aktiv"}
+	labelText := map[bool]string{
+		false: localizer.Get("Inaktiv"),
+		true:  localizer.Get("Aktiv"),
+	}
 
 	for _, sensor := range sensors {
-		isActive := sensor.Bool("active")
+		isActive := sensor.Active
 
-		cells := []templ.Component{TextFirstCell(sensor.String("name"))}
+		cells := []templ.Component{TextFirstCell(sensor.Name)}
 		cells = append(cells, LabelCell(labelText[isActive], isActive))
-		cells = append(cells, TextCell(sensor.String("deveui")))
-		//cells = append(cells, TextCell(sensor.String("network")))
-		cells = append(cells, TextCell(sensor.String("battery")))
-		cells = append(cells, TextCell(sensor.Date("lastseen", "2006-01-02, 15:04")))
+		cells = append(cells, TextCell(sensor.DevEUI))
+		cells = append(cells, TextCell(fmt.Sprintf("%d", sensor.BatteryLevel)))
+		cells = append(cells, TextCell(sensor.LastSeen.Format(time.RFC3339)))
 
-		if sensor.Bool("has-alerts") {
+		if sensor.HasAlerts {
 			cells = append(cells, Cell(SVG("alert-triangle", Size(24), AlertStyle())))
 		} else {
 			cells = append(cells, TextCell(""))
 		}
 
-		row := LinkRow(cells, "/components/sensors/details?id="+sensor.String("id"), "sensor")
+		row := LinkRow(cells, "/components/sensors/details?id="+sensor.DeviceID, "/sensors/"+sensor.DeviceID, "sensor")
 		rows = append(rows, row)
 	}
 

@@ -6,17 +6,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/sensors"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/pages"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	"github.com/diwise/service-chassis/pkg/infrastructure/net/http/authn"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
-	"github.com/google/uuid"
 )
 
 type Api interface {
@@ -24,9 +22,11 @@ type Api interface {
 }
 
 type impl struct {
-	webapp        application.WebApp
+	webapp        *application.App
 	router        *http.ServeMux
 	tokenExchange authn.PhantomTokenExchange
+
+	version string
 }
 
 type writerMiddleware struct {
@@ -86,11 +86,8 @@ func RequireHX(next http.Handler) http.HandlerFunc {
 	}
 }
 
-func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange, app application.WebApp, version, assetPath string) (Api, error) {
-
-	if version == "develop" {
-		version = version + "-" + uuid.NewString()
-	}
+func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange, app *application.App, assetPath string) (Api, error) {
+	version := helpers.GetVersion(ctx)
 
 	mux.HandleFunc("GET /version/{v}", func(w http.ResponseWriter, r *http.Request) {
 		if helpers.IsHxRequest(r) {
@@ -112,75 +109,16 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
 
-	r.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+	r.HandleFunc("GET /", pages.NewHomePage(ctx, l10n, assetLoader.Load))
+	r.HandleFunc("GET /home", pages.NewHomePage(ctx, l10n, assetLoader.Load))
+	r.HandleFunc("GET /objects", pages.NewThingsPage(ctx, l10n, assetLoader.Load))
 
-		acceptLanguage := r.Header.Get("Accept-Language")
+	r.HandleFunc("GET /sensors", pages.NewSensorListPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /sensors/{id}", pages.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
 
-		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "no-cache")
-		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
-		w.WriteHeader(http.StatusOK)
-
-		ctx := context.WithValue(r.Context(), components.CurrentComponent, "home")
-
-		localizer := l10n.For(acceptLanguage)
-
-		component := components.StartPage(
-			version, localizer,
-			assetLoader.Load, components.Home(localizer, assetLoader.Load),
-		)
-		component.Render(ctx, w)
-	})
-
-	r.HandleFunc("GET /{component}", func() http.HandlerFunc {
-
-		comps := map[string]func(locale.Localizer, assets.AssetLoaderFunc) templ.Component{
-			"home":    components.Home,
-			"sensors": components.Sensors,
-			"objects": components.Objects,
-		}
-
-		return func(w http.ResponseWriter, r *http.Request) {
-
-			componentName := r.PathValue("component")
-			template, ok := comps[componentName]
-			if !ok {
-				http.Error(w, "not found", http.StatusNotFound)
-				return
-			}
-
-			w.Header().Add("Content-Type", "text/html")
-			w.Header().Add("Cache-Control", "no-cache")
-			w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
-			w.WriteHeader(http.StatusOK)
-
-			ctx := context.WithValue(r.Context(), components.CurrentComponent, componentName)
-
-			localizer := l10n.For(r.Header.Get("Accept-Language"))
-
-			component := components.StartPage(
-				version, localizer,
-				assetLoader.Load, template(localizer, assetLoader.Load),
-			)
-			component.Render(ctx, w)
-		}
-	}())
-
-	r.HandleFunc("GET /components/sensors/details", RequireHX(
-		sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app),
-	))
-
-	r.HandleFunc("GET /components/sensors/edit", RequireHX(
-		sensors.NewSensorEditorComponentHandler(ctx, l10n, assetLoader.Load, app),
-	))
-
-	r.HandleFunc("POST /components/sensors/edit",
-		sensors.NewSensorEditorComponentHandler(ctx, l10n, assetLoader.Load, app),
-	)
-
-	r.HandleFunc("GET /components/tables/sensors", RequireHX(
-		sensors.NewTableSensorsComponentHandler(ctx, l10n, assetLoader.Load, app),
-	))
+	r.HandleFunc("GET /components/sensors/details", RequireHX(sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("POST /components/sensors/details", sensors.NewSaveSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /components/tables/sensors", RequireHX(sensors.NewTableSensorsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 
 	// Handle requests for leaflet images /assets/<leafletcss-sha>/images/<image>.png
 	leafletSHA := assetLoader.Load("/css/leaflet.css").SHA256()
@@ -219,7 +157,6 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	mux.Handle(
 		"GET /", logger(ctx, pte.Middleware()(authz.Middleware()(r))),
 	)
-
 	mux.Handle(
 		"POST /", logger(ctx, pte.Middleware()(authz.Middleware()(r))),
 	)
@@ -228,6 +165,7 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 		webapp:        app,
 		router:        mux,
 		tokenExchange: pte,
+		version:       version,
 	}, nil
 }
 
