@@ -39,12 +39,12 @@ templ TableRow(cells ...templ.Component) {
 	</tr>
 }
 
-templ LinkRow(cells []templ.Component, url, pushUrl, viewName string) {
+templ LinkRow(cells []templ.Component, url, pushUrl templ.SafeURL, viewName string) {
 	<tr
 		class="border-b border-[#1C1C284D] border-opacity-70 hover:bg-[#FAFAFA] dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
-		hx-get={ url }
+		hx-get={ string(url) }
 		hx-target={ fmt.Sprintf("#%s-view", viewName) }
-		hx-push-url={ pushUrl }
+		hx-push-url={ string(pushUrl) }
 		hx-trigger="click"
 	>
 		for _, cell := range cells {
@@ -243,6 +243,15 @@ templ LabelCell(label string, active bool) {
 	@Cell(Label(label, active))
 }
 
+templ option(pageSize string, selected bool) {
+	<option
+		value="{pageSize}"
+		if selected {
+			selected
+		}
+	>{ pageSize }</option>
+}
+
 //PAGING
 type PagingConfigKey string
 
@@ -344,21 +353,4 @@ func pagerIndexes(ctx context.Context) []int64 {
 
 func ctx2str(ctx context.Context, key any) string {
 	return fmt.Sprintf("%d", ctx.Value(key))
-}
-
-func option(pageSize string, selected bool) templ.ComponentFunc {
-
-	option := `<option value="%s" %s}>%s</option>`
-
-	if selected {
-		option = fmt.Sprintf(option, pageSize, `selected="true"`, pageSize)
-	} else {
-		option = fmt.Sprintf(option, pageSize, "", pageSize)
-	}
-
-	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-		_, err := io.WriteString(w, option)
-		return err
-	})
-
 }

@@ -159,10 +159,12 @@ func tableRowsFromSensors(localizer locale.Localizer, _ assets.AssetLoaderFunc, 
 			cells = append(cells, TextCell(""))
 		}
 
-		row := LinkRow(cells, "/components/sensors/details?id="+sensor.DeviceID, "/sensors/"+sensor.DeviceID, "sensor")
+		linkUrl := templ.URL(fmt.Sprintf("/components/sensors/details?id=%s",sensor.DeviceID))
+		pushUrl := templ.URL(fmt.Sprintf("/sensors/%s",sensor.DeviceID))
+
+		row := LinkRow(cells, linkUrl, pushUrl, "sensor")
 		rows = append(rows, row)
 	}
 
 	return rows
-
 }
