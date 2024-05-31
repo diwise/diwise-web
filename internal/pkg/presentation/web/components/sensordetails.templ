@@ -49,7 +49,7 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 				//Uppgifter
 				<div class="flex items-center gap-3 self-stretch">
 					//Rubrik
-					@SVG("info", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("[#1f1f25]"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					<h2 class="font-heading text-xl font-bold">Uppgifter</h2>
 					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 				</div>
@@ -58,10 +58,6 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 					<div class="flex flex-start gap-2">
 						<div class="text-[#444450]">Namn</div>
 						<div class="font-bold">{ sensor.Name }</div>
-					</div>
-					<div class="flex flex-start gap-2">
-						<div class="text-[#444450]">Position</div>
-						<div class="font-bold">{ fmt.Sprintf("%f, %f", sensor.Latitude, sensor.Longitude) }</div>
 					</div>
 					<div class="flex flex-start gap-2">
 						<div class="text-[#444450]">Sensortyp</div>
@@ -122,25 +118,27 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 			</div>
 		</div>
 		<div class="border-l border-[#1C1C284D] h-auto"></div> //Vertikal divider mellan uppgifter och position
-		<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
+		<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+			<div class="flex flex-col items-start self-stretch">
 			//Karta
-			<div class="flex items-center gap-3 self-stretch">
-				//Position rubrik
-				@SVG("map-pin", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-				<h2 class="font-heading text-xl font-bold">Position</h2>
-				<div class="h-px border-t border-[#1C1C284D] w-full"></div>
-			</div>
-			<div class="flex flex-col items-start gap-6 self-stretch py-6 px-9">
-				//
-				<div class="flex flex-start gap-2">
-					<div class="text-[#444450]">Latitud</div>
-					<div class="font-bold">{ fmt.Sprintf("%f", sensor.Latitude) }</div>
+				<div class="flex items-center gap-3 self-stretch">
+					//Position rubrik
+					@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("[#1f1f25]"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					<h2 class="font-heading text-xl font-bold">Position</h2>
+					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 				</div>
-				<div class="flex flex-start gap-2">
-					<div class="text-[#444450]">Longitud</div>
-					<div class="font-bold">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
+				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+					//
+					<div class="flex flex-start gap-2">
+						<div class="text-[#444450]">Latitud</div>
+						<div class="font-bold">{ fmt.Sprintf("%f", sensor.Latitude) }</div>
+					</div>
+					<div class="flex flex-start gap-2">
+						<div class="text-[#444450]">Longitud</div>
+						<div class="font-bold">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
+					</div>
+					@Map()
 				</div>
-				@Map()
 			</div>
 		</div>
 	</div>
@@ -177,7 +175,7 @@ templ EditSensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc
         });
     </script>
 	<div class="flex items-center justify-between pb-4">
-		<h1 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensordetaljer</h1>
+		<h1 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
 	</div>
 	<form action="/components/sensors/details" method="post">
 		<input type="hidden" name="id" value={ sensor.DeviceID }/>
@@ -188,11 +186,11 @@ templ EditSensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc
 					//Status
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik
-						@SVG("circle-check", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@SVG("circle-check", Size(24), NoFill(), Box(24, 24), StrokeColor("[#1f1f25]"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold">Status</h2>
 						<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 					</div>
-					<div class="flex flex-col items-start self-stretch gap-2 py-6 px-9">
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 						//Status
 						<label for="custom-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 							<span class="font-bold text-gray-900 dark:text-gray-300">Aktivera sensor</span>
@@ -207,9 +205,11 @@ templ EditSensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc
 						</label>
 						<div class="w-1/2">Info om vad som händer om man inaktiverar en sensor.</div>
 					</div>
+				</div>
+				<div class="flex flex-col items-start self-stretch">
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik uppgifter
-						@SVG("info", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("[#1f1f25]"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold">Uppgifter</h2>
 						<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 					</div>
@@ -268,36 +268,39 @@ templ EditSensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc
 				</div>
 			</div>
 			<div class="border-l border-[#1C1C284D] h-auto"></div> //Vertikal divider mellan uppgifter och position
-			<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
+			<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+				<div class="flex flex-col items-start self-stretch">
 				//Karta
-				<div class="flex items-center gap-3 self-stretch">
-					//Position rubrik
-					@SVG("map-pin", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					<h2 class="font-heading text-xl font-bold">Position</h2>
-					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
-				</div>
-				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
-					//Position
-					<div class="flex flex-start gap-10 self-stretch">
-						<div class="flex flex-col gap-2 flex-[1_0_0]">
-							<div class="text-[#1F1F25] font-bold">Latitud</div>
-							<input type="number" value={ fmt.Sprintf("%f", sensor.Latitude) } class="w-auto h-[40px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
-						</div>
-						<div class="flex flex-col gap-2 flex-[1_0_0]">
-							<div class="text-[#1F1F25] font-bold">Longitud</div>
-							<input type="number" value={ fmt.Sprintf("%f", sensor.Longitude) } class="w-auto h-[40px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
-						</div>
+					<div class="flex items-center gap-3 self-stretch">
+						//Position rubrik
+						@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("[#1f1f25]"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						<h2 class="font-heading text-xl font-bold">Position</h2>
+						<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 					</div>
-					@Map()
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+						//Position
+						<div class="flex flex-start gap-10 self-stretch">
+							<div class="flex flex-col gap-2 flex-[1_0_0]">
+								<div class="text-[#1F1F25] font-bold">Latitud</div>
+								<input type="number" value={ fmt.Sprintf("%f", sensor.Latitude) } class="w-auto h-[40px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
+							</div>
+							<div class="flex flex-col gap-2 flex-[1_0_0]">
+								<div class="text-[#1F1F25] font-bold">Longitud</div>
+								<input type="number" value={ fmt.Sprintf("%f", sensor.Longitude) } class="w-auto h-[40px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
+							</div>
+						</div>
+						@Map()
+					</div>
 				</div>
 			</div>
 		</div>
 		<div class="h-px border-t border-[#1C1C284D] w-full"></div>
-		<div class="flex justify-between items-center py-6 px-9">
+		<div class="flex justify-between items-center py-6">
 			<button class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-err-prim-surf rounded-xl flex items-center cursor-pointer">
-				/*<div class="w-[24px] h-[24px]">
-					@SVG("trashcan", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-color":"[#971A1A]", "stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"}))
-				</div>*/
+				<div class="w-[24px] h-[24px]">
+					@SVG("trashcan", Size(24), NoFill(), Box(24, 24), StrokeColor("[#971A1A]"), Stroke(templ.Attributes{"stroke":"[#971A1A]", "stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"}))
+				</div>
+				//<svg class="fill-none dark:fill-none h-6 w-6 stroke-[#971A1A] dark:stroke-zinc-100" viewBox="0 0 24 24" stroke="[#971A1A]" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
 				<div class="text-[#971A1A] text-base font-sans font-bold leading-normal">
 					Radera
 				</div>
