@@ -19,51 +19,123 @@ type SensorDetailsViewModel struct {
 
 templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
 	<div class="flex items-center justify-between pb-4">
-		<h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensordetaljer</h2>
-		<button
-			class="w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28] bg-opacity-20 rounded-xl flex items-center gap-2 cursor-pointer text-[#1F1F25] text-base font-sans font-bold leading-normal"
-			hx-get={ fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID) }
-			hx-target="#sensor-view"
-			hx-trigger="click"
-		>
-			<div class="w-[24px] h-[24px]">
-				@SVG("pencil", Box(24, 24), Size(24), NoFill())
-			</div>
-			Redigera
-		</button>
+		<div class="flex items-center gap-6 align-middle">
+			<h1 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">{ sensor.String("name") }</h1>
+ 
+			if sensor.Bool("active") {
+				@Label("Aktiv", sensor.Bool("active"))
+			} else {
+				@Label("Inaktiv", sensor.Bool("active"))
+			}
+
+		</div>
+		<div class="">
+			<button
+				class="w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28F2] bg-opacity-95 rounded-xl flex items-center gap-2 cursor-pointer text-white text-base font-bold font-sans leading-normal"
+				hx-get={ "/components/sensors/edit?id=" + sensor.String("id") }
+				hx-target="#sensor-view"
+				hx-trigger="click"
+			>
+				<div class="w-[20px] h-[20px]">
+					@SVG("pen", Box(24, 24), NoFill(), StrokeColor("white"))
+				</div>
+				Redigera
+			</button>
+		</div>
 	</div>
-	<div class="w-full rounded-2xl shadow flex">
-		<div class="flex-1 p-4">
-			<div class="space-y-2 pt-4">
-				<div class="flex justify-between items-center p-2">
-					<div class="text-left text-[#444450]">Namn</div>
-					<div class="text-right font-bold">{ sensor.Name }</div>
+	<div class="w-full flex py-6 gap-10"> //Yttersta diven
+		<div class="flex flex-col items-start gap-20 flex-[1_0_0]"> //Uppgifter och larm
+			<div class="flex flex-col items-start self-stretch"> //Uppgifter
+				<div class="flex items-center gap-3 self-stretch"> //Rubrik
+					@SVG("info", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"})) 
+					<h2 class="font-heading text-xl font-bold">Uppgifter</h2>
+					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 				</div>
-				<div class="flex flex-col p-2">
-					<div class="flex justify-between items-center mb-2">
-						<div class="text-left text-[#444450]">Position</div>
-						<div class="text-right font-bold"></div>
+				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9"> //Innehåll Uppgifter
+					<div class="flex flex-start gap-2">
+						<div class="text-[#444450]">Namn</div>
+						<div class="font-bold">{ sensor.String("name") }</div>
 					</div>
-					<div class="flex justify-end items-center">
-						<div class="text-right font-bold">{ fmt.Sprintf("%f, %f", sensor.Latitude, sensor.Longitude) }</div>
+					<div class="flex flex-start gap-2">
+						<div class="text-[#444450]">Position</div>
+						<div class="font-bold">{ fmt.Sprintf("%f, %f", sensor.Float("latitude"), sensor.Float("longitude")) }</div>
+					</div>
+					<div class="flex flex-start gap-2">
+						<div class="text-[#444450]">Sensortyp</div>
+						<div class="font-bold">{ sensor.String("deviceprofile") }</div>
+					</div>
+					<div class="flex flex-start gap-2">
+						<div class="text-[#444450]">Organisation</div>
+						<div class="font-bold">{ sensor.String("tenant") }</div>
+					</div>
+					<div class="flex flex-col gap-2">
+						<div class="text-[#444450]">Beskrivning</div>
+						<div class="font-bold">{ sensor.String("description") }</div>
 					</div>
 				</div>
-				<div class="flex justify-between items-center p-2">
-					<div class="text-left text-[#444450]">Sensortyp</div>
-					<div class="text-right font-bold">{ sensor.DeviceProfileName }</div>
+			</div>
+
+			<div class="flex flex-col items-start self-stretch"> //Larm
+				<div class="flex items-center gap-3 self-stretch"> //Rubrik larm
+					@SVG("alert-triangle", Size(24))
+					<h2 class="font-heading text-xl font-bold">Larm</h2>
+					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 				</div>
-				<div class="flex justify-between items-center p-2">
-					<div class="text-left text-[#444450]">Organisation</div>
-					<div class="text-right font-bold">{ sensor.Tenant }</div>
-				</div>
-				<div class="p-2">
-					<div class="text-left text-[#444450]">Beskrivning</div>
-					<div class="font-bold">{ sensor.Description }</div>
+				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9"> //Tabell larm
+					<table class="table-auto w-full border-collapse border outline-[#1C1C284D] outline outline-1 overflow-hidden rounded-2xl">
+						<thead>
+							<tr class="bg-[#F0F0F0] font-bold">
+								<td class="px-6 py-3">Starttid</td>
+								<td class="px-6 py-3">Typ</td>
+								<td class="px-6 py-3">Status</td>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td class="px-6 py-3">2024-05-30, 14:22</td>
+								<td class="px-6 py-3">07.00</td>
+								<td class="px-6 py-3">07.00</td>
+							</tr>
+							<tr>
+								<td class="px-6 py-3">2024-05-29, 12:20</td>
+								<td class="px-6 py-3">07.00</td>
+								<td class="px-6 py-3">07.00</td>
+							</tr>
+							<tr>
+								<td class="px-6 py-3">2024-05-28, 10:32</td>
+								<td class="px-6 py-3">07.00</td>
+								<td class="px-6 py-3">07.00</td>
+							</tr>
+							<tr>
+								<td class="px-6 py-3">2024-05-27, 14:22</td>
+								<td class="px-6 py-3">07.00</td>
+								<td class="px-6 py-3">07.00</td>
+							</tr>
+						</tbody>
+					</table>
 				</div>
 			</div>
 		</div>
-		<div class="flex-1 text-center p-4">
-			@Map()
+
+		<div class="border-l border-[#1C1C284D] h-auto"></div> //Vertikal divider mellan uppgifter och position
+		
+		<div class="flex flex-col items-start gap-6 flex-[1_0_0]"> //Karta
+			<div class="flex items-center gap-3 self-stretch"> //Position rubrik
+				@SVG("map-pin", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"}))
+				<h2 class="font-heading text-xl font-bold">Position</h2>
+				<div class="h-px border-t border-[#1C1C284D] w-full"></div>
+			</div>
+			<div class="flex flex-col items-start gap-6 self-stretch py-6 px-9"> //
+				<div class="flex flex-start gap-2">
+					<div class="text-[#444450]">Latitud</div>
+					<div class="font-bold">{ fmt.Sprintf("%f", sensor.Float("latitude")) }</div>
+				</div>
+				<div class="flex flex-start gap-2">
+					<div class="text-[#444450]">Longitud</div>
+					<div class="font-bold">{ fmt.Sprintf("%f", sensor.Float("longitude")) }</div>
+				</div>
+				@Map()
+			</div>
 		</div>
 	</div>
 }
@@ -99,16 +171,22 @@ templ EditSensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc
         });
     </script>
 	<div class="flex items-center justify-between pb-4">
-		<h2 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensordetaljer</h2>
+		<h1 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensordetaljer</h1>
 	</div>
-	<div class="w-full rounded-2xl shadow flex">
-		<div class="flex-1 p-4">
-			<div class="space-y-2 pt-4">
-				<form action="/components/sensors/details" method="post">
-					<input type="hidden" name="id" value={ sensor.DeviceID }/>
-					<div class="flex items-center justify-between p-2">
+	
+	<form action="/components/sensors/edit" method="post">
+		<input type="hidden" name="id" value={ sensor.String("id") }/>
+		<div class="w-full flex py-6 gap-10">
+			<div class="flex flex-col items-start gap-20 flex-[1_0_0]"> //Status och uppgifter
+				<div class="flex flex-col items-start self-stretch"> //Status
+					<div class="flex items-center gap-3 self-stretch"> //Rubrik
+						@SVG("circle-check", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"})) 
+						<h2 class="font-heading text-xl font-bold">Status</h2>
+						<div class="h-px border-t border-[#1C1C284D] w-full"></div>
+					</div>
+					<div class="flex flex-col items-start self-stretch gap-2 py-6 px-9"> //Status
 						<label for="custom-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-							<span class="text-gray-900 dark:text-gray-300">Aktiv</span>
+							<span class="font-bold text-gray-900 dark:text-gray-300">Aktivera sensor</span>
 							<div class="flex items-center">
 								<input type="checkbox" name="active" id="custom-checkbox" class="sr-only peer" checked?={ sensor.Active }/>
 								<div class="w-[24px] h-[24px] bg-white rounded border border-gray-400 peer-checked:bg-emerald-800 peer-checked:border-emerald-800 flex justify-center items-center">
@@ -118,84 +196,116 @@ templ EditSensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc
 								</div>
 							</div>
 						</label>
+						<div class="w-1/2">Info om vad som händer om man inaktiverar en sensor.</div>
 					</div>
-					<div class="flex justify-between items-center p-2">
-						<div class="text-left text-[#444450]">Namn</div>
-						<input type="text" name="name" value={ sensor.Name } class="w-auto h-[40px] border border-[#0A0C0F] text-right font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
+					<div class="flex items-center gap-3 self-stretch"> //Rubrik uppgifter
+						@SVG("info", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"})) 
+						<h2 class="font-heading text-xl font-bold">Uppgifter</h2>
+						<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 					</div>
-					<div class="flex flex-col p-2">
-						<div class="flex justify-between items-center mb-2">
-							<div class="text-left text-[#444450]">Position</div>
-							<input type="number" name="longitude" value={ fmt.Sprintf("%f", sensor.Longitude) } class="w-auto h-[40px] border border-[#0A0C0F] text-right font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
-						</div>
-						<div class="flex justify-end items-center">
-							<input type="number" name="latitude" value={ fmt.Sprintf("%f", sensor.Latitude) } class="w-auto h-[40px] border border-[#0A0C0F] text-right font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
-						</div>
-					</div>
-					<div class="flex justify-between items-center p-2">
-						<div class="text-left text-[#444450]">Sensortyp</div>
-						<div class="border border-[#0A0C0F] rounded-xl">
-							<label for="sensorType" class="hidden block text-sm font-medium text-gray-700">Välj ett alternativ</label>
-							<select id="sensorType" name="sensorType" class="block w-auto pl-3 pr-3 py-2 text-base focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
-								<option>Välj ett alternativ</option>
-								<option value="option1">Alternativ 1 från backend</option>
-								<option value="option2">Alternativ 2</option>
-								<option value="option3">Alternativ 3</option>
-							</select>
-						</div>
-					</div>
-					<div class="flex justify-between items-center p-2">
-						<div class="text-left text-[#444450]">Mättyp</div>
-						<div class="border border-[#0A0C0F] rounded-xl">
-							<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">Välj ett alternativ</label>
-							<select id="measurementType" name="measurementType" class="block w-auto pl-3 pr-3 py-2 text-base focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white" disabled>
-								<option>Välj ett alternativ</option>
-							</select>
-						</div>
-					</div>
-					<div class="flex justify-between items-center p-2">
-						<div class="text-left text-[#444450]">Organisation</div>
-						<div class="border border-[#0A0C0F] rounded-xl">
-							<label for="organisation" class="hidden block text-sm font-medium text-gray-700">Välj ett alternativ</label>
-							<select id="organisation" name="organisation" class="block w-auto pl-3 pr-3 py-2 text-base focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
-								<option>Välj ett alternativ</option>
-								<option value="alt1">Alternativ 1 från backend</option>
-								<option value="alt2">Alternativ 2</option>
-								<option value="alt3">Alternativ 3</option>
-							</select>
-						</div>
-					</div>
-					<div class="p-2">
-						<div class="text-left text-[#444450]">Beskrivning</div>
-						<textarea type="text" name="description" class="w-full min-h-[150px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="beskrivning">
-							{ sensor.Description }
-						</textarea>
-					</div>
-					<div class="flex items-center gap-4">
-						<button name="abort" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-[#B92424] bg-opacity-20 rounded-xl flex items-center cursor-pointer">
-							<div class="w-[24px] h-[24px]">
-								<svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
-									@templ.Raw(iconSVG("close"))
-								</svg>
+					
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9"> //Uppgifter
+						<div class="flex flex-start gap-10 self-stretch">
+							<div class="flex flex-col gap-2 flex-[1_0_0]"> 
+								<div class="text-[#1F1F25] font-bold">Namn</div>
+								<input type="text" value={ sensor.String("name") } class="w-auto h-[40px] border border-[#0A0C0F] focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
 							</div>
-							<div class="text-[#1F1F25] text-base font-sans font-bold leading-normal">
-								Avbryt
+							<div class="flex flex-col gap-2 flex-[1_0_0]">
+								<div class="text-[#1F1F25] font-bold">Organisation</div>
+								<div class="border border-[#0A0C0F] rounded-xl">
+									<label for="organisation" class="hidden block text-sm font-medium text-gray-700">Välj ett alternativ</label>
+									<select id="organisation" name="organisation" class="block w-auto pl-3 pr-3 py-2 text-base focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
+										<option>Välj ett alternativ</option>
+										<option value="alt1">Alternativ 1 från backend</option>
+										<option value="alt2">Alternativ 2</option>
+										<option value="alt3">Alternativ 3</option>
+									</select>
+								</div>
 							</div>
-						</button>
-						<button type="submit" name="save" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-[#00733B] bg-opacity-20 rounded-xl flex items-center cursor-pointer">
-							<div class="w-[24px] h-[24px]">
-								<svg class="fill-none w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
-									@templ.Raw(iconSVG("check"))
-								</svg>
+						</div>
+						<div class="flex flex-start gap-10 self-stretch">
+							<div class="flex flex-col gap-2 flex-[1_0_0]">
+								<div class="text-[#1F1F25] font-bold">Sensortyp</div>
+								<div class="border border-[#0A0C0F] rounded-xl">
+									<label for="sensorType" class="hidden block text-sm font-medium text-gray-700">Välj ett alternativ</label>
+									<select id="sensorType" name="sensorType" class="block w-auto pl-3 pr-3 py-2 text-base focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
+										<option>Välj ett alternativ</option>
+										<option value="option1">Alternativ 1 från backend</option>
+										<option value="option2">Alternativ 2</option>
+										<option value="option3">Alternativ 3</option>
+									</select>
+								</div>
 							</div>
-							<div class="text-[#1F1F25] text-base font-sans font-bold leading-normal">
-								Spara
+							<div class="flex flex-col gap-2 flex-[1_0_0]">
+								<div class="text-[#1F1F25] font-bold">Mättyp</div>
+								<div class="border border-[#0A0C0F] rounded-xl">
+									<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">Välj ett alternativ</label>
+									<select id="measurementType" name="measurementType" class="block w-auto pl-3 pr-3 py-2 text-base focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white" disabled>
+										<option>Välj ett alternativ</option>
+									</select>
+								</div>
 							</div>
-						</button>
+						</div>
+						<div class="flex flex-start gap-10 self-stretch">
+							<div class="flex flex-col gap-2 flex-[1_0_0]">
+								<div class="text-[#1F1F25] font-bold">Beskrivning</div>
+								<textarea type="text" class="w-full min-h-[150px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="beskrivning">
+									{ sensor.String("description") }
+								</textarea>
+							</div>
+						</div>
+						
+						
 					</div>
-				</form>
+				</div>
+			</div>
+			<div class="border-l border-[#1C1C284D] h-auto"></div> //Vertikal divider mellan uppgifter och position
+			
+			<div class="flex flex-col items-start gap-6 flex-[1_0_0]"> //Karta
+				<div class="flex items-center gap-3 self-stretch"> //Position rubrik
+					@SVG("map-pin", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"}))
+					<h2 class="font-heading text-xl font-bold">Position</h2>
+					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
+				</div>
+				
+				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9"> //Position
+					<div class="flex flex-start gap-10 self-stretch">
+						<div class="flex flex-col gap-2 flex-[1_0_0]"> 
+							<div class="text-[#1F1F25] font-bold">Latitud</div>
+							<input type="number" value={ fmt.Sprintf("%f", sensor.Float("latitude")) } class="w-auto h-[40px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
+						</div>
+						<div class="flex flex-col gap-2 flex-[1_0_0]">
+							<div class="text-[#1F1F25] font-bold">Longitud</div>
+							<input type="number" value={ fmt.Sprintf("%f", sensor.Float("longitude")) } class="w-auto h-[40px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
+						</div>
+					</div>
+					@Map()
+				</div>
 			</div>
 		</div>
-		<div class="flex-1 text-center p-4"></div>
-	</div>
+		<div class="h-px border-t border-[#1C1C284D] w-full"></div>
+		<div class="flex justify-between items-center py-6 px-9">
+			<button class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-err-prim-surf rounded-xl flex items-center cursor-pointer">
+				/*<div class="w-[24px] h-[24px]">
+					@SVG("trashcan", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-color":"[#971A1A]", "stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"}))
+				</div>*/
+				<div class="text-[#971A1A] text-base font-sans font-bold leading-normal">
+					Radera
+				</div>
+			</button>
+			<div class="flex items-end gap-4">
+				<button class="text-right w-auto h-10 pl-[18px] pr-4 py-2 border-[#1C1C284D] border-2 rounded-xl flex items-center cursor-pointer">
+					<div class="text-[#444450] text-base font-sans font-bold leading-normal">
+						Avbryt
+					</div>
+				</button>
+				<button type="submit" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28F2] bg-opacity-95 rounded-xl flex items-center cursor-pointer">
+					<div class="text-white text-base font-sans font-bold leading-normal">
+						Spara
+					</div>
+				</button>
+			</div>
+		</div>
+	</form>
+	
 }
