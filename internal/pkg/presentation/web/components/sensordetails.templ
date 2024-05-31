@@ -20,19 +20,17 @@ type SensorDetailsViewModel struct {
 templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
 	<div class="flex items-center justify-between pb-4">
 		<div class="flex items-center gap-6 align-middle">
-			<h1 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">{ sensor.String("name") }</h1>
- 
-			if sensor.Bool("active") {
-				@Label("Aktiv", sensor.Bool("active"))
+			<h1 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
+			if sensor.Active {
+				@Label("Aktiv", sensor.Active)
 			} else {
-				@Label("Inaktiv", sensor.Bool("active"))
+				@Label("Inaktiv", sensor.Active)
 			}
-
 		</div>
 		<div class="">
 			<button
 				class="w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28F2] bg-opacity-95 rounded-xl flex items-center gap-2 cursor-pointer text-white text-base font-bold font-sans leading-normal"
-				hx-get={ "/components/sensors/edit?id=" + sensor.String("id") }
+				hx-get={ fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID) }
 				hx-target="#sensor-view"
 				hx-trigger="click"
 			>
@@ -43,45 +41,52 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 			</button>
 		</div>
 	</div>
-	<div class="w-full flex py-6 gap-10"> //Yttersta diven
-		<div class="flex flex-col items-start gap-20 flex-[1_0_0]"> //Uppgifter och larm
-			<div class="flex flex-col items-start self-stretch"> //Uppgifter
-				<div class="flex items-center gap-3 self-stretch"> //Rubrik
-					@SVG("info", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"})) 
+	<div class="w-full flex py-6 gap-10">
+		//Yttersta diven
+		<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+			//Uppgifter och larm
+			<div class="flex flex-col items-start self-stretch">
+				//Uppgifter
+				<div class="flex items-center gap-3 self-stretch">
+					//Rubrik
+					@SVG("info", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					<h2 class="font-heading text-xl font-bold">Uppgifter</h2>
 					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 				</div>
-				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9"> //Innehåll Uppgifter
+				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+					//Innehåll Uppgifter
 					<div class="flex flex-start gap-2">
 						<div class="text-[#444450]">Namn</div>
-						<div class="font-bold">{ sensor.String("name") }</div>
+						<div class="font-bold">{ sensor.Name }</div>
 					</div>
 					<div class="flex flex-start gap-2">
 						<div class="text-[#444450]">Position</div>
-						<div class="font-bold">{ fmt.Sprintf("%f, %f", sensor.Float("latitude"), sensor.Float("longitude")) }</div>
+						<div class="font-bold">{ fmt.Sprintf("%f, %f", sensor.Latitude, sensor.Longitude) }</div>
 					</div>
 					<div class="flex flex-start gap-2">
 						<div class="text-[#444450]">Sensortyp</div>
-						<div class="font-bold">{ sensor.String("deviceprofile") }</div>
+						<div class="font-bold">{ sensor.DeviceProfileName }</div>
 					</div>
 					<div class="flex flex-start gap-2">
 						<div class="text-[#444450]">Organisation</div>
-						<div class="font-bold">{ sensor.String("tenant") }</div>
+						<div class="font-bold">{ sensor.Tenant }</div>
 					</div>
 					<div class="flex flex-col gap-2">
 						<div class="text-[#444450]">Beskrivning</div>
-						<div class="font-bold">{ sensor.String("description") }</div>
+						<div class="font-bold">{ sensor.Description }</div>
 					</div>
 				</div>
 			</div>
-
-			<div class="flex flex-col items-start self-stretch"> //Larm
-				<div class="flex items-center gap-3 self-stretch"> //Rubrik larm
+			<div class="flex flex-col items-start self-stretch">
+				//Larm
+				<div class="flex items-center gap-3 self-stretch">
+					//Rubrik larm
 					@SVG("alert-triangle", Size(24))
 					<h2 class="font-heading text-xl font-bold">Larm</h2>
 					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 				</div>
-				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9"> //Tabell larm
+				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+					//Tabell larm
 					<table class="table-auto w-full border-collapse border outline-[#1C1C284D] outline outline-1 overflow-hidden rounded-2xl">
 						<thead>
 							<tr class="bg-[#F0F0F0] font-bold">
@@ -116,23 +121,24 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 				</div>
 			</div>
 		</div>
-
 		<div class="border-l border-[#1C1C284D] h-auto"></div> //Vertikal divider mellan uppgifter och position
-		
-		<div class="flex flex-col items-start gap-6 flex-[1_0_0]"> //Karta
-			<div class="flex items-center gap-3 self-stretch"> //Position rubrik
-				@SVG("map-pin", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"}))
+		<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
+			//Karta
+			<div class="flex items-center gap-3 self-stretch">
+				//Position rubrik
+				@SVG("map-pin", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 				<h2 class="font-heading text-xl font-bold">Position</h2>
 				<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 			</div>
-			<div class="flex flex-col items-start gap-6 self-stretch py-6 px-9"> //
+			<div class="flex flex-col items-start gap-6 self-stretch py-6 px-9">
+				//
 				<div class="flex flex-start gap-2">
 					<div class="text-[#444450]">Latitud</div>
-					<div class="font-bold">{ fmt.Sprintf("%f", sensor.Float("latitude")) }</div>
+					<div class="font-bold">{ fmt.Sprintf("%f", sensor.Latitude) }</div>
 				</div>
 				<div class="flex flex-start gap-2">
 					<div class="text-[#444450]">Longitud</div>
-					<div class="font-bold">{ fmt.Sprintf("%f", sensor.Float("longitude")) }</div>
+					<div class="font-bold">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
 				</div>
 				@Map()
 			</div>
@@ -173,18 +179,21 @@ templ EditSensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc
 	<div class="flex items-center justify-between pb-4">
 		<h1 class="text-black dark:text-neutral-300 text-2xl font-bold font-heading leading-loose">Sensordetaljer</h1>
 	</div>
-	
-	<form action="/components/sensors/edit" method="post">
-		<input type="hidden" name="id" value={ sensor.String("id") }/>
+	<form action="/components/sensors/details" method="post">
+		<input type="hidden" name="id" value={ sensor.DeviceID }/>
 		<div class="w-full flex py-6 gap-10">
-			<div class="flex flex-col items-start gap-20 flex-[1_0_0]"> //Status och uppgifter
-				<div class="flex flex-col items-start self-stretch"> //Status
-					<div class="flex items-center gap-3 self-stretch"> //Rubrik
-						@SVG("circle-check", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"})) 
+			<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+				//Status och uppgifter
+				<div class="flex flex-col items-start self-stretch">
+					//Status
+					<div class="flex items-center gap-3 self-stretch">
+						//Rubrik
+						@SVG("circle-check", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold">Status</h2>
 						<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 					</div>
-					<div class="flex flex-col items-start self-stretch gap-2 py-6 px-9"> //Status
+					<div class="flex flex-col items-start self-stretch gap-2 py-6 px-9">
+						//Status
 						<label for="custom-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 							<span class="font-bold text-gray-900 dark:text-gray-300">Aktivera sensor</span>
 							<div class="flex items-center">
@@ -198,17 +207,18 @@ templ EditSensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc
 						</label>
 						<div class="w-1/2">Info om vad som händer om man inaktiverar en sensor.</div>
 					</div>
-					<div class="flex items-center gap-3 self-stretch"> //Rubrik uppgifter
-						@SVG("info", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"})) 
+					<div class="flex items-center gap-3 self-stretch">
+						//Rubrik uppgifter
+						@SVG("info", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold">Uppgifter</h2>
 						<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 					</div>
-					
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9"> //Uppgifter
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+						//Uppgifter
 						<div class="flex flex-start gap-10 self-stretch">
-							<div class="flex flex-col gap-2 flex-[1_0_0]"> 
+							<div class="flex flex-col gap-2 flex-[1_0_0]">
 								<div class="text-[#1F1F25] font-bold">Namn</div>
-								<input type="text" value={ sensor.String("name") } class="w-auto h-[40px] border border-[#0A0C0F] focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
+								<input type="text" value={ sensor.Name } class="w-auto h-[40px] border border-[#0A0C0F] focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
 							</div>
 							<div class="flex flex-col gap-2 flex-[1_0_0]">
 								<div class="text-[#1F1F25] font-bold">Organisation</div>
@@ -250,33 +260,32 @@ templ EditSensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc
 							<div class="flex flex-col gap-2 flex-[1_0_0]">
 								<div class="text-[#1F1F25] font-bold">Beskrivning</div>
 								<textarea type="text" class="w-full min-h-[150px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="beskrivning">
-									{ sensor.String("description") }
+									{ sensor.Description }
 								</textarea>
 							</div>
 						</div>
-						
-						
 					</div>
 				</div>
 			</div>
 			<div class="border-l border-[#1C1C284D] h-auto"></div> //Vertikal divider mellan uppgifter och position
-			
-			<div class="flex flex-col items-start gap-6 flex-[1_0_0]"> //Karta
-				<div class="flex items-center gap-3 self-stretch"> //Position rubrik
-					@SVG("map-pin", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width":"2", "stroke-linecap":"round", "stroke-linejoin":"round"}))
+			<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
+				//Karta
+				<div class="flex items-center gap-3 self-stretch">
+					//Position rubrik
+					@SVG("map-pin", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					<h2 class="font-heading text-xl font-bold">Position</h2>
 					<div class="h-px border-t border-[#1C1C284D] w-full"></div>
 				</div>
-				
-				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9"> //Position
+				<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+					//Position
 					<div class="flex flex-start gap-10 self-stretch">
-						<div class="flex flex-col gap-2 flex-[1_0_0]"> 
+						<div class="flex flex-col gap-2 flex-[1_0_0]">
 							<div class="text-[#1F1F25] font-bold">Latitud</div>
-							<input type="number" value={ fmt.Sprintf("%f", sensor.Float("latitude")) } class="w-auto h-[40px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
+							<input type="number" value={ fmt.Sprintf("%f", sensor.Latitude) } class="w-auto h-[40px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
 						</div>
 						<div class="flex flex-col gap-2 flex-[1_0_0]">
 							<div class="text-[#1F1F25] font-bold">Longitud</div>
-							<input type="number" value={ fmt.Sprintf("%f", sensor.Float("longitude")) } class="w-auto h-[40px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
+							<input type="number" value={ fmt.Sprintf("%f", sensor.Longitude) } class="w-auto h-[40px] border border-[#0A0C0F] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
 						</div>
 					</div>
 					@Map()
@@ -307,5 +316,4 @@ templ EditSensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc
 			</div>
 		</div>
 	</form>
-	
 }
