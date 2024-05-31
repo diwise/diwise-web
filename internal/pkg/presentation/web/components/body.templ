@@ -202,8 +202,9 @@ templ MenuSegment(title, slug string, icon templ.Component, asset assets.AssetLo
 		@icon
 		
 		<div
-			class={ "dark:text-neutral-300 text-base font-normal font-sans leading-normal",
+			class={ "dark:text-neutral-300 text-base font-sans leading-normal",
             templ.KV("text-neutral-800", !selected),
+			templ.KV("font-bold", selected),
             templ.KV("text-white", selected) }
 		>
 			{ title }
@@ -262,9 +263,9 @@ script toggleDarkMode() {
 
 templ DarkModeToggle(isOn bool, asset assets.AssetLoaderFunc) {
 	<div class="px-3.5 justify-start items-center gap-3 inline-flex">
-		@SVG("sun-medium", Size(24))
+		@SVG("sun-medium", Size(24), Box(24, 24))
 		@Switch(isOn, toggleDarkMode())
-		@SVG("moon", Size(20))
+		@SVG("moon", Size(20), Box(20, 20))
 	</div>
 }
 
@@ -319,8 +320,8 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 				
 				<div class="self-stretch flex flex-col gap-14">
 					
-					<div class="w-full h-[90px] bg-center bg-cover bg-no-repeat
-						bg-[url('/assets/d19a8ed8f207ecc2aafb61ed575aa6cf0bb1f0f533f752228fe6ce94c3575e5c/diwise-logo.svg')]
+					<div class="w-auto h-[90px] bg-left bg-cover bg-no-repeat
+						bg-[url('/assets/d19a8ed8f207ecc2aafb61ed575aa6cf0bb1f0f533f752228fe6ce94c3575e5c/diwise-logo.svg')] 
 						dark:bg-[url('/assets/f373626f4d07d2544069df8033e25d6d3a13fa150d6e53c5419179917fc434f7/diwise-logo-dark.svg')]">
 					</div>
 					
@@ -344,9 +345,9 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 					</div>
 				</div>
 				<div class="flex flex-col gap-3 p-3">	
-					<div class="flex flex-col gap-3 p-3">
-						@SectionDivider("Konto")
-						@MenuSegment("Inställningar", "/settings", SVG("settings-outline"), asset, isCurrent(ctx, "settings"))
+					<div class="flex flex-col gap-3 p-3 font-bold">
+						//@SectionDivider("Konto")
+						//@MenuSegment("Inställningar", "/settings", SVG("settings-outline"), asset, isCurrent(ctx, "settings"))
 						@MenuSegment("Logga ut", "/logout", SVG("log-out"), asset, false)
 					</div>
 					<div class="flex flex-col gap-3 p-3">
