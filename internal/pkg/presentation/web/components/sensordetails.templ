@@ -30,7 +30,7 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 		<div class="">
 			<button
 				class="w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28F2] bg-opacity-95 rounded-xl flex items-center gap-2 cursor-pointer text-white text-base font-bold font-sans leading-normal"
-				hx-get={ fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID) }
+				hx-get={ string(templ.URL(fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID))) }
 				hx-target="#sensor-view"
 				hx-trigger="click"
 			>
