@@ -12,3 +12,21 @@ other = "Objects"
 
 [functions]
 other = "Functions"
+
+[name]
+other = "Name"
+
+[status]
+other = "Status"
+
+[deveui]
+other = "DevEUI"
+
+[batterylevel]
+other = "Battery level"
+
+[lastseen]
+other = "Last seen"
+
+[alerts]
+other = "Alerts"

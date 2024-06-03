@@ -8,7 +8,25 @@ other = "Hem"
 other = "Sensorer"
 
 [objects]
-other = "Entiteter"
+other = "Saker"
 
 [functions]
 other = "Funktioner"
+
+[name]
+other = "Namn"
+
+[status]
+other = "Status"
+
+[deveui]
+other = "DevEUI"
+
+[batterylevel]
+other = "Batterinivå"
+
+[lastseen]
+other = "Senast sedd"
+
+[alerts]
+other = "Larm"

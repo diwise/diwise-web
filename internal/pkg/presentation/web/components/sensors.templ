@@ -66,11 +66,11 @@ templ SecondaryButton(title string) {
 	</div>
 }
 
-templ SensorTable(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
+templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
 	@Table(
-		HeaderRow(TableHeaderText("Namn"), TableHeaderText("Status"), TableHeaderText("DevEUI"), TableHeaderText("Batterinivå"), TableHeaderText("Senaste värde"), TableHeaderText("Larm")),
-		TableData(tableRowsFromSensors(localizer, asset, sensors.Sensors)...),
-		DataTableFooter("6", "sensors"),
+		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("status")), TableHeaderText(l10n.Get("deveui")), TableHeaderText(l10n.Get("batterylevel")), TableHeaderText(l10n.Get("lastseen")), TableHeaderText(l10n.Get("alerts"))),
+		TableData(tableRowsFromSensors(l10n, asset, sensors.Sensors)...),
+		DataTableFooter("7", "sensors"),
 	)
 }
 
@@ -109,10 +109,10 @@ func listMapSwitch(name, icon string) templ.Component {
 	})
 }
 
-templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
+templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
 	<div class="w-full" id="sensor-view">
 		<div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
-			<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">Sensorer</h1>
+			<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px]">
 					@SearchField()
@@ -128,7 +128,7 @@ templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors 
 					</div>
 				</div>
 				<div id="sensors-table" class="w-full">
-					@SensorTable(localizer, asset, sensors)
+					@SensorTable(l10n, asset, sensors)
 				</div>
 			</div>
 		</div>
@@ -136,12 +136,12 @@ templ Sensors(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensors 
 }
 
 //HELPERS
-func tableRowsFromSensors(localizer locale.Localizer, _ assets.AssetLoaderFunc, sensors []SensorViewModel) []templ.Component {
+func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, sensors []SensorViewModel) []templ.Component {
 	rows := []templ.Component{}
 
 	labelText := map[bool]string{
-		false: localizer.Get("Inaktiv"),
-		true:  localizer.Get("Aktiv"),
+		false: l10n.Get("Inaktiv"),
+		true:  l10n.Get("Aktiv"),
 	}
 
 	for _, sensor := range sensors {
@@ -150,6 +150,7 @@ func tableRowsFromSensors(localizer locale.Localizer, _ assets.AssetLoaderFunc, 
 		cells := []templ.Component{TextFirstCell(sensor.Name)}
 		cells = append(cells, LabelCell(labelText[isActive], isActive))
 		cells = append(cells, TextCell(sensor.DevEUI))
+		//cells = append(cells, TextCell(sensor.net))
 		cells = append(cells, TextCell(fmt.Sprintf("%d", sensor.BatteryLevel)))
 		cells = append(cells, TextCell(sensor.LastSeen.Format(time.RFC3339)))
 
