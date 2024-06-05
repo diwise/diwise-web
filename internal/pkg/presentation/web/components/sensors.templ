@@ -117,19 +117,19 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 			</div>
 			<div class="flex items-start gap-10">
 				<div class="flex items-start gap-2">
-					Totalt
+					{ l10n.Get("total") } 
 					<span class="font-bold">1324</span> 
 				</div>
 				<div class="flex items-start gap-2">
-					Aktiva
+					{ l10n.Get("active") }
 					<span class="font-bold">1300</span>
 				</div>
 				<div class="flex items-start gap-2">
-					Inaktiva
+					{ l10n.Get("inactive") }
 					<span class="font-bold">24</span>
 				</div>
 				<div class="flex items-start gap-2">
-					Oregistrerade
+					{ l10n.Get("unregistered") }
 					<span class="font-bold">10</span>
 				</div>
 			</div>
@@ -143,7 +143,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 					<div class="flex items-center flex-[1_0_0] gap-6">
 						<div class="relative ml-4">
 							<button id="dropdownButtonType" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-[#1c1c2829] hover:rounded-lg" onclick={ toggleDropdownType() }>
-								Sensortyp
+								{ l10n.Get("sensortype") }
 								<svg class="w-[18px] h-[18px] dark:fill-white">
 									@templ.Raw(iconSVG("chevron-down"))
 								</svg>
@@ -208,7 +208,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 						</div>
 						<div class="relative">
                     <button id="dropdownButtonArea" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-[#1c1c2829] hover:rounded-lg" onclick={ toggleDropdownArea() }>
-                        Mättyp
+                        { l10n.Get("measurementtype") }
                         <svg class="w-[18px] h-[18px] dark:fill-white">
                             @templ.Raw(iconSVG("chevron-down"))
                         </svg>

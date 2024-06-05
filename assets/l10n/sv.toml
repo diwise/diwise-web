@@ -30,3 +30,21 @@ other = "Senast sedd"
 
 [alerts]
 other = "Larm"
+
+[total]
+other = "Totalt"
+
+[active]
+other = "Aktiva"
+
+[inactive]
+other = "Inaktiva"
+
+[unregistered]
+other = "Oregistrerade"
+
+[sensortype]
+other = "Sensortyp"
+
+[measurementtype]
+other = "Mättyp"

@@ -30,3 +30,21 @@ other = "Last seen"
 
 [alerts]
 other = "Alerts"
+
+[total]
+other = "Total"
+
+[active]
+other = "Active"
+
+[inactive]
+other = "Inactive"
+
+[unregistered]
+other = "Unregistered"
+
+[sensortype]
+other = "Type of sensor"
+
+[measurementtype]
+other = "Measurement type"
