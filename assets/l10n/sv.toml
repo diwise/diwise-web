@@ -64,7 +64,7 @@ other = "Starttid"
 [type]
 other = "Typ"
 
-[position]
+[location]
 other = "Position"
 
 [latitude]
@@ -75,3 +75,15 @@ other = "Longitud"
 
 [details]
 other = "Uppgifter"
+
+[activate]
+other = "Aktivera sensor"
+
+[delete]
+other = "Radera"
+
+[cancel]
+other = "Avbryt"
+
+[save]
+other = "Spara"

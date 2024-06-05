@@ -64,7 +64,7 @@ other = "Time"
 [type]
 other = "Type"
 
-[position]
+[location]
 other = "Location"
 
 [latitude]
@@ -75,3 +75,15 @@ other = "Longitude"
 
 [details]
 other = "Details"
+
+[activate]
+other = "Activate sensor"
+
+[delete]
+other = "Delete"
+
+[cancel]
+other = "Cancel"
+
+[save]
+other = "Save"
