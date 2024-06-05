@@ -346,7 +346,7 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 					<div class="flex flex-col gap-3 p-3 font-bold">
 						//@SectionDivider("Konto")
 						//@MenuSegment("Inställningar", "/settings", SVG("settings-outline"), asset, isCurrent(ctx, "settings"))
-						@MenuSegment("Logga ut", "/logout", SVG("log-out"), asset, false)
+						@MenuSegment(l10n.Get("logout"), "/logout", SVG("log-out"), asset, false)
 					</div>
 					<div class="flex flex-col gap-3 p-3">
 						@DarkModeToggle(false, asset)

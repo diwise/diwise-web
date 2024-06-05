@@ -87,3 +87,6 @@ other = "Cancel"
 
 [save]
 other = "Save"
+
+[logout]
+other = "Log out"

@@ -87,3 +87,6 @@ other = "Avbryt"
 
 [save]
 other = "Spara"
+
+[logout]
+other = "Logga ut"
