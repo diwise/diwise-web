@@ -23,9 +23,9 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 			<div class="flex items-center gap-6 align-middle">
 				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
 				if sensor.Active {
-					@Label("Aktiv", sensor.Active)
+					@Label(l10n.Get("active"), sensor.Active)
 				} else {
-					@Label("Inaktiv", sensor.Active)
+					@Label(l10n.Get("inactive"), sensor.Active)
 				}
 			</div>
 			<div class="flex items-center text-white dark:text-[#1F1F25] text-base font-bold font-sans leading-normal">

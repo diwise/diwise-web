@@ -121,11 +121,11 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 					<span class="font-bold">1324</span> 
 				</div>
 				<div class="flex items-start gap-2">
-					{ l10n.Get("active") }
+					{ l10n.Get("manyactive") }
 					<span class="font-bold">1300</span>
 				</div>
 				<div class="flex items-start gap-2">
-					{ l10n.Get("inactive") }
+					{ l10n.Get("manyinactive") }
 					<span class="font-bold">24</span>
 				</div>
 				<div class="flex items-start gap-2">
@@ -308,8 +308,8 @@ func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, senso
 	rows := []templ.Component{}
 
 	labelText := map[bool]string{
-		false: l10n.Get("Inaktiv"),
-		true:  l10n.Get("Aktiv"),
+		false: l10n.Get("inactive"),
+		true:  l10n.Get("active"),
 	}
 
 	for _, sensor := range sensors {

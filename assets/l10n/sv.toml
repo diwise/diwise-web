@@ -34,11 +34,17 @@ other = "Larm"
 [total]
 other = "Totalt"
 
-[active]
+[manyactive]
 other = "Aktiva"
 
-[inactive]
+[manyinactive]
 other = "Inaktiva"
+
+[active]
+other = "Aktiv"
+
+[inactive]
+other = "Inaktiv"
 
 [unregistered]
 other = "Oregistrerade"
