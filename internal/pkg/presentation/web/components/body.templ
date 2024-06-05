@@ -314,7 +314,7 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 		<div id="reloader" hx-get={ reloaderEndpoint(version) } hx-trigger={ reloaderFrequency(version) }></div>
 		<div class="flex grid grid-cols-12 gap-2 bg-white dark:bg-[#2F2F3C] min-h-screen">
 			
-			<div class="col-span-2 px-3 py-1 bg-white dark:bg-[#2F2F3C] gap-3 flex flex-col justify-between h-full fixed inset-y-0 left-0 w-64 border-r border-white border-opacity-30">
+			<div class="col-span-2 px-3 py-1 bg-white dark:bg-[#2F2F3C] gap-3 flex flex-col justify-between h-full fixed inset-y-0 left-0 w-64 border-r border-[#1C1C284D] dark:border-white dark:border-opacity-30">
 				
 				<div class="self-stretch flex flex-col gap-14">
 					
@@ -353,7 +353,7 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 					</div>
 				</div>
 			</div>
-			<div class="flex-1 ml-64 w-full col-span-10 p-8 gap-8 h-full" id="main-content">
+			<div class="flex-1 ml-64 w-full col-span-10 gap-8 h-full" id="main-content">
 				@mainContent
 			</div>
 		</div>

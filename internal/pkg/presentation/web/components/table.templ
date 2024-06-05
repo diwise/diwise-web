@@ -56,8 +56,8 @@ templ LinkRow(cells []templ.Component, url, pushUrl templ.SafeURL, viewName stri
 templ Label(label string, active bool) {
 	<span
 		class={ "px-2.5 py-1 rounded-full justify-start items-center gap-1.5",
-        templ.KV("bg-[#c9e4d7]", active),
-        templ.KV("dark:bg-emerald-800", active),
+        templ.KV("bg-[#AAD4BF]", active),
+        //templ.KV("dark:bg-emerald-800", active),
         templ.KV("bg-gray-900", !active),
         templ.KV("bg-opacity-10", !active),
         templ.KV("dark:bg-white", !active),
@@ -65,8 +65,8 @@ templ Label(label string, active bool) {
 	>
 		<span
 			class={ "text-sm font-bold font-sans leading-none",
-            templ.KV("text-emerald-900", active),
-            templ.KV("dark:text-gray-200", active),
+            templ.KV("text-[#00592D]", active),
+            //templ.KV("dark:text-gray-200", active),
             templ.KV("text-neutral-800", !active),
             templ.KV("dark:text-neutral-300", !active) }
 		>
