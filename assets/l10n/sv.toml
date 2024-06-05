@@ -96,3 +96,9 @@ other = "Spara"
 
 [logout]
 other = "Logga ut"
+
+[fillinglevel]
+other = "Fyllnadsnivå"
+
+[area]
+other = "Område"
