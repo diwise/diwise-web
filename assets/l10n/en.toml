@@ -48,3 +48,30 @@ other = "Type of sensor"
 
 [measurementtype]
 other = "Measurement type"
+
+[edit]
+other = "Edit"
+
+[description]
+other = "Description"
+
+[organisation]
+other = "Organisation"
+
+[time]
+other = "Time"
+
+[type]
+other = "Type"
+
+[position]
+other = "Location"
+
+[latitude]
+other = "Latitude"
+
+[longitude]
+other = "Longitude"
+
+[details]
+other = "Details"

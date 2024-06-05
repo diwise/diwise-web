@@ -17,7 +17,7 @@ type SensorDetailsViewModel struct {
 	Active            bool
 }
 
-templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
+templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
 	<div class="flex flex-col items-start gap-8 flex-[1_0_0] w-full p-8">
 		<div class="flex items-center w-full justify-between">
 			<div class="flex items-center gap-6 align-middle">
@@ -38,7 +38,7 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 					<div class="w-[20px] h-[20px] dark:stroke-[#1F1F25]">
 						@SVG("pen", Box(24, 24), NoFill(), StrokeColor("white", "[#1F1F25]"), Stroke(templ.Attributes{"stroke-width": "1"}))
 					</div>
-					Redigera
+					{ l10n.Get("edit") }
 				</button>
 			</div>
 		</div>
@@ -51,25 +51,25 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik
 						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("[#1F1F25]", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-						<h2 class="font-heading text-xl font-bold dark:text-white">Uppgifter</h2>
+						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("details") }</h2>
 						<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
 					</div>
 					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-[#444450] dark:text-[#E5E5E5]">
 						//Innehåll Uppgifter
 						<div class="flex flex-start gap-2">
-							<div class="">Namn</div>
+							<div class="">{ l10n.Get("name") }</div>
 							<div class="font-bold">{ sensor.Name }</div>
 						</div>
 						<div class="flex flex-start gap-2">
-							<div class="">Sensortyp</div>
+							<div class="">{ l10n.Get("sensortype") }</div>
 							<div class="font-bold">{ sensor.DeviceProfileName }</div>
 						</div>
 						<div class="flex flex-start gap-2">
-							<div class="">Organisation</div>
+							<div class="">{ l10n.Get("organisation") }</div>
 							<div class="font-bold">{ sensor.Tenant }</div>
 						</div>
 						<div class="flex flex-col gap-2">
-							<div class="">Beskrivning</div>
+							<div class="">{ l10n.Get("description") }</div>
 							<div class="font-bold">{ sensor.Description }</div>
 						</div>
 					</div>
@@ -79,7 +79,7 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik larm
 						@SVG("alert-triangle", Size(24))
-						<h2 class="font-heading text-xl font-bold dark:text-white">Larm</h2>
+						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("alerts") }</h2>
 						<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
 					</div>
 					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
@@ -87,9 +87,9 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 						<table class="table-auto w-full border-collapse border outline-[#1C1C284D] dark:outline-[#FFFFFF4D] outline outline-1 overflow-hidden rounded-2xl text-[#444450] dark:text-[#E5E5E5]">
 							<thead>
 								<tr class="bg-[#F0F0F0] dark:bg-[#1F1F25] font-bold">
-									<td class="px-6 py-3">Starttid</td>
-									<td class="px-6 py-3">Typ</td>
-									<td class="px-6 py-3">Status</td>
+									<td class="px-6 py-3">{ l10n.Get("time") }</td>
+									<td class="px-6 py-3">{ l10n.Get("type") }</td>
+									<td class="px-6 py-3">{ l10n.Get("status") }</td>
 								</tr>
 							</thead>
 							<tbody>
@@ -125,17 +125,17 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 					<div class="flex items-center gap-3 self-stretch">
 						//Position rubrik
 						@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("[#1F1F25]", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-						<h2 class="font-heading text-xl font-bold dark:text-white">Position</h2>
+						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("position") }</h2>
 						<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
 					</div>
 					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-[#444450] dark:text-[#E5E5E5]">
 						//
 						<div class="flex flex-start gap-2">
-							<div class="">Latitud</div>
+							<div class="">{ l10n.Get("latitude") }</div>
 							<div class="font-bold">{ fmt.Sprintf("%f", sensor.Latitude) }</div>
 						</div>
 						<div class="flex flex-start gap-2">
-							<div class="">Longitud</div>
+							<div class="">{ l10n.Get("longitude") }</div>
 							<div class="font-bold">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
 						</div>
 						@Map()
@@ -146,7 +146,7 @@ templ SensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, se
 	</div>
 }
 
-templ EditSensorDetails(localizer locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
+templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
 	<script>
         document.getElementById('sensorType').addEventListener('change', function() {
             var measurementSelect = document.getElementById('measurementType');

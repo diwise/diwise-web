@@ -48,3 +48,30 @@ other = "Sensortyp"
 
 [measurementtype]
 other = "Mättyp"
+
+[edit]
+other = "Redigera"
+
+[description]
+other = "Beskrivning"
+
+[organisation]
+other = "Organisation"
+
+[time]
+other = "Starttid"
+
+[type]
+other = "Typ"
+
+[position]
+other = "Position"
+
+[latitude]
+other = "Latitud"
+
+[longitude]
+other = "Longitud"
+
+[details]
+other = "Uppgifter"
