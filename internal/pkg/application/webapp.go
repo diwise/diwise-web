@@ -1,6 +1,7 @@
 package application
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -75,6 +76,47 @@ func (a *App) UpdateSensor(ctx context.Context, sensor Sensor) error {
 	}
 
 	log.Debug(string(b))
+
+	return a.patch(ctx, sensor.DeviceID, b)
+}
+
+func (a *App) patch(ctx context.Context, sensorID string, body []byte) error {
+
+	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", a.deviceManagementURL, sensorID), "/"))
+	if err != nil {
+		return err
+	}
+
+	token := authz.Token(ctx)
+	fmt.Print(token)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, u.String(), bytes.NewReader(body))
+	if err != nil {
+		err = fmt.Errorf("failed to create http request: %w", err)
+		return err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	client := http.Client{
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		err = fmt.Errorf("failed to patch: %w", err)
+		return err
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		err = fmt.Errorf("request failed, not authorized")
+		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
+		return err
+	}
 
 	return nil
 }
