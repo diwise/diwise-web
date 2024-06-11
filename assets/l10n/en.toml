@@ -16,6 +16,9 @@ other = "Functions"
 [name]
 other = "Name"
 
+[search]
+other = "Search"
+
 [status]
 other = "Status"
 

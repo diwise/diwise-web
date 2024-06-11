@@ -16,6 +16,9 @@ other = "Funktioner"
 [name]
 other = "Namn"
 
+[search]
+other = "Sök"
+
 [status]
 other = "Status"
 
