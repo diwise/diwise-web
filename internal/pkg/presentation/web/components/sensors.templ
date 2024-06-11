@@ -66,6 +66,27 @@ templ SecondaryButton(title string) {
 	</div>
 }
 
+templ SumOfStuff(l10n locale.Localizer) {
+	<div class="flex items-start gap-10 dark:text-white">
+		<div class="flex items-start gap-2">
+			{ l10n.Get("total") } 
+			<span class="font-bold">1324</span> 
+		</div>
+		<div class="flex items-start gap-2">
+			{ l10n.Get("manyactive") }
+			<span class="font-bold">1300</span>
+		</div>
+		<div class="flex items-start gap-2">
+			{ l10n.Get("manyinactive") }
+			<span class="font-bold">24</span>
+		</div>
+		<div class="flex items-start gap-2">
+			{ l10n.Get("unregistered") }
+			<span class="font-bold">10</span>
+		</div>
+	</div>
+}
+
 templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
 	@Table(
 		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("status")), TableHeaderText(l10n.Get("deveui")), TableHeaderText(l10n.Get("batterylevel")), TableHeaderText(l10n.Get("lastseen")), TableHeaderText(l10n.Get("alerts"))),
@@ -115,31 +136,13 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 			<div class="">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
 			</div>
-			<div class="flex items-start gap-10">
-				<div class="flex items-start gap-2">
-					{ l10n.Get("total") } 
-					<span class="font-bold">1324</span> 
-				</div>
-				<div class="flex items-start gap-2">
-					{ l10n.Get("manyactive") }
-					<span class="font-bold">1300</span>
-				</div>
-				<div class="flex items-start gap-2">
-					{ l10n.Get("manyinactive") }
-					<span class="font-bold">24</span>
-				</div>
-				<div class="flex items-start gap-2">
-					{ l10n.Get("unregistered") }
-					<span class="font-bold">10</span>
-				</div>
-			</div>
+			@SumOfStuff(l10n)
 		</div>
 		<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
 		<div class="flex px-8 flex-col items-start self-stretch gap-10">
 			<div class="w-full h-12 justify-between items-center inline-flex">
-				<div class="inline-flex justify-start items-center gap-[34px]">
+				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 					@SearchField(l10n)
-					//@SecondaryButton("Filter")
 					<div class="flex items-center flex-[1_0_0] gap-6">
 						<div class="relative ml-4">
 							<button id="dropdownButtonType" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-[#1c1c2829] hover:rounded-lg" onclick={ toggleDropdownType() }>

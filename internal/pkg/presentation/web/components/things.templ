@@ -50,33 +50,15 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
                         { l10n.Get("addthing") }
                     </button>
                 </div>
-            
             </div>
-			<div class="flex items-start gap-10">
-				<div class="flex items-start gap-2">
-					{ l10n.Get("total") } 
-					<span class="font-bold">1324</span> 
-				</div>
-				<div class="flex items-start gap-2">
-					{ l10n.Get("manyactive") }
-					<span class="font-bold">1300</span>
-				</div>
-				<div class="flex items-start gap-2">
-					{ l10n.Get("manyinactive") }
-					<span class="font-bold">24</span>
-				</div>
-				<div class="flex items-start gap-2">
-					{ l10n.Get("unregistered") }
-					<span class="font-bold">10</span>
-				</div>
-			</div>
+			@SumOfStuff(l10n)
 		</div>
 
 		<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
 
         <div class="flex px-8 flex-col items-start self-stretch gap-10">
 			<div class="w-full h-12 justify-between items-center inline-flex">
-				<div class="inline-flex justify-start items-center gap-[34px]">
+				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
                     @SearchField(l10n)
                     <div class="flex items-center flex-[1_0_0] gap-6">
 						<div class="relative ml-4">
@@ -260,28 +242,28 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
             </div>
 
             <div class="flex flex-col gap-4 w-full">
-                <div class="w-full h-10 justify-items-start inline-flex text-[#1F1F25] gap-3">
-                    <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 rounded-xl">
+                <div class="w-full h-10 justify-items-start inline-flex text-[#1F1F25] dark:text-white gap-3">
+                    <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 dark:border-[#FFFFFF4D] rounded-xl">
                         Soptunna
-                        <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
+                        <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2 dark:stroke-white">
                             @templ.Raw(iconSVG("close"))
                         </svg>
                     </div>
-                    <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 rounded-xl">
+                    <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 dark:border-[#FFFFFF4D] rounded-xl">
                         Centrum
-                        <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
+                        <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2 dark:stroke-white">
                             @templ.Raw(iconSVG("close"))
                         </svg>
                     </div>
-                    <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 rounded-xl">
+                    <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 dark:border-[#FFFFFF4D] rounded-xl">
                         Kvissleby
-                        <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
+                        <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2 dark:stroke-white">
                             @templ.Raw(iconSVG("close"))
                         </svg>
                     </div>
-                    <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 rounded-xl">
+                    <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 dark:border-[#FFFFFF4D] rounded-xl">
                         0-70%
-                        <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2">
+                        <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2 dark:stroke-white">
                             @templ.Raw(iconSVG("close"))
                         </svg>
                     </div>
