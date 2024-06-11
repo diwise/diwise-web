@@ -79,7 +79,7 @@ templ DataTableFooter(colspan, tableName string) {
 	<tfoot>
 		<tr>
 			<td colspan={ colspan }>
-				<div id="paginering" class="w-full h-[60px] px-4 py-3.5 dark:bg-gray-800 rounded-b-2xl border-t border-white border-opacity-30 justify-between items-center flex">
+				<div id="paginering" class="relative w-full h-[60px] px-4 py-3.5 dark:bg-gray-800 rounded-b-2xl border-t border-white border-opacity-30 justify-between items-center flex">
 					<div class="h-8 justify-start items-center gap-2 flex">
 						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</span>
 						<div class="relative inline-flex h-8 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50">
@@ -111,7 +111,7 @@ templ DataTableFooter(colspan, tableName string) {
                             }
                         </script>
 					</div>
-					<div class="h-8 justify-between items-center flex">
+					<div class="absolute inset-0 flex justify-center items-center">
 						<button
 							class="p-1.5 rounded-full justify-center items-center gap-1 flex"
 							if !isFirstPage(ctx) {
@@ -154,7 +154,9 @@ templ DataTableFooter(colspan, tableName string) {
 							</span>
 						</button>
 					</div>
-					<div class="h-8 justify-end items-center gap-2 flex">
+
+                    //Döljer Radhöjd i tabellfootern
+					/*<div class="h-8 justify-end items-center gap-2 flex">
 						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Radhöjd:</span>
 						<span class="pl-3 pr-2.5 py-2 bg-gray-900 bg-opacity-10 rounded-xl justify-center items-center gap-1 flex">
 							<span class="grow shrink basis-0 text-zinc-700 text-sm font-bold font-sans leading-none">Normal</span>
@@ -162,7 +164,7 @@ templ DataTableFooter(colspan, tableName string) {
 								@SVG("chevron-down", Size(16))
 							</span>
 						</span>
-					</div>
+					</div>*/
 				</div>
 			</td>
 		</tr>
