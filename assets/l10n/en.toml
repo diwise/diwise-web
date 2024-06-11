@@ -7,8 +7,8 @@ other = "Home"
 [sensors]
 other = "Sensors"
 
-[objects]
-other = "Objects"
+[things]
+other = "Things"
 
 [functions]
 other = "Functions"

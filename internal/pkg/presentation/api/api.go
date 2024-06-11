@@ -111,7 +111,7 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 
 	r.HandleFunc("GET /", pages.NewHomePage(ctx, l10n, assetLoader.Load))
 	r.HandleFunc("GET /home", pages.NewHomePage(ctx, l10n, assetLoader.Load))
-	r.HandleFunc("GET /objects", pages.NewThingsPage(ctx, l10n, assetLoader.Load))
+	r.HandleFunc("GET /things", pages.NewThingsPage(ctx, l10n, assetLoader.Load))
 
 	r.HandleFunc("GET /sensors", pages.NewSensorListPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /sensors/{id}", pages.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))

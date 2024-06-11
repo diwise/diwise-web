@@ -40,10 +40,10 @@ script toggleDropdownArea() {
     }*/
 
 
-templ Objects(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
-    <div class="w-full p-8" id="object-view">
+templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
+    <div class="w-full p-8" id="things-view">
         <div class="w-full flex flex-col justify-start items-start gap-14 inline-flex">
-            <h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("objects") }</h1>
+            <h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
 
             <div class="w-full h-12 justify-between items-center inline-flex">
                 <div class="inline-flex justify-start items-center gap-[34px]">
@@ -284,7 +284,7 @@ templ Objects(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
                                 TextCell("Livboj"), TextCell("NIAB_lidar_50001c"), LabelCell("Saknas", false),
                             ),
                         ),
-                        DataTableFooter("3", "objects"),
+                        DataTableFooter("3", "things"),
                     )
                 </div>
 

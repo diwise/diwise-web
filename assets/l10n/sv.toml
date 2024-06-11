@@ -7,7 +7,7 @@ other = "Hem"
 [sensors]
 other = "Sensorer"
 
-[objects]
+[things]
 other = "Saker"
 
 [functions]
