@@ -105,3 +105,6 @@ other = "Fyllnadsnivå"
 
 [area]
 other = "Område"
+
+[addthing]
+other = "Lägg till ny sak"

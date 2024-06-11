@@ -35,8 +35,6 @@ templ SearchField(l10n locale.Localizer) {
 					type="search"
 					placeholder={ l10n.Get("search") }
 				/>
-
-				//{ l10n.Get("sensors") }
 			</div>
 		</div>
 	</div>
@@ -153,7 +151,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 
 							<div id="dropdownMenuType" class="absolute z-10 hidden bg-[#FAFAFA] rounded-md shadow-lg mt-2.5">
 								<ul class="p-3 space-y-2">
-								<li>
+									<li>
 										<label for="avlopp-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 											<span class="ml-2 text-gray-700 dark:text-gray-300 ">Avlopp</span>
 											<div class="flex items-center">
@@ -209,82 +207,82 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 							</div>
 						</div>
 						<div class="relative">
-                    <button id="dropdownButtonArea" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-[#1c1c2829] hover:rounded-lg" onclick={ toggleDropdownArea() }>
-                        { l10n.Get("measurementtype") }
-                        <svg class="w-[18px] h-[18px] dark:fill-white">
-                            @templ.Raw(iconSVG("chevron-down"))
-                        </svg>
-                    </button>
-                    <div id="dropdownMenuArea" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5 ">
-                        <ul class="p-3 space-y-2">
-                            <li>
-                                <label for="bydalen-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                                    <span class="ml-2 text-gray-700 dark:text-gray-300">Bydalen</span>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="bydalen-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="bydalen" />
-                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                                @templ.Raw(iconSVG("check"))
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </label>
-                            </li>
-                            <li>
-                                <label for="haga-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                                    <span class="ml-2 text-gray-700 dark:text-gray-300">Haga</span>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="haga-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="haga" />
-                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                                @templ.Raw(iconSVG("check"))
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </label>
-                            </li>
-                            <li>
-                                <label for="centrum-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                                    <span class="ml-2 text-gray-700 dark:text-gray-300">Centrum</span>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="centrum-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="centrum" />
-                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                                @templ.Raw(iconSVG("check"))
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </label>
-                            </li>
-                            <li>
-                                <label for="östermalm-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                                    <span class="ml-2 text-gray-700 dark:text-gray-300">Östermalm</span>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="östermalm-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="östermalm" />
-                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                                @templ.Raw(iconSVG("check"))
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </label>
-                            </li>
-                            <li>
-                                <label for="skönsmon-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                                    <span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Skönsmon</span>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="skönsmon-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="skönsmon" />
-                                        <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                            <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                                @templ.Raw(iconSVG("check"))
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </label>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+							<button id="dropdownButtonArea" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-[#1c1c2829] hover:rounded-lg" onclick={ toggleDropdownArea() }>
+								{ l10n.Get("measurementtype") }
+								<svg class="w-[18px] h-[18px] dark:fill-white">
+									@templ.Raw(iconSVG("chevron-down"))
+								</svg>
+							</button>
+							<div id="dropdownMenuArea" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5 ">
+								<ul class="p-3 space-y-2">
+									<li>
+										<label for="bydalen-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+											<span class="ml-2 text-gray-700 dark:text-gray-300">Bydalen</span>
+											<div class="flex items-center">
+												<input type="checkbox" id="bydalen-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="bydalen" />
+												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+														@templ.Raw(iconSVG("check"))
+													</svg>
+												</div>
+											</div>
+										</label>
+									</li>
+									<li>
+										<label for="haga-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+											<span class="ml-2 text-gray-700 dark:text-gray-300">Haga</span>
+											<div class="flex items-center">
+												<input type="checkbox" id="haga-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="haga" />
+												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+														@templ.Raw(iconSVG("check"))
+													</svg>
+												</div>
+											</div>
+										</label>
+									</li>
+									<li>
+										<label for="centrum-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+											<span class="ml-2 text-gray-700 dark:text-gray-300">Centrum</span>
+											<div class="flex items-center">
+												<input type="checkbox" id="centrum-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="centrum" />
+												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+														@templ.Raw(iconSVG("check"))
+													</svg>
+												</div>
+											</div>
+										</label>
+									</li>
+									<li>
+										<label for="östermalm-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+											<span class="ml-2 text-gray-700 dark:text-gray-300">Östermalm</span>
+											<div class="flex items-center">
+												<input type="checkbox" id="östermalm-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="östermalm" />
+												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+														@templ.Raw(iconSVG("check"))
+													</svg>
+												</div>
+											</div>
+										</label>
+									</li>
+									<li>
+										<label for="skönsmon-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+											<span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Skönsmon</span>
+											<div class="flex items-center">
+												<input type="checkbox" id="skönsmon-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="skönsmon" />
+												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+														@templ.Raw(iconSVG("check"))
+													</svg>
+												</div>
+											</div>
+										</label>
+									</li>
+								</ul>
+							</div>
+                		</div>
 					</div>
 				</div>
 				//@PrimaryButton("Lägg till sensor")

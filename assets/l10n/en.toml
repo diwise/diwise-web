@@ -105,3 +105,6 @@ other = "Filling level"
 
 [area]
 other = "Area"
+
+[addthing]
+other = "Add new thing"
