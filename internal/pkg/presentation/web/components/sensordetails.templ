@@ -18,7 +18,7 @@ type SensorDetailsViewModel struct {
 }
 
 templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
-	<div class="flex flex-col items-start gap-8 flex-[1_0_0] w-full p-8">
+	<div class="w-full px-8">
 		<div class="flex items-center w-full justify-between">
 			<div class="flex items-center gap-6 align-middle">
 				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
@@ -56,10 +56,10 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 					</div>
 					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-[#444450] dark:text-[#E5E5E5]">
 						//Innehåll Uppgifter
-						<div class="flex flex-start gap-2">
+						/*<div class="flex flex-start gap-2">
 							<div class="">{ l10n.Get("name") }</div>
 							<div class="font-bold">{ sensor.Name }</div>
-						</div>
+						</div>*/
 						<div class="flex flex-start gap-2">
 							<div class="">{ l10n.Get("sensortype") }</div>
 							<div class="font-bold">{ sensor.DeviceProfileName }</div>
@@ -176,8 +176,8 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
             }
         });
     </script>
-	<div class="p-8 w-full">
-		<div class="flex items-center justify-between pb-4 w-full">
+	<div class="w-full px-8">
+		<div class="flex items-center justify-between w-full">
 			<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
 		</div>
 		<form action="/components/sensors/details" method="post">
