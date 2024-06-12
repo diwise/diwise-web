@@ -82,11 +82,33 @@ func NewSensorDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets
 		ctx := helpers.Decorate(r.Context(),
 			components.CurrentComponent, "sensors",
 		)
-		
+
 		sensor, err := app.GetSensor(ctx, id)
 		if err != nil {
 			http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
 			return
+		}
+
+		tenants := app.GetTenants(ctx)
+		deviceProfiles := app.GetDeviceProfiles(ctx)
+
+		dp := []components.DeviceProfile{}
+		for _, p := range deviceProfiles {
+			types := []string{}
+			if p.Types != nil {
+				types = *p.Types
+			}
+			dp = append(dp, components.DeviceProfile{
+				Name:     p.Name,
+				Decoder:  p.Decoder,
+				Interval: p.Interval,
+				Types:    types,
+			})
+		}
+
+		types := []string{}
+		for _, tp := range sensor.Types {
+			types = append(types, tp.URN)
 		}
 
 		detailsViewModel := components.SensorDetailsViewModel{
@@ -98,9 +120,12 @@ func NewSensorDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets
 			Tenant:            sensor.Tenant,
 			Description:       sensor.Description,
 			Active:            sensor.Active,
+			Types:             types,
+			Organisations:     tenants,
+			DeviceProfiles:    dp,
 		}
 
-		sensorDetails := components.SensorDetails(localizer, assets, detailsViewModel)
+		sensorDetails := components.SensorDetailsPage(localizer, assets, detailsViewModel)
 		page := components.StartPage(version, localizer, assets, sensorDetails)
 
 		w.Header().Add("Content-Type", "text/html")

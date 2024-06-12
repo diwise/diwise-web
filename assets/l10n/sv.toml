@@ -7,7 +7,7 @@ other = "Hem"
 [sensors]
 other = "Sensorer"
 
-[objects]
+[things]
 other = "Saker"
 
 [functions]
@@ -15,6 +15,9 @@ other = "Funktioner"
 
 [name]
 other = "Namn"
+
+[search]
+other = "Sök"
 
 [status]
 other = "Status"
@@ -30,3 +33,78 @@ other = "Senast sedd"
 
 [alerts]
 other = "Larm"
+
+[total]
+other = "Totalt"
+
+[manyactive]
+other = "Aktiva"
+
+[manyinactive]
+other = "Inaktiva"
+
+[active]
+other = "Aktiv"
+
+[inactive]
+other = "Inaktiv"
+
+[unregistered]
+other = "Oregistrerade"
+
+[sensortype]
+other = "Sensortyp"
+
+[measurementtype]
+other = "Mättyp"
+
+[edit]
+other = "Redigera"
+
+[description]
+other = "Beskrivning"
+
+[organisation]
+other = "Organisation"
+
+[time]
+other = "Starttid"
+
+[type]
+other = "Typ"
+
+[location]
+other = "Position"
+
+[latitude]
+other = "Latitud"
+
+[longitude]
+other = "Longitud"
+
+[details]
+other = "Uppgifter"
+
+[activate]
+other = "Aktivera sensor"
+
+[delete]
+other = "Radera"
+
+[cancel]
+other = "Avbryt"
+
+[save]
+other = "Spara"
+
+[logout]
+other = "Logga ut"
+
+[fillinglevel]
+other = "Fyllnadsnivå"
+
+[area]
+other = "Område"
+
+[addthing]
+other = "Lägg till ny sak"

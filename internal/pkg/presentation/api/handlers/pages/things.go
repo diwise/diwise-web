@@ -21,14 +21,14 @@ func NewThingsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 
 		ctx = helpers.Decorate(
 			r.Context(),
-			components.CurrentComponent, "objects",
+			components.CurrentComponent, "things",
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
 		component := components.StartPage(
 			version, localizer,
-			assets, components.Objects(localizer, assets),
+			assets, components.Things(localizer, assets),
 		)
 
 		component.Render(ctx, w)

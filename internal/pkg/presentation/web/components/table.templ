@@ -6,7 +6,7 @@ import (
 )
 
 templ Table(header templ.Component, data templ.Component, footer templ.Component) {
-	<table class="table-auto min-w-full text-sm text-left dark:bg-gray-800 dark:text-white">
+	<table class="table-auto min-w-full text-sm text-left dark:bg-[#2F2F3C] dark:text-white">
 		@header
 		@data
 		@footer
@@ -56,8 +56,8 @@ templ LinkRow(cells []templ.Component, url, pushUrl templ.SafeURL, viewName stri
 templ Label(label string, active bool) {
 	<span
 		class={ "px-2.5 py-1 rounded-full justify-start items-center gap-1.5",
-        templ.KV("bg-[#c9e4d7]", active),
-        templ.KV("dark:bg-emerald-800", active),
+        templ.KV("bg-[#AAD4BF]", active),
+        //templ.KV("dark:bg-emerald-800", active),
         templ.KV("bg-gray-900", !active),
         templ.KV("bg-opacity-10", !active),
         templ.KV("dark:bg-white", !active),
@@ -65,8 +65,8 @@ templ Label(label string, active bool) {
 	>
 		<span
 			class={ "text-sm font-bold font-sans leading-none",
-            templ.KV("text-emerald-900", active),
-            templ.KV("dark:text-gray-200", active),
+            templ.KV("text-[#00592D]", active),
+            //templ.KV("dark:text-gray-200", active),
             templ.KV("text-neutral-800", !active),
             templ.KV("dark:text-neutral-300", !active) }
 		>
@@ -79,7 +79,7 @@ templ DataTableFooter(colspan, tableName string) {
 	<tfoot>
 		<tr>
 			<td colspan={ colspan }>
-				<div id="paginering" class="w-full h-[60px] px-4 py-3.5 dark:bg-gray-800 rounded-b-2xl border-t border-white border-opacity-30 justify-between items-center flex">
+				<div id="paginering" class="relative w-full h-[60px] px-4 py-3.5 rounded-b-2xl border-white border-opacity-30 justify-between items-center flex">
 					<div class="h-8 justify-start items-center gap-2 flex">
 						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</span>
 						<div class="relative inline-flex h-8 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50">
@@ -111,7 +111,7 @@ templ DataTableFooter(colspan, tableName string) {
                             }
                         </script>
 					</div>
-					<div class="h-8 justify-between items-center flex">
+					<div class="absolute inset-0 flex justify-center items-center">
 						<button
 							class="p-1.5 rounded-full justify-center items-center gap-1 flex"
 							if !isFirstPage(ctx) {
@@ -154,7 +154,9 @@ templ DataTableFooter(colspan, tableName string) {
 							</span>
 						</button>
 					</div>
-					<div class="h-8 justify-end items-center gap-2 flex">
+
+                    //Döljer Radhöjd i tabellfootern
+					/*<div class="h-8 justify-end items-center gap-2 flex">
 						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Radhöjd:</span>
 						<span class="pl-3 pr-2.5 py-2 bg-gray-900 bg-opacity-10 rounded-xl justify-center items-center gap-1 flex">
 							<span class="grow shrink basis-0 text-zinc-700 text-sm font-bold font-sans leading-none">Normal</span>
@@ -162,7 +164,7 @@ templ DataTableFooter(colspan, tableName string) {
 								@SVG("chevron-down", Size(16))
 							</span>
 						</span>
-					</div>
+					</div>*/
 				</div>
 			</td>
 		</tr>

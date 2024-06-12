@@ -7,20 +7,20 @@ import (
 
 
 templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
-
+<div class="p-8">
   <div class="grid grid-cols-4 gap-8">
-  <div class="col-span-2">
+    <div class="col-span-2">
 
-    <h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">Översikt</h1>
+      <h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">Översikt</h1>
 
-    <div class="grid grid-cols-2 gap-10">
+      <div class="grid grid-cols-2 gap-10">
 
-      @OverviewCard("Aktiva sensorer", "22 358", SVG("rss", Size(32)), asset)
-      @OverviewCard("Inaktiva sensorer", "150", SVG("rss", Size(32), AlertStyle()), asset)
-      @OverviewCard("Okända sensorer", "1281", SVG("rss", Size(32), WarningStyle()), asset)
-      @OverviewCard("Aktiva funktioner", "6", SVG("send-to-back", Size(32), OKStyle()), asset)
+        @OverviewCard("Aktiva sensorer", "22 358", SVG("rss", Size(32)), asset)
+        @OverviewCard("Inaktiva sensorer", "150", SVG("rss", Size(32), AlertStyle()), asset)
+        @OverviewCard("Okända sensorer", "1281", SVG("rss", Size(32), WarningStyle()), asset)
+        @OverviewCard("Aktiva funktioner", "6", SVG("send-to-back", Size(32), OKStyle()), asset)
 
-    </div>
+      </div>
   </div>
 
   <div class="col-span-2">
@@ -126,4 +126,5 @@ templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
 
   </div>
   </div>
+</div>
 }
