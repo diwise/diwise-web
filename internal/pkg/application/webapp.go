@@ -3,9 +3,11 @@ package application
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -18,17 +20,20 @@ import (
 
 type App struct {
 	deviceManagementURL string
+	adminURL            string
 }
 
 func New(ctx context.Context) (*App, error) {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
+	adminURL := strings.Replace(env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices"), "devices", "admin", 1)
 	return &App{
 		deviceManagementURL: deviceManagementURL,
+		adminURL:            adminURL,
 	}, nil
 }
 
 func (a *App) GetSensor(ctx context.Context, id string) (Sensor, error) {
-	res, err := a.get(ctx, id, url.Values{})
+	res, err := a.get(ctx, a.deviceManagementURL, id, url.Values{})
 	if err != nil {
 		return Sensor{}, err
 	}
@@ -47,7 +52,7 @@ func (a *App) GetSensors(ctx context.Context, offset, limit int) (SensorResult, 
 	params.Add("limit", fmt.Sprintf("%d", limit))
 	params.Add("offset", fmt.Sprintf("%d", offset))
 
-	res, err := a.get(ctx, "", params)
+	res, err := a.get(ctx, a.deviceManagementURL, "", params)
 	if err != nil {
 		return SensorResult{}, err
 	}
@@ -67,28 +72,56 @@ func (a *App) GetSensors(ctx context.Context, offset, limit int) (SensorResult, 
 	}, nil
 }
 
-func (a *App) UpdateSensor(ctx context.Context, sensor Sensor) error {
-	log := logging.GetFromContext(ctx)
-
-	b, err := json.Marshal(sensor)
+func (a *App) UpdateSensor(ctx context.Context, deviceID string, fields map[string]any) error {
+	b, err := json.Marshal(fields)
 	if err != nil {
 		return err
 	}
 
-	log.Debug(string(b))
-
-	return a.patch(ctx, sensor.DeviceID, b)
+	return a.patch(ctx, a.deviceManagementURL, deviceID, b)
 }
 
-func (a *App) patch(ctx context.Context, sensorID string, body []byte) error {
+func (a *App) GetTenants(ctx context.Context) []string {
+	res, err := a.get(ctx, a.adminURL, "tenants", url.Values{})
+	if err != nil {
+		return []string{}
+	}
 
-	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", a.deviceManagementURL, sensorID), "/"))
+	var tenants []string
+	err = json.Unmarshal(res.Data, &tenants)
+	if err != nil {
+		return []string{}
+	}
+
+	return tenants
+}
+
+func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
+	res, err := a.get(ctx, a.adminURL, "deviceprofiles", url.Values{})
+	if err != nil {
+		return []DeviceProfile{}
+	}
+
+	var deviceProfiles []DeviceProfile
+	err = json.Unmarshal(res.Data, &deviceProfiles)
+	if err != nil {
+		return []DeviceProfile{}
+	}
+
+	return deviceProfiles
+}
+
+func (a *App) patch(ctx context.Context, baseUrl, sensorID string, body []byte) error {
+	log := logging.GetFromContext(ctx)
+
+	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseUrl, sensorID), "/"))
 	if err != nil {
 		return err
 	}
 
+	log.Debug("PATCH", slog.String("body", string(body)), slog.String("url", u.String()))
+
 	token := authz.Token(ctx)
-	fmt.Print(token)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, u.String(), bytes.NewReader(body))
 	if err != nil {
@@ -98,8 +131,14 @@ func (a *App) patch(ctx context.Context, sensorID string, body []byte) error {
 
 	req.Header.Add("Authorization", "Bearer "+token)
 
+	transport := http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+
 	client := http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
+		Transport: otelhttp.NewTransport(&transport),
 	}
 
 	resp, err := client.Do(req)
@@ -121,14 +160,14 @@ func (a *App) patch(ctx context.Context, sensorID string, body []byte) error {
 	return nil
 }
 
-func (a *App) get(ctx context.Context, path string, params url.Values) (*ApiResponse, error) {
+func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) (*ApiResponse, error) {
 
 	if strings.ContainsAny(path, "/") {
 		path = strings.TrimPrefix(path, "/")
 		path = strings.TrimSuffix(path, "/")
 	}
 
-	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", a.deviceManagementURL, path), "/"))
+	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseUrl, path), "/"))
 	if err != nil {
 		return nil, err
 	}
@@ -145,8 +184,14 @@ func (a *App) get(ctx context.Context, path string, params url.Values) (*ApiResp
 
 	req.Header.Add("Authorization", "Bearer "+token)
 
+	transport := http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+
 	client := http.Client{
-		Transport: otelhttp.NewTransport(http.DefaultTransport),
+		Transport: otelhttp.NewTransport(&transport),
 	}
 
 	resp, err := client.Do(req)

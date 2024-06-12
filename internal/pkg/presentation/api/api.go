@@ -8,6 +8,7 @@ import (
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/admin"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/sensors"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/pages"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
@@ -119,6 +120,7 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	r.HandleFunc("GET /components/sensors/details", RequireHX(sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("POST /components/sensors/details", sensors.NewSaveSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /components/tables/sensors", RequireHX(sensors.NewTableSensorsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
 
 	// Handle requests for leaflet images /assets/<leafletcss-sha>/images/<image>.png
 	leafletSHA := assetLoader.Load("/css/leaflet.css").SHA256()

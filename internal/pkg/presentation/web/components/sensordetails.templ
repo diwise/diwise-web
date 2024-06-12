@@ -4,6 +4,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"fmt"
+	"slices"
 )
 
 type SensorDetailsViewModel struct {
@@ -12,9 +13,25 @@ type SensorDetailsViewModel struct {
 	Latitude          float64
 	Longitude         float64
 	DeviceProfileName string
+	Types             []string
 	Tenant            string
 	Description       string
 	Active            bool
+	Organisations     []string
+	DeviceProfiles    []DeviceProfile
+}
+
+type DeviceProfile struct {
+	Name     string   `json:"name"`
+	Decoder  string   `json:"decoder,omitempty"`
+	Interval int      `json:"interval,omitempty"`
+	Types    []string `json:"types,omitempty"`
+}
+
+templ SensorDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
+	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="sensor-view">
+		@SensorDetails(l10n, asset, sensor)
+	</div>
 }
 
 templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
@@ -202,13 +219,10 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
 									<div class="border border-[#0A0C0F] rounded-xl">
-										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">Välj ett alternativ</label>
-										<select id="organisation" name="organisation" class="cursor-pointer block w-full pl-3 pr-3 py-2 text-base dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
-											<option>Välj ett alternativ</option>
-											<option value="alt1">Alternativ 1 från backend</option>
-											<option value="alt2">Alternativ 2</option>
-											<option value="alt3">Alternativ 3</option>
-										</select>
+										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
+											{ l10n.Get("Välj ett alternativ") }
+										</label>
+										@OrganisationSelect(l10n, asset, "organisation", sensor.Tenant, sensor.Organisations)
 									</div>
 								</div>
 							</div>
@@ -216,22 +230,17 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("sensortype") }</div>
 									<div class="border border-[#0A0C0F] rounded-xl">
-										<label for="sensorType" class="hidden block text-sm font-medium text-gray-700">Välj ett alternativ</label>
-										<select id="sensorType" name="sensorType" class="cursor-pointerblock w-full pl-3 pr-3 py-2 text-base dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
-											<option>Välj ett alternativ</option>
-											<option value="option1">Alternativ 1 från backend</option>
-											<option value="option2">Alternativ 2</option>
-											<option value="option3">Alternativ 3</option>
-										</select>
+										<label for="sensorType" class="hidden block text-sm font-medium text-gray-700">
+											{ l10n.Get("Välj ett alternativ") }
+										</label>
+										@SensorTypeSelect(l10n, asset, "sensorType", sensor.DeviceProfileName, sensor.DeviceProfiles)
 									</div>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
 									<div class="border border-[#0A0C0F] rounded-xl">
 										<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">Välj ett alternativ</label>
-										<select id="measurementType" name="measurementType" class="cursor-pointer block w-full pl-3 pr-3 py-2 text-base dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white" disabled>
-											<option>Välj ett alternativ</option>
-										</select>
+										@MeasurementTypeSelect(l10n, asset, "measurementType", sensor)
 									</div>
 								</div>
 							</div>
@@ -323,4 +332,117 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 			</div>
 		</form>
 	</div>
+}
+
+type OptionViewModel struct {
+	Value    string
+	Text     string
+	Selected bool
+	Hidden   bool
+	Disabled bool
+}
+
+func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
+	viewModel := []OptionViewModel{
+		{
+			Value:    "",
+			Text:     l10n.Get("-- välj --"),
+			Selected: true,
+			Hidden:   true,
+			Disabled: true,
+		},
+	}
+
+	i := slices.IndexFunc(sensorViewModel.DeviceProfiles, func(p DeviceProfile) bool {
+		return p.Name == sensorViewModel.DeviceProfileName
+	})
+
+	if i < 0 {
+		return SelectX(id, true, "", "", viewModel)
+	}
+
+	profile := sensorViewModel.DeviceProfiles[i]
+
+	for _, t := range profile.Types {
+		viewModel = append(viewModel, OptionViewModel{
+			Value: t,
+			Text:  t,
+			Selected: slices.ContainsFunc(sensorViewModel.Types, func(s string) bool {
+				return s == t
+			}),
+		})
+	}
+
+	return SelectX(id, true, "", "", viewModel)
+}
+
+func SensorTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, profiles []DeviceProfile) templ.Component {
+	viewModel := []OptionViewModel{
+		{
+			Value:    "",
+			Text:     l10n.Get("-- välj --"),
+			Selected: true,
+			Hidden:   true,
+			Disabled: true,
+		},
+	}
+
+	for _, p := range profiles {
+		viewModel = append(viewModel, OptionViewModel{
+			Value:    p.Decoder,
+			Text:     p.Name,
+			Selected: p.Name == selected,
+		})
+	}
+
+	return SelectX(id, false, "/components/admin/types", "#measurementType", viewModel)
+}
+
+func OrganisationSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, organisations []string) templ.Component {
+	viewModel := []OptionViewModel{
+		{
+			Value:    "",
+			Text:     l10n.Get("-- välj --"),
+			Selected: true,
+			Hidden:   true,
+			Disabled: true,
+		},
+	}
+
+	for _, org := range organisations {
+		viewModel = append(viewModel, OptionViewModel{
+			Value:    org,
+			Text:     org,
+			Selected: org == selected,
+		})
+	}
+
+	return SelectX(id, false, "", "", viewModel)
+}
+
+templ Option(option OptionViewModel) {
+	<option value={ option.Value } selected?={ option.Selected } hidden?={ option.Hidden } disabled?={ option.Disabled }>{ option.Text }</option>
+}
+
+templ Options(options []OptionViewModel) {
+	for _, option := range options {
+		@Option(option)
+	}
+}
+
+templ SelectX(id string, multiple bool, hxGet, hxTarget string, options []OptionViewModel) {
+	<select
+		id={ id }
+		name={ id }
+		if hxGet != "" {
+			hx-get={ hxGet }
+		}
+		if hxTarget != "" {
+			hx-target={ hxTarget }
+		}
+		class="cursor-pointer block w-full pl-3 pr-3 py-2 text-base dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
+		multiple?={ multiple }
+	>
+		@Options(options)
+	</select>
 }
