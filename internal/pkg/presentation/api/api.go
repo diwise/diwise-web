@@ -9,8 +9,9 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/admin"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/home"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/sensors"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/pages"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/things"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
@@ -110,12 +111,12 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
 
-	r.HandleFunc("GET /", pages.NewHomePage(ctx, l10n, assetLoader.Load))
-	r.HandleFunc("GET /home", pages.NewHomePage(ctx, l10n, assetLoader.Load))
-	r.HandleFunc("GET /things", pages.NewThingsPage(ctx, l10n, assetLoader.Load))
+	r.HandleFunc("GET /", home.NewHomePage(ctx, l10n, assetLoader.Load))
+	r.HandleFunc("GET /home", home.NewHomePage(ctx, l10n, assetLoader.Load))
+	r.HandleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load))
 
-	r.HandleFunc("GET /sensors", pages.NewSensorListPage(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /sensors/{id}", pages.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /sensors", sensors.NewSensorListPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /sensors/{id}", sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
 
 	r.HandleFunc("GET /components/sensors/details", RequireHX(sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("POST /components/sensors/details", sensors.NewSaveSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app))
