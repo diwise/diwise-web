@@ -7,7 +7,7 @@ other = "Hem"
 [sensors]
 other = "Sensorer"
 
-[objects]
+[things]
 other = "Saker"
 
 [functions]
@@ -15,6 +15,9 @@ other = "Funktioner"
 
 [name]
 other = "Namn"
+
+[search]
+other = "Sök"
 
 [status]
 other = "Status"
@@ -102,3 +105,6 @@ other = "Fyllnadsnivå"
 
 [area]
 other = "Område"
+
+[addthing]
+other = "Lägg till ny sak"

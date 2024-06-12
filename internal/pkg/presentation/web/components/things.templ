@@ -1,149 +1,66 @@
 package components
 
 import (
-	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"time"
+    "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 )
 
-type SensorViewModel struct {
-	Active       bool
-	DevEUI       string
-	DeviceID     string
-	Name         string
-	BatteryLevel int
-	LastSeen     time.Time
-	HasAlerts    bool
+script toggleDropdownType() {
+    //Dropdown Typ
+    var dropdownMenuType = document.getElementById("dropdownMenuType");
+    dropdownMenuType.classList.toggle("hidden");
 }
 
-type SensorListViewModel struct {
-	Sensors []SensorViewModel
+script toggleDropdownFillingLevel() {
+    var dropdownMenuFillingLevel = document.getElementById("dropdownMenuFillingLevel");
+    dropdownMenuFillingLevel.classList.toggle("hidden");
 }
 
-templ SearchField(l10n locale.Localizer) {
-	<div class="w-[237px] h-12 flex-col justify-center items-start gap-2 inline-flex">
-		<div class="self-stretch pl-5 pr-4 py-3 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50 justify-start items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600">
-			<div class="w-[22px] h-[22px]">
-				<svg class="w-[22px] h-[22px] fill-[#444450] dark:fill-zinc-600">
-					@templ.Raw(iconSVG("search"))
-				</svg>
-			</div>
-			<div class="grow shrink basis-0 text-[#0A0C0F] text-opacity-30 text-lg font-normal font-sans leading-normal inline-flex">
-				<input
-					class="w-[175px] rounded-xl bg-white dark:bg-gray-800 dark:rounded-none dark:text-white dark:font-normal"
-					type="search"
-					placeholder={ l10n.Get("search") }
-				/>
-			</div>
-		</div>
-	</div>
+script toggleDropdownArea() {
+    var dropdownMenuArea = document.getElementById("dropdownMenuArea");
+    dropdownMenuArea.classList.toggle("hidden");
 }
 
-templ PrimaryButton(title string) {
-	<div class="w-[200px] h-10 pl-[18px] pr-4 py-2 bg-amber-700 rounded-xl justify-center items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600 dark:border-2 cursor-pointer">
-		<div class="flex items-center gap-2">
-			<div class="text-white text-base font-bold font-sans leading-normal">
-				{ title }
-			</div>
-			<div class="w-[18px] h-[18px] flex items-center">
-				<svg class="w-[18px] h-[18px] stroke-white fill-white">
-					@templ.Raw(iconSVG("chevron-down"))
-				</svg>
-			</div>
-		</div>
-	</div>
-}
+    //Stäng om man klickar utanför
+    
 
-templ SecondaryButton(title string) {
-	<div class="w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-[#1C1C284D] border-opacity-30 bg-white bg-opacity-20 dark:bg-gray-800 justify-center items-center gap-2 inline-flex dark:border-zinc-600">
-		<svg class="w-[18px] h-[18px] dark:fill-zinc-600">
-			@templ.Raw(iconSVG("filter"))
-		</svg>
-		<div class="text-[#444450] text-base font-bold font-sans leading-normal dark:text-white">
-			{ title }
-		</div>
-	</div>
-}
+    /*//Dropdown Område                                                                
+    function toggleDropdown() {
+        var dropdownMenu = document.getElementById("dropdownMenu");
+        dropdownMenu.classList.toggle("hidden");
+    }
 
-templ SumOfStuff(l10n locale.Localizer) {
-	<div class="flex items-start gap-10 dark:text-white">
-		<div class="flex items-start gap-2">
-			{ l10n.Get("total") } 
-			<span class="font-bold">1324</span> 
-		</div>
-		<div class="flex items-start gap-2">
-			{ l10n.Get("manyactive") }
-			<span class="font-bold">1300</span>
-		</div>
-		<div class="flex items-start gap-2">
-			{ l10n.Get("manyinactive") }
-			<span class="font-bold">24</span>
-		</div>
-		<div class="flex items-start gap-2">
-			{ l10n.Get("unregistered") }
-			<span class="font-bold">10</span>
-		</div>
-	</div>
-}
+    window.onclick = function(event) {
+        var dropdownButton = document.getElementById("dropdownButton");
+        var dropdownMenu = document.getElementById("dropdownMenu");
+        // Kontrollera om klicket är utanför både knappen och menyn
+        if (!dropdownMenu.contains(event.target) && !dropdownButton.contains(event.target)) {
+            dropdownMenu.classList.add("hidden");
+        }
+    }*/
 
-templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
-	@Table(
-		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("status")), TableHeaderText(l10n.Get("deveui")), TableHeaderText(l10n.Get("batterylevel")), TableHeaderText(l10n.Get("lastseen")), TableHeaderText(l10n.Get("alerts"))),
-		TableData(tableRowsFromSensors(l10n, asset, sensors.Sensors)...),
-		DataTableFooter("7", "sensors"),
-	)
-}
 
-func listMapSwitch(name, icon string) templ.Component {
-
-	/*selectedButtonClass := "bg-black text-white"
-	  selectedIconClass := "fill-white"*/
-
-	defaultButtonClass := "bg-white bg-opacity-95 text-gray-900 text-opacity-90"
-	defaultIconClass := "fill-[#1c1c28] dark:fill-zinc-600"
-
-	buttonClass := defaultButtonClass
-	iconClass := defaultIconClass
-
-	/*if isActive {
-	    buttonClass = selectedButtonClass
-	    iconClass = selectedIconClass
-	}*/
-
-	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-		_, err := io.WriteString(w, fmt.Sprintf(
-			`
-                <button class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer %s"
-                    hx-get={"?selected=%s"}
-                    hx-push-url="true"
-                    hx-vals='{"state":"selected"}'
-                    hx-trigger="click">
-                    <svg class="w-[18px] h-[18px] %s"> 
-                        %s
-                    </svg>
-                    <div class="text-sm font-bold font-sans leading-[18px]">%s</div>
-                </button>
-            `, buttonClass, name, iconClass, icon, name,
-		))
-		return err
-	})
-}
-
-templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
-	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="sensor-view">
-		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
-			<div class="">
-				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
-			</div>
+templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
+    <div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
+        <div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
+			<div class="flex items-center w-full justify-between">
+				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
+                <div class="flex items-center text-white dark:text-[#1F1F25] text-base font-bold font-sans leading-normal">
+                    <button class="w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28F2] bg-opacity-95 dark:bg-[white] rounded-xl flex items-center gap-2 cursor-pointer">
+                        { l10n.Get("addthing") }
+                    </button>
+                </div>
+            </div>
 			@SumOfStuff(l10n)
 		</div>
+
 		<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
-		<div class="flex px-8 flex-col items-start self-stretch gap-10">
+
+        <div class="flex px-8 flex-col items-start self-stretch gap-10">
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
-					@SearchField(l10n)
-					<div class="flex items-center flex-[1_0_0] gap-6">
+                    @SearchField(l10n)
+                    <div class="flex items-center flex-[1_0_0] gap-6">
 						<div class="relative ml-4">
 							<button id="dropdownButtonType" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-[#1c1c2829] hover:rounded-lg" onclick={ toggleDropdownType() }>
 								{ l10n.Get("sensortype") }
@@ -286,57 +203,109 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 								</ul>
 							</div>
                 		</div>
+                        <div class="relative">
+                            <button id="dropdownButtonFillinglevel" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-[#1c1c2829] hover:rounded-lg" onclick={ toggleDropdownFillingLevel() }>
+                                { l10n.Get("fillinglevel") }
+                                <svg class="w-[18px] h-[18px] dark:fill-white">
+                                    @templ.Raw(iconSVG("chevron-down"))
+                                </svg>
+                            </button>
+                            <div id="dropdownMenuFillingLevel" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5 dark:bg-gray-800 dark:text-white">
+                                <div class="rounded-md shadow-lg p-4">
+                                    <div class="flex justify-between gap-4">
+                                        <div class="flex flex-col gap-1">
+                                            <label for="min-value" class="font-bold">Min</label>
+                                            <input type="text" id="min-value" placeholder="0%" class="w-20 border border-[#1C1C2880] rounded-lg p-2 text-sm focus:border-black focus:ring-1 focus:ring-black focus:outline-none" />
+                                        </div>
+                                        
+                                        <div class="flex flex-col gap-1">
+                                            <label for="max-value" class="font-bold">Max</label>
+                                            <input type="text" id="max-value" placeholder="100%" class="w-20 border border-[#1C1C2880] rounded-lg p-2 text-sm focus:border-black focus:ring-1 focus:ring-black focus:outline-none" />
+                                        </div>
+                                    </div>
+                                    <div class="mt-4">
+                                        <input type="range" id="range-slider" name="range-slider" min="0" max="100" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 					</div>
-				</div>
-				//@PrimaryButton("Lägg till sensor")
-				<div class="h-14 flex justify-end items-center self-stretch">
+                </div>
+
+                <div class="h-14 flex justify-end items-center self-stretch">
 					<div id="#list-map" class="w-[200px] h-[42px] p-1.5 bg-[#1C1C281F] bg-opacity-20 rounded-2xl gap-2 justify-end items-center inline-flex">
 						@listMapSwitch("Lista", iconSVG("list"))
 						@listMapSwitch("Karta", iconSVG("map"))
 					</div>
 				</div>
-			</div>
-			<div class="w-full flex flex-col gap-6 items-start inline-flex">
-				
-				<div id="sensors-table" class="w-full">
-					@SensorTable(l10n, asset, sensors)
-				</div>
-			</div>
-		</div>
-	</div>
-}
 
-//HELPERS
-func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, sensors []SensorViewModel) []templ.Component {
-	rows := []templ.Component{}
+            </div>
 
-	labelText := map[bool]string{
-		false: l10n.Get("inactive"),
-		true:  l10n.Get("active"),
-	}
+            <div class="flex flex-col gap-4 w-full">
+                <div class="w-full h-10 justify-items-start inline-flex text-[#1F1F25] dark:text-white gap-3">
+                    <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 dark:border-[#FFFFFF4D] rounded-xl">
+                        Soptunna
+                        <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2 dark:stroke-white">
+                            @templ.Raw(iconSVG("close"))
+                        </svg>
+                    </div>
+                    <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 dark:border-[#FFFFFF4D] rounded-xl">
+                        Centrum
+                        <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2 dark:stroke-white">
+                            @templ.Raw(iconSVG("close"))
+                        </svg>
+                    </div>
+                    <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 dark:border-[#FFFFFF4D] rounded-xl">
+                        Kvissleby
+                        <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2 dark:stroke-white">
+                            @templ.Raw(iconSVG("close"))
+                        </svg>
+                    </div>
+                    <div class="flex items-center justify-start text-left px-6 border-2 border-[#1C1C284D] border-opacity-30 dark:border-[#FFFFFF4D] rounded-xl">
+                        0-70%
+                        <svg class="w-[24px] h-[24px] stroke-[#1F1F25] stroke-2 dark:stroke-white">
+                            @templ.Raw(iconSVG("close"))
+                        </svg>
+                    </div>
+                </div>
+            </div>
 
-	for _, sensor := range sensors {
-		isActive := sensor.Active
+            <div class="w-full flex">    
 
-		cells := []templ.Component{TextFirstCell(sensor.Name)}
-		cells = append(cells, LabelCell(labelText[isActive], isActive))
-		cells = append(cells, TextCell(sensor.DevEUI))
-		//cells = append(cells, TextCell(sensor.net))
-		cells = append(cells, TextCell(fmt.Sprintf("%d", sensor.BatteryLevel)))
-		cells = append(cells, TextCell(sensor.LastSeen.Format(time.RFC3339)))
+                <div class="flex-1 text-center pr-4">
+                    @Table(
+                        HeaderRow(TableHeaderText( l10n.Get("type") ), TableHeaderText( l10n.Get("name") ), TableHeaderText( l10n.Get("status") )),
+                        TableData(
+                            TableRow(
+                                TextCell("Soptunna"), TextCell("Fregattgatan 2"), ProgressBarCell("50"),
+                            ),
+                            TableRow(
+                                TextCell("Livboj"), TextCell("air-sens-7"), LabelCell("På plats", true),
+                            ),
+                            TableRow(
+                                TextCell("Termometer"), TextCell("06076898"), TextCell("27°"),
+                            ),
+                            TableRow(
+                                TextCell("Soptunna"), TextCell("NIAB_lidar_50001c"), ProgressBarCell("10"),
+                            ),
+                            TableRow(
+                                TextCell("Sandficka"), TextCell("EM500_UDL_1"), ProgressBarCell("75"),
+                            ),
+                            TableRow(
+                                TextCell("Avlopp"), TextCell("NIAB_lidar_50001c"), ProgressBarCell("30"),
+                            ),
+                            TableRow(
+                                TextCell("Livboj"), TextCell("NIAB_lidar_50001c"), LabelCell("Saknas", false),
+                            ),
+                        ),
+                        DataTableFooter("3", "things"),
+                    )
+                </div>
 
-		if sensor.HasAlerts {
-			cells = append(cells, Cell(SVG("alert-triangle", Size(24), AlertStyle())))
-		} else {
-			cells = append(cells, TextCell(""))
-		}
-
-		linkUrl := templ.URL(fmt.Sprintf("/components/sensors/details?id=%s",sensor.DeviceID))
-		pushUrl := templ.URL(fmt.Sprintf("/sensors/%s",sensor.DeviceID))
-
-		row := LinkRow(cells, linkUrl, pushUrl, "sensor")
-		rows = append(rows, row)
-	}
-
-	return rows
+                <div class="flex-1 text-center pr-4">
+                    @Map()
+                </div>
+            </div>
+        </div>
+    </div>  
 }

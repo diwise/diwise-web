@@ -323,7 +323,7 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 						//@SectionDivider(l10n.Get("overview"))
 						@MenuSegment(l10n.Get("home"), "/home", SVG("home", SelectedIcon(isCurrent(ctx, "home"))), asset, isCurrent(ctx, "home"))
 						@MenuSegment(l10n.Get("sensors"), "/sensors", SVG("rss", SelectedIcon(isCurrent(ctx, "sensors"))), asset, isCurrent(ctx, "sensors"))
-						@MenuSegment(l10n.Get("objects"), "/objects", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("[#1F1F25]", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "objects"))), asset, isCurrent(ctx, "objects"))
+						@MenuSegment(l10n.Get("things"), "/things", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("[#1F1F25]", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "things"))), asset, isCurrent(ctx, "things"))
 						/*
 						@MenuSegment(l10n.Get("functions"), "/functions", "send-to-back", asset, isCurrent(ctx, "functions"))
 						<div class="self-stretch px-3.5 py-2.5 rounded-xl justify-between items-center inline-flex">
