@@ -52,6 +52,31 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 		w.WriteHeader(http.StatusOK)
 
 		if mode == "edit" {
+			tenants := app.GetTenants(ctx)
+			deviceProfiles := app.GetDeviceProfiles(ctx)
+
+			dp := []components.DeviceProfile{}
+			for _, p := range deviceProfiles {
+				types := []string{}
+				if p.Types != nil {
+					types = *p.Types
+				}
+				dp = append(dp, components.DeviceProfile{
+					Name:     p.Name,
+					Decoder:  p.Decoder,
+					Interval: p.Interval,
+					Types:    types,
+				})
+			}
+			types := []string{}
+			for _, tp := range sensor.Types {
+				types = append(types, tp.URN)
+			}
+
+			detailsViewModel.Organisations = tenants
+			detailsViewModel.DeviceProfiles = dp
+			detailsViewModel.Types = types
+
 			component := components.EditSensorDetails(localizer, assets, detailsViewModel)
 			component.Render(ctx, w)
 			return
@@ -66,7 +91,7 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 
 func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
-	
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "", http.StatusBadRequest)
@@ -85,37 +110,50 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundl
 			return s == "on"
 		}
 
-		asFloat := func(s string) float64 {
+		asFloat := func(s string) (float64, bool) {
 			if f, err := strconv.ParseFloat(s, 64); err == nil {
-				return f
+				return f, true
 			}
-			return 0.0
+			return 0.0, false
 		}
 
 		id := r.Form.Get("id")
-		active := r.Form.Get("active")
-		name := r.Form.Get("name")
-		longitude := r.Form.Get("longitude")
-		latitude := r.Form.Get("latitude")
-		//sensorType := r.Form.Get("sensorType")
-		//measurementType := r.Form["measurementType"]
-		organisation := r.Form.Get("organisation")
-		description := r.Form.Get("description")
 
 		if r.Form.Has("save") {
-			sensor := application.Sensor{
-				DeviceID: id,
-				Active: asBool(active),
-				Name:   name,
-				Tenant: organisation,
-				Location: application.Location{
-					Latitude:  asFloat(latitude),
-					Longitude: asFloat(longitude),
-				},
-				Description: description,
+			fields := make(map[string]any)
+
+			for k := range r.Form {
+				v := r.Form.Get(k)
+
+				if v == "" {
+					continue
+				}
+
+				switch k {
+				case "id":
+					fields["deviceID"] = v
+				case "active":
+					fields[k] = asBool(v)
+				case "longitude":
+					if f, ok := asFloat(v); ok {
+						fields[k] = f
+					}
+				case "latitude":
+					if f, ok := asFloat(v); ok {
+						fields[k] = f
+					}
+				case "sensorType":
+					fields["deviceProfile"] = v
+				case "organisation":
+					fields["tenant"] = v
+				case "measurementType":
+					fields["types"] = r.Form["measurementType"]
+				default:
+					fields[k] = r.Form.Get(k)
+				}
 			}
 
-			err = app.UpdateSensor(ctx, sensor)
+			err = app.UpdateSensor(ctx, id, fields)
 			if err != nil {
 				http.Error(w, "could not update sensor", http.StatusInternalServerError)
 				return
@@ -130,7 +168,7 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundl
 
 func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
-	
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Cache-Control", "no-cache")

@@ -8,7 +8,9 @@ import (
 type SensorService interface {
 	GetSensor(ctx context.Context, id string) (Sensor, error)
 	GetSensors(ctx context.Context, offset, limit int) (SensorResult, error)
-	UpdateSensor(ctx context.Context, sensor Sensor) error
+	UpdateSensor(ctx context.Context, deviceID string, fields map[string]any) error
+	GetTenants(ctx context.Context) []string
+	GetDeviceProfiles(ctx context.Context) []DeviceProfile
 }
 
 type Location struct {
@@ -22,9 +24,10 @@ type Type struct {
 }
 
 type DeviceProfile struct {
-	Name     string `json:"name"`
-	Decoder  string `json:"decoder,omitempty"`
-	Interval int    `json:"interval,omitempty"`
+	Name     string    `json:"name"`
+	Decoder  string    `json:"decoder,omitempty"`
+	Interval int       `json:"interval,omitempty"`
+	Types    *[]string `json:"types,omitempty"`
 }
 
 type DeviceStatus struct {
@@ -46,7 +49,7 @@ type Sensor struct {
 	Name          string         `json:"name,omitempty"`
 	Description   string         `json:"description,omitempty"`
 	Location      Location       `json:"location,omitempty"`
-	Environment   *string         `json:"environment,omitempty"`
+	Environment   *string        `json:"environment,omitempty"`
 	Types         []Type         `json:"types,omitempty"`
 	DeviceProfile *DeviceProfile `json:"deviceProfile,omitempty"`
 	DeviceStatus  *DeviceStatus  `json:"deviceStatus,omitempty"`
