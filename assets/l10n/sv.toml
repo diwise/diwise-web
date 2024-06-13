@@ -108,3 +108,6 @@ other = "Område"
 
 [addthing]
 other = "Lägg till ny sak"
+
+[pickOption]
+other = "Välj ett alternativ"

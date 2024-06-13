@@ -220,7 +220,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
 									<div class="border border-[#0A0C0F] rounded-xl">
 										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
-											{ l10n.Get("Välj ett alternativ") }
+											{ l10n.Get("pickOption") }
 										</label>
 										@OrganisationSelect(l10n, asset, "organisation", sensor.Tenant, sensor.Organisations)
 									</div>
@@ -231,7 +231,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 									<div class="font-bold">{ l10n.Get("sensortype") }</div>
 									<div class="border border-[#0A0C0F] rounded-xl">
 										<label for="sensorType" class="hidden block text-sm font-medium text-gray-700">
-											{ l10n.Get("Välj ett alternativ") }
+											{ l10n.Get("pickOption") }
 										</label>
 										@SensorTypeSelect(l10n, asset, "sensorType", sensor.DeviceProfileName, sensor.DeviceProfiles)
 									</div>
@@ -239,7 +239,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
 									<div class="border border-[#0A0C0F] rounded-xl">
-										<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">Välj ett alternativ</label>
+										<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">{ l10n.Get("pickOption") }</label>
 										@MeasurementTypeSelect(l10n, asset, "measurementType", sensor)
 									</div>
 								</div>
@@ -247,7 +247,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("description") }</div>
-									<textarea type="text" name="description" class="w-full min-h-[150px] border border-[#0A0C0F] font-bold dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="beskrivning">
+									<textarea type="text" name="description" class="w-full min-h-[150px] border border-[#0A0C0F] font-bold dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder={ l10n.Get("description") }>
 										{ sensor.Description }
 									</textarea>
 								</div>

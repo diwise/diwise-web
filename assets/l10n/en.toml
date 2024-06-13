@@ -108,3 +108,6 @@ other = "Area"
 
 [addthing]
 other = "Add new thing"
+
+[pickOption]
+other = "Pick an option"
