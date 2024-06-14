@@ -164,35 +164,6 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 }
 
 templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
-	<script>
-        document.getElementById('sensorType').addEventListener('change', function() {
-            var measurementSelect = document.getElementById('measurementType');
-            var selectedOption = this.value;
-
-            // Aktivera andra dropdown
-            measurementSelect.disabled = false;
-
-            // Exempeldata, dessa kan komma från en server beroende på valt alternativ i första dropdown
-            var options = {
-                'option1': ['Mätning 1-1', 'Mätning 1-2'],
-                'option2': ['Mätning 2-1', 'Mätning 2-2'],
-                'option3': ['Mätning 3-1', 'Mätning 3-2']
-            };
-
-            // Rensa tidigare options
-            measurementSelect.innerHTML = '';
-
-            // Lägg till ett standardalternativ
-            measurementSelect.appendChild(new Option('Välj ett alternativ', ''));
-
-            // Lägg till nya options beroende på första dropdowns val
-            if (options[selectedOption]) {
-                options[selectedOption].forEach(function(measurement) {
-                    measurementSelect.appendChild(new Option(measurement, measurement));
-                });
-            }
-        });
-    </script>
 	<div class="w-full px-8">
 		<div class="flex items-center justify-between w-full">
 			<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
