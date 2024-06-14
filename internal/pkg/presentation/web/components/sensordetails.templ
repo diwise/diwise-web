@@ -244,6 +244,41 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 									</div>
 								</div>
 							</div>
+
+							<div class="flex flex-start gap-10 self-stretch">
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
+									<div class="border border-[#0A0C0F] rounded-xl p-2">
+										<label for="measurementtype" class="hidden block text-sm font-medium text-gray-700">
+											{ l10n.Get("measurementtype") }
+										</label>
+										@MeasurementTypeCheckboxDropdown(l10n, asset, "measurementType", sensor)
+									</div>
+								</div>
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									
+								</div>
+							</div>
+
+							<style>
+								details > summary {
+								list-style: none;
+								cursor: pointer;
+								}
+
+								details > summary::-webkit-details-marker {
+								display: none;
+								}
+
+								.dropdown-content {
+								display: none;
+								}
+
+								details[open] .dropdown-content {
+								display: block;
+								}
+							</style>
+
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("description") }</div>
@@ -445,4 +480,63 @@ templ SelectX(id string, multiple bool, hxGet, hxTarget string, options []Option
 	>
 		@Options(options)
 	</select>
+}
+
+func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
+	viewModel := []OptionViewModel{}
+
+	i := slices.IndexFunc(sensorViewModel.DeviceProfiles, func(p DeviceProfile) bool {
+		return p.Name == sensorViewModel.DeviceProfileName
+	})
+
+	if i < 0 {
+		return CheckboxDropdownList(id, viewModel) 
+	}
+
+	profile := sensorViewModel.DeviceProfiles[i]
+
+	for _, t := range profile.Types {
+		viewModel = append(viewModel, OptionViewModel{
+			Value: t,
+			Text:  t,
+			Selected: slices.ContainsFunc(sensorViewModel.Types, func(s string) bool {
+				return s == t
+			}),
+		})
+	}
+
+	return CheckboxDropdownList(id, viewModel)
+}
+
+templ CheckboxDropdown(option OptionViewModel, name string) {
+	<label for={ option.Value } class="flex items-center justify-between w-full cursor-pointer mb-2">
+		<span class="ml-2 text-gray-700 dark:text-gray-300">{ option.Text }</span>
+		<div class="flex items-center">
+			<input
+				type="checkbox"
+				id={ option.Value }
+				name={ name }
+				value={ option.Value }
+				checked?={ option.Selected }
+				disabled?={ option.Disabled }
+				class="sr-only peer form-checkbox cursor-pointer"
+			/>
+			<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+				<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+					@templ.Raw(iconSVG("check"))
+				</svg>
+			</div>
+		</div>
+	</label>
+}
+
+templ CheckboxDropdownList(id string, options []OptionViewModel) {
+	<details class="dropdown">
+		<summary for={id} class="dropdown-label block text-sm font-medium text-gray-700">Välj</summary>
+		<div class="dropdown-content px-2 pt-2 bg-white">
+			for _, option := range options {
+				@CheckboxDropdown(option, fmt.Sprintf("%s[]", id))
+			} 
+		</div>
+	</details>
 }
