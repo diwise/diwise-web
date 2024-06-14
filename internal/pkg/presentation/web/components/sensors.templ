@@ -69,8 +69,8 @@ templ SecondaryButton(title string) {
 templ SumOfStuff(l10n locale.Localizer) {
 	<div class="flex items-start gap-10 dark:text-white">
 		<div class="flex items-start gap-2">
-			{ l10n.Get("total") } 
-			<span class="font-bold">1324</span> 
+			{ l10n.Get("total") }
+			<span class="font-bold">1324</span>
 		</div>
 		<div class="flex items-start gap-2">
 			{ l10n.Get("manyactive") }
@@ -151,14 +151,13 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 									@templ.Raw(iconSVG("chevron-down"))
 								</svg>
 							</button>
-
 							<div id="dropdownMenuType" class="absolute z-10 hidden bg-[#FAFAFA] rounded-md shadow-lg mt-2.5">
 								<ul class="p-3 space-y-2">
 									<li>
 										<label for="avlopp-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 											<span class="ml-2 text-gray-700 dark:text-gray-300 ">Avlopp</span>
 											<div class="flex items-center">
-												<input type="checkbox" id="avlopp-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="avlopp" />
+												<input type="checkbox" id="avlopp-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="avlopp"/>
 												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
 													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
 														@templ.Raw(iconSVG("check"))
@@ -166,12 +165,12 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 												</div>
 											</div>
 										</label>
-									</li> 
+									</li>
 									<li>
 										<label for="livboj-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 											<span class="ml-2 text-gray-700 dark:text-gray-300">Livboj</span>
 											<div class="flex items-center">
-												<input type="checkbox" id="livboj-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="livboj" />
+												<input type="checkbox" id="livboj-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="livboj"/>
 												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
 													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
 														@templ.Raw(iconSVG("check"))
@@ -179,12 +178,12 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 												</div>
 											</div>
 										</label>
-									</li>                           
+									</li>
 									<li>
 										<label for="sandficka-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 											<span class="ml-2 text-gray-700 dark:text-gray-300">Sandficka</span>
 											<div class="flex items-center">
-												<input type="checkbox" id="sandficka-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="sandficka" />
+												<input type="checkbox" id="sandficka-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="sandficka"/>
 												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
 													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
 														@templ.Raw(iconSVG("check"))
@@ -197,7 +196,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 										<label for="soptunna-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 											<span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Soptunna</span>
 											<div class="flex items-center">
-												<input type="checkbox" id="soptunna-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="soptunna" />
+												<input type="checkbox" id="soptunna-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="soptunna"/>
 												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
 													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
 														@templ.Raw(iconSVG("check"))
@@ -222,7 +221,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 										<label for="bydalen-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 											<span class="ml-2 text-gray-700 dark:text-gray-300">Bydalen</span>
 											<div class="flex items-center">
-												<input type="checkbox" id="bydalen-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="bydalen" />
+												<input type="checkbox" id="bydalen-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="bydalen"/>
 												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
 													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
 														@templ.Raw(iconSVG("check"))
@@ -235,7 +234,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 										<label for="haga-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 											<span class="ml-2 text-gray-700 dark:text-gray-300">Haga</span>
 											<div class="flex items-center">
-												<input type="checkbox" id="haga-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="haga" />
+												<input type="checkbox" id="haga-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="haga"/>
 												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
 													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
 														@templ.Raw(iconSVG("check"))
@@ -248,7 +247,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 										<label for="centrum-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 											<span class="ml-2 text-gray-700 dark:text-gray-300">Centrum</span>
 											<div class="flex items-center">
-												<input type="checkbox" id="centrum-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="centrum" />
+												<input type="checkbox" id="centrum-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="centrum"/>
 												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
 													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
 														@templ.Raw(iconSVG("check"))
@@ -261,7 +260,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 										<label for="östermalm-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 											<span class="ml-2 text-gray-700 dark:text-gray-300">Östermalm</span>
 											<div class="flex items-center">
-												<input type="checkbox" id="östermalm-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="östermalm" />
+												<input type="checkbox" id="östermalm-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="östermalm"/>
 												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
 													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
 														@templ.Raw(iconSVG("check"))
@@ -274,7 +273,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 										<label for="skönsmon-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 											<span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Skönsmon</span>
 											<div class="flex items-center">
-												<input type="checkbox" id="skönsmon-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="skönsmon" />
+												<input type="checkbox" id="skönsmon-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="skönsmon"/>
 												<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
 													<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
 														@templ.Raw(iconSVG("check"))
@@ -285,7 +284,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 									</li>
 								</ul>
 							</div>
-                		</div>
+						</div>
 					</div>
 				</div>
 				//@PrimaryButton("Lägg till sensor")
@@ -297,7 +296,6 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 				</div>
 			</div>
 			<div class="w-full flex flex-col gap-6 items-start inline-flex">
-				
 				<div id="sensors-table" class="w-full">
 					@SensorTable(l10n, asset, sensors)
 				</div>
@@ -322,8 +320,18 @@ func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, senso
 		cells = append(cells, LabelCell(labelText[isActive], isActive))
 		cells = append(cells, TextCell(sensor.DevEUI))
 		//cells = append(cells, TextCell(sensor.net))
-		cells = append(cells, TextCell(fmt.Sprintf("%d", sensor.BatteryLevel)))
-		cells = append(cells, TextCell(sensor.LastSeen.Format(time.RFC3339)))
+
+		if sensor.BatteryLevel >= 0 {
+			cells = append(cells, TextCell(fmt.Sprintf("%d", sensor.BatteryLevel)))
+		} else {
+			cells = append(cells, TextCell("?"))
+		}
+
+		if sensor.LastSeen.IsZero() {
+			cells = append(cells, TextCell(""))
+		} else {
+			cells = append(cells, TextCell(sensor.LastSeen.Format(time.RFC3339)))
+		}
 
 		if sensor.HasAlerts {
 			cells = append(cells, Cell(SVG("alert-triangle", Size(24), AlertStyle())))
@@ -331,8 +339,8 @@ func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, senso
 			cells = append(cells, TextCell(""))
 		}
 
-		linkUrl := templ.URL(fmt.Sprintf("/components/sensors/details?id=%s",sensor.DeviceID))
-		pushUrl := templ.URL(fmt.Sprintf("/sensors/%s",sensor.DeviceID))
+		linkUrl := templ.URL(fmt.Sprintf("/components/sensors/details?id=%s", sensor.DeviceID))
+		pushUrl := templ.URL(fmt.Sprintf("/sensors/%s", sensor.DeviceID))
 
 		row := LinkRow(cells, linkUrl, pushUrl, "sensor")
 		rows = append(rows, row)
