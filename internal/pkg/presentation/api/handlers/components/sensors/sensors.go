@@ -177,7 +177,7 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		page := helpers.UrlParamOrDefault(r, "page", "1")
+		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
 
 		ctx := logging.NewContextWithLogger(r.Context(), log)
@@ -204,7 +204,7 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 
 		ctx = helpers.Decorate(
 			ctx,
-			components.PageIndex, page,
+			components.PageIndex, pageIndex,
 			components.PageLast, sensorResult.TotalRecords/limit,
 			components.PageSize, limit,
 		)

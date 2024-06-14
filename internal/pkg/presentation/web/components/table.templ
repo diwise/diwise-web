@@ -85,17 +85,30 @@ templ DataTableFooter(colspan, tableName string) {
 						<div class="relative inline-flex h-8 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50">
 							<select
 								class="appearance-none outline-none px-3 py-1.5 bg-transparent text-sm font-normal font-sans leading-tight w-full h-full cursor-pointer"
-								onchange="updatePageSize(this.value)"
+								name="pageSize"
 							>
-								<!-- Lägg till en händelsehanterare för att ändra sidstorlek -->
-								@option("10", true)
-								@option("20", false)
-								@option("50", false)
-								@option("100", false)
-								/*<option value="10" selected="true">10</option>
-                                <option value="20" selected="false">20</option>
-                                <option value="50" selected={ctx2str(ctx, PageSize) == "50"}>50</option>
-                                <option value="100" selected={ctx2str(ctx, PageSize) == "100"}>100</option>*/
+								@Options([]OptionViewModel{
+									{
+										Value:    "10",
+										Text:     "10",
+										Selected: true,
+									},
+									{
+										Value:    "20",
+										Text:     "20",
+										Selected: false,
+									},
+									{
+										Value:    "50",
+										Text:     "50",
+										Selected: false,
+									},
+									{
+										Value:    "100",
+										Text:     "100",
+										Selected: false,
+									},
+								})
 							</select>
 							<div class="absolute inset-y-0 right-0 pr-1 flex items-center pointer-events-none">
 								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 text-zinc-700 dark:text-neutral-200">
@@ -103,13 +116,6 @@ templ DataTableFooter(colspan, tableName string) {
 								</svg>
 							</div>
 						</div>
-						<script>
-                            function updatePageSize(size) {
-                                // Implementera logik för att ändra sidstorlek
-                                console.log('Updated page size to:', size);
-                                // Här kan du göra en API-anrop eller uppdatera UI baserat på vald sidstorlek
-                            }
-                        </script>
 					</div>
 					<div class="absolute inset-0 flex justify-center items-center">
 						<button
@@ -138,7 +144,7 @@ templ DataTableFooter(colspan, tableName string) {
 						<button
 							class="p-1.5 rounded-full justify-center items-center gap-1 flex"
 							if !isLastPage(ctx) {
-								hx-get={ fmt.Sprintf("/components/tables/%s?page=%d&limit=%s", tableName, (ctx), ctx2str(ctx, PageSize)) }
+								hx-get={ fmt.Sprintf("/components/tables/%s?page=%d&limit=%s", tableName, nextPage(ctx), ctx2str(ctx, PageSize)) }
 								hx-target={ fmt.Sprintf("#%s-table", tableName) }
 								hx-trigger="click"
 							} else {
@@ -154,8 +160,7 @@ templ DataTableFooter(colspan, tableName string) {
 							</span>
 						</button>
 					</div>
-
-                    //Döljer Radhöjd i tabellfootern
+					//Döljer Radhöjd i tabellfootern
 					/*<div class="h-8 justify-end items-center gap-2 flex">
 						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Radhöjd:</span>
 						<span class="pl-3 pr-2.5 py-2 bg-gray-900 bg-opacity-10 rounded-xl justify-center items-center gap-1 flex">
@@ -243,15 +248,6 @@ func progressBar(data string) templ.Component {
 
 templ LabelCell(label string, active bool) {
 	@Cell(Label(label, active))
-}
-
-templ option(pageSize string, selected bool) {
-	<option
-		value="{pageSize}"
-		if selected {
-			selected
-		}
-	>{ pageSize }</option>
 }
 
 //PAGING

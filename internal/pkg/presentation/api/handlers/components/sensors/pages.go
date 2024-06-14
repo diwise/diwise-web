@@ -17,6 +17,7 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
+		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
 
 		ctx := helpers.Decorate(r.Context(),
@@ -51,7 +52,7 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 
 		ctx = helpers.Decorate(
 			ctx,
-			components.PageIndex, page,
+			components.PageIndex, pageIndex,
 			components.PageLast, sensorResult.TotalRecords/limit,
 			components.PageSize, limit,
 		)
