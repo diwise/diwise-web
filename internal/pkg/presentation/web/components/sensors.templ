@@ -106,10 +106,10 @@ templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors S
 	)
 }
 
-func listMapSwitch(name, icon string) templ.Component {
+func listMapSwitch(name, icon, active string) templ.Component {
 
-	/*selectedButtonClass := "bg-black text-white"
-	  selectedIconClass := "fill-white"*/
+	selectedButtonClass := "bg-black text-white"
+	selectedIconClass := "fill-white"
 
 	defaultButtonClass := "bg-white bg-opacity-95 text-gray-900 text-opacity-90"
 	defaultIconClass := "fill-[#1c1c28] dark:fill-zinc-600"
@@ -117,18 +117,18 @@ func listMapSwitch(name, icon string) templ.Component {
 	buttonClass := defaultButtonClass
 	iconClass := defaultIconClass
 
-	/*if isActive {
+	if active == "Lista" {
 	    buttonClass = selectedButtonClass
 	    iconClass = selectedIconClass
-	}*/
+	} 
 
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		_, err := io.WriteString(w, fmt.Sprintf(
 			`
                 <button class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer %s"
-                    hx-get={"?selected=%s"}
+                    hx-get="/sensors?view=%s"
+					hx-target="#listOrMap"
                     hx-push-url="true"
-                    hx-vals='{"state":"selected"}'
                     hx-trigger="click">
                     <svg class="w-[18px] h-[18px] %s"> 
                         %s
@@ -301,10 +301,13 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 				//@PrimaryButton("Lägg till sensor")
 				<div class="h-14 flex justify-end items-center self-stretch">
 					<div id="#list-map" class="w-[200px] h-[42px] p-1.5 bg-[#1C1C281F] bg-opacity-20 rounded-2xl gap-2 justify-end items-center inline-flex">
-						@listMapSwitch("Lista", iconSVG("list"))
-						@listMapSwitch("Karta", iconSVG("map"))
+						@listMapSwitch("Lista", iconSVG("list"), "Lista")
+						@listMapSwitch("Karta", iconSVG("map"), "Karta")
 					</div>
 				</div>
+			</div>
+			<div id="listOrMap">
+
 			</div>
 			<div class="w-full flex flex-col gap-6 items-start inline-flex">
 				<div id="sensors-table" class="w-full">
