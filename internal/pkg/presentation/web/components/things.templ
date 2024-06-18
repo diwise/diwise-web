@@ -266,40 +266,38 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
 					</div>
 				</div>
 			</div>
-			<div class="w-full flex">
-				<div class="flex-1 text-center pr-4">
-					@Table(
-						HeaderRow(TableHeaderText(l10n.Get("type")), TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("status"))),
-						TableData(
-							TableRow(
-								TextCell("Soptunna"), TextCell("Fregattgatan 2"), ProgressBarCell("50"),
-							),
-							TableRow(
-								TextCell("Livboj"), TextCell("air-sens-7"), LabelCell("På plats", true),
-							),
-							TableRow(
-								TextCell("Termometer"), TextCell("06076898"), TextCell("27°"),
-							),
-							TableRow(
-								TextCell("Soptunna"), TextCell("NIAB_lidar_50001c"), ProgressBarCell("10"),
-							),
-							TableRow(
-								TextCell("Sandficka"), TextCell("EM500_UDL_1"), ProgressBarCell("75"),
-							),
-							TableRow(
-								TextCell("Avlopp"), TextCell("NIAB_lidar_50001c"), ProgressBarCell("30"),
-							),
-							TableRow(
-								TextCell("Livboj"), TextCell("NIAB_lidar_50001c"), LabelCell("Saknas", false),
-							),
-						),
-						DataTableFooter("3", "things"),
-					)
-				</div>
-				<div class="flex-1 text-center pr-4">
-					@Map()
-				</div>
-			</div>
+			<div class="w-full flex-1 text-center pr-4">
+                @Table(
+                    HeaderRow(TableHeaderText(l10n.Get("type")), TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("status"))),
+                    TableData(
+                        TableRow(
+                            TextCell("Soptunna"), TextCell("Fregattgatan 2"), ProgressBarCell("50"),
+                        ),
+                        TableRow(
+                            TextCell("Livboj"), TextCell("air-sens-7"), LabelCell("På plats", true),
+                        ),
+                        TableRow(
+                            TextCell("Termometer"), TextCell("06076898"), TextCell("27°"),
+                        ),
+                        TableRow(
+                            TextCell("Soptunna"), TextCell("NIAB_lidar_50001c"), ProgressBarCell("10"),
+                        ),
+                        TableRow(
+                            TextCell("Sandficka"), TextCell("EM500_UDL_1"), ProgressBarCell("75"),
+                        ),
+                        TableRow(
+                            TextCell("Avlopp"), TextCell("NIAB_lidar_50001c"), ProgressBarCell("30"),
+                        ),
+                        TableRow(
+                            TextCell("Livboj"), TextCell("NIAB_lidar_50001c"), LabelCell("Saknas", false),
+                        ),
+                    ),
+                    DataTableFooter("3", "things"),
+                )
+            </div>
+            <div class="w-full flex-1 text-center pr-4">
+                @Map()
+            </div>
 		</div>
 	</div>
 }
