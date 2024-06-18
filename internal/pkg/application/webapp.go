@@ -104,7 +104,7 @@ func (a *App) GetTenants(ctx context.Context) []string {
 }
 
 func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
-	key := "/admin/deviceProfiles"
+	key := "/admin/deviceprofiles"
 	if d, ok := a.cache.Get(key); ok {
 		return d.([]DeviceProfile)
 	}
