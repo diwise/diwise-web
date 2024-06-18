@@ -13,7 +13,7 @@ import (
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
-func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
@@ -54,10 +54,10 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 					Types:    types,
 				})
 			}
-	
+
 			detailsViewModel.Organisations = tenants
 			detailsViewModel.DeviceProfiles = dp
-			
+
 			component := components.EditSensorDetails(localizer, assets, *detailsViewModel)
 			component.Render(ctx, w)
 			return
@@ -70,7 +70,7 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 	return http.HandlerFunc(fn)
 }
 
-func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -147,7 +147,7 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundl
 	return http.HandlerFunc(fn)
 }
 
-func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {

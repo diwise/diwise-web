@@ -274,12 +274,16 @@ templ Badge(count string) {
 	</div>
 }
 
-templ OverviewCard(title, count string, icon templ.Component, asset assets.AssetLoaderFunc) {
+templ OverviewCard(title string, count int, icon templ.Component, asset assets.AssetLoaderFunc) {
 	<div class="relative px-6 pt-2.5 pb-2 bg-white dark:bg-gray-800 rounded-[15px] shadow flex-col justify-start items-start gap-[7px] inline-flex">
 		<div class="flex flex-col justify-center items-start gap-4">
 			@icon
 			<div class="text-neutral-800 dark:text-neutral-200 text-[32px] font-bold font-heading leading-10">
-				{ count }
+				if count > 0 {
+					{ fmt.Sprintf("%d", count) }
+				} else {
+					{ "-" }
+				}
 			</div>
 		</div>
 		<div class="text-zinc-700 dark:text-zinc-200 text-lg font-normal font-sans leading-relaxed">

@@ -17,8 +17,17 @@ type SensorViewModel struct {
 	HasAlerts    bool
 }
 
+type StatisticsViewModel struct {
+	Total    int
+	Active   int
+	Inactive int
+	Online   int
+	Unknown  int
+}
+
 type SensorListViewModel struct {
 	Sensors []SensorViewModel
+	Statistics StatisticsViewModel
 }
 
 templ SearchField(l10n locale.Localizer) {
@@ -66,23 +75,25 @@ templ SecondaryButton(title string) {
 	</div>
 }
 
-templ SumOfStuff(l10n locale.Localizer) {
+
+
+templ SumOfStuff(l10n locale.Localizer, stats StatisticsViewModel) {
 	<div class="flex items-start gap-10 dark:text-white">
 		<div class="flex items-start gap-2">
 			{ l10n.Get("total") }
-			<span class="font-bold">1324</span>
+			<span class="font-bold">{ fmt.Sprintf("%d", stats.Total) }</span>
 		</div>
 		<div class="flex items-start gap-2">
 			{ l10n.Get("manyactive") }
-			<span class="font-bold">1300</span>
+			<span class="font-bold">{ fmt.Sprintf("%d", stats.Active) }</span>
 		</div>
 		<div class="flex items-start gap-2">
 			{ l10n.Get("manyinactive") }
-			<span class="font-bold">24</span>
+			<span class="font-bold">{ fmt.Sprintf("%d", stats.Inactive) }</span>
 		</div>
 		<div class="flex items-start gap-2">
 			{ l10n.Get("unregistered") }
-			<span class="font-bold">10</span>
+			<span class="font-bold">{ fmt.Sprintf("%d", stats.Unknown) }</span>
 		</div>
 	</div>
 }
@@ -136,7 +147,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 			<div class="">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
 			</div>
-			@SumOfStuff(l10n)
+			@SumOfStuff(l10n, sensors.Statistics)
 		</div>
 		<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
 		<div class="flex px-8 flex-col items-start self-stretch gap-10">

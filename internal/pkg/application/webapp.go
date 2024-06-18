@@ -111,6 +111,30 @@ func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
 	return deviceProfiles
 }
 
+func (a *App) GetStatistics(ctx context.Context) Statistics {
+	q := url.Values{}
+	q.Add("limit", "1")
+
+	total, _ := a.get(ctx, a.deviceManagementURL, "", q)
+
+	q.Add("q", "%7B%20%22deviceState%22%3A%7B%22online%22%3Atrue%7D%7D%0A")
+	online, _ := a.get(ctx, a.deviceManagementURL, "", q)
+
+	q.Set("q", "%7B%22active%22%3Atrue%7D%0A")
+	active, _ := a.get(ctx, a.deviceManagementURL, "", q)
+
+	q.Set("q", "%7B%22deviceProfile%22%3A%20%7B%22name%22%3A%20%22unknown%22%7D%7D")
+	unknown, _ := a.get(ctx, a.deviceManagementURL, "", q)
+
+	return Statistics{
+		Total:    int(total.Meta.TotalRecords),
+		Online:   int(online.Meta.TotalRecords),
+		Active:   int(active.Meta.TotalRecords),
+		Inactive: int(total.Meta.TotalRecords - active.Meta.TotalRecords),
+		Unknown:  int(unknown.Meta.TotalRecords),
+	}
+}
+
 func (a *App) patch(ctx context.Context, baseUrl, sensorID string, body []byte) error {
 	log := logging.GetFromContext(ctx)
 

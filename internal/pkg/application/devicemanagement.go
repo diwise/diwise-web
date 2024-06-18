@@ -5,12 +5,21 @@ import (
 	"time"
 )
 
-type SensorService interface {
+type DeviceManagement interface {
 	GetSensor(ctx context.Context, id string) (Sensor, error)
 	GetSensors(ctx context.Context, offset, limit int) (SensorResult, error)
 	UpdateSensor(ctx context.Context, deviceID string, fields map[string]any) error
 	GetTenants(ctx context.Context) []string
 	GetDeviceProfiles(ctx context.Context) []DeviceProfile
+	GetStatistics(ctx context.Context) Statistics
+}
+
+type Statistics struct {
+	Total    int `json:"total"`
+	Active   int `json:"active"`
+	Inactive int `json:"inactive"`
+	Online   int `json:"online"`
+	Unknown  int `json:"unknown"`
 }
 
 type Location struct {

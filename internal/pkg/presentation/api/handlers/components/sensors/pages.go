@@ -11,7 +11,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 )
 
-func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +30,17 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 			return
 		}
 
-		listViewModel := components.SensorListViewModel{}
+		sumOfStuff := app.GetStatistics(ctx)
+
+		listViewModel := components.SensorListViewModel{
+			Statistics: components.StatisticsViewModel{
+				Total:    sumOfStuff.Total,
+				Active:   sumOfStuff.Active,
+				Inactive: sumOfStuff.Inactive,
+				Online:   sumOfStuff.Online,
+				Unknown:  sumOfStuff.Unknown,
+			},
+		}
 		for _, sensor := range sensorResult.Sensors {
 			listViewModel.Sensors = append(listViewModel.Sensors, components.SensorViewModel{
 				Active:       sensor.Active,
@@ -68,7 +78,7 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 	return http.HandlerFunc(fn)
 }
 
-func composeViewModel(ctx context.Context, id string, app application.SensorService) (*components.SensorDetailsViewModel, error) {
+func composeViewModel(ctx context.Context, id string, app application.DeviceManagement) (*components.SensorDetailsViewModel, error) {
 	sensor, err := app.GetSensor(ctx, id)
 	if err != nil {
 		return nil, err
@@ -95,7 +105,7 @@ func composeViewModel(ctx context.Context, id string, app application.SensorServ
 	for _, tp := range sensor.Types {
 		types = append(types, tp.URN)
 	}
-	
+
 	detailsViewModel := components.SensorDetailsViewModel{
 		DeviceID:          sensor.DeviceID,
 		Name:              sensor.Name,
@@ -112,7 +122,7 @@ func composeViewModel(ctx context.Context, id string, app application.SensorServ
 	return &detailsViewModel, nil
 }
 
-func NewSensorDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+func NewSensorDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {

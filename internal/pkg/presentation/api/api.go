@@ -118,6 +118,7 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	r.HandleFunc("GET /sensors", sensors.NewSensorListPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /sensors/{id}", sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
 
+	r.HandleFunc("GET /components/home/statistics",RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /components/sensors/details", RequireHX(sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("POST /components/sensors/details", sensors.NewSaveSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /components/tables/sensors", RequireHX(sensors.NewTableSensorsComponentHandler(ctx, l10n, assetLoader.Load, app)))
