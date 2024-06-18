@@ -17,7 +17,7 @@ templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
 		<div class="grid grid-cols-4 gap-8">
 			<div class="col-span-2">
 				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">Översikt</h1>
-				<div hx-get="/components/home/statistics" hx-trigger="every 60s" class="grid grid-cols-2 gap-10">
+				<div hx-get="/components/home/statistics" hx-trigger="load every 60s" class="grid grid-cols-2 gap-10">
 					@OverviewCards(localizer, asset, StatisticsViewModel{})
 				</div>
 			</div>
