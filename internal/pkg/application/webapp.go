@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/service-chassis/pkg/infrastructure/env"
@@ -21,14 +22,20 @@ import (
 type App struct {
 	deviceManagementURL string
 	adminURL            string
+	cache               *Cache
 }
 
 func New(ctx context.Context) (*App, error) {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
 	adminURL := strings.Replace(env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices"), "devices", "admin", 1)
+
+	c := NewCache()
+	c.Cleanup(60 * time.Second)
+
 	return &App{
 		deviceManagementURL: deviceManagementURL,
 		adminURL:            adminURL,
+		cache:               c,
 	}, nil
 }
 
@@ -97,6 +104,11 @@ func (a *App) GetTenants(ctx context.Context) []string {
 }
 
 func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
+	key := "/admin/deviceProfiles"
+	if d, ok := a.cache.Get(key); ok {
+		return d.([]DeviceProfile)
+	}
+
 	res, err := a.get(ctx, a.adminURL, "deviceprofiles", url.Values{})
 	if err != nil {
 		return []DeviceProfile{}
@@ -108,10 +120,17 @@ func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
 		return []DeviceProfile{}
 	}
 
+	a.cache.Set(key, deviceProfiles, 600*time.Second)
+
 	return deviceProfiles
 }
 
 func (a *App) GetStatistics(ctx context.Context) Statistics {
+	key := "/admin/statistics"
+	if s, ok := a.cache.Get(key); ok {
+		return s.(Statistics)
+	}
+
 	q := url.Values{}
 	q.Add("limit", "1")
 
@@ -126,13 +145,17 @@ func (a *App) GetStatistics(ctx context.Context) Statistics {
 	q.Set("q", "%7B%22deviceProfile%22%3A%20%7B%22name%22%3A%20%22unknown%22%7D%7D")
 	unknown, _ := a.get(ctx, a.deviceManagementURL, "", q)
 
-	return Statistics{
+	s := Statistics{
 		Total:    int(total.Meta.TotalRecords),
 		Online:   int(online.Meta.TotalRecords),
 		Active:   int(active.Meta.TotalRecords),
 		Inactive: int(total.Meta.TotalRecords - active.Meta.TotalRecords),
 		Unknown:  int(unknown.Meta.TotalRecords),
 	}
+
+	a.cache.Set(key, s, 600*time.Second)
+
+	return s
 }
 
 func (a *App) patch(ctx context.Context, baseUrl, sensorID string, body []byte) error {
