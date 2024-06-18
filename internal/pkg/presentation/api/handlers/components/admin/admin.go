@@ -31,25 +31,18 @@ func NewMeasurementTypesComponentHandler(ctx context.Context, l10n locale.Bundle
 
 		profile := deviceProfiles[i]
 
-		options := []components.OptionViewModel{
-			{
-				Value:    "",
-				Text:     localizer.Get("-- välj --"),
-				Selected: true,
-				Hidden:   true,
-				Disabled: true,
-			},
-		}
+		options := []components.OptionViewModel{}
 
 		for _, t := range *profile.Types {
 			options = append(options, components.OptionViewModel{
 				Value:    t,
-				Text:     t,
+				Text:     localizer.Get(t),
+				Name:     "measurementType[]",
 				Selected: t == sensorType,
 			})
 		}
 
-		component := components.Options(options)
+		component := components.OptionCheckboxes(options)
 		component.Render(ctx, w)
 	}
 

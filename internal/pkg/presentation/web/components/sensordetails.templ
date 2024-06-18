@@ -207,6 +207,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 										@SensorTypeSelect(l10n, asset, "sensorType", sensor.DeviceProfileName, sensor.DeviceProfiles)
 									</div>
 								</div>
+								<!--
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
 									<div class="border border-[#0A0C0F] rounded-xl">
@@ -214,24 +215,20 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 										@MeasurementTypeSelect(l10n, asset, "measurementType", sensor)
 									</div>
 								</div>
-							</div>
-
-							<div class="flex flex-start gap-10 self-stretch">
-								<div class="flex flex-col gap-2 flex-[1_0_0]">
-									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
-									<div class="border border-[#0A0C0F] rounded-xl p-2">
-										<label for="measurementtype" class="hidden block text-sm font-medium text-gray-700">
-											{ l10n.Get("measurementtype") }
-										</label>
-										@MeasurementTypeCheckboxDropdown(l10n, asset, "measurementType", sensor)
+								-->
+								<div class="flex flex-start gap-10 self-stretch">
+									<div class="flex flex-col gap-2 flex-[1_0_0]">
+										<div class="font-bold">{ l10n.Get("measurementtype") }</div>
+										<div class="border border-[#0A0C0F] rounded-xl p-2">
+											<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">
+												{ l10n.Get("measurementtype") }
+											</label>
+											@MeasurementTypeCheckboxDropdown(l10n, asset, "measurementType", sensor)
+										</div>
 									</div>
+									<div class="flex flex-col gap-2 flex-[1_0_0]"></div>
 								</div>
-								<div class="flex flex-col gap-2 flex-[1_0_0]">
-									
-								</div>
-							</div>
-
-							<style>
+								<style>
 								details > summary {
 								list-style: none;
 								cursor: pointer;
@@ -249,7 +246,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 								display: block;
 								}
 							</style>
-
+							</div>
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("description") }</div>
@@ -340,14 +337,6 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 	</div>
 }
 
-type OptionViewModel struct {
-	Value    string
-	Text     string
-	Selected bool
-	Hidden   bool
-	Disabled bool
-}
-
 func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
 	viewModel := []OptionViewModel{
 		{
@@ -364,7 +353,7 @@ func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 	})
 
 	if i < 0 {
-		return SelectX(id, true, "", "", viewModel)
+		return Select(id, true, "", "", viewModel)
 	}
 
 	profile := sensorViewModel.DeviceProfiles[i]
@@ -379,7 +368,7 @@ func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 		})
 	}
 
-	return SelectX(id, true, "", "", viewModel)
+	return Select(id, true, "", "", viewModel)
 }
 
 func SensorTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, profiles []DeviceProfile) templ.Component {
@@ -401,7 +390,7 @@ func SensorTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, s
 		})
 	}
 
-	return SelectX(id, false, "/components/admin/types", "#measurementType", viewModel)
+	return Select(id, false, "/components/admin/types", "#measurementType", viewModel)
 }
 
 func OrganisationSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, organisations []string) templ.Component {
@@ -423,34 +412,7 @@ func OrganisationSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id,
 		})
 	}
 
-	return SelectX(id, false, "", "", viewModel)
-}
-
-templ Option(option OptionViewModel) {
-	<option value={ option.Value } selected?={ option.Selected } hidden?={ option.Hidden } disabled?={ option.Disabled }>{ option.Text }</option>
-}
-
-templ Options(options []OptionViewModel) {
-	for _, option := range options {
-		@Option(option)
-	}
-}
-
-templ SelectX(id string, multiple bool, hxGet, hxTarget string, options []OptionViewModel) {
-	<select
-		id={ id }
-		name={ id }
-		if hxGet != "" {
-			hx-get={ hxGet }
-		}
-		if hxTarget != "" {
-			hx-target={ hxTarget }
-		}
-		class="cursor-pointer block w-full pl-3 pr-3 py-2 text-base dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
-		multiple?={ multiple }
-	>
-		@Options(options)
-	</select>
+	return Select(id, false, "", "", viewModel)
 }
 
 func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
@@ -461,7 +423,7 @@ func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLo
 	})
 
 	if i < 0 {
-		return CheckboxDropdownList(id, viewModel) 
+		return CheckboxDropdownList(id, viewModel)
 	}
 
 	profile := sensorViewModel.DeviceProfiles[i]
@@ -470,6 +432,7 @@ func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLo
 		viewModel = append(viewModel, OptionViewModel{
 			Value: t,
 			Text:  t,
+			Name:  id + "[]",
 			Selected: slices.ContainsFunc(sensorViewModel.Types, func(s string) bool {
 				return s == t
 			}),
@@ -477,37 +440,4 @@ func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLo
 	}
 
 	return CheckboxDropdownList(id, viewModel)
-}
-
-templ CheckboxDropdown(option OptionViewModel, name string) {
-	<label for={ option.Value } class="flex items-center justify-between w-full cursor-pointer mb-2">
-		<span class="ml-2 text-gray-700 dark:text-gray-300">{ option.Text }</span>
-		<div class="flex items-center">
-			<input
-				type="checkbox"
-				id={ option.Value }
-				name={ name }
-				value={ option.Value }
-				checked?={ option.Selected }
-				disabled?={ option.Disabled }
-				class="sr-only peer form-checkbox cursor-pointer"
-			/>
-			<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-				<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-					@templ.Raw(iconSVG("check"))
-				</svg>
-			</div>
-		</div>
-	</label>
-}
-
-templ CheckboxDropdownList(id string, options []OptionViewModel) {
-	<details class="dropdown">
-		<summary for={id} class="dropdown-label block text-sm font-medium text-gray-700">Välj</summary>
-		<div class="dropdown-content px-2 pt-2 bg-white">
-			for _, option := range options {
-				@CheckboxDropdown(option, fmt.Sprintf("%s[]", id))
-			} 
-		</div>
-	</details>
 }
