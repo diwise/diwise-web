@@ -37,7 +37,7 @@ func NewMeasurementTypesComponentHandler(ctx context.Context, l10n locale.Bundle
 			options = append(options, components.OptionViewModel{
 				Value:    t,
 				Text:     localizer.Get(t),
-				Name:     "measurementType[]",
+				Name:     "measurementType-option[]",
 				Selected: t == sensorType,
 			})
 		}

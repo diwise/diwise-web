@@ -432,7 +432,7 @@ func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLo
 		viewModel = append(viewModel, OptionViewModel{
 			Value: t,
 			Text:  t,
-			Name:  id + "[]",
+			Name:  id + "-option[]",
 			Selected: slices.ContainsFunc(sensorViewModel.Types, func(s string) bool {
 				return s == t
 			}),

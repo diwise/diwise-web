@@ -127,8 +127,8 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundl
 					fields["deviceProfile"] = v
 				case "organisation":
 					fields["tenant"] = v
-				case "measurementType":
-					fields["types"] = r.Form["measurementType"]
+				case "measurementType-option[]":
+					fields["types"] = r.Form[k]
 				default:
 					fields[k] = r.Form.Get(k)
 				}
