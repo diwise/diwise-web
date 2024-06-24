@@ -52,6 +52,9 @@ other = "Inactive"
 [unregistered]
 other = "Unregistered"
 
+[thingtype]
+other = "Type of thing"
+
 [sensortype]
 other = "Type of sensor"
 

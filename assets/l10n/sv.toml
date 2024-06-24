@@ -52,6 +52,9 @@ other = "Inaktiv"
 [unregistered]
 other = "Oregistrerade"
 
+[thingtype]
+other = "Typ av sak"
+
 [sensortype]
 other = "Sensortyp"
 
