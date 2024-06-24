@@ -248,6 +248,8 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 		Transport: otelhttp.NewTransport(&transport),
 	}
 
+	//logging.GetFromContext(ctx).Info("getting data", "url", u.String(), "token", token)
+
 	resp, err := client.Do(req)
 	if err != nil {
 		err = fmt.Errorf("failed to retrieve information: %w", err)
