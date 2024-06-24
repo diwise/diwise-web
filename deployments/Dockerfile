@@ -9,7 +9,7 @@ ARG BUILDARCH
 
 RUN echo $BUILDARCH
 
-RUN curl --fail -sL "https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.3/tailwindcss-linux-$BUILDARCH" -o tailwindcss
+RUN curl --fail -sL "https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.4/tailwindcss-linux-$BUILDARCH" -o tailwindcss
 RUN chmod +x tailwindcss
 
 COPY go.mod .

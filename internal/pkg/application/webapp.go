@@ -134,23 +134,30 @@ func (a *App) GetStatistics(ctx context.Context) Statistics {
 	q := url.Values{}
 	q.Add("limit", "1")
 
-	total, _ := a.get(ctx, a.deviceManagementURL, "", q)
+	s := Statistics{}
+
+	total, err := a.get(ctx, a.deviceManagementURL, "", q)
+	if err == nil {
+		s.Total = int(total.Meta.TotalRecords)
+	}
 
 	q.Add("q", "%7B%20%22deviceState%22%3A%7B%22online%22%3Atrue%7D%7D%0A")
-	online, _ := a.get(ctx, a.deviceManagementURL, "", q)
+	online, err := a.get(ctx, a.deviceManagementURL, "", q)
+	if err == nil {
+		s.Online = int(online.Meta.TotalRecords)
+	}
 
 	q.Set("q", "%7B%22active%22%3Atrue%7D%0A")
-	active, _ := a.get(ctx, a.deviceManagementURL, "", q)
+	active, err := a.get(ctx, a.deviceManagementURL, "", q)
+	if err == nil {
+		s.Active = int(active.Meta.TotalRecords)
+	}
 
 	q.Set("q", "%7B%22deviceProfile%22%3A%20%7B%22name%22%3A%20%22unknown%22%7D%7D")
-	unknown, _ := a.get(ctx, a.deviceManagementURL, "", q)
-
-	s := Statistics{
-		Total:    int(total.Meta.TotalRecords),
-		Online:   int(online.Meta.TotalRecords),
-		Active:   int(active.Meta.TotalRecords),
-		Inactive: int(total.Meta.TotalRecords - active.Meta.TotalRecords),
-		Unknown:  int(unknown.Meta.TotalRecords),
+	unknown, err := a.get(ctx, a.deviceManagementURL, "", q)
+	if err == nil {
+		s.Inactive = int(total.Meta.TotalRecords - active.Meta.TotalRecords)
+		s.Unknown = int(unknown.Meta.TotalRecords)
 	}
 
 	a.cache.Set(key, s, 600*time.Second)
@@ -241,6 +248,8 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 		Transport: otelhttp.NewTransport(&transport),
 	}
 
+	//logging.GetFromContext(ctx).Info("getting data", "url", u.String(), "token", token)
+
 	resp, err := client.Do(req)
 	if err != nil {
 		err = fmt.Errorf("failed to retrieve information: %w", err)
@@ -253,7 +262,7 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 		return nil, err
 	}
 
-	if resp.StatusCode > http.StatusIMUsed {
+	if resp.StatusCode >= http.StatusBadRequest {
 		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
 		return nil, err
 	}
