@@ -179,9 +179,6 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 	<div class="w-full px-8">
 		<div class="flex items-center justify-between w-full">
 			<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { sensor.Name }</h1>
-			/*if sensor.Name == "" {
-				<h1 class="py-2">&nbsp;</h1>
-			}*/
 		</div>
 		<form action="/components/sensors/details" method="post">
 			<input type="hidden" name="id" value={ sensor.DeviceID }/>

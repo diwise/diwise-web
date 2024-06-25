@@ -21,12 +21,12 @@ func newMapData(lat, lon float64) mapData {
 templ Map(data mapData) {
     <div id="map" class="h-96 w-full" map-data={ templ.JSONString(data) }></div>
 
-    <div>
+    /*<div>
         <input type="checkbox" class="map-checkbox" id="showTrashcan" checked /> Soptunna <br />
         <input type="checkbox" class="map-checkbox" id="showLifebuoy" checked /> Livboj <br />
         <input type="checkbox" class="map-checkbox" id="showThermometer" checked /> Termometer <br />
         <input type="checkbox" class="map-checkbox" id="showDrain" checked /> Avlopp
-    </div>
+    </div>*/
 
     <script>
     (() => {
