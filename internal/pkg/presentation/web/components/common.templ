@@ -21,20 +21,28 @@ templ Options(options []OptionViewModel) {
 }
 
 templ Select(id string, multiple bool, hxGet, hxTarget string, options []OptionViewModel) {
-	<select
-		id={ id }
-		name={ id }
-		if hxGet != "" {
-			hx-get={ hxGet }
-		}
-		if hxTarget != "" {
-			hx-target={ hxTarget }
-		}
-		class="cursor-pointer block w-full pl-3 pr-3 py-2 text-base dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
-		multiple?={ multiple }
-	>
-		@Options(options)
-	</select>
+	<div class="relative inline-block w-full">
+		<select
+			id={ id }
+			name={ id }
+			if hxGet != "" {
+				hx-get={ hxGet }
+			}
+			if hxTarget != "" {
+				hx-target={ hxTarget }
+			}
+			class="appearance-none cursor-pointer block w-full pl-3 pr-3 py-2 text-base dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
+			multiple?={ multiple }
+		>
+			@Options(options)
+		</select>
+		<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+			<svg class="w-[18px] h-[18px] dark:fill-white">
+				@templ.Raw(iconSVG("chevron-down"))
+			</svg>
+		</div>
+	</div>
+
 }
 
 

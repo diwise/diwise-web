@@ -313,7 +313,7 @@ func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
-			Text:     l10n.Get("-- välj --"),
+			Text:     l10n.Get("choose"),
 			Selected: true,
 			Hidden:   true,
 			Disabled: true,
@@ -347,7 +347,7 @@ func SensorTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, s
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
-			Text:     l10n.Get("-- välj --"),
+			Text:     l10n.Get("choose"),
 			Selected: true,
 			Hidden:   true,
 			Disabled: true,
@@ -369,7 +369,7 @@ func OrganisationSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id,
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
-			Text:     l10n.Get("-- välj --"),
+			Text:     l10n.Get("choose"),
 			Selected: true,
 			Hidden:   true,
 			Disabled: true,
@@ -395,7 +395,7 @@ func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLo
 	})
 
 	if i < 0 {
-		return CheckboxDropdownList(id, viewModel, l10n.Get("pickMeasurementtype"))
+		return CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
 	}
 
 	profile := sensorViewModel.DeviceProfiles[i]
@@ -411,5 +411,5 @@ func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLo
 		})
 	}
 
-	return CheckboxDropdownList(id, viewModel, l10n.Get("pickMeasurementtype"))
+	return CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
 }

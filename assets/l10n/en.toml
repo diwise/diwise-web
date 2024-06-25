@@ -61,8 +61,11 @@ other = "Type of sensor"
 [measurementtype]
 other = "Measurement type"
 
-[pickMeasurementtype]
+[chooseMeasurementtype]
 other = "Pick measurement type"
+
+[choose]
+other = "Choose"
 
 [edit]
 other = "Edit"

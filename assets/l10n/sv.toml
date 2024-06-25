@@ -61,8 +61,11 @@ other = "Sensortyp"
 [measurementtype]
 other = "Mättyp"
 
-[pickMeasurementtype]
+[chooseMeasurementtype]
 other = "Ange mättyp"
+
+[choose]
+other = "Välj"
 
 [edit]
 other = "Redigera"
