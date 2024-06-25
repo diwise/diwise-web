@@ -223,6 +223,8 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 
 	token := authz.Token(ctx)
 
+	fmt.Println(token)
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		err = fmt.Errorf("failed to create http request: %w", err)

@@ -9,7 +9,6 @@ type OptionViewModel struct {
 	Disabled bool
 }
 
-
 templ Option(option OptionViewModel) {
 	<option value={ option.Value } selected?={ option.Selected } hidden?={ option.Hidden } disabled?={ option.Disabled }>{ option.Text }</option>
 }
@@ -36,7 +35,6 @@ templ Select(id string, multiple bool, hxGet, hxTarget string, options []OptionV
 		@Options(options)
 	</select>
 }
-
 
 templ OptionCheckbox(option OptionViewModel) {
 	<label for={ option.Value } class="flex items-center justify-between w-full cursor-pointer mb-2">
@@ -73,4 +71,18 @@ templ CheckboxDropdownList(id string, options []OptionViewModel) {
 			@OptionCheckboxes(options)
 		</div>
 	</details>
+}
+
+templ Span(cssClass string, content templ.Component) {
+	<span
+		if cssClass != "" {
+			class={ cssClass }
+		}
+	>@content</span>
+}
+
+templ ComposeComponents(components ...templ.Component) {
+	for _, component := range components {
+		@component
+	}
 }

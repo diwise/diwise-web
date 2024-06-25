@@ -26,7 +26,7 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 		mode := r.URL.Query().Get("mode")
 		ctx := r.Context()
 
-		detailsViewModel, err := composeViewModel(ctx, id, app)
+		detailsViewModel, err := composeSensorDetailsViewModel(ctx, id, app)
 		if err != nil {
 			http.Error(w, "could not compose view model", http.StatusInternalServerError)
 			return
@@ -163,34 +163,23 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 
 		ctx := logging.NewContextWithLogger(r.Context(), log)
 
-		sensorResult, err := app.GetSensors(ctx, offset, limit)
+		i, _ := strconv.Atoi(pageIndex)
+		listViewModel, err := composeSensorListViewModel(ctx, offset, limit, i, app)
 		if err != nil {
-			http.Error(w, "could not fetch sensors", http.StatusBadRequest)
+			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
 			return
 		}
 
-		listViewModel := components.SensorListViewModel{}
-
-		for _, sensor := range sensorResult.Sensors {
-			listViewModel.Sensors = append(listViewModel.Sensors, components.SensorViewModel{
-				Active:       sensor.Active,
-				DevEUI:       sensor.SensorID,
-				DeviceID:     sensor.DeviceID,
-				Name:         sensor.Name,
-				BatteryLevel: sensor.DeviceStatus.BatteryLevel,
-				LastSeen:     sensor.DeviceState.ObservedAt,
-				HasAlerts:    false, //TODO: fix this
-			})
-		}
+		listViewModel.Meta.RawQuery = r.URL.RawQuery
 
 		ctx = helpers.Decorate(
 			ctx,
 			components.PageIndex, pageIndex,
-			components.PageLast, sensorResult.TotalRecords/limit,
-			components.PageSize, limit,
+			components.PageLast, listViewModel.Meta.TotalRecords/listViewModel.Meta.Limit,
+			components.PageSize, listViewModel.Meta.Limit,
 		)
 
-		component := components.SensorTable(localizer, assets, listViewModel)
+		component := components.SensorList(localizer, assets, *listViewModel)
 		component.Render(ctx, w)
 	}
 

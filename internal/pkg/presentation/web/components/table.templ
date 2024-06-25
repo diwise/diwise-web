@@ -1,8 +1,11 @@
 package components
 
 import (
+	"context"
 	"fmt"
+	"io"
 	"strconv"
+	"time"
 )
 
 templ Table(header templ.Component, data templ.Component, footer templ.Component) {
@@ -12,6 +15,122 @@ templ Table(header templ.Component, data templ.Component, footer templ.Component
 		@footer
 	</table>
 }
+
+templ THead(cssClass string, cells ...templ.Component) {
+	<thead
+		if cssClass != "" {
+			class={ cssClass }
+		}
+	>
+		for _, cell := range cells {
+			@cell
+		}
+	</thead>
+}
+
+type HxOptions struct {
+	Get     string
+	PushURL string
+	Target  string
+	Trigger string
+}
+
+templ TRow(cssClass string, hxOptions HxOptions, cells ...templ.Component) {
+	<tr
+		if cssClass != "" {
+			class={ cssClass }
+		}
+		if hxOptions.Get != "" {
+			hx-get={ string(templ.URL(hxOptions.Get)) }
+		}
+		if hxOptions.PushURL != "" {
+			hx-push-url={ string(templ.URL(hxOptions.PushURL)) }
+		}
+		if hxOptions.Target != "" {
+			hx-target={ "#" + hxOptions.Target }
+		}
+		if hxOptions.Trigger != "" {
+			hx-trigger={ hxOptions.Trigger }
+		}
+	>
+		for _, cell := range cells {
+			@cell
+		}
+	</tr>
+}
+
+templ TBody(rows ...templ.Component) {
+	<tbody>
+		for _, row := range rows {
+			@row
+		}
+	</tbody>
+}
+
+templ Td(colspan int, cssClass string, contents templ.Component) {
+	<td
+		if colspan > 0 {
+			colspan={ fmt.Sprintf("%d", colspan) }
+		}
+		if cssClass != "" {
+			class={ cssClass }
+		}
+	>
+		@contents
+	</td>
+}
+
+templ TFoot(rows []templ.Component) {
+	<tfoot>
+		for _, r:= range rows {
+			@r
+		}
+	</tfoot>
+}
+
+func DateTime(date time.Time) templ.Component {
+	if date.IsZero() {
+		return Text("")
+	}
+	return Text(date.Format(time.RFC3339))
+}
+
+templ PageSizeSelect() {
+	<select
+		class="appearance-none outline-none px-3 py-1.5 bg-transparent text-sm font-normal font-sans leading-tight w-full h-full cursor-pointer"
+		name="pageSize"
+	>
+		@Options([]OptionViewModel{
+			{
+				Value:    "10",
+				Text:     "10",
+				Selected: true,
+			},
+			{
+				Value:    "20",
+				Text:     "20",
+				Selected: false,
+			},
+			{
+				Value:    "50",
+				Text:     "50",
+				Selected: false,
+			},
+			{
+				Value:    "100",
+				Text:     "100",
+				Selected: false,
+			},
+			{
+				Value:    "All",
+				Text:     "All",
+				Selected: false,
+			},
+		})
+	</select>
+}
+
+/*
 
 templ HeaderRow(titles ...templ.Component) {
 	<thead class="border-b border-[#1F1F25] dark:border-white">
@@ -53,6 +172,8 @@ templ LinkRow(cells []templ.Component, url, pushUrl templ.SafeURL, viewName stri
 	</tr>
 }
 
+*/
+
 templ Label(label string, active bool) {
 	<span
 		class={ "px-2.5 py-1 rounded-full justify-start items-center gap-1.5",
@@ -83,33 +204,7 @@ templ DataTableFooter(colspan, tableName string) {
 					<div class="h-8 justify-start items-center gap-2 flex">
 						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</span>
 						<div class="relative inline-flex h-8 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50">
-							<select
-								class="appearance-none outline-none px-3 py-1.5 bg-transparent text-sm font-normal font-sans leading-tight w-full h-full cursor-pointer"
-								name="pageSize"
-							>
-								@Options([]OptionViewModel{
-									{
-										Value:    "10",
-										Text:     "10",
-										Selected: true,
-									},
-									{
-										Value:    "20",
-										Text:     "20",
-										Selected: false,
-									},
-									{
-										Value:    "50",
-										Text:     "50",
-										Selected: false,
-									},
-									{
-										Value:    "100",
-										Text:     "100",
-										Selected: false,
-									},
-								})
-							</select>
+							@PageSizeSelect()
 							<div class="absolute inset-y-0 right-0 pr-1 flex items-center pointer-events-none">
 								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 text-zinc-700 dark:text-neutral-200">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -160,16 +255,6 @@ templ DataTableFooter(colspan, tableName string) {
 							</span>
 						</button>
 					</div>
-					//Döljer Radhöjd i tabellfootern
-					/*<div class="h-8 justify-end items-center gap-2 flex">
-						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Radhöjd:</span>
-						<span class="pl-3 pr-2.5 py-2 bg-gray-900 bg-opacity-10 rounded-xl justify-center items-center gap-1 flex">
-							<span class="grow shrink basis-0 text-zinc-700 text-sm font-bold font-sans leading-none">Normal</span>
-							<span class="w-4 h-4">
-								@SVG("chevron-down", Size(16))
-							</span>
-						</span>
-					</div>*/
 				</div>
 			</td>
 		</tr>
@@ -184,6 +269,10 @@ templ TableHeaderText(title string) {
 
 templ Text(data string) {
 	{ data }
+}
+
+templ Link(url, value string) {
+	<a href={ templ.URL(url) }>{ value }</a>
 }
 
 templ FirstText(data string) {
