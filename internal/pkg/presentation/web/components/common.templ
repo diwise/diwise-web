@@ -39,8 +39,8 @@ templ Select(id string, multiple bool, hxGet, hxTarget string, options []OptionV
 
 
 templ OptionCheckbox(option OptionViewModel) {
-	<label for={ option.Value } class="flex items-center justify-between w-full cursor-pointer mb-2 gap-3">
-		<span class="ml-2 text-gray-700 dark:text-gray-300">{ option.Text }</span>
+	<label for={ option.Value } class="flex items-center justify-between w-full cursor-pointer mb-2 gap-3 pr-2">
+		<span class="ml-2 text-gray-700 dark:text-black">{ option.Text }</span>
 		<div class="flex items-center">
 			<input
 				type="checkbox"
@@ -66,7 +66,7 @@ templ OptionCheckboxes(options []OptionViewModel) {
 	}
 }
 
-templ CheckboxDropdownList(id string, options []OptionViewModel) {
+templ CheckboxDropdownList(id string, options []OptionViewModel, buttonText string) {
 	<div class="flex">
 		<div
 			x-data="{
@@ -91,9 +91,9 @@ templ CheckboxDropdownList(id string, options []OptionViewModel) {
 			x-on:keydown.escape.prevent.stop="close($refs.button)"
 			x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
 			x-id="['dropdown-button']"
-			class="relative"
+			class="relative w-full"
 		>
-			<!-- Button -->
+			
 			<button 
 				for={ id }
 				x-ref="button"
@@ -101,17 +101,15 @@ templ CheckboxDropdownList(id string, options []OptionViewModel) {
 				:aria-expanded="open"
 				:aria-controls="$id('dropdown-button')"
 				type="button"
-				class="flex items-start gap-2 bg-white block text-sm font-medium text-gray-700"
+				class="flex items-center justify-between w-full block font-medium"
 			>
-				Välj
-	
-				<!-- Heroicon: chevron-down -->
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-					<path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+				{ buttonText }
+				
+				<svg class="w-[18px] h-[18px] dark:fill-white">
+					@templ.Raw(iconSVG("chevron-down"))
 				</svg>
 			</button>
 	
-			<!-- Panel -->
 			<div
 				x-ref="panel"
 				x-show="open"
