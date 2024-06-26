@@ -19,7 +19,7 @@ func newMapData(lat, lon float64) mapData {
 }
 
 templ Map(data mapData) {
-    <div id="map" class="h-96 w-full" map-data={ templ.JSONString(data) }></div>
+    <div id="map" class="h-96 w-full" data-map={ templ.JSONString(data) }></div>
 
     /*<div>
         <input type="checkbox" class="map-checkbox" id="showTrashcan" checked /> Soptunna <br />
@@ -31,7 +31,7 @@ templ Map(data mapData) {
     <script>
     (() => {
         const m = document.getElementById('map');
-        const mapData = JSON.parse(m.getAttribute('map-data'));
+        const mapData = JSON.parse(m.getAttribute('data-map'));
 
         var map = L.map('map').setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
 
