@@ -52,11 +52,20 @@ other = "Inactive"
 [unregistered]
 other = "Unregistered"
 
+[thingtype]
+other = "Type of thing"
+
 [sensortype]
 other = "Type of sensor"
 
 [measurementtype]
 other = "Measurement type"
+
+[chooseMeasurementtype]
+other = "Pick measurement type"
+
+[choose]
+other = "Choose"
 
 [edit]
 other = "Edit"
@@ -108,3 +117,6 @@ other = "Area"
 
 [addthing]
 other = "Add new thing"
+
+[pickOption]
+other = "Pick an option"

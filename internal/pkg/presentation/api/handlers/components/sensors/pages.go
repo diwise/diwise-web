@@ -1,4 +1,4 @@
-package pages
+package sensors
 
 import (
 	"context"
@@ -11,12 +11,13 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 )
 
-func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
+		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
 
 		ctx := helpers.Decorate(r.Context(),
@@ -29,7 +30,17 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 			return
 		}
 
-		listViewModel := components.SensorListViewModel{}
+		sumOfStuff := app.GetStatistics(ctx)
+
+		listViewModel := components.SensorListViewModel{
+			Statistics: components.StatisticsViewModel{
+				Total:    sumOfStuff.Total,
+				Active:   sumOfStuff.Active,
+				Inactive: sumOfStuff.Inactive,
+				Online:   sumOfStuff.Online,
+				Unknown:  sumOfStuff.Unknown,
+			},
+		}
 		for _, sensor := range sensorResult.Sensors {
 			listViewModel.Sensors = append(listViewModel.Sensors, components.SensorViewModel{
 				Active:       sensor.Active,
@@ -51,7 +62,7 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 
 		ctx = helpers.Decorate(
 			ctx,
-			components.PageIndex, page,
+			components.PageIndex, pageIndex,
 			components.PageLast, sensorResult.TotalRecords/limit,
 			components.PageSize, limit,
 		)
@@ -67,7 +78,51 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 	return http.HandlerFunc(fn)
 }
 
-func NewSensorDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+func composeViewModel(ctx context.Context, id string, app application.DeviceManagement) (*components.SensorDetailsViewModel, error) {
+	sensor, err := app.GetSensor(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	tenants := app.GetTenants(ctx)
+	deviceProfiles := app.GetDeviceProfiles(ctx)
+
+	dp := []components.DeviceProfile{}
+	for _, p := range deviceProfiles {
+		types := []string{}
+		if p.Types != nil {
+			types = *p.Types
+		}
+		dp = append(dp, components.DeviceProfile{
+			Name:     p.Name,
+			Decoder:  p.Decoder,
+			Interval: p.Interval,
+			Types:    types,
+		})
+	}
+
+	types := []string{}
+	for _, tp := range sensor.Types {
+		types = append(types, tp.URN)
+	}
+
+	detailsViewModel := components.SensorDetailsViewModel{
+		DeviceID:          sensor.DeviceID,
+		Name:              sensor.Name,
+		Latitude:          sensor.Location.Latitude,
+		Longitude:         sensor.Location.Longitude,
+		DeviceProfileName: sensor.DeviceProfile.Name,
+		Tenant:            sensor.Tenant,
+		Description:       sensor.Description,
+		Active:            sensor.Active,
+		Types:             types,
+		Organisations:     tenants,
+		DeviceProfiles:    dp,
+	}
+	return &detailsViewModel, nil
+}
+
+func NewSensorDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -83,49 +138,13 @@ func NewSensorDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets
 			components.CurrentComponent, "sensors",
 		)
 
-		sensor, err := app.GetSensor(ctx, id)
+		detailsViewModel, err := composeViewModel(ctx, id, app)
 		if err != nil {
-			http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+			http.Error(w, "could not compose view model", http.StatusInternalServerError)
 			return
 		}
 
-		tenants := app.GetTenants(ctx)
-		deviceProfiles := app.GetDeviceProfiles(ctx)
-
-		dp := []components.DeviceProfile{}
-		for _, p := range deviceProfiles {
-			types := []string{}
-			if p.Types != nil {
-				types = *p.Types
-			}
-			dp = append(dp, components.DeviceProfile{
-				Name:     p.Name,
-				Decoder:  p.Decoder,
-				Interval: p.Interval,
-				Types:    types,
-			})
-		}
-
-		types := []string{}
-		for _, tp := range sensor.Types {
-			types = append(types, tp.URN)
-		}
-
-		detailsViewModel := components.SensorDetailsViewModel{
-			DeviceID:          sensor.DeviceID,
-			Name:              sensor.Name,
-			Latitude:          sensor.Location.Latitude,
-			Longitude:         sensor.Location.Longitude,
-			DeviceProfileName: sensor.DeviceProfile.Name,
-			Tenant:            sensor.Tenant,
-			Description:       sensor.Description,
-			Active:            sensor.Active,
-			Types:             types,
-			Organisations:     tenants,
-			DeviceProfiles:    dp,
-		}
-
-		sensorDetails := components.SensorDetailsPage(localizer, assets, detailsViewModel)
+		sensorDetails := components.SensorDetailsPage(localizer, assets, *detailsViewModel)
 		page := components.StartPage(version, localizer, assets, sensorDetails)
 
 		w.Header().Add("Content-Type", "text/html")

@@ -13,9 +13,7 @@ import (
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
-func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
-	log := logging.GetFromContext(ctx)
-
+func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
@@ -28,22 +26,10 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 		mode := r.URL.Query().Get("mode")
 		ctx := r.Context()
 
-		sensor, err := app.GetSensor(ctx, id)
+		detailsViewModel, err := composeViewModel(ctx, id, app)
 		if err != nil {
-			log.Error("unable to get sensor details", "err", err.Error())
-			http.Error(w, "unable to get sensor details", http.StatusInternalServerError)
+			http.Error(w, "could not compose view model", http.StatusInternalServerError)
 			return
-		}
-
-		detailsViewModel := components.SensorDetailsViewModel{
-			DeviceID:          sensor.DeviceID,
-			Name:              sensor.Name,
-			Latitude:          sensor.Location.Latitude,
-			Longitude:         sensor.Location.Longitude,
-			DeviceProfileName: sensor.DeviceProfile.Name,
-			Tenant:            sensor.Tenant,
-			Description:       sensor.Description,
-			Active:            sensor.Active,
 		}
 
 		w.Header().Add("Content-Type", "text/html")
@@ -68,28 +54,23 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 					Types:    types,
 				})
 			}
-			types := []string{}
-			for _, tp := range sensor.Types {
-				types = append(types, tp.URN)
-			}
 
 			detailsViewModel.Organisations = tenants
 			detailsViewModel.DeviceProfiles = dp
-			detailsViewModel.Types = types
 
-			component := components.EditSensorDetails(localizer, assets, detailsViewModel)
+			component := components.EditSensorDetails(localizer, assets, *detailsViewModel)
 			component.Render(ctx, w)
 			return
 		}
 
-		component := components.SensorDetails(localizer, assets, detailsViewModel)
+		component := components.SensorDetails(localizer, assets, *detailsViewModel)
 		component.Render(ctx, w)
 	}
 
 	return http.HandlerFunc(fn)
 }
 
-func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -146,8 +127,8 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundl
 					fields["deviceProfile"] = v
 				case "organisation":
 					fields["tenant"] = v
-				case "measurementType":
-					fields["types"] = r.Form["measurementType"]
+				case "measurementType-option[]":
+					fields["types"] = r.Form[k]
 				default:
 					fields[k] = r.Form.Get(k)
 				}
@@ -166,7 +147,7 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundl
 	return http.HandlerFunc(fn)
 }
 
-func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.SensorService) http.HandlerFunc {
+func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -177,7 +158,7 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		page := helpers.UrlParamOrDefault(r, "page", "1")
+		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
 
 		ctx := logging.NewContextWithLogger(r.Context(), log)
@@ -204,7 +185,7 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 
 		ctx = helpers.Decorate(
 			ctx,
-			components.PageIndex, page,
+			components.PageIndex, pageIndex,
 			components.PageLast, sensorResult.TotalRecords/limit,
 			components.PageSize, limit,
 		)

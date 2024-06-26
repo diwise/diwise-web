@@ -52,11 +52,20 @@ other = "Inaktiv"
 [unregistered]
 other = "Oregistrerade"
 
+[thingtype]
+other = "Typ av sak"
+
 [sensortype]
 other = "Sensortyp"
 
 [measurementtype]
 other = "Mättyp"
+
+[chooseMeasurementtype]
+other = "Ange mättyp"
+
+[choose]
+other = "Välj"
 
 [edit]
 other = "Redigera"
@@ -108,3 +117,6 @@ other = "Område"
 
 [addthing]
 other = "Lägg till ny sak"
+
+[pickOption]
+other = "Välj ett alternativ"

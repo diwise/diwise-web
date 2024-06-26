@@ -34,17 +34,29 @@ templ SensorDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 	</div>
 }
 
+templ sensorActive (active bool, l10n locale.Localizer){
+	if active {
+		@Label(l10n.Get("active"), active)
+	} else {
+		@Label(l10n.Get("inactive"), active)
+	}
+}
+
 templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
 	<div class="w-full px-8">
 		<div class="flex items-center w-full justify-between">
-			<div class="flex items-center gap-6 align-middle">
-				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
-				if sensor.Active {
-					@Label(l10n.Get("active"), sensor.Active)
-				} else {
-					@Label(l10n.Get("inactive"), sensor.Active)
-				}
-			</div>
+			if sensor.Name == "" {
+				<div class="flex items-center align-middle">
+					<h1 class="py-3">&nbsp;</h1>
+					@sensorActive(sensor.Active, l10n)
+				</div>
+			} else {
+				<div class="flex items-center gap-6 align-middle">
+					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
+					@sensorActive(sensor.Active, l10n)
+				</div> 
+			}
+
 			<div class="flex items-center text-white dark:text-[#1F1F25] text-base font-bold font-sans leading-normal">
 				<button
 					class="w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28F2] bg-opacity-95 dark:bg-[white] rounded-xl flex items-center gap-2 cursor-pointer"
@@ -155,7 +167,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 							<div class="">{ l10n.Get("longitude") }</div>
 							<div class="font-bold">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
 						</div>
-						@Map()
+						@Map(newMapData(sensor.Latitude, sensor.Longitude))
 					</div>
 				</div>
 			</div>
@@ -164,38 +176,9 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 }
 
 templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
-	<script>
-        document.getElementById('sensorType').addEventListener('change', function() {
-            var measurementSelect = document.getElementById('measurementType');
-            var selectedOption = this.value;
-
-            // Aktivera andra dropdown
-            measurementSelect.disabled = false;
-
-            // Exempeldata, dessa kan komma från en server beroende på valt alternativ i första dropdown
-            var options = {
-                'option1': ['Mätning 1-1', 'Mätning 1-2'],
-                'option2': ['Mätning 2-1', 'Mätning 2-2'],
-                'option3': ['Mätning 3-1', 'Mätning 3-2']
-            };
-
-            // Rensa tidigare options
-            measurementSelect.innerHTML = '';
-
-            // Lägg till ett standardalternativ
-            measurementSelect.appendChild(new Option('Välj ett alternativ', ''));
-
-            // Lägg till nya options beroende på första dropdowns val
-            if (options[selectedOption]) {
-                options[selectedOption].forEach(function(measurement) {
-                    measurementSelect.appendChild(new Option(measurement, measurement));
-                });
-            }
-        });
-    </script>
 	<div class="w-full px-8">
 		<div class="flex items-center justify-between w-full">
-			<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
+			<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { sensor.Name }</h1>
 		</div>
 		<form action="/components/sensors/details" method="post">
 			<input type="hidden" name="id" value={ sensor.DeviceID }/>
@@ -220,7 +203,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
 									<div class="border border-[#0A0C0F] rounded-xl">
 										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
-											{ l10n.Get("Välj ett alternativ") }
+											{ l10n.Get("pickOption") }
 										</label>
 										@OrganisationSelect(l10n, asset, "organisation", sensor.Tenant, sensor.Organisations)
 									</div>
@@ -231,23 +214,27 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 									<div class="font-bold">{ l10n.Get("sensortype") }</div>
 									<div class="border border-[#0A0C0F] rounded-xl">
 										<label for="sensorType" class="hidden block text-sm font-medium text-gray-700">
-											{ l10n.Get("Välj ett alternativ") }
+											{ l10n.Get("pickOption") }
 										</label>
 										@SensorTypeSelect(l10n, asset, "sensorType", sensor.DeviceProfileName, sensor.DeviceProfiles)
 									</div>
 								</div>
+								
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
-									<div class="border border-[#0A0C0F] rounded-xl">
-										<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">Välj ett alternativ</label>
-										@MeasurementTypeSelect(l10n, asset, "measurementType", sensor)
+									<div class="border border-[#0A0C0F] dark:border-[#FFFFFF80] rounded-xl p-2">
+										<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">
+											{ l10n.Get("measurementtype") }
+										</label>
+										@MeasurementTypeCheckboxDropdown(l10n, asset, "measurementType", sensor)
 									</div>
 								</div>
 							</div>
+
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("description") }</div>
-									<textarea type="text" name="description" class="w-full min-h-[150px] border border-[#0A0C0F] font-bold dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="beskrivning">
+									<textarea type="text" name="description" class="w-full min-h-[150px] border border-[#0A0C0F] font-bold dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder={ l10n.Get("description") }>
 										{ sensor.Description }
 									</textarea>
 								</div>
@@ -275,7 +262,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 									</div>
 								</div>
 							</label>
-							<div class="w-1/2">Info om vad som händer om man inaktiverar en sensor.</div>
+							<div class="w-full">Om du inaktiverar sensorn kommer den inte längre spara mätvärden.</div>
 						</div>
 					</div>
 				</div>
@@ -301,7 +288,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 									<input type="number" name="longitude" value={ fmt.Sprintf("%f", sensor.Longitude) } class="w-auto h-[40px] border border-[#0A0C0F] dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
 								</div>
 							</div>
-							@Map()
+							@Map(newMapData(sensor.Latitude, sensor.Longitude))
 						</div>
 					</div>
 				</div>
@@ -334,19 +321,11 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 	</div>
 }
 
-type OptionViewModel struct {
-	Value    string
-	Text     string
-	Selected bool
-	Hidden   bool
-	Disabled bool
-}
-
 func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
-			Text:     l10n.Get("-- välj --"),
+			Text:     l10n.Get("choose"),
 			Selected: true,
 			Hidden:   true,
 			Disabled: true,
@@ -358,7 +337,7 @@ func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 	})
 
 	if i < 0 {
-		return SelectX(id, true, "", "", viewModel)
+		return Select(id, true, "", "", viewModel)
 	}
 
 	profile := sensorViewModel.DeviceProfiles[i]
@@ -373,14 +352,14 @@ func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 		})
 	}
 
-	return SelectX(id, true, "", "", viewModel)
+	return Select(id, true, "", "", viewModel)
 }
 
 func SensorTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, profiles []DeviceProfile) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
-			Text:     l10n.Get("-- välj --"),
+			Text:     l10n.Get("choose"),
 			Selected: true,
 			Hidden:   true,
 			Disabled: true,
@@ -395,14 +374,14 @@ func SensorTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, s
 		})
 	}
 
-	return SelectX(id, false, "/components/admin/types", "#measurementType", viewModel)
+	return Select(id, false, "/components/admin/types", "#measurementType", viewModel)
 }
 
 func OrganisationSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, organisations []string) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
-			Text:     l10n.Get("-- välj --"),
+			Text:     l10n.Get("choose"),
 			Selected: true,
 			Hidden:   true,
 			Disabled: true,
@@ -417,32 +396,32 @@ func OrganisationSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id,
 		})
 	}
 
-	return SelectX(id, false, "", "", viewModel)
+	return Select(id, false, "", "", viewModel)
 }
 
-templ Option(option OptionViewModel) {
-	<option value={ option.Value } selected?={ option.Selected } hidden?={ option.Hidden } disabled?={ option.Disabled }>{ option.Text }</option>
-}
+func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
+	viewModel := []OptionViewModel{}
 
-templ Options(options []OptionViewModel) {
-	for _, option := range options {
-		@Option(option)
+	i := slices.IndexFunc(sensorViewModel.DeviceProfiles, func(p DeviceProfile) bool {
+		return p.Name == sensorViewModel.DeviceProfileName
+	})
+
+	if i < 0 {
+		return CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
 	}
-}
 
-templ SelectX(id string, multiple bool, hxGet, hxTarget string, options []OptionViewModel) {
-	<select
-		id={ id }
-		name={ id }
-		if hxGet != "" {
-			hx-get={ hxGet }
-		}
-		if hxTarget != "" {
-			hx-target={ hxTarget }
-		}
-		class="cursor-pointer block w-full pl-3 pr-3 py-2 text-base dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
-		multiple?={ multiple }
-	>
-		@Options(options)
-	</select>
+	profile := sensorViewModel.DeviceProfiles[i]
+
+	for _, t := range profile.Types {
+		viewModel = append(viewModel, OptionViewModel{
+			Value: t,
+			Text:  t,
+			Name:  id + "-option[]",
+			Selected: slices.ContainsFunc(sensorViewModel.Types, func(s string) bool {
+				return s == t
+			}),
+		})
+	}
+
+	return CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
 }
