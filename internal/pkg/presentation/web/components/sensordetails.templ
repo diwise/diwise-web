@@ -1,9 +1,9 @@
 package components
 
 import (
+	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"fmt"
 	"slices"
 )
 
@@ -19,6 +19,7 @@ type SensorDetailsViewModel struct {
 	Active            bool
 	Organisations     []string
 	DeviceProfiles    []DeviceProfile
+	MeasurmentTypes   []string
 }
 
 type DeviceProfile struct {
@@ -34,7 +35,7 @@ templ SensorDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 	</div>
 }
 
-templ sensorActive (active bool, l10n locale.Localizer){
+templ sensorActive(active bool, l10n locale.Localizer) {
 	if active {
 		@Label(l10n.Get("active"), active)
 	} else {
@@ -54,9 +55,8 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 				<div class="flex items-center gap-6 align-middle">
 					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
 					@sensorActive(sensor.Active, l10n)
-				</div> 
+				</div>
 			}
-
 			<div class="flex items-center text-white dark:text-[#1F1F25] text-base font-bold font-sans leading-normal">
 				<button
 					class="w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28F2] bg-opacity-95 dark:bg-[white] rounded-xl flex items-center gap-2 cursor-pointer"
@@ -146,6 +146,20 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 						</table>
 					</div>
 				</div>
+				<div class="flex flex-col items-start self-stretch">
+					// Mätvärden
+					<div class="flex items-center gap-3 self-stretch">
+						//Rubrik Mätvärden
+						@SVG("alert-triangle", Size(24))
+						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("Mätvärden") }</h2>
+						<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
+					</div>
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+						@SensorMeasurementSelect(l10n, asset, "sensorMeasurementTypes", sensor)
+						<canvas id="myChart"></canvas>
+						<div id="measurementCharts"></div>
+					</div>
+				</div>
 			</div>
 			<div class="border-l border-[#1C1C284D] dark:border-[#FFFFFF4D] h-auto"></div> //Vertikal divider mellan uppgifter och position
 			<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
@@ -219,7 +233,6 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 										@SensorTypeSelect(l10n, asset, "sensorType", sensor.DeviceProfileName, sensor.DeviceProfiles)
 									</div>
 								</div>
-								
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
 									<div class="border border-[#0A0C0F] dark:border-[#FFFFFF80] rounded-xl p-2">
@@ -230,7 +243,6 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 									</div>
 								</div>
 							</div>
-
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("description") }</div>
@@ -319,6 +331,97 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 			</div>
 		</form>
 	</div>
+}
+
+type ChartDataset struct {
+	Label string      `json:"label"`
+	Data  []ChartData `json:"data"`
+}
+
+type ChartData struct {
+	X string `json:"x"`
+	Y any    `json:"y"`
+}
+
+script LineChart(id string, dataset ChartDataset) {
+ 	try {
+        var existing_chart = Chart.getChart(id)
+        existing_chart.destroy();
+        console.log('trying to destory then redraw chart');
+    } catch(e) {
+        console.log('chart does not exist yet to destroy');
+    }
+
+	const ctx = document.getElementById(id);
+
+	new Chart(ctx, {
+		type: 'line',
+		data: {		
+		datasets: [{			
+			label: dataset.label,
+			data: dataset.data,
+			borderWidth: 1
+		}]
+		},
+		options: {
+		scales: {
+			y: {
+			beginAtZero: true
+			}
+		}
+		}
+	});	
+}
+
+script BarChart(id string, dataset ChartDataset) {
+ 	try {
+        var existing_chart = Chart.getChart(id)
+        existing_chart.destroy();
+        console.log('trying to destory then redraw chart');
+    } catch(e) {
+        console.log('chart does not exist yet to destroy');
+    }
+
+	const ctx = document.getElementById(id);
+
+	new Chart(ctx, {
+		type: 'bar',
+		data: {		
+		datasets: [{			
+			label: dataset.label,
+			data: dataset.data,
+			borderWidth: 1
+		}]
+		},
+		options: {
+		scales: {
+			y: {
+			beginAtZero: true
+			}
+		}
+		}
+	});	
+}
+
+func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
+	viewModel := []OptionViewModel{
+		{
+			Value:    "",
+			Text:     l10n.Get("choose"),
+			Selected: true,
+			Hidden:   true,
+			Disabled: true,
+		},
+	}
+
+	for _, t := range sensorViewModel.MeasurmentTypes {
+		viewModel = append(viewModel, OptionViewModel{
+			Value: t,
+			Text:  t,
+		})
+	}
+
+	return Select(id, false, "/components/measurements", "#measurementCharts", viewModel)
 }
 
 func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {

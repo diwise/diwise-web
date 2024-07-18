@@ -12,6 +12,8 @@ type DeviceManagement interface {
 	GetTenants(ctx context.Context) []string
 	GetDeviceProfiles(ctx context.Context) []DeviceProfile
 	GetStatistics(ctx context.Context) Statistics
+	GetMeasurementInfo(ctx context.Context, id string) (MeasurmentData, error)
+	GetMeasurementData(ctx context.Context, id string) (MeasurmentData, error)
 }
 
 type Statistics struct {
@@ -71,4 +73,27 @@ type SensorResult struct {
 	Count        int
 	Offset       int
 	Limit        int
+}
+
+type MeasurmentData struct {
+	DeviceID    string             `json:"deviceID"`
+	Urn         *string            `json:"urn,omitempty"`
+	Name        *string            `json:"name,omitempty"`
+	Measurments []MeasurmentInfo   `json:"measurements,omitempty"`
+	Values      []MeasurementValue `json:"values,omitempty"`
+}
+
+type MeasurmentInfo struct {
+	ID string `json:"id"`
+}
+
+type MeasurementValue struct {
+	ID          *string   `json:"id,omitempty"`
+	Name        *string   `json:"n,omitempty"`
+	BoolValue   *bool     `json:"vb,omitempty"`
+	StringValue string    `json:"vs,omitempty"`
+	Value       *float64  `json:"v,omitempty"`
+	Unit        string    `json:"unit,omitempty"`
+	Timestamp   time.Time `json:"timestamp"`
+	Link        *string   `json:"link,omitempty"`
 }

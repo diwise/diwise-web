@@ -106,6 +106,16 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		types = append(types, tp.URN)
 	}
 
+	measurements, err := app.GetMeasurementInfo(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	m := make([]string, 0)
+	for _, md := range measurements.Measurments {
+		m = append(m, md.ID)
+	}
+
 	detailsViewModel := components.SensorDetailsViewModel{
 		DeviceID:          sensor.DeviceID,
 		Name:              sensor.Name,
@@ -118,6 +128,7 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		Types:             types,
 		Organisations:     tenants,
 		DeviceProfiles:    dp,
+		MeasurmentTypes:   m,
 	}
 	return &detailsViewModel, nil
 }

@@ -48,7 +48,7 @@ func main() {
 	clientID := env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_ID", "a valid oauth2 client id")
 	clientSecret := env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_SECRET", "a valid oauth2 client secret")
 
-	apiPort := env.GetVariableOrDefault(ctx, "SERVICE_PORT", "8080")
+	apiPort := env.GetVariableOrDefault(ctx, "SERVICE_PORT", "8094")
 	defaultAppRoot := fmt.Sprintf("http://localhost:%s", apiPort)
 
 	appRoot := env.GetVariableOrDefault(ctx, "APP_ROOT", defaultAppRoot)
