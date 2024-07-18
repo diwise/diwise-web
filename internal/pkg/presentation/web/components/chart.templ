@@ -17,7 +17,7 @@ templ Chart(id string, chartType string, dataset ChartDataset) {
 			const c = document.getElementById('chart');
         	const dataset = JSON.parse(c.getAttribute('data-chart'));
 			const chartType = JSON.parse(c.getAttribute('data-chart-type'));
-			const chartID = JSON.parse(c.getAttribute('data-chart-id'))
+			const chartID = JSON.parse(c.getAttribute('data-chart-id'));
 
 			try {
 				var existing_chart = Chart.getChart(chartID)
