@@ -181,7 +181,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 							<div class="">{ l10n.Get("longitude") }</div>
 							<div class="font-bold">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
 						</div>
-						@Map(newMapData(sensor.Latitude, sensor.Longitude))
+						@Map(newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
 					</div>
 				</div>
 			</div>
@@ -331,6 +331,13 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 			</div>
 		</form>
 	</div>
+}
+
+func sensorMapFeature(sensor SensorDetailsViewModel) FeatureCollection {
+	feature := NewFeature(NewPoint(sensor.Latitude, sensor.Longitude))
+	feature.AddProperty("desc", sensor.Description)
+	feature.AddProperty("type", "trashcan")
+	return NewFeatureCollection([]Feature{feature})
 }
 
 func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
