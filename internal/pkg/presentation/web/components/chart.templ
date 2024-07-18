@@ -1,0 +1,49 @@
+package components
+
+type ChartDataset struct {
+	Label string      `json:"label"`
+	Data  []ChartData `json:"data"`
+}
+
+type ChartData struct {
+	X string `json:"x"`
+	Y any    `json:"y"`
+}
+
+templ Chart(id string, chartType string, dataset ChartDataset) {
+	<div id="chart" data-chart-id={ templ.JSONString(id) } data-chart-type={ templ.JSONString(chartType) } data-chart={ templ.JSONString(dataset) }></div>
+	<script>
+		(() => {
+			const c = document.getElementById('chart');
+        	const dataset = JSON.parse(c.getAttribute('data-chart'));
+			const chartType = JSON.parse(c.getAttribute('data-chart-type'));
+			const chartID = JSON.parse(c.getAttribute('data-chart-id'))
+
+			try {
+				var existing_chart = Chart.getChart(chartID)
+				existing_chart.destroy();				
+			} catch(e) {				
+			}
+
+			const ctx = document.getElementById(chartID);
+
+			new Chart(ctx, {
+				type: 'line',
+				data: {		
+				datasets: [{			
+					label: dataset.label,
+					data: dataset.data,
+					borderWidth: 1
+				}]
+				},
+				options: {
+				scales: {
+					y: {
+					beginAtZero: true
+					}
+				}
+				}
+			});
+		})()
+	</script>
+}

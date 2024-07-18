@@ -230,7 +230,8 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			}
 		}
 
-		component := components.LineChart("myChart", dataset)
+		//component := components.LineChart("myChart", dataset)
+		component := components.Chart("myChart", "line", dataset)
 		component.Render(ctx, w)
 	}
 
