@@ -60,14 +60,14 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 		w.Header().Add("Cache-Control", "no-cache")
 		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
-		ctx = helpers.Decorate(
+		renderCtx := helpers.Decorate(
 			ctx,
 			components.PageIndex, pageIndex,
 			components.PageLast, sensorResult.TotalRecords/limit,
 			components.PageSize, limit,
 		)
 
-		err = page.Render(ctx, w)
+		err = page.Render(renderCtx, w)
 		if err != nil {
 			http.Error(w, "could not render sensor details page", http.StatusInternalServerError)
 		}

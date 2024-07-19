@@ -10,9 +10,12 @@ type ChartData struct {
 	Y any    `json:"y"`
 }
 
+var chartHandle = templ.NewOnceHandle()
+
 templ Chart(id string, chartType string, dataset ChartDataset) {
 	<div id="chart" data-chart-id={ templ.JSONString(id) } data-chart-type={ templ.JSONString(chartType) } data-chart={ templ.JSONString(dataset) }></div>
-	<script>
+	@chartHandle.Once() {
+		<script>
 		(() => {
 			const c = document.getElementById('chart');
         	const dataset = JSON.parse(c.getAttribute('data-chart'));
@@ -46,4 +49,5 @@ templ Chart(id string, chartType string, dataset ChartDataset) {
 			});
 		})()
 	</script>
+	}
 }

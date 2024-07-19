@@ -184,7 +184,7 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 			})
 		}
 
-		ctx = helpers.Decorate(
+		renderCtx := helpers.Decorate(
 			ctx,
 			components.PageIndex, pageIndex,
 			components.PageLast, sensorResult.TotalRecords/limit,
@@ -192,7 +192,7 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		)
 
 		component := components.SensorTable(localizer, assets, listViewModel)
-		component.Render(ctx, w)
+		component.Render(renderCtx, w)
 	}
 
 	return http.HandlerFunc(fn)
