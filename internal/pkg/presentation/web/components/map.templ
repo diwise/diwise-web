@@ -1,37 +1,72 @@
 package components
 
 type mapData struct {
-    Latitude    float64
-    Longitude   float64
-    Zoom        int
+	Latitude  float64
+	Longitude float64
+	Zoom      int
 }
 
 func newMapData(lat, lon float64) mapData {
-    md := mapData{ Latitude: lat, Longitude: lon, Zoom: 15 }
+	md := mapData{Latitude: lat, Longitude: lon, Zoom: 15}
 
-    if md.Latitude < 1 {
-        md.Latitude = 62.3908
-        md.Longitude = 17.3069
-        md.Zoom = 9
-    }
+	if md.Latitude < 1 {
+		md.Latitude = 62.3908
+		md.Longitude = 17.3069
+		md.Zoom = 9
+	}
 
-    return md
+	return md
 }
 
-templ Map(data mapData) {
-    <div id="map" class="h-96 w-full" data-map={ templ.JSONString(data) }></div>
+func NewFeatureCollection(features []Feature) FeatureCollection {
+	return FeatureCollection{
+		Type:     "FeatureCollection",
+		Features: features,
+	}
+}
 
-    /*<div>
-        <input type="checkbox" class="map-checkbox" id="showTrashcan" checked /> Soptunna <br />
-        <input type="checkbox" class="map-checkbox" id="showLifebuoy" checked /> Livboj <br />
-        <input type="checkbox" class="map-checkbox" id="showThermometer" checked /> Termometer <br />
-        <input type="checkbox" class="map-checkbox" id="showDrain" checked /> Avlopp
-    </div>*/
+type FeatureCollection struct {
+	Type     string    `json:"type"`
+	Features []Feature `json:"features"`
+}
 
-    <script>
+func NewFeature(point Point) Feature {
+	return Feature{
+		Type:       "Feature",
+		Geometry:   point,
+		Properties: make(map[string]any),
+	}
+}
+
+type Feature struct {
+	Type       string         `json:"type"`
+	Geometry   Point          `json:"geometry"`
+	Properties map[string]any `json:"properties"`
+}
+
+func (f *Feature) AddProperty(key string, value any) {
+	f.Properties[key] = value
+}
+
+func NewPoint(lat, lon float64) Point {
+	return Point{
+		Type:        "Point",
+		Coordinates: []float64{lon, lat},
+	}
+}
+
+type Point struct {
+	Type        string    `json:"type"`
+	Coordinates []float64 `json:"coordinates"`
+}
+
+templ Map(data mapData, featureCollection ...FeatureCollection) {
+	<div id="map" class="h-96 w-full" data-map={ templ.JSONString(data) } data-features={ templ.JSONString(featureCollection) }></div>
+	<script>
     (() => {
         const m = document.getElementById('map');
         const mapData = JSON.parse(m.getAttribute('data-map'));
+        const geodata = JSON.parse(m.getAttribute('data-features'));
 
         var map = L.map('map').setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
 
@@ -72,37 +107,9 @@ templ Map(data mapData) {
             shadowSize: [41, 41]
         });
 
-        var geojsonData = [
-            {
-                type: 'FeatureCollection',
-                features: [
-                    { type: 'Feature', geometry: { type: 'Point', coordinates: [17.300115, 62.393816] }, properties: { type: 'trashcan', desc: 'Soptunna NP3 Arena' } },
-                    { type: 'Feature', geometry: { type: 'Point', coordinates: [17.3069, 62.3908] }, properties: { type: 'trashcan', desc: 'Soptunna Centrum' } }
-                ]
-            },
-            {
-                type: 'FeatureCollection',
-                features: [
-                    { type: 'Feature', geometry: { type: 'Point', coordinates: [17.321486, 62.393124] }, properties: { type: 'lifebuoy', desc: 'Livboj Norra kajen' } }
-                ]
-            },
-            {
-                type: 'FeatureCollection',
-                features: [
-                    { type: 'Feature', geometry: { type: 'Point', coordinates: [17.324359, 62.388349] }, properties: { type: 'thermometer', desc: 'Termometer Hamnen' } }
-                ]
-            },
-            {
-                type: 'FeatureCollection',
-                features: [
-                    { type: 'Feature', geometry: { type: 'Point', coordinates: [17.290923, 62.384603] }, properties: { type: 'drain', desc: 'Avlopp Södermalm' } }
-                ]
-            }
-        ];
-
         var layers = {};
 
-        geojsonData.forEach(data => {
+        geodata.forEach(data => {
             var type = data.features[0].properties.type;
             var icon;
 
@@ -136,6 +143,7 @@ templ Map(data mapData) {
 
         L.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
 
+        /*
         document.querySelectorAll('.map-checkbox').forEach(checkbox => {
             checkbox.onchange = function() {
                 var layerGroup = layers[this.id.replace('show', '').toLowerCase()];
@@ -146,9 +154,8 @@ templ Map(data mapData) {
                 }
             }
         });
+        */
 
     })()
     </script>
-
-
 }

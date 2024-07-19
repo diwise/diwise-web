@@ -60,14 +60,14 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 		w.Header().Add("Cache-Control", "no-cache")
 		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
-		ctx = helpers.Decorate(
+		renderCtx := helpers.Decorate(
 			ctx,
 			components.PageIndex, pageIndex,
 			components.PageLast, sensorResult.TotalRecords/limit,
 			components.PageSize, limit,
 		)
 
-		err = page.Render(ctx, w)
+		err = page.Render(renderCtx, w)
 		if err != nil {
 			http.Error(w, "could not render sensor details page", http.StatusInternalServerError)
 		}
@@ -106,6 +106,16 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		types = append(types, tp.URN)
 	}
 
+	measurements, err := app.GetMeasurementInfo(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	m := make([]string, 0)
+	for _, md := range measurements.Measurments {
+		m = append(m, md.ID)
+	}
+
 	detailsViewModel := components.SensorDetailsViewModel{
 		DeviceID:          sensor.DeviceID,
 		Name:              sensor.Name,
@@ -118,6 +128,7 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		Types:             types,
 		Organisations:     tenants,
 		DeviceProfiles:    dp,
+		MeasurmentTypes:   m,
 	}
 	return &detailsViewModel, nil
 }
