@@ -22,12 +22,14 @@ import (
 type App struct {
 	deviceManagementURL string
 	adminURL            string
+	measurementURL      string
 	cache               *Cache
 }
 
 func New(ctx context.Context) (*App, error) {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
-	adminURL := strings.Replace(env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices"), "devices", "admin", 1)
+	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)
+	measurementURL := strings.Replace(deviceManagementURL, "devices", "measurements", 1)
 
 	c := NewCache()
 	c.Cleanup(60 * time.Second)
@@ -35,6 +37,7 @@ func New(ctx context.Context) (*App, error) {
 	return &App{
 		deviceManagementURL: deviceManagementURL,
 		adminURL:            adminURL,
+		measurementURL:      measurementURL,
 		cache:               c,
 	}, nil
 }
@@ -163,6 +166,39 @@ func (a *App) GetStatistics(ctx context.Context) Statistics {
 	a.cache.Set(key, s, 600*time.Second)
 
 	return s
+}
+
+func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurmentData, error) {
+
+	resp, err := a.get(ctx, a.measurementURL, id, url.Values{})
+	if err != nil {
+		return MeasurmentData{}, err
+	}
+
+	var info MeasurmentData
+	err = json.Unmarshal(resp.Data, &info)
+	if err != nil {
+		return MeasurmentData{}, err
+	}
+
+	return info, nil
+}
+func (a *App) GetMeasurementData(ctx context.Context, id string) (MeasurmentData, error) {
+	q := url.Values{}
+	q.Add("id", id)
+
+	resp, err := a.get(ctx, a.measurementURL, "", q)
+	if err != nil {
+		return MeasurmentData{}, err
+	}
+
+	var data MeasurmentData
+	err = json.Unmarshal(resp.Data, &data)
+	if err != nil {
+		return MeasurmentData{}, err
+	}
+
+	return data, nil
 }
 
 func (a *App) patch(ctx context.Context, baseUrl, sensorID string, body []byte) error {
