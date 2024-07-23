@@ -19,7 +19,7 @@ type SensorDetailsViewModel struct {
 	Active            bool
 	Organisations     []string
 	DeviceProfiles    []DeviceProfile
-	MeasurmentTypes   []string
+	MeasurementTypes  []string
 }
 
 type DeviceProfile struct {
@@ -351,7 +351,7 @@ func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc
 		},
 	}
 
-	for _, t := range sensorViewModel.MeasurmentTypes {
+	for _, t := range sensorViewModel.MeasurementTypes {
 		viewModel = append(viewModel, OptionViewModel{
 			Value: t,
 			Text:  t,

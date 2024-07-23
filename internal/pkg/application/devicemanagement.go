@@ -8,12 +8,14 @@ import (
 type DeviceManagement interface {
 	GetSensor(ctx context.Context, id string) (Sensor, error)
 	GetSensors(ctx context.Context, offset, limit int) (SensorResult, error)
+	GetThing(ctx context.Context, id string) (Thing, error)
+	GetThings(ctx context.Context, offset, limit int) (ThingResult, error)
 	UpdateSensor(ctx context.Context, deviceID string, fields map[string]any) error
 	GetTenants(ctx context.Context) []string
 	GetDeviceProfiles(ctx context.Context) []DeviceProfile
 	GetStatistics(ctx context.Context) Statistics
-	GetMeasurementInfo(ctx context.Context, id string) (MeasurmentData, error)
-	GetMeasurementData(ctx context.Context, id string) (MeasurmentData, error)
+	GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error)
+	GetMeasurementData(ctx context.Context, id string) (MeasurementData, error)
 }
 
 type Statistics struct {
@@ -75,15 +77,15 @@ type SensorResult struct {
 	Limit        int
 }
 
-type MeasurmentData struct {
-	DeviceID    string             `json:"deviceID"`
-	Urn         *string            `json:"urn,omitempty"`
-	Name        *string            `json:"name,omitempty"`
-	Measurments []MeasurmentInfo   `json:"measurements,omitempty"`
-	Values      []MeasurementValue `json:"values,omitempty"`
+type MeasurementData struct {
+	DeviceID     string             `json:"deviceID"`
+	Urn          *string            `json:"urn,omitempty"`
+	Name         *string            `json:"name,omitempty"`
+	Measurements []MeasurementInfo  `json:"measurements,omitempty"`
+	Values       []MeasurementValue `json:"values,omitempty"`
 }
 
-type MeasurmentInfo struct {
+type MeasurementInfo struct {
 	ID string `json:"id"`
 }
 

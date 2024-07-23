@@ -168,34 +168,34 @@ func (a *App) GetStatistics(ctx context.Context) Statistics {
 	return s
 }
 
-func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurmentData, error) {
+func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error) {
 
 	resp, err := a.get(ctx, a.measurementURL, id, url.Values{})
 	if err != nil {
-		return MeasurmentData{}, err
+		return MeasurementData{}, err
 	}
 
-	var info MeasurmentData
+	var info MeasurementData
 	err = json.Unmarshal(resp.Data, &info)
 	if err != nil {
-		return MeasurmentData{}, err
+		return MeasurementData{}, err
 	}
 
 	return info, nil
 }
-func (a *App) GetMeasurementData(ctx context.Context, id string) (MeasurmentData, error) {
+func (a *App) GetMeasurementData(ctx context.Context, id string) (MeasurementData, error) {
 	q := url.Values{}
 	q.Add("id", id)
 
 	resp, err := a.get(ctx, a.measurementURL, "", q)
 	if err != nil {
-		return MeasurmentData{}, err
+		return MeasurementData{}, err
 	}
 
-	var data MeasurmentData
+	var data MeasurementData
 	err = json.Unmarshal(resp.Data, &data)
 	if err != nil {
-		return MeasurmentData{}, err
+		return MeasurementData{}, err
 	}
 
 	return data, nil
