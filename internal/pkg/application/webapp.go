@@ -21,6 +21,7 @@ import (
 
 type App struct {
 	deviceManagementURL string
+	thingManagementURL  string
 	adminURL            string
 	measurementURL      string
 	cache               *Cache
@@ -28,6 +29,7 @@ type App struct {
 
 func New(ctx context.Context) (*App, error) {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
+	thingManagementURL := strings.Replace(deviceManagementURL, "devices", "things", 1)
 	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)
 	measurementURL := strings.Replace(deviceManagementURL, "devices", "measurements", 1)
 
@@ -36,6 +38,7 @@ func New(ctx context.Context) (*App, error) {
 
 	return &App{
 		deviceManagementURL: deviceManagementURL,
+		thingManagementURL:  thingManagementURL,
 		adminURL:            adminURL,
 		measurementURL:      measurementURL,
 		cache:               c,
@@ -43,7 +46,7 @@ func New(ctx context.Context) (*App, error) {
 }
 
 func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
-	res, err := a.get(ctx, a.deviceManagementURL, id, url.Values{})
+	res, err := a.get(ctx, a.thingManagementURL, id, url.Values{})
 	if err != nil {
 		return Thing{}, err
 	}
@@ -62,7 +65,7 @@ func (a *App) GetThings(ctx context.Context, offset, limit int) (ThingResult, er
 	params.Add("limit", fmt.Sprintf("%d", limit))
 	params.Add("offset", fmt.Sprintf("%d", offset))
 
-	res, err := a.get(ctx, a.deviceManagementURL, "", params)
+	res, err := a.get(ctx, a.thingManagementURL, "", params)
 	if err != nil {
 		return ThingResult{}, err
 	}

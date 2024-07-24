@@ -11,7 +11,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 )
 
-func NewThingsListPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewThingsListPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -30,17 +30,7 @@ func NewThingsListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 			return
 		}
 
-		sumOfStuff := app.GetStatistics(ctx)
-
-		listViewModel := components.ThingListViewModel{
-			Statistics: components.StatisticsViewModel{
-				Total:    sumOfStuff.Total,
-				Active:   sumOfStuff.Active,
-				Inactive: sumOfStuff.Inactive,
-				Online:   sumOfStuff.Online,
-				Unknown:  sumOfStuff.Unknown,
-			},
-		}
+		listViewModel := components.ThingListViewModel{}
 		for _, thing := range thingResult.Things {
 			listViewModel.Things = append(listViewModel.Things, components.ThingViewModel{
 				Active:       thing.Active,
@@ -78,13 +68,12 @@ func NewThingsListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 	return http.HandlerFunc(fn)
 }
 
-func composeViewModel(ctx context.Context, id string, app application.DeviceManagement) (*components.ThingDetailsViewModel, error) {
+func composeViewModel(ctx context.Context, id string, app application.ThingManagement) (*components.ThingDetailsViewModel, error) {
 	thing, err := app.GetThing(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	tenants := app.GetTenants(ctx)
 	//deviceProfiles := app.GetDeviceProfiles(ctx)
 
 	/*tp := []components.DeviceProfile{}
@@ -126,13 +115,13 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		Description:      thing.Description,
 		Active:           thing.Active,
 		Types:            types,
-		Organisations:    tenants,
+		//Organisations:    tenants,
 		//MeasurementTypes: m,
 	}
 	return &detailsViewModel, nil
 }
 
-func NewThingsDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewThingsDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
