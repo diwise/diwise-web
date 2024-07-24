@@ -36,15 +36,26 @@ templ Chart(id string, chartType string, dataset ChartDataset) {
 				datasets: [{			
 					label: dataset.label,
 					data: dataset.data,
-					borderWidth: 1
+					borderColor: '#B92424', // Linjens färg
+					borderWidth: 1,
+					pointBackgroundColor: '#B92424', // Punktens bakgrundsfärg
+					pointBorderColor: '#B92424' // Punktens kantfärg
 				}]
 				},
 				options: {
-				scales: {
-					y: {
-					beginAtZero: true
+					scales: {
+						x: {
+							ticks: {
+								color: '#444450' // Textfärg på x-axeln
+							}
+						},
+						y: {
+						beginAtZero: true,
+						ticks: {
+								color: '#444450' // Textfärg på y-axeln
+							}
+						}
 					}
-				}
 				}
 			});
 		})()
