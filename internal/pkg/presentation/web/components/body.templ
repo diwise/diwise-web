@@ -13,9 +13,9 @@ type ComponentName string
 
 var CurrentComponent ComponentName = "current-component"
 
-templ SectionDivider(titel string) {
+templ SectionDivider(title string) {
 	<div class="self-stretch justify-start items-center gap-2 inline-flex">
-		<div class="text-neutral-800 dark:text-neutral-300 text-lg font-bold font-heading leading-normal">{ titel }</div>
+		<div class="text-neutral-800 dark:text-neutral-300 text-lg font-bold font-heading leading-normal">{ title }</div>
 		<div class="grow shrink basis-0 flex-col justify-start items-start gap-2 inline-flex">
 			<div class="self-stretch h-px bg-gray-900 dark:bg-white bg-opacity-30"></div>
 		</div>

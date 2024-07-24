@@ -58,6 +58,9 @@ other = "Type of thing"
 [sensortype]
 other = "Type of sensor"
 
+[measurementvalue]
+other = "Measurement value"
+
 [measurementtype]
 other = "Measurement type"
 
@@ -78,6 +81,9 @@ other = "Organisation"
 
 [time]
 other = "Time"
+
+[id]
+other = "ID"
 
 [type]
 other = "Type"

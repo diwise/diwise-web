@@ -58,6 +58,9 @@ other = "Typ av sak"
 [sensortype]
 other = "Sensortyp"
 
+[measurementvalue]
+other = "Mätvärde"
+
 [measurementtype]
 other = "Mättyp"
 
@@ -78,6 +81,9 @@ other = "Organisation"
 
 [time]
 other = "Starttid"
+
+[id]
+other = "ID"
 
 [type]
 other = "Typ"
