@@ -1,9 +1,26 @@
 package components
 
 import (
+    "fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+    "time"
 )
+
+type ThingViewModel struct {
+	Active       bool
+	ThingID       string
+	DeviceID     string
+	Name         string
+	BatteryLevel int
+	LastSeen     time.Time
+	HasAlerts    bool
+}
+
+type ThingListViewModel struct {
+	Things []ThingViewModel
+	Statistics StatisticsViewModel
+}
 
 script toggleDropdownType() {
     //Dropdown Typ
@@ -44,7 +61,15 @@ templ ThingsDetailPage(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
 	</div>
 }
 
-templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
+templ ThingTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingListViewModel) {
+	@Table(
+		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("id")), TableHeaderText(l10n.Get("measurementvalue")), TableHeaderText(l10n.Get("location")), TableHeaderText(l10n.Get("status"))),
+		TableData(tableRowsFromThings(l10n, asset, things.Things)...),
+		DataTableFooter("5", "things"),
+	)
+}
+
+templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingListViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
 			<div class="flex items-center w-full justify-between">
@@ -55,7 +80,7 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
 					</button>
 				</div>
 			</div>
-			@SumOfStuff(l10n, StatisticsViewModel{})
+			@SumOfStuff(l10n, things.Statistics)
 		</div>
 		<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
 		<div class="flex px-8 flex-col items-start self-stretch gap-10">
@@ -72,8 +97,11 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
 				</div>
 			</div>
             //@PickedFilters()	
-			<div class="w-full flex-1 text-center pr-4">
-                @Table(
+			<div class="w-full flex flex-col gap-6 items-start inline-flex">
+                <div id="things-table" class="w-full">
+					@ThingTable(l10n, asset, things)
+				</div>
+                /*@Table(
                     HeaderRow(TableHeaderText(l10n.Get("type")), TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("status"))),
                     TableData(
                         TableRow(
@@ -99,13 +127,58 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
                         ),
                     ),
                     DataTableFooter("3", "things"),
-                )
+                )*/
             </div>
             <div class="w-full flex-1 text-center pr-4">
                 @Map(newMapData(62.3908, 17.3069))
             </div>
 		</div>
 	</div>
+}
+
+//HELPERS
+func tableRowsFromThings(l10n locale.Localizer, _ assets.AssetLoaderFunc, things []ThingViewModel) []templ.Component {
+	rows := []templ.Component{}
+
+	labelText := map[bool]string{
+		false: l10n.Get("inactive"),
+		true:  l10n.Get("active"),
+	}
+
+	for _, thing := range things {
+		isActive := thing.Active
+
+		cells := []templ.Component{TextFirstCell(thing.Name)}
+		cells = append(cells, LabelCell(labelText[isActive], isActive))
+		cells = append(cells, TextCell(thing.ThingID))
+		//cells = append(cells, TextCell(sensor.net))
+
+		/*if sensor.BatteryLevel >= 0 {
+			cells = append(cells, TextCell(fmt.Sprintf("%d", sensor.BatteryLevel)))
+		} else {
+			cells = append(cells, TextCell("?"))
+		}
+
+		if sensor.LastSeen.IsZero() {
+			cells = append(cells, TextCell(""))
+		} else {
+			cells = append(cells, TextCell(sensor.LastSeen.Format(time.RFC3339)))
+		}
+
+		if sensor.HasAlerts {
+			cells = append(cells, Cell(SVG("alert-triangle", Size(24), AlertStyle())))
+		} else {
+			cells = append(cells, TextCell(""))
+		}*/
+
+		linkUrl := templ.URL(fmt.Sprintf("/components/things/details?id=%s", thing.ThingID))
+		pushUrl := templ.URL(fmt.Sprintf("/things/%s", thing.ThingID))
+
+		row := LinkRow(cells, linkUrl, pushUrl, "thing")
+		rows = append(rows, row)
+	}
+
+	return rows
 }
 
 templ PickedFilters () {

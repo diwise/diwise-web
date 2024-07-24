@@ -42,6 +42,46 @@ func New(ctx context.Context) (*App, error) {
 	}, nil
 }
 
+func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
+	res, err := a.get(ctx, a.deviceManagementURL, id, url.Values{})
+	if err != nil {
+		return Thing{}, err
+	}
+
+	var sensor Thing
+	err = json.Unmarshal(res.Data, &sensor)
+	if err != nil {
+		return Thing{}, err
+	}
+
+	return sensor, nil
+}
+
+func (a *App) GetThings(ctx context.Context, offset, limit int) (ThingResult, error) {
+	params := url.Values{}
+	params.Add("limit", fmt.Sprintf("%d", limit))
+	params.Add("offset", fmt.Sprintf("%d", offset))
+
+	res, err := a.get(ctx, a.deviceManagementURL, "", params)
+	if err != nil {
+		return ThingResult{}, err
+	}
+
+	var things []Thing
+	err = json.Unmarshal(res.Data, &things)
+	if err != nil {
+		return ThingResult{}, err
+	}
+
+	return ThingResult{
+		Things:       things,
+		TotalRecords: int(res.Meta.TotalRecords),
+		Offset:       int(*res.Meta.Offset),
+		Limit:        int(*res.Meta.Limit),
+		Count:        len(things),
+	}, nil
+}
+
 func (a *App) GetSensor(ctx context.Context, id string) (Sensor, error) {
 	res, err := a.get(ctx, a.deviceManagementURL, id, url.Values{})
 	if err != nil {
