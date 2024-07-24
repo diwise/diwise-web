@@ -29,7 +29,7 @@ type App struct {
 
 func New(ctx context.Context) (*App, error) {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
-	thingManagementURL := strings.Replace(deviceManagementURL, "devices", "things", 1)
+	thingManagementURL := strings.Replace(deviceManagementURL, "devices", "devices", 1)
 	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)
 	measurementURL := strings.Replace(deviceManagementURL, "devices", "measurements", 1)
 
