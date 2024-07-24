@@ -1,41 +1,74 @@
-[overview]
-other = "Översikt"
+[activate]
+other = "Aktivera sensor"
 
-[home]
-other = "Hem"
+[active]
+other = "Aktiv"
 
-[sensors]
-other = "Sensorer"
-
-[things]
-other = "Saker"
-
-[functions]
-other = "Funktioner"
-
-[name]
-other = "Namn"
-
-[search]
-other = "Sök"
-
-[status]
-other = "Status"
-
-[deveui]
-other = "DevEUI"
-
-[batterylevel]
-other = "Batterinivå"
-
-[lastseen]
-other = "Senast sedd"
+[addthing]
+other = "Lägg till ny sak"
 
 [alerts]
 other = "Larm"
 
-[total]
-other = "Totalt"
+[area]
+other = "Område"
+
+[batterylevel]
+other = "Batterinivå"
+
+[cancel]
+other = "Avbryt"
+
+[choose]
+other = "Välj"
+
+[chooseMeasurementtype]
+other = "Ange mättyp"
+
+[delete]
+other = "Radera"
+
+[description]
+other = "Beskrivning"
+
+[details]
+other = "Uppgifter"
+
+[deveui]
+other = "DevEUI"
+
+[edit]
+other = "Redigera"
+
+[fillinglevel]
+other = "Fyllnadsnivå"
+
+[functions]
+other = "Funktioner"
+
+[home]
+other = "Hem"
+
+[id]
+other = "ID"
+
+[inactive]
+other = "Inaktiv"
+
+[lastseen]
+other = "Senast sedd"
+
+[latitude]
+other = "Latitud"
+
+[location]
+other = "Position"
+
+[logout]
+other = "Logga ut"
+
+[longitude]
+other = "Longitud"
 
 [manyactive]
 other = "Aktiva"
@@ -43,86 +76,53 @@ other = "Aktiva"
 [manyinactive]
 other = "Inaktiva"
 
-[active]
-other = "Aktiv"
-
-[inactive]
-other = "Inaktiv"
-
-[unregistered]
-other = "Oregistrerade"
-
-[thingtype]
-other = "Typ av sak"
-
-[sensortype]
-other = "Sensortyp"
+[measurementtype]
+other = "Mättyp"
 
 [measurementvalue]
 other = "Mätvärde"
 
-[measurementtype]
-other = "Mättyp"
-
-[chooseMeasurementtype]
-other = "Ange mättyp"
-
-[choose]
-other = "Välj"
-
-[edit]
-other = "Redigera"
-
-[description]
-other = "Beskrivning"
+[name]
+other = "Namn"
 
 [organisation]
 other = "Organisation"
 
-[time]
-other = "Starttid"
+[overview]
+other = "Översikt"
 
-[id]
-other = "ID"
-
-[type]
-other = "Typ"
-
-[location]
-other = "Position"
-
-[latitude]
-other = "Latitud"
-
-[longitude]
-other = "Longitud"
-
-[details]
-other = "Uppgifter"
-
-[activate]
-other = "Aktivera sensor"
-
-[delete]
-other = "Radera"
-
-[cancel]
-other = "Avbryt"
+[pickOption]
+other = "Välj ett alternativ"
 
 [save]
 other = "Spara"
 
-[logout]
-other = "Logga ut"
+[search]
+other = "Sök"
 
-[fillinglevel]
-other = "Fyllnadsnivå"
+[sensors]
+other = "Sensorer"
 
-[area]
-other = "Område"
+[sensortype]
+other = "Sensortyp"
 
-[addthing]
-other = "Lägg till ny sak"
+[status]
+other = "Status"
 
-[pickOption]
-other = "Välj ett alternativ"
+[thingtype]
+other = "Typ av sak"
+
+[things]
+other = "Saker"
+
+[time]
+other = "Starttid"
+
+[total]
+other = "Totalt"
+
+[type]
+other = "Typ"
+
+[unregistered]
+other = "Oregistrerade"
