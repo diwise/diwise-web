@@ -10,7 +10,7 @@ import (
 )
 
 type Bundle interface {
-	For(acceptLangauge string) Localizer
+	For(acceptLanguage string) Localizer
 }
 
 type Localizer interface {
