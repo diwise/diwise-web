@@ -82,6 +82,9 @@ other = "Measurement type"
 [measurementvalue]
 other = "Measurement value"
 
+[measurementvalues]
+other = "Measurement values"
+
 [name]
 other = "Name"
 

@@ -150,12 +150,17 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 					// Mätvärden
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik Mätvärden
-						@SVG("alert-triangle", Size(24))
-						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("Mätvärden") }</h2>
+						@SVG("graph", Size(24))
+						<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("measurementvalues") }</h2>
 						<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
 					</div>
 					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
-						@SensorMeasurementSelect(l10n, asset, "sensorMeasurementTypes", sensor)
+						<div class="border border-[#0A0C0F] dark:border-[#FFFFFF80] rounded-xl">
+							<label for="sensorMeasurementTypes" class="hidden block text-sm font-medium text-gray-700">
+								{ l10n.Get("sensorMeasurementTypes") }
+							</label>		
+							@SensorMeasurementSelect(l10n, asset, "sensorMeasurementTypes", sensor)
+						</div>
 						<canvas id="myChart"></canvas>
 						<div id="measurementCharts"></div>
 					</div>
