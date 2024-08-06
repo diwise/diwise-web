@@ -145,7 +145,7 @@ func listMapSwitch(id, name, icon string) templ.Component {
 }
 
 templ mapListButtons() {
-	<button id="listButton" class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer bg-black text-white fill-white"
+	<button id="listButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black text-white fill-white"
 		hx-get="?view=list"
 		hx-target="#listOrMap"
 		hx-push-url="true"
@@ -158,9 +158,9 @@ templ mapListButtons() {
 		<svg class="w-[18px] h-[18px]"> 
 			@templ.Raw(iconSVG("list"))
 		</svg>
-		<div class="text-sm font-bold font-sans leading-[18px]">Lista</div>
+		//<div class="text-sm font-bold font-sans leading-[18px]">Lista</div>
 	</button>
-	<button id="mapButton" class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer"
+	<button id="mapButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer"
 		hx-get="?view=mapview"
 		hx-target="#listOrMap"
 		hx-push-url="true"
@@ -173,7 +173,7 @@ templ mapListButtons() {
 		<svg class="w-[18px] h-[18px]"> 
 			@templ.Raw(iconSVG("map"))
 		</svg>
-		<div class="text-sm font-bold font-sans leading-[18px]">Karta</div>
+		//<div class="text-sm font-bold font-sans leading-[18px]">Karta</div>
 	</button>
 }
 
@@ -194,8 +194,8 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 					//@Filter(l10n)
 				</div>
 				//@PrimaryButton("Lägg till sensor")
-				<div class="h-14 flex justify-end items-center self-stretch">
-					<div class="w-[200px] h-[42px] p-1.5 bg-[#1C1C281F] bg-opacity-20 rounded-2xl gap-2 justify-end items-center inline-flex">
+				<div class="flex items-center self-stretch gap-6">
+					<div class="flex p-2 items-center gap-4 bg-[#1C1C281F] bg-opacity-20 rounded-2xl gap-2">
 						/*@listMapSwitch("list", "Lista", iconSVG("list"))
 						@listMapSwitch("mapview", "Karta", iconSVG("map"))*/
 
