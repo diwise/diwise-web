@@ -145,36 +145,40 @@ func listMapSwitch(id, name, icon string) templ.Component {
 }
 
 templ mapListButtons() {
-	<button id="listButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black text-white fill-white"
-		hx-get="?view=list"
-		hx-target="#listOrMap"
-		hx-push-url="true"
-		hx-trigger="click"
-		hx-swap="innerHTML"
-		hx-select="#list"
-		hx-on="click: this.classList.add('bg-black', 'text-white', 'fill-white'); this.classList.remove('text-black'); 
-		document.getElementById('mapButton').classList.add('text-black', 'fill-black'); 
-		document.getElementById('mapButton').classList.remove('bg-black', 'text-white', 'fill-white');">
-		<svg class="w-[18px] h-[18px]"> 
-			@templ.Raw(iconSVG("list"))
-		</svg>
-		//<div class="text-sm font-bold font-sans leading-[18px]">Lista</div>
-	</button>
-	<button id="mapButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer"
-		hx-get="?view=mapview"
-		hx-target="#listOrMap"
-		hx-push-url="true"
-		hx-trigger="click"
-		hx-swap="innerHTML"
-		hx-select="#mapview"
-		hx-on="click: this.classList.add('bg-black', 'text-white', 'fill-white'); this.classList.remove('text-black'); 
-		document.getElementById('listButton').classList.add('text-black', 'fill-black'); 
-		document.getElementById('listButton').classList.remove('bg-black', 'text-white', 'fill-white');">
-		<svg class="w-[18px] h-[18px]"> 
-			@templ.Raw(iconSVG("map"))
-		</svg>
-		//<div class="text-sm font-bold font-sans leading-[18px]">Karta</div>
-	</button>
+	<div class="flex items-center self-stretch gap-6">
+		<div class="flex p-2 items-center gap-4 bg-[#1C1C281F] bg-opacity-20 dark:bg-[#FFFFFF33] rounded-2xl gap-2">
+			<button id="listButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black"
+				hx-get="?view=list"
+				hx-target="#listOrMap"
+				hx-push-url="true"
+				hx-trigger="click"
+				hx-swap="innerHTML"
+				hx-select="#list"
+				hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black'); this.classList.remove('dark:fill-white'); 
+				document.getElementById('mapButton').classList.add('fill-black', 'dark:fill-white'); 
+				document.getElementById('mapButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');">
+				<svg class="w-[18px] h-[18px]"> 
+					@templ.Raw(iconSVG("list"))
+				</svg>
+				//<div class="text-sm font-bold font-sans leading-[18px]">Lista</div>
+			</button>
+			<button id="mapButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white"
+				hx-get="?view=mapview"
+				hx-target="#listOrMap"
+				hx-push-url="true"
+				hx-trigger="click"
+				hx-swap="innerHTML"
+				hx-select="#mapview"
+				hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white'); 
+				document.getElementById('listButton').classList.add('fill-black', 'dark:fill-white'); 
+				document.getElementById('listButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');">
+				<svg class="w-[18px] h-[18px]"> 
+					@templ.Raw(iconSVG("map"))
+				</svg>
+				//<div class="text-sm font-bold font-sans leading-[18px]">Karta</div>
+			</button>
+		</div>
+	</div>
 }
 
 templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
@@ -194,15 +198,13 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 					//@Filter(l10n)
 				</div>
 				//@PrimaryButton("Lägg till sensor")
-				<div class="flex items-center self-stretch gap-6">
-					<div class="flex p-2 items-center gap-4 bg-[#1C1C281F] bg-opacity-20 rounded-2xl gap-2">
-						/*@listMapSwitch("list", "Lista", iconSVG("list"))
-						@listMapSwitch("mapview", "Karta", iconSVG("map"))*/
+				
+				/*@listMapSwitch("list", "Lista", iconSVG("list"))
+				@listMapSwitch("mapview", "Karta", iconSVG("map"))*/
 
-						@mapListButtons()
+				@mapListButtons()
 
-					</div>
-				</div>
+					
 			</div>
 
 			<div id="listOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
