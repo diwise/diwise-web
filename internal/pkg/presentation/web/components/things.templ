@@ -91,47 +91,34 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingLi
 				</div>
 				<div class="h-14 flex justify-end items-center self-stretch">
 					<div id="#list-map" class="w-[200px] h-[42px] p-1.5 bg-[#1C1C281F] bg-opacity-20 rounded-2xl gap-2 justify-end items-center inline-flex">
-						@listMapSwitch("list", "Lista", iconSVG("list"), "Lista")
-						@listMapSwitch("mapview", "Karta", iconSVG("map"), "Karta")
+						//@listMapSwitch("list", "Lista", iconSVG("list"))
+						//@listMapSwitch("mapview", "Karta", iconSVG("map"))
+                        @mapListButtons()
 					</div>
 				</div>
 			</div>
             //@PickedFilters()	
-			<div class="w-full flex flex-col gap-6 items-start inline-flex">
-                <div id="things-table" class="w-full">
+
+            <div id="listOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
+				//Initialt listinnehåll
+				<div id="things-table" class="w-full">
 					@ThingTable(l10n, asset, things)
 				</div>
-                /*@Table(
-                    HeaderRow(TableHeaderText(l10n.Get("type")), TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("status"))),
-                    TableData(
-                        TableRow(
-                            TextCell("Soptunna"), TextCell("Fregattgatan 2"), ProgressBarCell("50"),
-                        ),
-                        TableRow(
-                            TextCell("Livboj"), TextCell("air-sens-7"), LabelCell("På plats", true),
-                        ),
-                        TableRow(
-                            TextCell("Termometer"), TextCell("06076898"), TextCell("27°"),
-                        ),
-                        TableRow(
-                            TextCell("Soptunna"), TextCell("NIAB_lidar_50001c"), ProgressBarCell("10"),
-                        ),
-                        TableRow(
-                            TextCell("Sandficka"), TextCell("EM500_UDL_1"), ProgressBarCell("75"),
-                        ),
-                        TableRow(
-                            TextCell("Avlopp"), TextCell("NIAB_lidar_50001c"), ProgressBarCell("30"),
-                        ),
-                        TableRow(
-                            TextCell("Livboj"), TextCell("NIAB_lidar_50001c"), LabelCell("Saknas", false),
-                        ),
-                    ),
-                    DataTableFooter("3", "things"),
-                )*/
-            </div>
-            <div class="w-full flex-1 text-center pr-4">
-                @Map(newMapData(62.3908, 17.3069))
-            </div>
+			</div>
+
+			//Innehåll dolt, hämtas när man klickar på Lista/Karta
+			<div id="fragments" style="display: none;">
+				<div id="list" class="w-full">
+					<div id="things-table" class="w-full">
+						@ThingTable(l10n, asset, things)
+					</div>
+				</div>
+				<div id="mapview" class="w-full">
+					@Map(newMapData(62.3908, 17.3069))
+				</div>	
+			</div>
+
+            
 		</div>
 	</div>
 }

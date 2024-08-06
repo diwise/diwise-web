@@ -108,44 +108,77 @@ templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors S
 	)
 }
 
-func listMapSwitch(id, name, icon, active string) templ.Component {
+func listMapSwitch(id, name, icon string) templ.Component {
 	
-	selectedButtonClass := "bg-black text-white"
-	selectedIconClass := "fill-white"
+	/*selectedButtonClass := "bg-black text-white"
+	selectedIconClass := "fill-white"*/
 
-	defaultButtonClass := "" //"bg-white bg-opacity-95 text-gray-900 text-opacity-90"
+	//defaultButtonClass := "" //"bg-white bg-opacity-95 text-gray-900 text-opacity-90"
 	defaultIconClass := "" //fill-[#1c1c28] dark:fill-zinc-600
 
-	buttonClass := defaultButtonClass
+	//buttonClass := defaultButtonClass
 	iconClass := defaultIconClass
 
-	if active == name {
-	    buttonClass = selectedButtonClass
-	    iconClass = selectedIconClass
-	} 
 
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		_, err := io.WriteString(w, fmt.Sprintf(
 			`
-                <button class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer %s"
+                <button id="%s-button" class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer inactive"
                     hx-get="?view=%s"
 					hx-target="#listOrMap"
                     hx-push-url="true"
                     hx-trigger="click"
 					hx-swap="innerHTML"
-					hx-select="#%s">
+					hx-select="#%s"
+					hx-on="click: this.classList.add('active'); this.classList.remove('inactive'); 
+                           document.getElementById('%s-button').classList.add('inactive'); 
+                           document.getElementById('%s-button').classList.remove('active');">
                     <svg class="w-[18px] h-[18px] %s"> 
                         %s
                     </svg>
                     <div class="text-sm font-bold font-sans leading-[18px]">%s</div>
                 </button>
-            `, buttonClass, id, id, iconClass, icon, name,
+            `, id, id, id, id, id, iconClass, icon, name,
 		))
 		return err
 	})
 }
 
+templ mapListButtons() {
+	<button id="listButton" class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer bg-black text-white fill-white"
+		hx-get="?view=list"
+		hx-target="#listOrMap"
+		hx-push-url="true"
+		hx-trigger="click"
+		hx-swap="innerHTML"
+		hx-select="#list"
+		hx-on="click: this.classList.add('bg-black', 'text-white', 'fill-white'); this.classList.remove('text-black'); 
+		document.getElementById('mapButton').classList.add('text-black', 'fill-black'); 
+		document.getElementById('mapButton').classList.remove('bg-black', 'text-white', 'fill-white');">
+		<svg class="w-[18px] h-[18px]"> 
+			@templ.Raw(iconSVG("list"))
+		</svg>
+		<div class="text-sm font-bold font-sans leading-[18px]">Lista</div>
+	</button>
+	<button id="mapButton" class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer"
+		hx-get="?view=mapview"
+		hx-target="#listOrMap"
+		hx-push-url="true"
+		hx-trigger="click"
+		hx-swap="innerHTML"
+		hx-select="#mapview"
+		hx-on="click: this.classList.add('bg-black', 'text-white', 'fill-white'); this.classList.remove('text-black'); 
+		document.getElementById('listButton').classList.add('text-black', 'fill-black'); 
+		document.getElementById('listButton').classList.remove('bg-black', 'text-white', 'fill-white');">
+		<svg class="w-[18px] h-[18px]"> 
+			@templ.Raw(iconSVG("map"))
+		</svg>
+		<div class="text-sm font-bold font-sans leading-[18px]">Karta</div>
+	</button>
+}
+
 templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
+	
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="sensor-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
 			<div class="">
@@ -163,30 +196,15 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 				//@PrimaryButton("Lägg till sensor")
 				<div class="h-14 flex justify-end items-center self-stretch">
 					<div class="w-[200px] h-[42px] p-1.5 bg-[#1C1C281F] bg-opacity-20 rounded-2xl gap-2 justify-end items-center inline-flex">
-						@listMapSwitch("list", "Lista", iconSVG("list"), "Lista")
-						@listMapSwitch("mapview", "Karta", iconSVG("map"), "Karta")
-						/*<button class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer"
-                            hx-get="?view=list"
-                            hx-target="#listOrMap"
-                            hx-push-url="true"
-                            hx-trigger="click"
-                            hx-swap="innerHTML"
-							hx-select="#list">
-                            Lista
-                        </button>
-						 <button class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer"
-                            hx-get="?view=mapview"
-                            hx-target="#listOrMap"
-                            hx-push-url="true"
-                            hx-trigger="click"
-                            hx-swap="innerHTML"
-							hx-select="#mapview">
-                                Karta
-                        </button>*/
+						/*@listMapSwitch("list", "Lista", iconSVG("list"))
+						@listMapSwitch("mapview", "Karta", iconSVG("map"))*/
+
+						@mapListButtons()
+
 					</div>
 				</div>
 			</div>
-			
+
 			<div id="listOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
 				//Initialt listinnehåll
 				<div id="sensors-table" class="w-full">
