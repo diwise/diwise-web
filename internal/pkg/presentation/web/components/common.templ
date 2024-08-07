@@ -31,7 +31,7 @@ templ Select(id string, multiple bool, hxGet, hxTarget string, options []OptionV
 			if hxTarget != "" {
 				hx-target={ hxTarget }
 			}
-			class="appearance-none cursor-pointer block w-full pl-3 pr-3 py-2 text-base dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] dark:text-[#E5E5E5] focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
+			class="appearance-none cursor-pointer block w-full pl-3 pr-3 py-2 text-base dark:border dark:border-input-outline dark:bg-darkmode-input-surface dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
 			multiple?={ multiple }
 		>
 			@Options(options)

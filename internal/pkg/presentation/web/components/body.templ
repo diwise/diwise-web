@@ -89,7 +89,7 @@ func (cfg *svgCfg) ViewBox() string {
 func newSVGCfg(fn ...func(*svgCfg)) *svgCfg {
 	cfg := &svgCfg{
 		classes: map[string][]string{
-			"fill": {"fill-[#1F1F25]", "dark:fill-zinc-100"},
+			"fill": {"fill-dark-primary", "dark:fill-zinc-100"},
 			"size": {"w-5", "h-5"},
 		},
 		viewBox: "0 0 20 20",
@@ -317,8 +317,8 @@ func isCurrent(ctx context.Context, expect string) bool {
 templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, mainContent templ.Component) {
 	<body id="body" onload={ onPageLoad() }>
 		<div id="reloader" hx-get={ reloaderEndpoint(version) } hx-trigger={ reloaderFrequency(version) }></div>
-		<div class="flex grid grid-cols-12 gap-2 bg-white dark:bg-[#2F2F3C] min-h-screen">
-			<div class="col-span-2 px-3 py-1 bg-white dark:bg-[#2F2F3C] gap-3 flex flex-col justify-between h-full fixed inset-y-0 left-0 w-64 border-r border-[#1C1C284D] dark:border-white dark:border-opacity-30">
+		<div class="flex grid grid-cols-12 gap-2 bg-white dark:bg-content-background min-h-screen">
+			<div class="col-span-2 px-3 py-1 bg-white dark:bg-content-background gap-3 flex flex-col justify-between h-full fixed inset-y-0 left-0 w-64 border-r border-divider-gray dark:border-white dark:border-opacity-30">
 				<div class="self-stretch flex flex-col gap-14">
 					<div
 						class="w-auto h-[90px] bg-left bg-cover bg-no-repeat
@@ -329,7 +329,7 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 						//@SectionDivider(l10n.Get("overview"))
 						@MenuSegment(l10n.Get("home"), "/home", SVG("home", SelectedIcon(isCurrent(ctx, "home"))), asset, isCurrent(ctx, "home"))
 						@MenuSegment(l10n.Get("sensors"), "/sensors", SVG("rss", SelectedIcon(isCurrent(ctx, "sensors"))), asset, isCurrent(ctx, "sensors"))
-						@MenuSegment(l10n.Get("things"), "/things", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("[#1F1F25]", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "things"))), asset, isCurrent(ctx, "things"))
+						@MenuSegment(l10n.Get("things"), "/things", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "things"))), asset, isCurrent(ctx, "things"))
 						/*
 						@MenuSegment(l10n.Get("functions"), "/functions", "send-to-back", asset, isCurrent(ctx, "functions"))
 						<div class="self-stretch px-3.5 py-2.5 rounded-xl justify-between items-center inline-flex">

@@ -40,15 +40,15 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ thing.Name }</h1>
 				@sensorActive(thing.Active, l10n)
 			</div>
-			<div class="flex items-center text-white dark:text-[#1F1F25] text-base font-bold font-sans leading-normal">
+			<div class="flex items-center text-white dark:text-dark-primary text-base font-bold font-sans leading-normal">
 				<button
-					class="w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28F2] bg-opacity-95 dark:bg-[white] rounded-xl flex items-center gap-2 cursor-pointer"
+					class="w-auto h-10 pl-[18px] pr-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-[white] rounded-xl flex items-center gap-2 cursor-pointer"
 					hx-get={ string(templ.URL(fmt.Sprintf("/components/things/details?id=%s&mode=edit", thing.ThingID))) }
 					hx-target="#thing-view"
 					hx-trigger="click"
 				>
-					<div class="w-[20px] h-[20px] dark:stroke-[#1F1F25]">
-						@SVG("pen", Box(24, 24), NoFill(), StrokeColor("white", "[#1F1F25]"), Stroke(templ.Attributes{"stroke-width": "1"}))
+					<div class="w-[20px] h-[20px] dark:stroke-dark-primary">
+						@SVG("pen", Box(24, 24), NoFill(), StrokeColor("white", "dark-primary"), Stroke(templ.Attributes{"stroke-width": "1"}))
 					</div>
 					{ l10n.Get("edit") }
 				</button>
@@ -62,11 +62,11 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 					//Uppgifter
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik
-						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("[#1F1F25]", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("details") }</h2>
-						<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
+						<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
 					</div>
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-[#444450] dark:text-[#E5E5E5]">
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
 						//Innehåll Uppgifter
 						/*<div class="flex flex-start gap-2">
 							<div class="">{ l10n.Get("name") }</div>
@@ -92,13 +92,13 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 						//Rubrik larm
 						@SVG("alert-triangle", Size(24))
 						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("alerts") }</h2>
-						<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
+						<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
 					</div>
 					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 						//Tabell larm
-						<table class="table-auto w-full border-collapse border outline-[#1C1C284D] dark:outline-[#FFFFFF4D] outline outline-1 overflow-hidden rounded-2xl text-[#444450] dark:text-[#E5E5E5]">
+						<table class="table-auto w-full border-collapse border outline-divider-gray dark:outline-divider-white outline outline-1 overflow-hidden rounded-2xl text-dark-secondary dark:text-secondary">
 							<thead>
-								<tr class="bg-[#F0F0F0] dark:bg-[#1F1F25] font-bold">
+								<tr class="bg-background-200 dark:bg-dark-primary font-bold">
 									<td class="px-6 py-3">{ l10n.Get("time") }</td>
 									<td class="px-6 py-3">{ l10n.Get("type") }</td>
 									<td class="px-6 py-3">{ l10n.Get("status") }</td>
@@ -130,17 +130,17 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 					</div>
 				</div>
 			</div>
-			<div class="border-l border-[#1C1C284D] dark:border-[#FFFFFF4D] h-auto"></div> //Vertikal divider mellan uppgifter och position
+			<div class="border-l border-divider-gray dark:border-divider-white h-auto"></div> //Vertikal divider-gray mellan uppgifter och position
 			<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 				<div class="flex flex-col items-start self-stretch">
 					//Karta
 					<div class="flex items-center gap-3 self-stretch">
 						//Position rubrik
-						@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("[#1F1F25]", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("location") }</h2>
-						<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
+						<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
 					</div>
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-[#444450] dark:text-[#E5E5E5]">
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
 						//
 						<div class="flex flex-start gap-2">
 							<div class="">{ l10n.Get("latitude") }</div>
@@ -165,26 +165,26 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 		</div>
 		<form action="/components/things/details" method="post">
 			<input type="hidden" name="id" value={ thing.ThingID }/>
-			<div class="w-full flex py-6 gap-10 text-[#1F1F25] dark:text-white">
+			<div class="w-full flex py-6 gap-10 text-dark-primary dark:text-white">
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					//Status och uppgifter
 					<div class="flex flex-col items-start self-stretch">
 						<div class="flex items-center gap-3 self-stretch">
 							//Rubrik uppgifter
-							@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("[#1F1F25]", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
-							<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
+							<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
 						</div>
 						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 							//Uppgifter
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("name") }</div>
-									<input type="text" name="name" value={ thing.Name } class="w-full h-[40px] border border-[#0A0C0F] dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
+									<input type="text" name="name" value={ thing.Name } class="w-full h-[40px] border border-input-surface dark:border-input-outline dark:bg-darkmode-input-surface focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
-									<div class="border border-[#0A0C0F] rounded-xl">
+									<div class="border border-input-surface rounded-xl">
 										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
 											{ l10n.Get("pickOption") }
 										</label>
@@ -195,7 +195,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("thingtype") }</div>
-									<div class="border border-[#0A0C0F] rounded-xl">
+									<div class="border border-input-surface rounded-xl">
 										<label for="thingType" class="hidden block text-sm font-medium text-gray-700">
 											{ l10n.Get("pickOption") }
 										</label>
@@ -205,7 +205,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 								<!--
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
-									<div class="border border-[#0A0C0F] rounded-xl">
+									<div class="border border-input-surface rounded-xl">
 										<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">{ l10n.Get("pickOption") }</label>
 										@MeasurementTypeSelect(l10n, asset, "measurementType", thing)
 									</div>
@@ -214,7 +214,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 								<div class="flex flex-start gap-10 self-stretch">
 									<div class="flex flex-col gap-2 flex-[1_0_0]">
 										<div class="font-bold">{ l10n.Get("measurementtype") }</div>
-										<div class="border border-[#0A0C0F] rounded-xl p-2">
+										<div class="border border-input-surface rounded-xl p-2">
 											<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">
 												{ l10n.Get("measurementtype") }
 											</label>
@@ -245,7 +245,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("description") }</div>
-									<textarea type="text" name="description" class="w-full min-h-[150px] border border-[#0A0C0F] font-bold dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder={ l10n.Get("description") }>
+									<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface font-bold dark:border dark:border-input-outline dark:bg-darkmode-input-surface focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder={ l10n.Get("description") }>
 										{ thing.Description }
 									</textarea>
 								</div>
@@ -256,9 +256,9 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 						//Status
 						<div class="flex items-center gap-3 self-stretch">
 							//Rubrik
-							@SVG("circle-check", Size(24), NoFill(), Box(24, 24), StrokeColor("[#1F1F25]", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@SVG("circle-check", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold">{ l10n.Get("status") }</h2>
-							<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
+							<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
 						</div>
 						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 							//Status
@@ -277,26 +277,26 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 						</div>
 					</div>
 				</div>
-				<div class="border-l border-[#1C1C284D] dark:border-[#FFFFFF4D] h-auto"></div> //Vertikal divider mellan uppgifter och position
+				<div class="border-l border-divider-gray dark:border-divider-white h-auto"></div> //Vertikal divider-gray mellan uppgifter och position
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					<div class="flex flex-col items-start self-stretch">
 						//Karta
 						<div class="flex items-center gap-3 self-stretch">
 							//Position rubrik
-							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("[#1F1F25]", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold">{ l10n.Get("location") }</h2>
-							<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
+							<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
 						</div>
 						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 							//Position
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("latitude") }</div>
-									<input type="number" name="latitude" value={ fmt.Sprintf("%f", thing.Latitude) } class="w-auto h-[40px] border border-[#0A0C0F] dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
+									<input type="number" name="latitude" value={ fmt.Sprintf("%f", thing.Latitude) } class="w-auto h-[40px] border border-input-surface dark:border-input-outline dark:bg-darkmode-input-surface font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("longitude") }</div>
-									<input type="number" name="longitude" value={ fmt.Sprintf("%f", thing.Longitude) } class="w-auto h-[40px] border border-[#0A0C0F] dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
+									<input type="number" name="longitude" value={ fmt.Sprintf("%f", thing.Longitude) } class="w-auto h-[40px] border border-input-surface dark:border-input-outline dark:bg-darkmode-input-surface font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
 								</div>
 							</div>
 							@Map(newMapData(thing.Latitude, thing.Longitude))
@@ -304,25 +304,25 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 					</div>
 				</div>
 			</div>
-			<div class="h-px border-t border-[#1C1C284D] w-full"></div>
+			<div class="h-px border-t border-divider-gray w-full"></div>
 			<div class="flex justify-between items-center py-6">
 				<button name="delete" class="text-right w-auto h-10 pl-[18px] gap-2 pr-4 py-2 bg-err-prim-surf rounded-xl flex items-center cursor-pointer">
 					<div class="w-[20px] h-[20px]">
-						@SVG("trashcan", Size(20), NoFill(), Box(24, 24), StrokeColor("[#971A1A]", "[#971A1A]"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@SVG("trashcan", Size(20), NoFill(), Box(24, 24), StrokeColor("secondary-text", "secondary-text"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					</div>
-					//<svg class="fill-none dark:fill-none h-6 w-6 stroke-[#971A1A] dark:stroke-zinc-100"></svg>
-					<div class="text-[#971A1A] text-base font-sans font-bold leading-normal">
+					//<svg class="fill-none dark:fill-none h-6 w-6 stroke-secondary-text dark:stroke-zinc-100"></svg>
+					<div class="text-secondary-text text-base font-sans font-bold leading-normal">
 						{ l10n.Get("delete") }
 					</div>
 				</button>
 				<div class="flex items-end gap-4">
-					<button name="cancel" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 border-[#1C1C284D] border-2 dark:border-[#FFFFFF4D] rounded-xl flex items-center cursor-pointer">
-						<div class="text-[#444450] dark:text-[#E5E5E5] text-base font-sans font-bold leading-normal">
+					<button name="cancel" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 border-divider-gray border-2 dark:border-divider-white rounded-xl flex items-center cursor-pointer">
+						<div class="text-dark-secondary dark:text-secondary text-base font-sans font-bold leading-normal">
 							{ l10n.Get("cancel") }
 						</div>
 					</button>
-					<button type="submit" name="save" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-[#1C1C28F2] bg-opacity-95 dark:bg-[#FFFFFFF2] rounded-xl flex items-center cursor-pointer">
-						<div class="text-white dark:text-[#1F1F25] text-base font-sans font-bold leading-normal">
+					<button type="submit" name="save" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-primary-surface-dark rounded-xl flex items-center cursor-pointer">
+						<div class="text-white dark:text-dark-primary text-base font-sans font-bold leading-normal">
 							{ l10n.Get("save") }
 						</div>
 					</button>
