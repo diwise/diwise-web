@@ -110,16 +110,6 @@ templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors S
 
 func listMapSwitch(id, name, icon string) templ.Component {
 	
-	/*selectedButtonClass := "bg-black text-white"
-	selectedIconClass := "fill-white"*/
-
-	//defaultButtonClass := "" //"bg-white bg-opacity-95 text-gray-900 text-opacity-90"
-	defaultIconClass := "" //fill-[#1c1c28] dark:fill-zinc-600
-
-	//buttonClass := defaultButtonClass
-	iconClass := defaultIconClass
-
-
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		_, err := io.WriteString(w, fmt.Sprintf(
 			`
@@ -133,12 +123,12 @@ func listMapSwitch(id, name, icon string) templ.Component {
 					hx-on="click: this.classList.add('active'); this.classList.remove('inactive'); 
                            document.getElementById('%s-button').classList.add('inactive'); 
                            document.getElementById('%s-button').classList.remove('active');">
-                    <svg class="w-[18px] h-[18px] %s"> 
+                    <svg class="w-[18px] h-[18px]"> 
                         %s
                     </svg>
                     <div class="text-sm font-bold font-sans leading-[18px]">%s</div>
                 </button>
-            `, id, id, id, id, id, iconClass, icon, name,
+            `, id, id, id, id, id, icon, name,
 		))
 		return err
 	})
