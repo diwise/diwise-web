@@ -20,7 +20,7 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 
 		id := r.URL.Query().Get("id")
 		if id == "" {
-			http.Error(w, "no id found i url", http.StatusBadRequest)
+			http.Error(w, "no id found in url", http.StatusBadRequest)
 			return
 		}
 
