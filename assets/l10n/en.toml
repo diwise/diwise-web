@@ -61,6 +61,9 @@ other = "Last seen"
 [latitude]
 other = "Latitude"
 
+[list]
+other = "List"
+
 [location]
 other = "Location"
 
@@ -75,6 +78,9 @@ other = "Active"
 
 [manyinactive]
 other = "Inactive"
+
+[map]
+other = "Map"
 
 [measurementtype]
 other = "Measurement type"

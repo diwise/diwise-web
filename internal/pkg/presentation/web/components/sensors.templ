@@ -145,7 +145,7 @@ templ tooltip(tooltiptext string) {
     </div>
 }
 
-templ mapListButtons() {
+templ mapListButtons(l10n locale.Localizer) {
 	<div class="flex items-center self-stretch gap-6">
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
 			/*@listMapSwitch("list", "Lista", iconSVG("list"))
@@ -165,7 +165,7 @@ templ mapListButtons() {
 						@templ.Raw(iconSVG("list"))
 					</svg>
 				</button>
-				@tooltip("Lista")
+				@tooltip(l10n.Get("list"))
 			</div>
 			<div class="relative group">
 				<button id="mapButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
@@ -182,7 +182,7 @@ templ mapListButtons() {
 						@templ.Raw(iconSVG("map"))
 					</svg>
 				</button>
-				@tooltip("Karta")
+				@tooltip(l10n.Get("map"))
 			</div>
 		</div>
 	</div>
@@ -206,7 +206,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 				</div>
 				//@PrimaryButton("Lägg till sensor")
 				
-				@mapListButtons()
+				@mapListButtons(l10n)
 					
 			</div>
 

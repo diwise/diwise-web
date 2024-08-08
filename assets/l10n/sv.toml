@@ -58,6 +58,9 @@ other = "Inaktiv"
 [lastseen]
 other = "Senast sedd"
 
+[list]
+other = "Lista"
+
 [latitude]
 other = "Latitud"
 
@@ -75,6 +78,9 @@ other = "Aktiva"
 
 [manyinactive]
 other = "Inaktiva"
+
+[map]
+other = "Karta"
 
 [measurementtype]
 other = "Mättyp"
