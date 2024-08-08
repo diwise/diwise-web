@@ -103,49 +103,10 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 						</div>
 					</div>
 				</div>
-				<div class="flex flex-col items-start self-stretch">
-					//Larm
-					<div class="flex items-center gap-3 self-stretch">
-						//Rubrik larm
-						@SVG("alert-triangle", Size(24))
-						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("alerts") }</h2>
-						<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
-					</div>
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
-						//Tabell larm
-						<table class="table-auto w-full border-collapse border outline-divider-gray dark:outline-divider-white outline outline-1 overflow-hidden rounded-2xl text-dark-secondary dark:text-secondary">
-							<thead>
-								<tr class="bg-background-200 dark:bg-dark-primary font-bold">
-									<td class="px-6 py-3">{ l10n.Get("time") }</td>
-									<td class="px-6 py-3">{ l10n.Get("type") }</td>
-									<td class="px-6 py-3">{ l10n.Get("status") }</td>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<td class="px-6 py-3">2024-05-30, 14:22</td>
-									<td class="px-6 py-3">07.00</td>
-									<td class="px-6 py-3">07.00</td>
-								</tr>
-								<tr>
-									<td class="px-6 py-3">2024-05-29, 12:20</td>
-									<td class="px-6 py-3">07.00</td>
-									<td class="px-6 py-3">07.00</td>
-								</tr>
-								<tr>
-									<td class="px-6 py-3">2024-05-28, 10:32</td>
-									<td class="px-6 py-3">07.00</td>
-									<td class="px-6 py-3">07.00</td>
-								</tr>
-								<tr>
-									<td class="px-6 py-3">2024-05-27, 14:22</td>
-									<td class="px-6 py-3">07.00</td>
-									<td class="px-6 py-3">07.00</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
+
+				//Larmlista, inte med i MVP
+				//@AlarmList(l10n)
+				
 				<div class="flex flex-col items-start self-stretch">
 					// Mätvärden
 					<div class="flex items-center gap-3 self-stretch">
@@ -335,6 +296,52 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 				</div>
 			</div>
 		</form>
+	</div>
+}
+
+templ AlarmList(l10n locale.Localizer) {
+	<div class="flex flex-col items-start self-stretch">
+		//Larm
+		<div class="flex items-center gap-3 self-stretch">
+			//Rubrik larm
+			@SVG("alert-triangle", Size(24))
+			<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("alerts") }</h2>
+			<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+		</div>
+		<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+			//Tabell larm
+			<table class="table-auto w-full border-collapse border outline-divider-gray dark:outline-divider-white outline outline-1 overflow-hidden rounded-2xl text-dark-secondary dark:text-secondary">
+				<thead>
+					<tr class="bg-background-200 dark:bg-dark-primary font-bold">
+						<td class="px-6 py-3">{ l10n.Get("time") }</td>
+						<td class="px-6 py-3">{ l10n.Get("type") }</td>
+						<td class="px-6 py-3">{ l10n.Get("status") }</td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="px-6 py-3">2024-05-30, 14:22</td>
+						<td class="px-6 py-3">07.00</td>
+						<td class="px-6 py-3">07.00</td>
+					</tr>
+					<tr>
+						<td class="px-6 py-3">2024-05-29, 12:20</td>
+						<td class="px-6 py-3">07.00</td>
+						<td class="px-6 py-3">07.00</td>
+					</tr>
+					<tr>
+						<td class="px-6 py-3">2024-05-28, 10:32</td>
+						<td class="px-6 py-3">07.00</td>
+						<td class="px-6 py-3">07.00</td>
+					</tr>
+					<tr>
+						<td class="px-6 py-3">2024-05-27, 14:22</td>
+						<td class="px-6 py-3">07.00</td>
+						<td class="px-6 py-3">07.00</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
 	</div>
 }
 
