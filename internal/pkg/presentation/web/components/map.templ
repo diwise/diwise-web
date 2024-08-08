@@ -109,39 +109,57 @@ templ Map(data mapData, featureCollection ...FeatureCollection) {
 
         var layers = {};
 
-        geodata.forEach(data => {
-            var type = data.features[0].properties.type;
-            var icon;
+        if (geodata && Array.isArray(geodata)) {
+            geodata.forEach(data => {
+                var type = data.features[0].properties.type;
+                var icon;
 
-            switch (type) {
-                case 'trashcan':
-                    icon = trashcanIcon;
-                    break;
-                case 'lifebuoy':
-                    icon = lifebuoyIcon;
-                    break;
-                case 'thermometer':
-                    icon = thermometerIcon;
-                    break;
-                case 'drain':
-                    icon = drainIcon;
-                    break;
-                default:
-                    icon = null;
-            }
-
-            var layerGroup = layers[type] = L.geoJSON(data, {
-                pointToLayer: function(feature, latlng) {
-                    return L.marker(latlng, { icon: icon });
-                },
-                onEachFeature: function(feature, layer) {
-                    layer.bindPopup(feature.properties.desc);
+                switch (type) {
+                    case 'trashcan':
+                        icon = trashcanIcon;
+                        break;
+                    case 'lifebuoy':
+                        icon = lifebuoyIcon;
+                        break;
+                    case 'thermometer':
+                        icon = thermometerIcon;
+                        break;
+                    case 'drain':
+                        icon = drainIcon;
+                        break;
+                    default:
+                        icon = null;
                 }
-            }).addTo(map);
 
-        });
+                var layerGroup = layers[type] = L.geoJSON(data, {
+                    pointToLayer: function(feature, latlng) {
+                        return L.marker(latlng, { icon: icon });
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.bindPopup(feature.properties.desc);
+                    }
+                }).addTo(map);
+
+            });
+        }
 
         L.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
+
+        function getBoundsCoordinates() {
+            var bounds = map.getBounds();
+
+            var southwest = bounds.getSouthWest();
+            var northeast = bounds.getNorthEast();
+
+            // Uppdatera URL med bounds
+            var newUrl = new URL(window.location.href);
+            newUrl.searchParams.set('bounds', `[${southwest.lat},${southwest.lng};${northeast.lat},${northeast.lng}]`);
+            window.history.replaceState({}, '', newUrl);
+
+        }
+
+        // Kontrollera hörnkoordinater när kartan laddas och vid varje dragning eller zoomning
+        map.on('load moveend zoomend', getBoundsCoordinates);
 
         /*
         document.querySelectorAll('.map-checkbox').forEach(checkbox => {
