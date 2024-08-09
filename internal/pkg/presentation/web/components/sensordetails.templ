@@ -90,16 +90,16 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 							<div class="font-bold">{ sensor.Name }</div>
 						</div>*/
 						<div class="flex flex-start gap-2">
-							<div class="">{ l10n.Get("sensortype") }</div>
-							<div class="font-bold">{ sensor.DeviceProfileName }</div>
+							<div class="font-bold">{ l10n.Get("sensortype") }</div>
+							<div class="">{ sensor.DeviceProfileName }</div>
 						</div>
 						<div class="flex flex-start gap-2">
-							<div class="">{ l10n.Get("organisation") }</div>
-							<div class="font-bold">{ sensor.Tenant }</div>
+							<div class="font-bold">{ l10n.Get("organisation") }</div>
+							<div class="">{ sensor.Tenant }</div>
 						</div>
 						<div class="flex flex-col gap-2">
-							<div class="">{ l10n.Get("description") }</div>
-							<div class="font-bold">{ sensor.Description }</div>
+							<div class="font-bold">{ l10n.Get("description") }</div>
+							<div class="">{ sensor.Description }</div>
 						</div>
 					</div>
 				</div>
@@ -140,12 +140,12 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
 						//
 						<div class="flex flex-start gap-2">
-							<div class="">{ l10n.Get("latitude") }</div>
-							<div class="font-bold">{ fmt.Sprintf("%f", sensor.Latitude) }</div>
+							<div class="font-bold">{ l10n.Get("latitude") }</div>
+							<div class="">{ fmt.Sprintf("%f", sensor.Latitude) }</div>
 						</div>
 						<div class="flex flex-start gap-2">
-							<div class="">{ l10n.Get("longitude") }</div>
-							<div class="font-bold">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
+							<div class="font-bold">{ l10n.Get("longitude") }</div>
+							<div class="">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
 						</div>
 						@Map(newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
 					</div>

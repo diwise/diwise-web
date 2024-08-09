@@ -25,6 +25,9 @@ other = "Välj"
 [chooseMeasurementtype]
 other = "Ange mättyp"
 
+[currentlevel]
+other = "Aktuell nivå"
+
 [delete]
 other = "Radera"
 
@@ -108,6 +111,12 @@ other = "Spara"
 
 [search]
 other = "Sök"
+
+[sensorconnected]
+other = "Kopplad sensor"
+
+[sensormissing]
+other = "Sensor saknas"
 
 [sensors]
 other = "Sensorer"

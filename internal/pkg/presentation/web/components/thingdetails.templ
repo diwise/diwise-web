@@ -54,9 +54,32 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 				</button>
 			</div>
 		</div>
+
+		//Fyllnadsnivå
+		<div class="flex flex-col items-start self-stretch py-6">
+			//Fyllnadsnivå
+			<div class="flex items-center gap-3 self-stretch">
+				//Rubrik
+				@SVG("chartline", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+				<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("fillinglevel") }</h2>
+				<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+			</div>
+			<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
+				//Innehåll Uppgifter
+				<div class="flex flex-col gap-2">
+					<div class="">{ l10n.Get("currentlevel") }</div>
+					<div class="text-3xl font-bold">66%</div>
+				</div>
+				<div class="flex flex-start gap-2">
+					Här ska det vara en graf
+				</div>
+			</div>
+		</div>
+
 		<div class="w-full flex py-6 gap-10">
-			//Yttersta diven
+			//Yttersta diven			
 			<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+				
 				//Uppgifter och larm
 				<div class="flex flex-col items-start self-stretch">
 					//Uppgifter
@@ -68,67 +91,29 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 					</div>
 					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
 						//Innehåll Uppgifter
-						/*<div class="flex flex-start gap-2">
-							<div class="">{ l10n.Get("name") }</div>
-							<div class="font-bold">{ thing.Name }</div>
-						</div>*/
 						<div class="flex flex-start gap-2">
-							<div class="">{ l10n.Get("thingtype") }</div>
-							<div class="font-bold">{ thing.ThingProfileName }</div>
+							<div class="font-bold">{ l10n.Get("id") }</div>
+							<div class="">{ thing.ThingID }</div>
 						</div>
 						<div class="flex flex-start gap-2">
-							<div class="">{ l10n.Get("organisation") }</div>
-							<div class="font-bold">{ thing.Tenant }</div>
+							<div class="font-bold">{ l10n.Get("type") }</div>
+							<div class="">{ thing.ThingProfileName }</div>
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
+							<div class="">{ l10n.Get("sensormissing") }</div>
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("organisation") }</div>
+							<div class="">{ thing.Tenant }</div>
 						</div>
 						<div class="flex flex-col gap-2">
-							<div class="">{ l10n.Get("description") }</div>
-							<div class="font-bold">{ thing.Description }</div>
+							<div class="font-bold">{ l10n.Get("description") }</div>
+							<div class="">{ thing.Description }</div>
 						</div>
 					</div>
 				</div>
-				<div class="flex flex-col items-start self-stretch">
-					//Larm
-					<div class="flex items-center gap-3 self-stretch">
-						//Rubrik larm
-						@SVG("alert-triangle", Size(24))
-						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("alerts") }</h2>
-						<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
-					</div>
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
-						//Tabell larm
-						<table class="table-auto w-full border-collapse border outline-divider-gray dark:outline-divider-white outline outline-1 overflow-hidden rounded-2xl text-dark-secondary dark:text-secondary">
-							<thead>
-								<tr class="bg-background-200 dark:bg-dark-primary font-bold">
-									<td class="px-6 py-3">{ l10n.Get("time") }</td>
-									<td class="px-6 py-3">{ l10n.Get("type") }</td>
-									<td class="px-6 py-3">{ l10n.Get("status") }</td>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<td class="px-6 py-3">2024-05-30, 14:22</td>
-									<td class="px-6 py-3">07.00</td>
-									<td class="px-6 py-3">07.00</td>
-								</tr>
-								<tr>
-									<td class="px-6 py-3">2024-05-29, 12:20</td>
-									<td class="px-6 py-3">07.00</td>
-									<td class="px-6 py-3">07.00</td>
-								</tr>
-								<tr>
-									<td class="px-6 py-3">2024-05-28, 10:32</td>
-									<td class="px-6 py-3">07.00</td>
-									<td class="px-6 py-3">07.00</td>
-								</tr>
-								<tr>
-									<td class="px-6 py-3">2024-05-27, 14:22</td>
-									<td class="px-6 py-3">07.00</td>
-									<td class="px-6 py-3">07.00</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
+				//@AlarmList(l10n)
 			</div>
 			<div class="border-l border-divider-gray dark:border-divider-white h-auto"></div> //Vertikal divider-gray mellan uppgifter och position
 			<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
@@ -143,12 +128,12 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
 						//
 						<div class="flex flex-start gap-2">
-							<div class="">{ l10n.Get("latitude") }</div>
-							<div class="font-bold">{ fmt.Sprintf("%f", thing.Latitude) }</div>
+							<div class="font-bold">{ l10n.Get("latitude") }</div>
+							<div class="">{ fmt.Sprintf("%f", thing.Latitude) }</div>
 						</div>
 						<div class="flex flex-start gap-2">
-							<div class="">{ l10n.Get("longitude") }</div>
-							<div class="font-bold">{ fmt.Sprintf("%f", thing.Longitude) }</div>
+							<div class="font-bold">{ l10n.Get("longitude") }</div>
+							<div class="">{ fmt.Sprintf("%f", thing.Longitude) }</div>
 						</div>
 						@Map(newMapData(thing.Latitude, thing.Longitude))
 					</div>

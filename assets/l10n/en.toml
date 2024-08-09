@@ -25,6 +25,9 @@ other = "Choose"
 [chooseMeasurementtype]
 other = "Pick measurement type"
 
+[currentlevel]
+other = "Current level"
+
 [delete]
 other = "Delete"
 
@@ -108,6 +111,12 @@ other = "Save"
 
 [search]
 other = "Search"
+
+[sensorconnected]
+other = "Connected sensor"
+
+[sensormissing]
+other = "Sensor missing"
 
 [sensors]
 other = "Sensors"
