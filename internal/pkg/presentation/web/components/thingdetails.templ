@@ -33,8 +33,53 @@ templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 	</div>
 }
 
+templ graphTableButtons(l10n locale.Localizer) {
+	<div class="flex items-center self-stretch gap-6">
+		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
+			/*@listMapSwitch("list", "Lista", iconSVG("list"))
+			  @listMapSwitch("mapview", "Karta", iconSVG("map"))*/
+			<div class="relative group">
+				<button id="graphButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black stroke-white dark:bg-white dark:stroke-black hover:bg-tertiary-surface-hover"
+					hx-get="?view=graphView"
+					hx-target="#graphOrTable"
+					hx-push-url="true"
+					hx-trigger="click"
+					hx-swap="innerHTML"
+					hx-select="#graphView"
+					hx-on="click: this.classList.add('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black'); this.classList.remove('stroke-black', 'dark:stroke-white'); 
+					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white'); 
+					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');">
+					<svg class="w-[18px] h-[18px]"> 
+						@SVG("chartline", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@tooltip(l10n.Get("graph"))
+			</div>
+			<div class="relative group">
+				<button id="tableButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
+					hx-get="?view=tableView"
+					hx-target="#graphOrTable"
+					hx-push-url="true"
+					hx-trigger="click"
+					hx-swap="innerHTML"
+					hx-select="#tableView"
+					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white'); 
+					document.getElementById('graphButton').classList.add('stroke-black', 'dark:stroke-white'); 
+					document.getElementById('graphButton').classList.remove('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');">
+					<svg class="w-[18px] h-[18px]"> 
+						@templ.Raw(iconSVG("list"))
+					</svg>
+				</button>
+				@tooltip(l10n.Get("table"))
+			</div>
+		</div>
+	</div>
+}
+
 templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing ThingDetailsViewModel) {
 	<div class="w-full px-8">
+		
+		//Rubrik och redigera
 		<div class="flex items-center w-full justify-between">
 			<div class="flex items-center gap-6 align-middle">
 				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ thing.Name }</h1>
@@ -54,34 +99,56 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 				</button>
 			</div>
 		</div>
+		
 
-		//Fyllnadsnivå
-		<div class="flex flex-col items-start self-stretch py-6">
-			//Fyllnadsnivå
-			<div class="flex items-center gap-3 self-stretch">
-				//Rubrik
-				@SVG("chartline", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-				<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("fillinglevel") }</h2>
-				<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
-			</div>
-			<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
-				//Innehåll Uppgifter
-				<div class="flex flex-col gap-2">
-					<div class="">{ l10n.Get("currentlevel") }</div>
-					<div class="text-3xl font-bold">66%</div>
-				</div>
-				<div class="flex flex-start gap-2">
-					Här ska det vara en graf
-				</div>
-			</div>
-		</div>
+		//Innehåll
+		<div class="flex flex-col items-start gap-10">
 
-		<div class="w-full flex py-6 gap-10">
-			//Yttersta diven			
-			<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
-				
+			//Statistikdel
+			<div class="flex flex-col items-start self-stretch py-6">
+				//Fyllnadsnivå
+				<div class="flex items-center gap-3 self-stretch">
+					@SVG("chartline", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("fillinglevel") }</h2>
+					<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+				</div>
+				//Statistik
+				<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-dark-secondary dark:text-secondary">
+					<div class="flex items-center w-full justify-between">
+						<div class="flex flex-col gap-2">
+							<div class="">{ l10n.Get("currentlevel") }</div>
+							<div class="text-3xl font-bold">66%</div>
+						</div>
+						<div class="flex items-center gap-6">
+							<input type="date" class="border border-input-surface rounded-xl py-2 px-3 text-lg"></input>
+							-
+							<input type="date" class="border border-input-surface rounded-xl py-2 px-3 text-lg"></input>
+							@graphTableButtons(l10n)
+						</div>
+					</div>
+					<div class="flex flex-start gap-2">
+						<div id="graphOrTable" class="w-full flex flex-col gap-6 items-start inline-flex">
+							//Initialt listinnehåll
+							Här ska det visas en graf till att börja med
+						</div>
+
+						//Innehåll dolt, hämtas när man klickar på Lista/Karta
+						<div id="fragments" style="display: none;">
+							<div id="graphView" class="w-full">
+								Här visas en graf när man flippar emellan
+							</div>
+							<div id="tableView" class="w-full">
+								Här visas tabellen
+							</div>	
+						</div>
+					</div>
+				</div>
+			</div>
+
+			//Uppgifter och position
+			<div class="flex items-start self-stretch py-6 gap-10">
 				//Uppgifter och larm
-				<div class="flex flex-col items-start self-stretch">
+				<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
 					//Uppgifter
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik
@@ -89,8 +156,8 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("details") }</h2>
 						<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
 					</div>
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
-						//Innehåll Uppgifter
+					//Innehåll Uppgifter
+					<div class="flex flex-col items-start self-stretch gap-6 px-9 text-dark-secondary dark:text-secondary">
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("id") }</div>
 							<div class="">{ thing.ThingID }</div>
@@ -101,7 +168,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-							<div class="">{ l10n.Get("sensormissing") }</div>
+							<div class="italic">{ l10n.Get("sensormissing") }</div>
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("organisation") }</div>
@@ -113,29 +180,33 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 						</div>
 					</div>
 				</div>
-				//@AlarmList(l10n)
-			</div>
-			<div class="border-l border-divider-gray dark:border-divider-white h-auto"></div> //Vertikal divider-gray mellan uppgifter och position
-			<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
-				<div class="flex flex-col items-start self-stretch">
-					//Karta
-					<div class="flex items-center gap-3 self-stretch">
-						//Position rubrik
-						@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("location") }</h2>
-						<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
-					</div>
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
-						//
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("latitude") }</div>
-							<div class="">{ fmt.Sprintf("%f", thing.Latitude) }</div>
+					//@AlarmList(l10n)
+				
+				//Vertikal divider-gray mellan uppgifter och position
+				<div class="flex flex-col items-start self-stretch gap-2 border-l border-divider-gray dark:border-divider-white h-auto"></div> 
+				
+				//Position
+				<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
+					<div class="flex flex-col items-start self-stretch">
+						//Karta
+						<div class="flex items-center gap-3 self-stretch">
+							//Position rubrik
+							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("location") }</h2>
+							<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
 						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("longitude") }</div>
-							<div class="">{ fmt.Sprintf("%f", thing.Longitude) }</div>
+						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
+							//
+							<div class="flex flex-start gap-2">
+								<div class="font-bold">{ l10n.Get("latitude") }</div>
+								<div class="">{ fmt.Sprintf("%f", thing.Latitude) }</div>
+							</div>
+							<div class="flex flex-start gap-2">
+								<div class="font-bold">{ l10n.Get("longitude") }</div>
+								<div class="">{ fmt.Sprintf("%f", thing.Longitude) }</div>
+							</div>
+							@Map(newMapData(thing.Latitude, thing.Longitude))
 						</div>
-						@Map(newMapData(thing.Latitude, thing.Longitude))
 					</div>
 				</div>
 			</div>

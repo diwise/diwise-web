@@ -49,6 +49,9 @@ other = "Filling level"
 [functions]
 other = "Functions"
 
+[graph]
+other = "Graph"
+
 [home]
 other = "Home"
 
@@ -126,6 +129,9 @@ other = "Type of sensor"
 
 [status]
 other = "Status"
+
+[table]
+other = "Table"
 
 [thingtype]
 other = "Type of thing"

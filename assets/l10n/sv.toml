@@ -49,6 +49,9 @@ other = "Fyllnadsnivå"
 [functions]
 other = "Funktioner"
 
+[graph]
+other = "Graf"
+
 [home]
 other = "Hem"
 
@@ -126,6 +129,9 @@ other = "Sensortyp"
 
 [status]
 other = "Status"
+
+[table]
+other = "Tabell"
 
 [thingtype]
 other = "Typ av sak"
