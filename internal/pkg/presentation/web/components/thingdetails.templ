@@ -85,19 +85,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ thing.Name }</h1>
 				@sensorActive(thing.Active, l10n)
 			</div>
-			<div class="flex items-center text-white dark:text-dark-primary text-base font-bold font-sans leading-normal">
-				<button
-					class="w-auto h-10 pl-[18px] pr-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-[white] rounded-xl flex items-center gap-2 cursor-pointer"
-					hx-get={ string(templ.URL(fmt.Sprintf("/components/things/details?id=%s&mode=edit", thing.ThingID))) }
-					hx-target="#thing-view"
-					hx-trigger="click"
-				>
-					<div class="w-[20px] h-[20px] dark:stroke-dark-primary">
-						@SVG("pen", Box(24, 24), NoFill(), StrokeColor("white", "dark-primary"), Stroke(templ.Attributes{"stroke-width": "1"}))
-					</div>
-					{ l10n.Get("edit") }
-				</button>
-			</div>
+			@TertiaryButton("edit", "pen", "thing-view", templ.URL(fmt.Sprintf("/components/things/details?id=%s&mode=edit", thing.ThingID)), l10n)
 		</div>
 		
 		//Innehåll
