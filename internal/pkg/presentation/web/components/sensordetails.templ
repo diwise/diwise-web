@@ -57,19 +57,9 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 					@sensorActive(sensor.Active, l10n)
 				</div>
 			}
-			<div class="flex items-center text-white dark:text-dark-primary text-base font-bold font-sans leading-normal">
-				<button
-					class="w-auto h-10 pl-[18px] pr-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-[white] rounded-xl flex items-center gap-2 cursor-pointer"
-					hx-get={ string(templ.URL(fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID))) }
-					hx-target="#sensor-view"
-					hx-trigger="click"
-				>
-					<div class="w-[20px] h-[20px] dark:stroke-dark-primary">
-						@SVG("pen", Box(24, 24), NoFill(), StrokeColor("white", "dark-primary"), Stroke(templ.Attributes{"stroke-width": "1"}))
-					</div>
-					{ l10n.Get("edit") }
-				</button>
-			</div>
+
+			@TertiaryButton("edit", "pen", "sensor-view", templ.URL(fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)), l10n)
+			
 		</div>
 		<div class="w-full flex py-6 gap-10">
 			//Yttersta diven

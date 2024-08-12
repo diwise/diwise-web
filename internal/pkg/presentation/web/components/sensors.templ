@@ -51,34 +51,6 @@ templ SearchField(l10n locale.Localizer) {
 	</div>
 }
 
-templ PrimaryButton(title string) {
-	<div class="w-[200px] h-10 pl-[18px] pr-4 py-2 bg-amber-700 rounded-xl justify-center items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600 dark:border-2 cursor-pointer">
-		<div class="flex items-center gap-2">
-			<div class="text-white text-base font-bold font-sans leading-normal">
-				{ title }
-			</div>
-			<div class="w-[18px] h-[18px] flex items-center">
-				<svg class="w-[18px] h-[18px] stroke-white fill-white">
-					@templ.Raw(iconSVG("chevron-down"))
-				</svg>
-			</div>
-		</div>
-	</div>
-}
-
-templ SecondaryButton(title string) {
-	<div class="w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-divider-gray border-opacity-30 bg-white bg-opacity-20 dark:bg-gray-800 justify-center items-center gap-2 inline-flex dark:border-zinc-600">
-		<svg class="w-[18px] h-[18px] dark:fill-zinc-600">
-			@templ.Raw(iconSVG("filter"))
-		</svg>
-		<div class="text-dark-secondary text-base font-bold font-sans leading-normal dark:text-white">
-			{ title }
-		</div>
-	</div>
-}
-
-
-
 templ SumOfStuff(l10n locale.Localizer, stats StatisticsViewModel) {
 	<div class="flex items-start gap-10 dark:text-white">
 		<div class="flex items-start gap-2">
