@@ -75,6 +75,14 @@ templ Map(data mapData, featureCollection ...FeatureCollection) {
             //attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         }).addTo(map);
 
+        var sensorIcon = L.icon({
+            iconUrl: '/assets/092df4bb8f2c8826dd2f1b5c79a16a145d421f40d28c4656a6205cd4816766ac/sensor.svg',  
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+        
         var trashcanIcon = L.icon({
             iconUrl: '/assets/9bd4aeb2359eb2bc87a6efc62db884c7beea143a0f7f822330b075bb9e613922/trashcan.svg',  
             iconSize: [40, 40],
@@ -115,6 +123,9 @@ templ Map(data mapData, featureCollection ...FeatureCollection) {
                 var icon;
 
                 switch (type) {
+                    case 'sensor':
+                        icon = sensorIcon;
+                        break;
                     case 'trashcan':
                         icon = trashcanIcon;
                         break;

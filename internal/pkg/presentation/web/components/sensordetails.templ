@@ -348,7 +348,7 @@ templ AlarmList(l10n locale.Localizer) {
 func sensorMapFeature(sensor SensorDetailsViewModel) FeatureCollection {
 	feature := NewFeature(NewPoint(sensor.Latitude, sensor.Longitude))
 	feature.AddProperty("desc", sensor.Description)
-	feature.AddProperty("type", "trashcan")
+	feature.AddProperty("type", "sensor")
 	return NewFeatureCollection([]Feature{feature})
 }
 
