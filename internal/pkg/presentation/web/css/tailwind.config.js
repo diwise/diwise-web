@@ -23,13 +23,16 @@ module.exports = {
           'primary-green': '#00592D',
           'primary-green-accent': '#C9E4D7',
           'primary-surface': '#1C1C28F2',
+          'primary-surface-hover': '1C1C28E0',
           'primary-surface-dark': '#FFFFFFF2',
+          'primary-surface-dark-hover': '#FFFFFFE0',
           'primary-surface-white': '#FFFFFF33',
           'red-600': '#D62E2E',
           'secondary': '#E5E5E5',
           'secondary-text': '#971A1A',
           'tertiary-surface': '#1C1C281F',
           'tertiary-surface-hover': '#1C1C2829',
+          'white': '#FFFFFF'
         },
         fontFamily: {
           heading: ['Raleway'],
