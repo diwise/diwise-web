@@ -108,14 +108,14 @@ templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors S
 	)
 }
 
-func listMapSwitch(id, name, icon string) templ.Component {
+func tableMapSwitch(id, name, icon string) templ.Component {
 	
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		_, err := io.WriteString(w, fmt.Sprintf(
 			`
                 <button id="%s-button" class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer inactive"
                     hx-get="?view=%s"
-					hx-target="#listOrMap"
+					hx-target="#tableOrMap"
                     hx-push-url="true"
                     hx-trigger="click"
 					hx-swap="innerHTML"
@@ -145,39 +145,39 @@ templ tooltip(tooltiptext string) {
     </div>
 }
 
-templ mapListButtons(l10n locale.Localizer) {
+templ mapTableButtons(l10n locale.Localizer) {
 	<div class="flex items-center self-stretch gap-6">
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
-			/*@listMapSwitch("list", "Lista", iconSVG("list"))
-			  @listMapSwitch("mapview", "Karta", iconSVG("map"))*/
+			/*@tableMapSwitch("list", "Lista", iconSVG("list"))
+			  @tableMapSwitch("mapview", "Karta", iconSVG("map"))*/
 			<div class="relative group">
-				<button id="listButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black hover:bg-tertiary-surface-hover"
-					hx-get="?view=list"
-					hx-target="#listOrMap"
+				<button id="tableButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
+					hx-get="?view=table"
+					hx-target="#tableOrMap"
 					hx-push-url="true"
 					hx-trigger="click"
 					hx-swap="innerHTML"
-					hx-select="#list"
-					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black'); this.classList.remove('dark:fill-white'); 
+					hx-select="#table"
+					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white'); this.classList.remove('dark:fill-white', 'stroke-black'); 
 					document.getElementById('mapButton').classList.add('fill-black', 'dark:fill-white'); 
 					document.getElementById('mapButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');">
 					<svg class="w-[18px] h-[18px]"> 
-						@templ.Raw(iconSVG("list"))
+						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					</svg>
 				</button>
-				@tooltip(l10n.Get("list"))
+				@tooltip(l10n.Get("table"))
 			</div>
 			<div class="relative group">
 				<button id="mapButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
 					hx-get="?view=mapview"
-					hx-target="#listOrMap"
+					hx-target="#tableOrMap"
 					hx-push-url="true"
 					hx-trigger="click"
 					hx-swap="innerHTML"
 					hx-select="#mapview"
 					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white'); 
-					document.getElementById('listButton').classList.add('fill-black', 'dark:fill-white'); 
-					document.getElementById('listButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');">
+					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
+					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');">
 					<svg class="w-[18px] h-[18px]"> 
 						@templ.Raw(iconSVG("map"))
 					</svg>
@@ -206,12 +206,12 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 				</div>
 				//@PrimaryButton("Lägg till sensor")
 				
-				@mapListButtons(l10n)
+				@mapTableButtons(l10n)
 					
 			</div>
 
-			<div id="listOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
-				//Initialt listinnehåll
+			<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
+				//Initialt tabellinnehåll
 				<div id="sensors-table" class="w-full">
 					@SensorTable(l10n, asset, sensors)
 				</div>
@@ -219,7 +219,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 
 			//Innehåll dolt, hämtas när man klickar på Lista/Karta
 			<div id="fragments" style="display: none;">
-				<div id="list" class="w-full">
+				<div id="table" class="w-full">
 					<div id="sensors-table" class="w-full">
 						@SensorTable(l10n, asset, sensors)
 					</div>
