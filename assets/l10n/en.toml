@@ -133,6 +133,9 @@ other = "Status"
 [table]
 other = "Table"
 
+[temperature]
+other = "Temperature"
+
 [thingtype]
 other = "Type of thing"
 
@@ -141,6 +144,9 @@ other = "Things"
 
 [time]
 other = "Time"
+
+[timeinterval]
+other = "Time interval"
 
 [total]
 other = "Total"

@@ -133,6 +133,9 @@ other = "Status"
 [table]
 other = "Tabell"
 
+[temperature]
+other = "Temperatur"
+
 [thingtype]
 other = "Typ av sak"
 
@@ -141,6 +144,9 @@ other = "Saker"
 
 [time]
 other = "Starttid"
+
+[timeinterval]
+other = "Tidsintervall"
 
 [total]
 other = "Totalt"

@@ -100,7 +100,6 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 			</div>
 		</div>
 		
-
 		//Innehåll
 		<div class="flex flex-col items-start gap-10">
 
@@ -109,7 +108,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 				//Fyllnadsnivå
 				<div class="flex items-center gap-3 self-stretch">
 					@SVG("chartline", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("fillinglevel") }</h2>
+					<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("fillinglevel") }</h2>
 					<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
 				</div>
 				//Statistik
@@ -120,10 +119,41 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 							<div class="text-3xl font-bold">66%</div>
 						</div>
 						<div class="flex items-center gap-6">
-							<input type="date" class="border border-input-surface rounded-xl py-2 px-3 text-lg dark:text-dark-secondary"></input>
-							-
-							<input type="date" class="border border-input-surface rounded-xl py-2 px-3 text-lg dark:text-dark-secondary"></input>
-							@graphTableButtons(l10n)
+							//TODO: Ersätt med en riktig Select() när data finns.
+							<div class="flex flex-col items-start gap-2">
+								<div class="text-dark-primary font-bold">
+									{ l10n.Get("measurementtype") }
+								</div>
+								<div class="relative min-w-48 border border-input-surface rounded-xl px-3 py-2 dark:border dark:border-input-outline">
+									<select class="appearance-none min-w-48 dark:bg-darkmode-input-surface dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
+										<option value="Fyllnadsnivå">{ l10n.Get("fillinglevel") }</option>
+										<option value="Temperatur">{ l10n.Get("temperature") }</option>
+									</select>
+									<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+										<svg class="w-[18px] h-[18px] dark:fill-white">
+											@templ.Raw(iconSVG("chevron-down"))
+										</svg>
+									</div>
+								</div>
+							</div>
+							<div class="flex flex-col items-start gap-2">
+								<div class="text-dark-primary font-bold">
+									{ l10n.Get("timeinterval") }
+								</div>
+								<div class="">
+									<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-dark-secondary"></input>
+									-
+									<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-dark-secondary"></input>
+								</div>
+							</div>
+							<div class="flex flex-col items-start gap-2">
+								<div class="text-dark-primary font-bold">
+									&nbsp;
+								</div>
+								<div class="">
+									@graphTableButtons(l10n)
+								</div>
+							</div>
 						</div>
 					</div>
 					<div class="flex flex-start gap-2">
