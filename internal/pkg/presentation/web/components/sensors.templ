@@ -28,19 +28,19 @@ type StatisticsViewModel struct {
 }
 
 type SensorListViewModel struct {
-	Sensors []SensorViewModel
+	Sensors    []SensorViewModel
 	Statistics StatisticsViewModel
 }
 
 templ SearchField(l10n locale.Localizer) {
 	<div class="w-[237px] h-12 flex-col justify-center items-start gap-2 inline-flex">
-		<div class="self-stretch pl-5 pr-4 py-3 bg-white bg-opacity-50 rounded-xl border border-[#0A0C0F] border-opacity-50 justify-start items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600">
+		<div class="self-stretch pl-5 pr-4 py-3 bg-white bg-opacity-50 rounded-xl border border-input-surface border-opacity-50 justify-start items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600">
 			<div class="w-[22px] h-[22px]">
-				<svg class="w-[22px] h-[22px] fill-[#444450] dark:fill-zinc-600">
+				<svg class="w-[22px] h-[22px] fill-dark-secondary dark:fill-zinc-600">
 					@templ.Raw(iconSVG("search"))
 				</svg>
 			</div>
-			<div class="grow shrink basis-0 text-[#0A0C0F] text-opacity-30 text-lg font-normal font-sans leading-normal inline-flex">
+			<div class="grow shrink basis-0 text-input-surface text-opacity-30 text-lg font-normal font-sans leading-normal inline-flex">
 				<input
 					class="w-[175px] rounded-xl bg-white dark:bg-gray-800 dark:rounded-none dark:text-white dark:font-normal"
 					type="search"
@@ -50,34 +50,6 @@ templ SearchField(l10n locale.Localizer) {
 		</div>
 	</div>
 }
-
-templ PrimaryButton(title string) {
-	<div class="w-[200px] h-10 pl-[18px] pr-4 py-2 bg-amber-700 rounded-xl justify-center items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600 dark:border-2 cursor-pointer">
-		<div class="flex items-center gap-2">
-			<div class="text-white text-base font-bold font-sans leading-normal">
-				{ title }
-			</div>
-			<div class="w-[18px] h-[18px] flex items-center">
-				<svg class="w-[18px] h-[18px] stroke-white fill-white">
-					@templ.Raw(iconSVG("chevron-down"))
-				</svg>
-			</div>
-		</div>
-	</div>
-}
-
-templ SecondaryButton(title string) {
-	<div class="w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-[#1C1C284D] border-opacity-30 bg-white bg-opacity-20 dark:bg-gray-800 justify-center items-center gap-2 inline-flex dark:border-zinc-600">
-		<svg class="w-[18px] h-[18px] dark:fill-zinc-600">
-			@templ.Raw(iconSVG("filter"))
-		</svg>
-		<div class="text-[#444450] text-base font-bold font-sans leading-normal dark:text-white">
-			{ title }
-		</div>
-	</div>
-}
-
-
 
 templ SumOfStuff(l10n locale.Localizer, stats StatisticsViewModel) {
 	<div class="flex items-start gap-10 dark:text-white">
@@ -108,39 +80,90 @@ templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors S
 	)
 }
 
-func listMapSwitch(name, icon, active string) templ.Component {
-
-	selectedButtonClass := "bg-black text-white"
-	selectedIconClass := "fill-white"
-
-	defaultButtonClass := "bg-white bg-opacity-95 text-gray-900 text-opacity-90"
-	defaultIconClass := "fill-[#1c1c28] dark:fill-zinc-600"
-
-	buttonClass := defaultButtonClass
-	iconClass := defaultIconClass
-
-	if active == "Lista" {
-	    buttonClass = selectedButtonClass
-	    iconClass = selectedIconClass
-	} 
+func tableMapSwitch(id, name, icon string) templ.Component {
 
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		_, err := io.WriteString(w, fmt.Sprintf(
 			`
-                <button class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer %s"
-                    hx-get="/sensors?view=%s"
-					hx-target="#listOrMap"
+                <button id="%s-button" class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer inactive"
+                    hx-get="?view=%s"
+					hx-target="#tableOrMap"
                     hx-push-url="true"
-                    hx-trigger="click">
-                    <svg class="w-[18px] h-[18px] %s"> 
+                    hx-trigger="click"
+					hx-swap="innerHTML"
+					hx-select="#%s"
+					hx-on="click: this.classList.add('active'); this.classList.remove('inactive'); 
+                           document.getElementById('%s-button').classList.add('inactive'); 
+                           document.getElementById('%s-button').classList.remove('active');">
+                    <svg class="w-[18px] h-[18px]"> 
                         %s
                     </svg>
                     <div class="text-sm font-bold font-sans leading-[18px]">%s</div>
                 </button>
-            `, buttonClass, name, iconClass, icon, name,
+            `, id, id, id, id, id, icon, name,
 		))
 		return err
 	})
+}
+
+templ tooltip(tooltiptext string) {
+	<div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block">
+		<svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full">
+			@SVG("tip", Box(41, 8), FillColor("black", "white"))
+		</svg>
+		<div class="bg-primary-surface text-white dark:bg-white dark:text-black rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
+			{ tooltiptext }
+		</div>
+	</div>
+}
+
+templ mapTableButtons(l10n locale.Localizer) {
+	<div class="flex items-center self-stretch gap-6">
+		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
+			/*@tableMapSwitch("list", "Lista", iconSVG("list"))
+			  @tableMapSwitch("mapview", "Karta", iconSVG("map"))*/
+			<div class="relative group">
+				<button
+					id="tableButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
+					hx-get="?view=table"
+					hx-target="#tableOrMap"
+					hx-push-url="true"
+					hx-trigger="click"
+					hx-swap="innerHTML"
+					hx-select="#table"
+					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white'); this.classList.remove('dark:fill-white', 'stroke-black'); 
+					document.getElementById('mapButton').classList.add('fill-black', 'dark:fill-white'); 
+					document.getElementById('mapButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');"
+				>
+					<svg class="w-[18px] h-[18px]">
+						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@tooltip(l10n.Get("table"))
+			</div>
+			<div class="relative group">
+				<button
+					id="mapButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
+					hx-get="?view=mapview"
+					hx-target="#tableOrMap"
+					hx-push-url="true"
+					hx-trigger="click"
+					hx-swap="innerHTML"
+					hx-select="#mapview"
+					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white'); 
+					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
+					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
+				>
+					<svg class="w-[18px] h-[18px]">
+						@templ.Raw(iconSVG("map"))
+					</svg>
+				</button>
+				@tooltip(l10n.Get("map"))
+			</div>
+		</div>
+	</div>
 }
 
 templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
@@ -151,32 +174,33 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 			</div>
 			@SumOfStuff(l10n, sensors.Statistics)
 		</div>
-		<div class="h-px border-t border-[#1C1C284D] w-full dark:border-[#FFFFFF4D]"></div>
+		<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
 		<div class="flex px-8 flex-col items-start self-stretch gap-10">
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 					//@SearchField(l10n)
-					//@Filter(l10n)
+					@Filter(l10n)
 				</div>
 				//@PrimaryButton("Lägg till sensor")
-				<div class="h-14 flex justify-end items-center self-stretch">
-					<div id="#list-map" class="w-[200px] h-[42px] p-1.5 bg-[#1C1C281F] bg-opacity-20 rounded-2xl gap-2 justify-end items-center inline-flex">
-						@listMapSwitch("Lista", iconSVG("list"), "Lista")
-						@listMapSwitch("Karta", iconSVG("map"), "Karta")
-					</div>
-				</div>
+				@mapTableButtons(l10n)
 			</div>
-			<div id="listOrMap">
-
-			</div>
-			<div class="w-full flex flex-col gap-6 items-start inline-flex">
+			<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
+				//Initialt tabellinnehåll
 				<div id="sensors-table" class="w-full">
 					@SensorTable(l10n, asset, sensors)
 				</div>
 			</div>
-			<div class="w-full flex-1 text-center pr-4">
-                @Map(newMapData(62.3908, 17.3069))
-            </div>
+			//Innehåll dolt, hämtas när man klickar på Lista/Karta
+			<div id="fragments" style="display: none;">
+				<div id="table" class="w-full">
+					<div id="sensors-table" class="w-full">
+						@SensorTable(l10n, asset, sensors)
+					</div>
+				</div>
+				<div id="mapview" class="w-full">
+					@Map(newMapData(62.3908, 17.3069))
+				</div>
+			</div>
 		</div>
 	</div>
 }
@@ -198,11 +222,7 @@ func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, senso
 		cells = append(cells, TextCell(sensor.DevEUI))
 		//cells = append(cells, TextCell(sensor.net))
 
-		if sensor.BatteryLevel >= 0 {
-			cells = append(cells, TextCell(fmt.Sprintf("%d", sensor.BatteryLevel)))
-		} else {
-			cells = append(cells, TextCell("?"))
-		}
+		cells = append(cells, BatteryTableCell(sensor))
 
 		if sensor.LastSeen.IsZero() {
 			cells = append(cells, TextCell(""))
@@ -226,16 +246,20 @@ func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, senso
 	return rows
 }
 
-templ Filter (l10n locale.Localizer) {
+templ BatteryTableCell(sensor SensorViewModel) {
+	@ActiveCell(Text(fmt.Sprintf("%d", sensor.BatteryLevel)), "batLevel_"+sensor.DeviceID, fmt.Sprintf("/components/sensors/%s/batterylevel", sensor.DeviceID), "load, every 10m")
+}
+
+templ Filter(l10n locale.Localizer) {
 	<div class="flex items-center flex-[1_0_0] gap-6">
 		<div class="relative ml-4">
-			<button id="dropdownButtonType" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-[#1c1c2829] hover:rounded-lg" onclick={ toggleDropdownType() }>
+			<button id="dropdownButtonType" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownType() }>
 				{ l10n.Get("sensortype") }
 				<svg class="w-[18px] h-[18px] dark:fill-white">
 					@templ.Raw(iconSVG("chevron-down"))
 				</svg>
 			</button>
-			<div id="dropdownMenuType" class="absolute z-10 hidden bg-[#FAFAFA] rounded-md shadow-lg mt-2.5">
+			<div id="dropdownMenuType" class="absolute z-10 hidden bg-background-100 rounded-md shadow-lg mt-2.5">
 				<ul class="p-3 space-y-2">
 					<li>
 						<label for="avlopp-checkbox" class="flex items-center justify-between w-full cursor-pointer">
@@ -293,13 +317,13 @@ templ Filter (l10n locale.Localizer) {
 			</div>
 		</div>
 		<div class="relative">
-			<button id="dropdownButtonArea" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-[#1c1c2829] hover:rounded-lg" onclick={ toggleDropdownArea() }>
+			<button id="dropdownButtonArea" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownArea() }>
 				{ l10n.Get("measurementtype") }
 				<svg class="w-[18px] h-[18px] dark:fill-white">
 					@templ.Raw(iconSVG("chevron-down"))
 				</svg>
 			</button>
-			<div id="dropdownMenuArea" class="absolute z-10 bg-[#FAFAFA] rounded-md shadow-lg hidden mt-2.5 ">
+			<div id="dropdownMenuArea" class="absolute z-10 bg-background-100 rounded-md shadow-lg hidden mt-2.5 ">
 				<ul class="p-3 space-y-2">
 					<li>
 						<label for="bydalen-checkbox" class="flex items-center justify-between w-full cursor-pointer">

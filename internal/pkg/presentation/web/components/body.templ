@@ -13,9 +13,9 @@ type ComponentName string
 
 var CurrentComponent ComponentName = "current-component"
 
-templ SectionDivider(titel string) {
+templ SectionDivider(title string) {
 	<div class="self-stretch justify-start items-center gap-2 inline-flex">
-		<div class="text-neutral-800 dark:text-neutral-300 text-lg font-bold font-heading leading-normal">{ titel }</div>
+		<div class="text-neutral-800 dark:text-neutral-300 text-lg font-bold font-heading leading-normal">{ title }</div>
 		<div class="grow shrink basis-0 flex-col justify-start items-start gap-2 inline-flex">
 			<div class="self-stretch h-px bg-gray-900 dark:bg-white bg-opacity-30"></div>
 		</div>
@@ -26,12 +26,14 @@ var icons = map[string]string{
 	"alert-triangle":   "<path fill-rule=\"evenodd\" d=\"M8.733 1.995a2.5 2.5 0 0 1 3.433.926v.001l6.664 11.661v.002a2.5 2.5 0 0 1-2.162 3.748H3.337a2.5 2.5 0 0 1-2.185-3.748l.001-.002 6.664-11.66V2.92a2.5 2.5 0 0 1 .916-.926Zm1.259 1.327a.833.833 0 0 0-.725.422l-.002.003-6.668 11.67a.834.834 0 0 0 .729 1.25h13.34a.833.833 0 0 0 .72-1.25l-.001-.004-6.667-11.666-.001-.003a.833.833 0 0 0-.725-.422Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M10 6.667c.46 0 .833.373.833.833v3.333a.833.833 0 0 1-1.666 0V7.5c0-.46.373-.833.833-.833ZM9.167 14.167c0-.46.373-.834.833-.834h.008a.833.833 0 0 1 0 1.667H10a.833.833 0 0 1-.833-.833Z\" clip-rule=\"evenodd\"/>",
 	"arrow-left":       "<g fill-rule=\"evenodd\" clip-rule=\"evenodd\"><path d=\"M11.09 3.577a.833.833 0 0 1 0 1.179L5.844 10l5.244 5.244a.833.833 0 0 1-1.178 1.179l-5.834-5.834a.833.833 0 0 1 0-1.178l5.834-5.834a.833.833 0 0 1 1.178 0Z\"/><path d=\"M3.833 10c0-.46.373-.833.834-.833h11.666a.833.833 0 0 1 0 1.666H4.667A.833.833 0 0 1 3.833 10Z\"/></g>",
 	"arrow-right":      "<path fill-rule=\"evenodd\" d=\"M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z\" clip-rule=\"evenodd\"/>",
+	"chartline":		"<path fill-rule=\"evenodd\" d=\"M3 3v16a2 2 0 0 0 2 2h16\" /><path d=\"m19 9-5 5-4-4-3 3\" />",
 	"chevron-down":     "<path fill-rule=\"evenodd\" d=\"M3.97 6.22a.75.75 0 0 1 1.06 0L9 10.19l3.97-3.97a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 0 1 0-1.06Z\" clip-rule=\"evenodd\"/>",
 	"check":            "<path fill-rule=\"evenodd\" d=\"M20 6 9 17l-5-5\" />",
 	"circle-check":     "<path d=\"M22 11.08V12a10 10 0 1 1-5.93-9.14\" /><path d=\"m9 11 3 3L22 4\" />",
 	"close":            "<path d=\"M18 6 6 18\" /><path d=\"m6 6 12 12\" />",
 	"cog":              "<g fill-rule=\"evenodd\" clip-path=\"url(#a)\" clip-rule=\"evenodd\"><path d=\"M4.697 4.697a7.5 7.5 0 1 1 10.606 10.606A7.5 7.5 0 0 1 4.697 4.697ZM10 4.167a5.833 5.833 0 1 0 0 11.666 5.833 5.833 0 0 0 0-11.666Z\"/><path d=\"M8.232 8.232a2.5 2.5 0 1 1 3.536 3.536 2.5 2.5 0 0 1-3.536-3.536ZM10 9.167a.833.833 0 1 0 0 1.666.833.833 0 0 0 0-1.666ZM10 .833c.46 0 .833.373.833.834v1.666a.833.833 0 0 1-1.666 0V1.667c0-.46.373-.834.833-.834ZM10 15.833c.46 0 .833.373.833.834v1.666a.833.833 0 0 1-1.666 0v-1.666c0-.46.373-.834.833-.834ZM12.916 15.053a.833.833 0 0 1 1.139.305l.833 1.441a.833.833 0 0 1-1.443.835l-.833-1.442a.834.834 0 0 1 .304-1.139Z\"/><path d=\"M5.417 2.062a.833.833 0 0 1 1.138.305l3.333 5.775a.833.833 0 1 1-1.443.833L5.112 3.2a.833.833 0 0 1 .305-1.138ZM15.053 12.916a.834.834 0 0 1 1.139-.304l1.442.833a.833.833 0 1 1-.835 1.443l-1.441-.833a.833.833 0 0 1-.305-1.139ZM2.062 5.416A.833.833 0 0 1 3.2 5.112l1.442.833a.833.833 0 1 1-.834 1.443l-1.442-.833a.833.833 0 0 1-.304-1.139ZM10.833 10c0-.46.373-.833.834-.833h6.666a.833.833 0 0 1 0 1.666h-6.666a.833.833 0 0 1-.834-.833ZM.833 10c0-.46.373-.833.834-.833h1.666a.833.833 0 0 1 0 1.666H1.667A.833.833 0 0 1 .833 10ZM17.938 5.416a.833.833 0 0 1-.304 1.139l-1.442.833a.833.833 0 0 1-.834-1.443l1.441-.833a.833.833 0 0 1 1.14.304ZM4.946 12.916a.833.833 0 0 1-.304 1.139l-1.442.833a.833.833 0 0 1-.834-1.443l1.442-.833a.833.833 0 0 1 1.138.304ZM14.584 2.062c.398.23.534.74.304 1.138l-.833 1.442a.833.833 0 1 1-1.443-.834l.833-1.442a.833.833 0 0 1 1.139-.304ZM9.583 10.72c.399.23.535.74.305 1.138l-3.333 5.775a.833.833 0 1 1-1.443-.833l3.333-5.775a.833.833 0 0 1 1.138-.305Z\"/></g><defs><clipPath id=\"a\"><path d=\"M0 0h20v20H0z\"/></clipPath></defs>",
 	"filter":           "<path fill-rule=\"evenodd\" d=\"M1.5 4.5a.75.75 0 0 1 .75-.75h13.5a.75.75 0 0 1 0 1.5H2.25a.75.75 0 0 1-.75-.75ZM4.5 9a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 4.5 9ZM6.75 13.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 0 1.5h-3a.75.75 0 0 1-.75-.75Z\" clip-rule=\"evenodd\"/>",
+	"graph":			"<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M3.5 2C4.05228 2 4.5 2.44772 4.5 3V20H21.5C22.0523 20 22.5 20.4477 22.5 21C22.5 21.5523 22.0523 22 21.5 22H3.5C2.94772 22 2.5 21.5523 2.5 21V3C2.5 2.44772 2.94772 2 3.5 2Z\"/><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M18.7929 8.29289C19.1834 7.90237 19.8166 7.90237 20.2071 8.29289C20.5976 8.68342 20.5976 9.31658 20.2071 9.70711L15.2071 14.7071C14.8166 15.0976 14.1834 15.0976 13.7929 14.7071L10.5 11.4142L8.20711 13.7071C7.81658 14.0976 7.18342 14.0976 6.79289 13.7071C6.40237 13.3166 6.40237 12.6834 6.79289 12.2929L9.79289 9.29289C10.1834 8.90237 10.8166 8.90237 11.2071 9.29289L14.5 12.5858L18.7929 8.29289Z\"/>",
 	"home":             "<path fill-rule=\"evenodd\" d=\"M9.488 1.009a.833.833 0 0 1 1.024 0l7.5 5.833c.203.158.321.4.321.658v9.167a2.5 2.5 0 0 1-2.5 2.5H4.167a2.5 2.5 0 0 1-2.5-2.5V7.5c0-.257.118-.5.321-.658l7.5-5.833ZM3.333 7.907v8.76a.833.833 0 0 0 .834.833h11.666a.833.833 0 0 0 .834-.833v-8.76L10 2.722 3.333 7.907Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M6.667 10c0-.46.373-.833.833-.833h5c.46 0 .833.373.833.833v8.333a.833.833 0 0 1-1.666 0v-7.5H8.333v7.5a.833.833 0 0 1-1.666 0V10Z\" clip-rule=\"evenodd\"/>",
 	"hotel":            "<path d=\"M10 22v-6.57\" /><path d=\"M12 11h.01\" /><path d=\"M12 7h.01\" /><path d=\"M14 15.43V22\" /><path d=\"M15 16a5 5 0 0 0-6 \" /><path d=\"M16 11h.01\" /><path d=\"M16 7h.01\" /><path d=\"M8 11h.01\" /><path d=\"M8 7h.01\" /><rect x=\"4\" y=\"2\" width=\"16\" height=\"20\" rx=\"2\"/>",
 	"info":             "<circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 16v-4\" /><path d=\"M12 8h.01\" />",
@@ -49,6 +51,8 @@ var icons = map[string]string{
 	"settings-outline": "<path d=\"M17.43 10.98c.04-.32.07-.64.07-.98 0-.34-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46a.5.5 0 0 0-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98L12.49.42A.488.488 0 0 0 12 0H8c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1a.566.566 0 0 0-.18-.03c-.17 0-.34.09-.43.25l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98 0 .33.03.66.07.98L.46 12.63c-.19.15-.24.42-.12.64l2 3.46a.5.5 0 0 0 .61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.06.02.12.03.18.03.17 0 .34-.09.43-.25l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65Zm-1.98-1.71c.04.31.05.52.05.73 0 .21-.02.43-.05.73l-.14 1.13.89.7 1.08.84-.7 1.21-1.27-.51-1.04-.42-.9.68c-.43.32-.84.56-1.25.73l-1.06.43-.16 1.13-.2 1.35H9.3l-.19-1.35-.16-1.13-1.06-.43c-.43-.18-.83-.41-1.23-.71l-.91-.7-1.06.43-1.27.51-.7-1.21 1.08-.84.89-.7-.14-1.13c-.03-.31-.05-.54-.05-.74 0-.2.02-.43.05-.73l.14-1.13-.89-.7-1.08-.84.7-1.21 1.27.51 1.04.42.9-.68c.43-.32.84-.56 1.25-.73l1.06-.43.16-1.13L9.3 2h1.39l.19 1.35.16 1.13 1.06.43c.43.18.83.41 1.23.71l.91.7 1.06-.43 1.27-.51.7 1.21-1.07.85-.89.7.14 1.13ZM10 6c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4Zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2Z\"/>",
 	"shapes":           "<path d=\"M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z\"/><rect width=\"7\" height=\"7\" x=\"3\" y=\"14\" rx=\"1\"/><circle cx=\"17.5\" cy=\"17.5\" r=\"3.5\"/>",
 	"sun-medium":       "<path fill-rule=\"evenodd\" d=\"M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-5 3a5 5 0 1 1 10 0 5 5 0 0 1-10 0ZM12 2a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1ZM12 19a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1ZM2 12a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1ZM19 12a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2h-1a1 1 0 0 1-1-1ZM19.071 4.929a1 1 0 0 1 0 1.414l-.707.707a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0ZM7.05 16.95a1 1 0 0 1 0 1.414l-.707.707a1 1 0 0 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0ZM4.929 4.929a1 1 0 0 1 1.414 0l.707.707A1 1 0 0 1 5.636 7.05l-.707-.707a1 1 0 0 1 0-1.414ZM16.95 16.95a1 1 0 0 1 1.414 0l.707.707a1 1 0 0 1-1.414 1.414l-.707-.707a1 1 0 0 1 0-1.414Z\" clip-rule=\"evenodd\"/>",
+	"table":			"<path fill-rule=\"evenodd\" d=\"M12 3v18\" /><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M3 9h18\" /><path d=\"M3 15h18\" />",
+	"tip":				"<g fill-rule=\"evenodd\" id=\"Tip\" clip-path=\"url(#clip0_1424_3946)\"><rect id=\"Rectangle 1\" x=\"6.5\" y=\"16\" width=\"20\" height=\"20\" transform=\"rotate(-45 6.5 16)\"></g><defs><clipPath id=\"clip0_1424_3946\"><rect width=\"40\" height=\"8\" transform=\"translate(0.5)\"/></clipPath></defs>",
 	"trashcan":         "<path d=\"M3 6h18\" /><path d=\"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6\" /><path d=\"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2\" />",
 }
 
@@ -88,7 +92,7 @@ func (cfg *svgCfg) ViewBox() string {
 func newSVGCfg(fn ...func(*svgCfg)) *svgCfg {
 	cfg := &svgCfg{
 		classes: map[string][]string{
-			"fill": {"fill-[#1F1F25]", "dark:fill-zinc-100"},
+			"fill": {"fill-dark-primary", "dark:fill-zinc-100"},
 			"size": {"w-5", "h-5"},
 		},
 		viewBox: "0 0 20 20",
@@ -128,6 +132,12 @@ func OKStyle() func(*svgCfg) {
 func NoFill() func(*svgCfg) {
 	return func(cfg *svgCfg) {
 		(*cfg).classes["fill"] = []string{"fill-none", "dark:fill-none"}
+	}
+}
+
+func FillColor(color, darkColor string) func(*svgCfg) {
+	return func(cfg *svgCfg) {
+		(*cfg).classes["fill"] = []string{fmt.Sprintf("fill-%s", color), fmt.Sprintf("dark:fill-%s", darkColor)}
 	}
 }
 
@@ -316,8 +326,8 @@ func isCurrent(ctx context.Context, expect string) bool {
 templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, mainContent templ.Component) {
 	<body id="body" onload={ onPageLoad() }>
 		<div id="reloader" hx-get={ reloaderEndpoint(version) } hx-trigger={ reloaderFrequency(version) }></div>
-		<div class="flex grid grid-cols-12 gap-2 bg-white dark:bg-[#2F2F3C] min-h-screen">
-			<div class="col-span-2 px-3 py-1 bg-white dark:bg-[#2F2F3C] gap-3 flex flex-col justify-between h-full fixed inset-y-0 left-0 w-64 border-r border-[#1C1C284D] dark:border-white dark:border-opacity-30">
+		<div class="flex grid grid-cols-12 gap-2 bg-white dark:bg-content-background min-h-screen">
+			<div class="col-span-2 px-3 py-1 bg-white dark:bg-content-background gap-3 flex flex-col justify-between h-full fixed inset-y-0 left-0 w-64 border-r border-divider-gray dark:border-white dark:border-opacity-30">
 				<div class="self-stretch flex flex-col gap-14">
 					<div
 						class="w-auto h-[90px] bg-left bg-cover bg-no-repeat
@@ -328,7 +338,7 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 						//@SectionDivider(l10n.Get("overview"))
 						@MenuSegment(l10n.Get("home"), "/home", SVG("home", SelectedIcon(isCurrent(ctx, "home"))), asset, isCurrent(ctx, "home"))
 						@MenuSegment(l10n.Get("sensors"), "/sensors", SVG("rss", SelectedIcon(isCurrent(ctx, "sensors"))), asset, isCurrent(ctx, "sensors"))
-						@MenuSegment(l10n.Get("things"), "/things", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("[#1F1F25]", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "things"))), asset, isCurrent(ctx, "things"))
+						@MenuSegment(l10n.Get("things"), "/things", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "things"))), asset, isCurrent(ctx, "things"))
 						/*
 						@MenuSegment(l10n.Get("functions"), "/functions", "send-to-back", asset, isCurrent(ctx, "functions"))
 						<div class="self-stretch px-3.5 py-2.5 rounded-xl justify-between items-center inline-flex">

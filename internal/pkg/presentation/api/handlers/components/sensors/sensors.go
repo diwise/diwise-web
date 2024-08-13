@@ -2,6 +2,7 @@ package sensors
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -20,7 +21,7 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 
 		id := r.URL.Query().Get("id")
 		if id == "" {
-			http.Error(w, "no id found i url", http.StatusBadRequest)
+			http.Error(w, "no id found in url", http.StatusBadRequest)
 			return
 		}
 
@@ -68,6 +69,40 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 		component.Render(ctx, w)
 	}
 
+	return http.HandlerFunc(fn)
+}
+
+func NewBatteryLevelComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+		w.WriteHeader(http.StatusOK)
+
+		ctx := r.Context()
+		id := r.PathValue("id")
+
+		batteryLevelID := fmt.Sprintf("%s/3/9", id)
+
+		data, err := app.GetMeasurementData(ctx, batteryLevelID, application.WithLastN(true), application.WithLimit(1))
+		if err != nil {
+			http.Error(w, "could not compose view model", http.StatusInternalServerError)
+			return
+		}
+
+		var v string = "-"
+		var u string = ""
+
+		if len(data.Values) > 0 {
+			if data.Values[0].Value != nil {
+				v = fmt.Sprintf("%0.f", *data.Values[0].Value)
+				u = data.Values[0].Unit
+			}
+		}
+
+		component := components.Text(fmt.Sprintf("%s%s", v, u))
+		component.Render(ctx, w)
+	}
 	return http.HandlerFunc(fn)
 }
 
@@ -211,7 +246,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 		ctx := logging.NewContextWithLogger(r.Context(), log)
 		id := r.URL.Query().Get("sensorMeasurementTypes")
 
-		measurements, err := app.GetMeasurementData(ctx, id)
+		measurements, err := app.GetMeasurementData(ctx, id, application.WithLastN(true), application.WithLimit(10), application.WithReverse(true))
 		if err != nil {
 			http.Error(w, "could not fetch measurement data", http.StatusBadRequest)
 			return

@@ -7,15 +7,15 @@ import (
 
 templ NotLoggedIn(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
     <div class="flex items-center justify-center min-h-screen bg-no-repeat bg-center bg-[url('/assets/790b004db41539410fb0ebe8f6d04cab4fc47cc7709b04b0a03353605edc100a/bg2048.webp')]">
-        <div class="bg-[#FAFAFA] rounded-xl flex items-stretch w-full max-w-xl"> 
+        <div class="bg-background-100 rounded-xl flex items-stretch w-full max-w-xl"> 
             <div class="flex-1 flex justify-center items-center p-6">
                 <img src="/assets/d19a8ed8f207ecc2aafb61ed575aa6cf0bb1f0f533f752228fe6ce94c3575e5c/diwise-logo.svg" alt="Diwise Logo" class="max-w-full h-auto dark:hidden" />
                 <img src="/assets/f373626f4d07d2544069df8033e25d6d3a13fa150d6e53c5419179917fc434f7/diwise-logo-dark.svg" alt="Diwise Dark Logo" class="max-w-full h-auto hidden dark:block" />
             </div>
-            <div class="flex-1 bg-[#AA4E1F] text-white p-6 flex flex-col justify-center items-left rounded-r-xl">
+            <div class="flex-1 bg-background-orange text-white p-6 flex flex-col justify-center items-left rounded-r-xl">
                 <div class="pl-6 space-y-4">
                     <h1>You are not logged in!</h1>
-                    <a href="/login" class="inline-block w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-white border-opacity-30 dark:bg-gray-800 justify-center items-center dark:border-zinc-600 flex items-center justify-center text-[#E5E5E5] text-base font-bold font-sans leading-normal dark:text-white">
+                    <a href="/login" class="inline-block w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-white border-opacity-30 dark:bg-gray-800 justify-center items-center dark:border-zinc-600 flex items-center justify-center text-secondary text-base font-bold font-sans leading-normal dark:text-white">
                         Login
                     </a>
                 </div>

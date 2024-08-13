@@ -113,18 +113,20 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	// home
 	r.HandleFunc("GET /", home.NewHomePage(ctx, l10n, assetLoader.Load))
 	r.HandleFunc("GET /home", home.NewHomePage(ctx, l10n, assetLoader.Load))
-	r.HandleFunc("GET /components/home/statistics",RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /components/home/statistics", RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
 	// things
-	r.HandleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load))
+	r.HandleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /things/{id}", things.NewThingsDetailsPage(ctx, l10n, assetLoader.Load, app))
 	// sensors
 	r.HandleFunc("GET /sensors", sensors.NewSensorListPage(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /sensors/{id}", sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))	
+	r.HandleFunc("GET /sensors/{id}", sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /components/sensors/details", RequireHX(sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /components/sensors/{id}/batterylevel", RequireHX(sensors.NewBatteryLevelComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("POST /components/sensors/details", sensors.NewSaveSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /components/tables/sensors", RequireHX(sensors.NewTableSensorsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /components/measurements", RequireHX(sensors.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	// admin		
-	r.HandleFunc("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))	
+	// admin
+	r.HandleFunc("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
 
 	// Handle requests for leaflet images /assets/<leafletcss-sha>/images/<image>.png
 	leafletSHA := assetLoader.Load("/css/leaflet.css").SHA256()

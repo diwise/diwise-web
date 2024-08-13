@@ -112,7 +112,7 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 	}
 
 	m := make([]string, 0)
-	for _, md := range measurements.Measurments {
+	for _, md := range measurements.Measurements {
 		m = append(m, md.ID)
 	}
 
@@ -128,7 +128,7 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		Types:             types,
 		Organisations:     tenants,
 		DeviceProfiles:    dp,
-		MeasurmentTypes:   m,
+		MeasurementTypes:  m,
 	}
 	return &detailsViewModel, nil
 }
@@ -141,7 +141,7 @@ func NewSensorDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets
 
 		id := r.PathValue("id")
 		if id == "" {
-			http.Error(w, "no id found i url", http.StatusBadRequest)
+			http.Error(w, "no id found in url", http.StatusBadRequest)
 			return
 		}
 

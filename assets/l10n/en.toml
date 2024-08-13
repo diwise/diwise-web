@@ -1,41 +1,83 @@
-[overview]
-other = "Overview"
+[activate]
+other = "Activate sensor"
 
-[home]
-other = "Home"
+[active]
+other = "Active"
 
-[sensors]
-other = "Sensors"
-
-[things]
-other = "Things"
-
-[functions]
-other = "Functions"
-
-[name]
-other = "Name"
-
-[search]
-other = "Search"
-
-[status]
-other = "Status"
-
-[deveui]
-other = "DevEUI"
-
-[batterylevel]
-other = "Battery level"
-
-[lastseen]
-other = "Last seen"
+[addthing]
+other = "Add new thing"
 
 [alerts]
 other = "Alerts"
 
-[total]
-other = "Total"
+[area]
+other = "Area"
+
+[batterylevel]
+other = "Battery level"
+
+[cancel]
+other = "Cancel"
+
+[choose]
+other = "Choose"
+
+[chooseMeasurementtype]
+other = "Pick measurement type"
+
+[currentlevel]
+other = "Current level"
+
+[delete]
+other = "Delete"
+
+[description]
+other = "Description"
+
+[details]
+other = "Details"
+
+[deveui]
+other = "DevEUI"
+
+[edit]
+other = "Edit"
+
+[fillinglevel]
+other = "Filling level"
+
+[functions]
+other = "Functions"
+
+[graph]
+other = "Graph"
+
+[home]
+other = "Home"
+
+[id]
+other = "ID"
+
+[inactive]
+other = "Inactive"
+
+[lastseen]
+other = "Last seen"
+
+[latitude]
+other = "Latitude"
+
+[list]
+other = "List"
+
+[location]
+other = "Location"
+
+[logout]
+other = "Log out"
+
+[longitude]
+other = "Longitude"
 
 [manyactive]
 other = "Active"
@@ -43,80 +85,74 @@ other = "Active"
 [manyinactive]
 other = "Inactive"
 
-[active]
-other = "Active"
-
-[inactive]
-other = "Inactive"
-
-[unregistered]
-other = "Unregistered"
-
-[thingtype]
-other = "Type of thing"
-
-[sensortype]
-other = "Type of sensor"
+[map]
+other = "Map"
 
 [measurementtype]
 other = "Measurement type"
 
-[chooseMeasurementtype]
-other = "Pick measurement type"
+[measurementvalue]
+other = "Measurement value"
 
-[choose]
-other = "Choose"
+[measurementvalues]
+other = "Measurement values"
 
-[edit]
-other = "Edit"
-
-[description]
-other = "Description"
+[name]
+other = "Name"
 
 [organisation]
 other = "Organisation"
 
-[time]
-other = "Time"
+[overview]
+other = "Overview"
 
-[type]
-other = "Type"
-
-[location]
-other = "Location"
-
-[latitude]
-other = "Latitude"
-
-[longitude]
-other = "Longitude"
-
-[details]
-other = "Details"
-
-[activate]
-other = "Activate sensor"
-
-[delete]
-other = "Delete"
-
-[cancel]
-other = "Cancel"
+[pickOption]
+other = "Pick an option"
 
 [save]
 other = "Save"
 
-[logout]
-other = "Log out"
+[search]
+other = "Search"
 
-[fillinglevel]
-other = "Filling level"
+[sensorconnected]
+other = "Connected sensor"
 
-[area]
-other = "Area"
+[sensormissing]
+other = "Sensor missing"
 
-[addthing]
-other = "Add new thing"
+[sensors]
+other = "Sensors"
 
-[pickOption]
-other = "Pick an option"
+[sensortype]
+other = "Type of sensor"
+
+[status]
+other = "Status"
+
+[table]
+other = "Table"
+
+[temperature]
+other = "Temperature"
+
+[thingtype]
+other = "Type of thing"
+
+[things]
+other = "Things"
+
+[time]
+other = "Time"
+
+[timeinterval]
+other = "Time interval"
+
+[total]
+other = "Total"
+
+[type]
+other = "Type"
+
+[unregistered]
+other = "Unregistered"

@@ -2,6 +2,8 @@ package application
 
 import (
 	"context"
+	"fmt"
+	"net/url"
 	"time"
 )
 
@@ -12,8 +14,8 @@ type DeviceManagement interface {
 	GetTenants(ctx context.Context) []string
 	GetDeviceProfiles(ctx context.Context) []DeviceProfile
 	GetStatistics(ctx context.Context) Statistics
-	GetMeasurementInfo(ctx context.Context, id string) (MeasurmentData, error)
-	GetMeasurementData(ctx context.Context, id string) (MeasurmentData, error)
+	GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error)
+	GetMeasurementData(ctx context.Context, id string, params ...InputParam) (MeasurementData, error)
 }
 
 type Statistics struct {
@@ -75,15 +77,36 @@ type SensorResult struct {
 	Limit        int
 }
 
-type MeasurmentData struct {
-	DeviceID    string             `json:"deviceID"`
-	Urn         *string            `json:"urn,omitempty"`
-	Name        *string            `json:"name,omitempty"`
-	Measurments []MeasurmentInfo   `json:"measurements,omitempty"`
-	Values      []MeasurementValue `json:"values,omitempty"`
+type InputParam func(v *url.Values)
+
+func WithReverse(reverse bool) InputParam {
+	return func(v *url.Values) {
+		v.Del("reverse")
+		v.Add("reverse", fmt.Sprintf("%t", reverse))
+	}
+}
+func WithLimit(limit int) InputParam {
+	return func(v *url.Values) {
+		v.Del("limit")
+		v.Add("limit", fmt.Sprintf("%d", limit))
+	}
+}
+func WithLastN(lastN bool) InputParam {
+	return func(v *url.Values) {
+		v.Del("lastN")
+		v.Add("lastN", fmt.Sprintf("%t", lastN))
+	}
 }
 
-type MeasurmentInfo struct {
+type MeasurementData struct {
+	DeviceID     string             `json:"deviceID"`
+	Urn          *string            `json:"urn,omitempty"`
+	Name         *string            `json:"name,omitempty"`
+	Measurements []MeasurementInfo  `json:"measurements,omitempty"`
+	Values       []MeasurementValue `json:"values,omitempty"`
+}
+
+type MeasurementInfo struct {
 	ID string `json:"id"`
 }
 

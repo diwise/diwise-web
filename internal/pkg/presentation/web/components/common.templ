@@ -1,5 +1,7 @@
 package components
 
+import "github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+
 type OptionViewModel struct {
 	Value    string
 	Text     string
@@ -9,6 +11,74 @@ type OptionViewModel struct {
 	Disabled bool
 }
 
+templ Div(id string, contents templ.Component) {
+	<div id={ id }>
+		@contents
+	</div>
+}
+
+templ PrimaryButton(title, icon, target string, hxget templ.SafeURL, l10n locale.Localizer) {
+	<div class="flex items-center text-white dark:text-dark-primary font-bold">
+		<button
+			class="flex justify-center items-center gap-2 px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover rounded-xl cursor-pointer"
+			hx-get={ string(hxget) }
+			if target != "" {
+				hx-target={ "#" + target }
+			}
+			hx-trigger="click"
+		>
+			if icon != "" {
+				<div class="w-[20px] h-[20px] dark:stroke-dark-primary">
+					@SVG(icon, Box(24, 24), NoFill(), StrokeColor("black", "white"), Stroke(templ.Attributes{"stroke-width": "1"}))
+				</div>
+			}
+			{ l10n.Get( title ) }
+		</button>
+	</div>
+}
+
+templ SecondaryButton(title string) {
+	<div class="w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-divider-gray border-opacity-30 bg-white bg-opacity-20 dark:bg-gray-800 justify-center items-center gap-2 inline-flex dark:border-zinc-600">
+		<svg class="w-[18px] h-[18px] dark:fill-zinc-600">
+			@templ.Raw(iconSVG("filter"))
+		</svg>
+		<div class="text-dark-secondary text-base font-bold font-sans leading-normal dark:text-white">
+			{ title }
+		</div>
+	</div>
+	//Styling SecondaryButton
+	/*<button
+		class="w-auto h-10 pl-[18px] pr-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-[white] rounded-xl flex items-center gap-2 cursor-pointer"
+		hx-get={ string(templ.URL(fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID))) }
+		hx-target="#sensor-view"
+		hx-trigger="click"
+	>
+		<div class="w-[20px] h-[20px] dark:stroke-dark-primary">
+			@SVG("pen", Box(24, 24), NoFill(), StrokeColor("white", "dark-primary"), Stroke(templ.Attributes{"stroke-width": "1"}))
+		</div>
+		{ l10n.Get("edit") }
+	</button>*/
+}
+
+templ TertiaryButton(title, icon, target string, hxget templ.SafeURL, l10n locale.Localizer) {
+	<div class="flex items-center text-white dark:text-dark-primary font-bold">
+		<button
+			class="flex justify-center items-center gap-2 px-4 py-2 bg-tertiary-surface hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-divider-white text-dark-primary dark:text-white rounded-xl cursor-pointer"
+			hx-get={ string(hxget) }
+			if target != "" {
+				hx-target={ "#" + target }
+			}
+			hx-trigger="click"
+		>
+			if icon != "" {
+				<div class="w-[20px] h-[20px] dark:stroke-dark-primary">
+					@SVG(icon, Box(24, 24), NoFill(), StrokeColor("black", "white"), Stroke(templ.Attributes{"stroke-width": "1"}))
+				</div>
+			}
+			{ l10n.Get( title ) }
+		</button>
+	</div>
+}
 
 templ Option(option OptionViewModel) {
 	<option value={ option.Value } selected?={ option.Selected } hidden?={ option.Hidden } disabled?={ option.Disabled }>{ option.Text }</option>
@@ -31,7 +101,7 @@ templ Select(id string, multiple bool, hxGet, hxTarget string, options []OptionV
 			if hxTarget != "" {
 				hx-target={ hxTarget }
 			}
-			class="appearance-none cursor-pointer block w-full pl-3 pr-3 py-2 text-base dark:border dark:border-[#FFFFFF80] dark:bg-[#1C1C2880] focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
+			class="appearance-none cursor-pointer block w-full pl-3 pr-3 py-2 text-base dark:border dark:border-input-outline dark:bg-darkmode-input-surface dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
 			multiple?={ multiple }
 		>
 			@Options(options)
@@ -42,9 +112,7 @@ templ Select(id string, multiple bool, hxGet, hxTarget string, options []OptionV
 			</svg>
 		</div>
 	</div>
-
 }
-
 
 templ OptionCheckbox(option OptionViewModel) {
 	<label for={ option.Value } class="flex items-center justify-between w-full cursor-pointer mb-2 gap-3 pr-2">
@@ -101,8 +169,7 @@ templ CheckboxDropdownList(id string, options []OptionViewModel, buttonText stri
 			x-id="['dropdown-button']"
 			class="relative w-full"
 		>
-			
-			<button 
+			<button
 				for={ id }
 				x-ref="button"
 				x-on:click="toggle()"
@@ -112,12 +179,10 @@ templ CheckboxDropdownList(id string, options []OptionViewModel, buttonText stri
 				class="flex items-center justify-between w-full block font-medium"
 			>
 				{ buttonText }
-				
 				<svg class="w-[18px] h-[18px] dark:fill-white">
 					@templ.Raw(iconSVG("chevron-down"))
 				</svg>
 			</button>
-	
 			<div
 				x-ref="panel"
 				x-show="open"
@@ -133,7 +198,6 @@ templ CheckboxDropdownList(id string, options []OptionViewModel, buttonText stri
 			</div>
 		</div>
 	</div>
-	
 	/*<details class="dropdown">
 		<summary for={ id } class="dropdown-label block text-sm font-medium text-gray-700">Välj</summary>
 		<div id={ id } class="dropdown-content px-2 pt-2 bg-white">

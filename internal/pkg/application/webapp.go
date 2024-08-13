@@ -21,6 +21,7 @@ import (
 
 type App struct {
 	deviceManagementURL string
+	thingManagementURL  string
 	adminURL            string
 	measurementURL      string
 	cache               *Cache
@@ -28,6 +29,7 @@ type App struct {
 
 func New(ctx context.Context) (*App, error) {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
+	thingManagementURL := strings.Replace(deviceManagementURL, "devices", "devices", 1)
 	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)
 	measurementURL := strings.Replace(deviceManagementURL, "devices", "measurements", 1)
 
@@ -36,9 +38,50 @@ func New(ctx context.Context) (*App, error) {
 
 	return &App{
 		deviceManagementURL: deviceManagementURL,
+		thingManagementURL:  thingManagementURL,
 		adminURL:            adminURL,
 		measurementURL:      measurementURL,
 		cache:               c,
+	}, nil
+}
+
+func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
+	res, err := a.get(ctx, a.thingManagementURL, id, url.Values{})
+	if err != nil {
+		return Thing{}, err
+	}
+
+	var sensor Thing
+	err = json.Unmarshal(res.Data, &sensor)
+	if err != nil {
+		return Thing{}, err
+	}
+
+	return sensor, nil
+}
+
+func (a *App) GetThings(ctx context.Context, offset, limit int) (ThingResult, error) {
+	params := url.Values{}
+	params.Add("limit", fmt.Sprintf("%d", limit))
+	params.Add("offset", fmt.Sprintf("%d", offset))
+
+	res, err := a.get(ctx, a.thingManagementURL, "", params)
+	if err != nil {
+		return ThingResult{}, err
+	}
+
+	var things []Thing
+	err = json.Unmarshal(res.Data, &things)
+	if err != nil {
+		return ThingResult{}, err
+	}
+
+	return ThingResult{
+		Things:       things,
+		TotalRecords: int(res.Meta.TotalRecords),
+		Offset:       int(*res.Meta.Offset),
+		Limit:        int(*res.Meta.Limit),
+		Count:        len(things),
 	}, nil
 }
 
@@ -168,34 +211,38 @@ func (a *App) GetStatistics(ctx context.Context) Statistics {
 	return s
 }
 
-func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurmentData, error) {
+func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error) {
 
 	resp, err := a.get(ctx, a.measurementURL, id, url.Values{})
 	if err != nil {
-		return MeasurmentData{}, err
+		return MeasurementData{}, err
 	}
 
-	var info MeasurmentData
+	var info MeasurementData
 	err = json.Unmarshal(resp.Data, &info)
 	if err != nil {
-		return MeasurmentData{}, err
+		return MeasurementData{}, err
 	}
 
 	return info, nil
 }
-func (a *App) GetMeasurementData(ctx context.Context, id string) (MeasurmentData, error) {
+func (a *App) GetMeasurementData(ctx context.Context, id string, params ...InputParam) (MeasurementData, error) {
 	q := url.Values{}
 	q.Add("id", id)
 
-	resp, err := a.get(ctx, a.measurementURL, "", q)
-	if err != nil {
-		return MeasurmentData{}, err
+	for _, p := range params {
+		p(&q)
 	}
 
-	var data MeasurmentData
+	resp, err := a.get(ctx, a.measurementURL, "", q)
+	if err != nil {
+		return MeasurementData{}, err
+	}
+
+	var data MeasurementData
 	err = json.Unmarshal(resp.Data, &data)
 	if err != nil {
-		return MeasurmentData{}, err
+		return MeasurementData{}, err
 	}
 
 	return data, nil
@@ -266,7 +313,9 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 
 	token := authz.Token(ctx)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	urlToGet := u.String()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlToGet, nil)
 	if err != nil {
 		err = fmt.Errorf("failed to create http request: %w", err)
 		return nil, err
