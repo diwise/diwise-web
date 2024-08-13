@@ -198,6 +198,14 @@ templ Cell(contents templ.Component) {
 	</td>
 }
 
+templ ActiveCell(contents templ.Component, id, url, trigger string) {
+	<td class="px-6 py-3" hx-get={ url } hx-target={ "#" + id } hx-trigger={ trigger } hx-disinherit="hx-get hx-target hx-trigger">
+		<div id={ id }>
+			@contents
+		</div>
+	</td>
+}
+
 templ LinkCell(contents templ.Component, url, viewName string) {
 	<td class="px-6 py-3 hover:cursor-pointer" hx-get={ url } hx-target={ fmt.Sprintf("#%s-view", viewName) } hx-trigger="click">
 		@contents

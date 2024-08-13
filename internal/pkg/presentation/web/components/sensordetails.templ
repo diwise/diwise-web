@@ -5,6 +5,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"slices"
+	"strings"
 )
 
 type SensorDetailsViewModel struct {
@@ -57,9 +58,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 					@sensorActive(sensor.Active, l10n)
 				</div>
 			}
-
 			@TertiaryButton("edit", "pen", "sensor-view", templ.URL(fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)), l10n)
-			
 		</div>
 		<div class="w-full flex py-6 gap-10">
 			//Yttersta diven
@@ -93,10 +92,8 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 						</div>
 					</div>
 				</div>
-
 				//Larmlista, inte med i MVP
 				//@AlarmList(l10n)
-				
 				<div class="flex flex-col items-start self-stretch">
 					// Mätvärden
 					<div class="flex items-center gap-3 self-stretch">
@@ -109,7 +106,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 						<div class="border border-input-surface dark:border-input-outline rounded-xl">
 							<label for="sensorMeasurementTypes" class="hidden block text-sm font-medium text-gray-700">
 								{ l10n.Get("sensorMeasurementTypes") }
-							</label>		
+							</label>
 							@SensorMeasurementSelect(l10n, asset, "sensorMeasurementTypes", sensor)
 						</div>
 						<canvas id="myChart"></canvas>
@@ -354,9 +351,13 @@ func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc
 	}
 
 	for _, t := range sensorViewModel.MeasurementTypes {
+
+		parts := strings.Split(t, "/")
+		text := strings.Join(parts[1:], "/")
+
 		viewModel = append(viewModel, OptionViewModel{
 			Value: t,
-			Text:  t,
+			Text:  l10n.Get(text),
 		})
 	}
 

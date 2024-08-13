@@ -226,9 +226,13 @@ func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurementDat
 
 	return info, nil
 }
-func (a *App) GetMeasurementData(ctx context.Context, id string) (MeasurementData, error) {
+func (a *App) GetMeasurementData(ctx context.Context, id string, params ...InputParam) (MeasurementData, error) {
 	q := url.Values{}
 	q.Add("id", id)
+
+	for _, p := range params {
+		p(&q)
+	}
 
 	resp, err := a.get(ctx, a.measurementURL, "", q)
 	if err != nil {
@@ -309,7 +313,9 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 
 	token := authz.Token(ctx)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	urlToGet := u.String()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlToGet, nil)
 	if err != nil {
 		err = fmt.Errorf("failed to create http request: %w", err)
 		return nil, err

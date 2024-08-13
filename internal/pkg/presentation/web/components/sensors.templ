@@ -28,7 +28,7 @@ type StatisticsViewModel struct {
 }
 
 type SensorListViewModel struct {
-	Sensors []SensorViewModel
+	Sensors    []SensorViewModel
 	Statistics StatisticsViewModel
 }
 
@@ -81,7 +81,7 @@ templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors S
 }
 
 func tableMapSwitch(id, name, icon string) templ.Component {
-	
+
 	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
 		_, err := io.WriteString(w, fmt.Sprintf(
 			`
@@ -108,13 +108,13 @@ func tableMapSwitch(id, name, icon string) templ.Component {
 
 templ tooltip(tooltiptext string) {
 	<div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block">
-        <svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full">
+		<svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full">
 			@SVG("tip", Box(41, 8), FillColor("black", "white"))
-        </svg>    
-        <div class="bg-primary-surface text-white dark:bg-white dark:text-black rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
-            { tooltiptext }
-        </div>
-    </div>
+		</svg>
+		<div class="bg-primary-surface text-white dark:bg-white dark:text-black rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
+			{ tooltiptext }
+		</div>
+	</div>
 }
 
 templ mapTableButtons(l10n locale.Localizer) {
@@ -123,7 +123,9 @@ templ mapTableButtons(l10n locale.Localizer) {
 			/*@tableMapSwitch("list", "Lista", iconSVG("list"))
 			  @tableMapSwitch("mapview", "Karta", iconSVG("map"))*/
 			<div class="relative group">
-				<button id="tableButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
+				<button
+					id="tableButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
 					hx-get="?view=table"
 					hx-target="#tableOrMap"
 					hx-push-url="true"
@@ -132,15 +134,18 @@ templ mapTableButtons(l10n locale.Localizer) {
 					hx-select="#table"
 					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white'); this.classList.remove('dark:fill-white', 'stroke-black'); 
 					document.getElementById('mapButton').classList.add('fill-black', 'dark:fill-white'); 
-					document.getElementById('mapButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');">
-					<svg class="w-[18px] h-[18px]"> 
+					document.getElementById('mapButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');"
+				>
+					<svg class="w-[18px] h-[18px]">
 						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					</svg>
 				</button>
 				@tooltip(l10n.Get("table"))
 			</div>
 			<div class="relative group">
-				<button id="mapButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
+				<button
+					id="mapButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
 					hx-get="?view=mapview"
 					hx-target="#tableOrMap"
 					hx-push-url="true"
@@ -149,8 +154,9 @@ templ mapTableButtons(l10n locale.Localizer) {
 					hx-select="#mapview"
 					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white'); 
 					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
-					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');">
-					<svg class="w-[18px] h-[18px]"> 
+					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
+				>
+					<svg class="w-[18px] h-[18px]">
 						@templ.Raw(iconSVG("map"))
 					</svg>
 				</button>
@@ -161,7 +167,6 @@ templ mapTableButtons(l10n locale.Localizer) {
 }
 
 templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
-	
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="sensor-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
 			<div class="">
@@ -177,18 +182,14 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 					@Filter(l10n)
 				</div>
 				//@PrimaryButton("Lägg till sensor")
-				
 				@mapTableButtons(l10n)
-					
 			</div>
-
 			<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
 				//Initialt tabellinnehåll
 				<div id="sensors-table" class="w-full">
 					@SensorTable(l10n, asset, sensors)
 				</div>
 			</div>
-
 			//Innehåll dolt, hämtas när man klickar på Lista/Karta
 			<div id="fragments" style="display: none;">
 				<div id="table" class="w-full">
@@ -198,9 +199,8 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 				</div>
 				<div id="mapview" class="w-full">
 					@Map(newMapData(62.3908, 17.3069))
-				</div>	
+				</div>
 			</div>
-
 		</div>
 	</div>
 }
@@ -222,11 +222,7 @@ func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, senso
 		cells = append(cells, TextCell(sensor.DevEUI))
 		//cells = append(cells, TextCell(sensor.net))
 
-		if sensor.BatteryLevel >= 0 {
-			cells = append(cells, TextCell(fmt.Sprintf("%d", sensor.BatteryLevel)))
-		} else {
-			cells = append(cells, TextCell("?"))
-		}
+		cells = append(cells, BatteryTableCell(sensor))
 
 		if sensor.LastSeen.IsZero() {
 			cells = append(cells, TextCell(""))
@@ -250,7 +246,11 @@ func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, senso
 	return rows
 }
 
-templ Filter (l10n locale.Localizer) {
+templ BatteryTableCell(sensor SensorViewModel) {
+	@ActiveCell(Text(fmt.Sprintf("%d", sensor.BatteryLevel)), "batLevel_"+sensor.DeviceID, fmt.Sprintf("/components/sensors/%s/batterylevel", sensor.DeviceID), "load, every 10m")
+}
+
+templ Filter(l10n locale.Localizer) {
 	<div class="flex items-center flex-[1_0_0] gap-6">
 		<div class="relative ml-4">
 			<button id="dropdownButtonType" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownType() }>
