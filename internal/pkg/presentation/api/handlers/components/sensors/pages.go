@@ -3,6 +3,7 @@ package sensors
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
@@ -60,9 +61,11 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 		w.Header().Add("Cache-Control", "no-cache")
 		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
+		pi, _ := strconv.Atoi(pageIndex)
+
 		renderCtx := helpers.Decorate(
 			ctx,
-			components.PageIndex, pageIndex,
+			components.PageIndex, pi,
 			components.PageLast, sensorResult.TotalRecords/limit,
 			components.PageSize, limit,
 		)
