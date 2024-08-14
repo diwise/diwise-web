@@ -219,9 +219,11 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 			})
 		}
 
+		pi, _ := strconv.Atoi(pageIndex)
+
 		renderCtx := helpers.Decorate(
 			ctx,
-			components.PageIndex, pageIndex,
+			components.PageIndex, pi,
 			components.PageLast, sensorResult.TotalRecords/limit,
 			components.PageSize, limit,
 		)

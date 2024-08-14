@@ -48,6 +48,7 @@ templ LinkRow(cells []templ.Component, url, pushUrl templ.SafeURL, viewName stri
 		hx-target={ fmt.Sprintf("#%s-view", viewName) }
 		hx-push-url={ string(pushUrl) }
 		hx-trigger="click"
+		hx-disinherit="hx-target hx-push-url"
 	>
 		for _, cell := range cells {
 			@cell
@@ -144,7 +145,7 @@ templ DataTableFooter(colspan, tableName string) {
 						<button
 							class="p-1.5 rounded-full justify-center items-center gap-1 flex"
 							if !isLastPage(ctx) {
-								hx-get={ fmt.Sprintf("/components/tables/%s?page=%d&limit=%s", tableName, nextPage(ctx), ctx2str(ctx, PageSize)) }
+								hx-get={ string(getPageUrl(ctx, tableName)) }
 								hx-target={ fmt.Sprintf("#%s-table", tableName) }
 								hx-trigger="click"
 							} else {
@@ -176,6 +177,13 @@ templ DataTableFooter(colspan, tableName string) {
 	</tfoot>
 }
 
+func getPageUrl(ctx context.Context, tableName string) templ.SafeURL {
+	next := nextPage(ctx)
+	limit := ctx2str(ctx, PageSize)
+	u := fmt.Sprintf("/components/tables/%s?page=%d&limit=%s", tableName, next, limit)
+	return templ.URL(u)
+}
+
 templ TableHeaderText(title string) {
 	<th class="px-6 py-3">
 		{ title }
@@ -199,7 +207,7 @@ templ Cell(contents templ.Component) {
 }
 
 templ ActiveCell(contents templ.Component, id, url, trigger string) {
-	<td class="px-6 py-3" hx-get={ url } hx-target={ "#" + id } hx-trigger={ trigger } hx-disinherit="hx-get hx-target hx-trigger">
+	<td class="px-6 py-3" hx-get={ url } hx-target={ "#" + id } hx-trigger={ trigger }>
 		<div id={ id }>
 			@contents
 		</div>
@@ -300,7 +308,11 @@ func pageCount(ctx context.Context) int64 {
 }
 
 func pageIndex(ctx context.Context) int64 {
-	current, _ := strconv.ParseInt(ctx2str(ctx, PageIndex), 10, 64)
+	pIdx := ctx2str(ctx, PageIndex)
+	current, err := strconv.ParseInt(pIdx, 10, 64)
+	if err != nil {
+		return 0
+	}
 	return current
 }
 

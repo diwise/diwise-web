@@ -6,6 +6,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"io"
+	"regexp"
 	"time"
 )
 
@@ -246,8 +247,11 @@ func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, senso
 	return rows
 }
 
-templ BatteryTableCell(sensor SensorViewModel) {
-	@ActiveCell(Text(fmt.Sprintf("%d", sensor.BatteryLevel)), "batLevel_"+sensor.DeviceID, fmt.Sprintf("/components/sensors/%s/batterylevel", sensor.DeviceID), "load, every 10m")
+var re = regexp.MustCompile(`[^a-zA-Z0-9]`)
+
+func BatteryTableCell(sensor SensorViewModel) templ.Component {
+	selector := "batlevel_" + re.ReplaceAllString(sensor.DeviceID, "")
+	return ActiveCell(Text("-"), selector, fmt.Sprintf("/components/sensors/%s/batterylevel", sensor.DeviceID), "load, every 10m")
 }
 
 templ Filter(l10n locale.Localizer) {
