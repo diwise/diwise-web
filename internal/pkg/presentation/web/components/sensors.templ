@@ -247,7 +247,7 @@ func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, senso
 }
 
 templ BatteryTableCell(sensor SensorViewModel) {
-	@ActiveCell(Text(fmt.Sprintf("%d", sensor.BatteryLevel)), "batLevel_"+sensor.DeviceID, fmt.Sprintf("/components/sensors/%s/batterylevel", sensor.DeviceID), "load, every 10m")
+	@ActiveCell(Text("-"), "batLevel_"+sensor.DeviceID, fmt.Sprintf("/components/sensors/%s/batterylevel", sensor.DeviceID), "load, every 10m")
 }
 
 templ Filter(l10n locale.Localizer) {
