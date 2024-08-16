@@ -12,12 +12,17 @@ templ OverviewCards(localizer locale.Localizer, asset assets.AssetLoaderFunc, st
 	@OverviewCard("Aktiva funktioner", 0, SVG("send-to-back", Size(32), OKStyle()), asset)
 }
 
-templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
+type HomeViewModel struct {
+	UsageDatasets []ChartDataset
+	XScaleMax     uint
+}
+
+templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeViewModel) {
 	<div class="p-8">
 		<div class="grid grid-cols-4 gap-8">
 			<div class="col-span-2">
 				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">Översikt</h1>
-				<div hx-get="/components/home/statistics" hx-trigger="load, every 5s" class="grid grid-cols-2 gap-10">
+				<div hx-get="/components/home/statistics" hx-trigger="load, every 5m" class="grid grid-cols-2 gap-10">
 					@OverviewCards(localizer, asset, StatisticsViewModel{})
 				</div>
 			</div>
@@ -25,65 +30,8 @@ templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
 				<div class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">
 					<h2>Status</h2>
 				</div>
-				<div class="p-8 bg-white dark:bg-gray-800 rounded-[15px] shadow justify-start items-start gap-4">
-					<div class="justify-start items-start gap-4 inline-flex">
-						<div class="justify-start items-center gap-1 flex">
-							<div class="w-2 h-2 bg-green-700 dark:bg-green-500 rounded-full"></div>
-							<div class="text-black dark:text-white text-sm font-normal font-sans leading-[18px]">Aktiva</div>
-						</div>
-						<div class="justify-start items-center gap-1 flex">
-							<div class="w-2 h-2 bg-red-700 dark:bg-red-500 rounded-full"></div>
-							<div class="text-black dark:text-white text-sm font-normal font-sans leading-[18px]">Inaktiva</div>
-						</div>
-					</div>
-					<div class="size-full pt-4 flex flex-col justify-start items-end">
-						<div class="size-full flex flex-col justify-start items-end gap-[19px]">
-							<div class="size-full justify-start items-center gap-1.5 inline-flex">
-								<div class="w-4 text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">25</div>
-								<div class="w-full h-[0px] border border-zinc-400"></div>
-							</div>
-							<div class="size-full justify-start items-center gap-1.5 inline-flex">
-								<div class="w-4 text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">20</div>
-								<div class="w-full h-[0px] border border-zinc-400"></div>
-							</div>
-							<div class="relative size-full justify-end items-center gap-1.5 inline-flex">
-								<div class="w-4 text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">15</div>
-								<div class="w-full h-[0px] border border-zinc-400"></div>
-								<div class="w-[408px] h-24 absolute right-[3px] bottom-[-55px]">
-									<svg class="w-[410px] h-[98px] stroke-red-700 dark:stroke-red-500 stroke-2" viewBox="0 0 410 98" fill="none">
-										<path d="M1 1L5 6.38895C9 11.7779 17 22.5558 25 25.6675C33 28.7791 41 24.2245 49 32.2111C57 40.1976 65 60.7252 73 73.7998C81 86.8744 89 92.496 97 91.2042C105 89.9125 113 81.7074 121 71.498C129 61.2886 137 49.0747 145 46.6824C153 44.2901 161 51.7192 169 46.3346C177 40.95 185 22.7517 193 31.2522C201 39.7526 209 74.9518 217 89.1059C225 103.26 233 96.3689 241 84.208C249 72.0471 257 54.6165 265 47.3198C273 40.0231 281 42.8603 289 40.9557C297 39.0511 305 32.4045 313 44.1837C321 55.9629 329 86.1679 337 93.6305C345 101.093 353 85.8134 361 76.6028C369 67.3922 377 64.2508 385 55.3172C393 46.3835 401 31.6576 405 24.2946C406.562 21.4192 409 16.9317 409 16.9317" stroke-linecap="round"></path>
-									</svg>
-								</div>
-								<div class="absolute right-[1px] bottom-[-99px]">
-									<svg class="w-[411px] h-[184px] stroke-green-700 dark:stroke-green-500 stroke-2" viewBox="0 0 411 184" fill="none">
-										<path d="M1 1L7.81667 8.10549C14.6333 15.211 28.2667 29.422 41.9 35.5117C55.5333 41.6014 69.1667 39.5698 82.8 50.8238C96.4333 62.0777 110.067 86.6171 123.7 103.261C137.333 119.905 150.967 128.654 164.6 130.079C178.233 131.503 191.867 125.605 205.5 117.583C219.133 109.561 232.767 99.4155 246.4 99.6745C260.033 99.9336 273.667 110.597 287.3 107.686C300.933 104.775 314.567 88.2904 328.2 100.089C341.833 111.887 355.467 151.969 369.1 169.756C382.733 187.544 396.367 183.037 403.183 180.784L410 178.53" stroke-linecap="round"></path>
-									</svg>
-								</div>
-							</div>
-							<div class="size-full justify-end items-center gap-1.5 inline-flex">
-								<div class="w-4 text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">10</div>
-								<div class="w-full h-[0px] border border-zinc-400"></div>
-							</div>
-							<div class="size-full justify-end items-center gap-1.5 inline-flex">
-								<div class="w-4 text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">5</div>
-								<div class="w-full h-[0px] border border-zinc-400"></div>
-							</div>
-							<div class="size-full justify-end items-center gap-1.5 inline-flex">
-								<div class="w-4 text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">0</div>
-								<div class="w-full h-[0px] border border-zinc-400"></div>
-							</div>
-						</div>
-						<div class="size-full justify-between items-start inline-flex">
-							<div class="w-5 h-[0px]"></div>
-							<div class="text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">08.00</div>
-							<div class="text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">09.00</div>
-							<div class="text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">10.00</div>
-							<div class="text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">11.00</div>
-							<div class="text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">12.00</div>
-							<div class="text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">13.00</div>
-							<div class="text-neutral-500 dark:text-neutral-300 text-sm font-normal font-sans leading-[18px]">14.00</div>
-						</div>
-					</div>
+				<div class="p-8 bg-white dark:bg-gray-800 rounded-[15px] shadow justify-start items-start gap-4" hx-get="/components/home/usage" hx-trigger="every 60m">
+					@UsageChart(viewModel.XScaleMax, viewModel.UsageDatasets)
 				</div>
 			</div>
 			<div class="col-span-4">
@@ -117,4 +65,22 @@ templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc) {
 			</div>
 		</div>
 	</div>
+}
+
+func UsageChart(xScaleMax uint, datasets []ChartDataset) templ.Component {
+	var (
+		xScaleType          string = "linear"
+		xScalePosition      string = "bottom"
+		xScaleMin           uint   = 1
+		xScaleTicksStepSize uint   = 1
+	)
+
+	options := NewChartOptions()
+	options.Scales.X.Type = &xScaleType
+	options.Scales.X.Position = &xScalePosition
+	options.Scales.X.Min = &xScaleMin
+	options.Scales.X.Max = &xScaleMax
+	options.Scales.X.Ticks.StepSize = &xScaleTicksStepSize
+
+	return Chart("usage-chart", "", "bar", options, datasets)
 }

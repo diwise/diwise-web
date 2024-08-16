@@ -11,10 +11,16 @@ type OptionViewModel struct {
 	Disabled bool
 }
 
-templ Div(id string, contents templ.Component) {
+templ Div(id string, contents ...templ.Component) {
 	<div id={ id }>
-		@contents
+		for _,c := range contents {
+			@c
+		}
 	</div>
+}
+
+templ Canvas(id string) {
+	<canvas id={ id }></canvas>
 }
 
 templ PrimaryButton(title, icon, target string, hxget templ.SafeURL, l10n locale.Localizer) {

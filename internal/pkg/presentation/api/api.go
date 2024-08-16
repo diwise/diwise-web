@@ -111,9 +111,11 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
 	// home
-	r.HandleFunc("GET /", home.NewHomePage(ctx, l10n, assetLoader.Load))
-	r.HandleFunc("GET /home", home.NewHomePage(ctx, l10n, assetLoader.Load))
+	r.HandleFunc("GET /", home.NewHomePage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /home", home.NewHomePage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /components/home/statistics", RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /components/home/usage", RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
+
 	// things
 	r.HandleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /things/{id}", things.NewThingsDetailsPage(ctx, l10n, assetLoader.Load, app))
