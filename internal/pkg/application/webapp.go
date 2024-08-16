@@ -228,7 +228,9 @@ func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurementDat
 }
 func (a *App) GetMeasurementData(ctx context.Context, id string, params ...InputParam) (MeasurementData, error) {
 	q := url.Values{}
-	q.Add("id", id)
+	if id != "" {
+		q.Add("id", id)
+	}
 
 	for _, p := range params {
 		p(&q)
@@ -246,6 +248,75 @@ func (a *App) GetMeasurementData(ctx context.Context, id string, params ...Input
 	}
 
 	return data, nil
+}
+
+func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) (*ApiResponse, error) {
+	if strings.ContainsAny(path, "/") {
+		path = strings.TrimPrefix(path, "/")
+		path = strings.TrimSuffix(path, "/")
+	}
+
+	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseUrl, path), "/"))
+	if err != nil {
+		return nil, err
+	}
+
+	u.RawQuery = params.Encode()
+
+	token := authz.Token(ctx)
+
+	urlToGet := u.String()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlToGet, nil)
+	if err != nil {
+		err = fmt.Errorf("failed to create http request: %w", err)
+		return nil, err
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	transport := http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+
+	client := http.Client{
+		Transport: otelhttp.NewTransport(&transport),
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		err = fmt.Errorf("failed to retrieve information: %w", err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		err = fmt.Errorf("request failed, not authorized")
+		return nil, err
+	}
+
+	if resp.StatusCode >= http.StatusBadRequest {
+		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
+		return nil, err
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		err = fmt.Errorf("failed to read response body: %w", err)
+		return nil, err
+	}
+
+	impl := ApiResponse{}
+
+	err = json.Unmarshal(respBody, &impl)
+	if err != nil {
+		err = fmt.Errorf("failed to unmarshal response body: %w", err)
+		return nil, err
+	}
+
+	return &impl, nil
 }
 
 func (a *App) patch(ctx context.Context, baseUrl, sensorID string, body []byte) error {
@@ -295,78 +366,6 @@ func (a *App) patch(ctx context.Context, baseUrl, sensorID string, body []byte) 
 	}
 
 	return nil
-}
-
-func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) (*ApiResponse, error) {
-
-	if strings.ContainsAny(path, "/") {
-		path = strings.TrimPrefix(path, "/")
-		path = strings.TrimSuffix(path, "/")
-	}
-
-	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseUrl, path), "/"))
-	if err != nil {
-		return nil, err
-	}
-
-	u.RawQuery = params.Encode()
-
-	token := authz.Token(ctx)
-
-	urlToGet := u.String()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlToGet, nil)
-	if err != nil {
-		err = fmt.Errorf("failed to create http request: %w", err)
-		return nil, err
-	}
-
-	req.Header.Add("Authorization", "Bearer "+token)
-
-	transport := http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	}
-
-	client := http.Client{
-		Transport: otelhttp.NewTransport(&transport),
-	}
-
-	//logging.GetFromContext(ctx).Info("getting data", "url", u.String(), "token", token)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		err = fmt.Errorf("failed to retrieve information: %w", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusUnauthorized {
-		err = fmt.Errorf("request failed, not authorized")
-		return nil, err
-	}
-
-	if resp.StatusCode >= http.StatusBadRequest {
-		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
-		return nil, err
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		err = fmt.Errorf("failed to read response body: %w", err)
-		return nil, err
-	}
-
-	impl := ApiResponse{}
-
-	err = json.Unmarshal(respBody, &impl)
-	if err != nil {
-		err = fmt.Errorf("failed to unmarshal response body: %w", err)
-		return nil, err
-	}
-
-	return &impl, nil
 }
 
 type Meta struct {

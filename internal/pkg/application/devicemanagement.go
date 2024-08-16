@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -98,11 +99,35 @@ func WithLastN(lastN bool) InputParam {
 	}
 }
 
+func WithTimeRel(timeRel string, timeAt, endTimeAt time.Time) InputParam {
+	return func(v *url.Values) {
+		v.Del("timeRel")
+		v.Del("timeAt")
+		v.Del("endTimeAt")
+		v.Add("timeRel", timeRel)
+		v.Add("timeAt", timeAt.UTC().Format(time.RFC3339))
+		v.Add("endTimeAt", endTimeAt.UTC().Format(time.RFC3339))
+	}
+}
+
+func WithAggrMethods(methods ...string) InputParam {
+	return func(v *url.Values) {
+		v.Del("aggrMethods")
+		v.Add("aggrMethods", strings.Join(methods, ","))
+	}
+}
+
+func WithTimeUnit(timeUnit string) InputParam {
+	return func(v *url.Values) {
+		v.Del("timeUnit")
+		v.Add("timeUnit", timeUnit)
+	}
+}
+
 type MeasurementData struct {
 	DeviceID     string             `json:"deviceID"`
 	Urn          *string            `json:"urn,omitempty"`
-	Name         *string            `json:"name,omitempty"`
-	Measurements []MeasurementInfo  `json:"measurements,omitempty"`
+	Name         *string            `json:"name,omitempty"`	
 	Values       []MeasurementValue `json:"values,omitempty"`
 }
 
@@ -119,4 +144,5 @@ type MeasurementValue struct {
 	Unit        string    `json:"unit,omitempty"`
 	Timestamp   time.Time `json:"timestamp"`
 	Link        *string   `json:"link,omitempty"`
+	Count       uint64    `json:"sum,omitempty"`
 }
