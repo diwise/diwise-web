@@ -1,8 +1,23 @@
 package components
 
+func NewChartDataset(label string, data []ChartData) ChartDataset {
+	return ChartDataset{
+		Label:                label,
+		Data:                 data,
+		BorderColor:          "#B92424",
+		BorderWidth:          1,
+		PointBackgroundColor: "#B92424",
+		PointBorderColor:     "#B92424",
+	}
+}
+
 type ChartDataset struct {
-	Label string      `json:"label"`
-	Data  []ChartData `json:"data"`
+	Label                string      `json:"label"`
+	Data                 []ChartData `json:"data"`
+	BorderColor          string      `json:"borderColor"`
+	BorderWidth          int         `json:"borderWidth"`
+	PointBackgroundColor string      `json:"pointBackgroundColor"`
+	PointBorderColor     string      `json:"pointBorderColor"`
 }
 
 type ChartData struct {
@@ -10,55 +25,85 @@ type ChartData struct {
 	Y any    `json:"y"`
 }
 
+func NewChartOptions() ChartOptions {
+	t := true
+	return ChartOptions{
+		Scales: ChartOptionsScales{
+			X: ChartOptionsScale{
+				Ticks: ChartOptionsTicks{
+					Color: "#444450",
+				},
+			},
+			Y: ChartOptionsScale{
+				BeginAtZero: &t,
+				Ticks: ChartOptionsTicks{
+					Color: "#444450",
+				},
+			},
+		},
+	}
+}
+
+type ChartOptions struct {
+	MaintainAspectRatio *bool              `json:"maintainAspectRatio,omitempty"`
+	Responsive          *bool              `json:"responsive,omitempty"`
+	Scales              ChartOptionsScales `json:"scales"`
+	Height              *uint              `json:"height,omitempty"`
+	Width               *uint              `json:"width,omitempty"`
+}
+
+type ChartOptionsScales struct {
+	X ChartOptionsScale `json:"x,omitempty"`
+	Y ChartOptionsScale `json:"y,omitempty"`
+}
+
+type ChartOptionsScale struct {
+	Type        *string           `json:"type,omitempty"`
+	Position    *string           `json:"position,omitempty"`
+	Min         *uint             `json:"min,omitempty"`
+	Max         *uint             `json:"max,omitempty"`
+	BeginAtZero *bool             `json:"beginAtZero,omitempty"`
+	Ticks       ChartOptionsTicks `json:"ticks"`
+}
+
+type ChartOptionsTicks struct {
+	StepSize *uint  `json:"stepSize,omitempty"`
+	Color    string `json:"color"`
+}
+
 var chartHandle = templ.NewOnceHandle()
 
-templ Chart(id string, chartType string, dataset ChartDataset) {
-	<div id="chart" data-chart-id={ templ.JSONString(id) } data-chart-type={ templ.JSONString(chartType) } data-chart={ templ.JSONString(dataset) }></div>
-	@chartHandle.Once() {
-		<script>
+templ Chart(id, className string, chartType string, options ChartOptions, dataset []ChartDataset) {
+	<div id={ id + "-chart-container" } class={ "chart-container", className }>
+		<canvas id={ id + "-canvas" }></canvas>
+		<div id="chart-data" data-chart-id={ templ.JSONString(id) } data-chart-type={ templ.JSONString(chartType) } data-chart-options={ templ.JSONString(options) } data-chart={ templ.JSONString(dataset) } style="display:none;"></div>
+		@chartHandle.Once() {
+			<script>
 		(() => {
-			const c = document.getElementById('chart');
+			const c = document.getElementById('chart-data');
         	const dataset = JSON.parse(c.getAttribute('data-chart'));
 			const chartType = JSON.parse(c.getAttribute('data-chart-type'));
 			const chartID = JSON.parse(c.getAttribute('data-chart-id'));
+			const options = JSON.parse(c.getAttribute('data-chart-options'));
+			const canvasID = chartID + '-canvas';
 
 			try {
-				var existing_chart = Chart.getChart(chartID)
+				var existing_chart = Chart.getChart(canvasID)
 				existing_chart.destroy();				
 			} catch(e) {				
 			}
 
-			const ctx = document.getElementById(chartID);
+			const ctx = document.getElementById(canvasID);
 
 			new Chart(ctx, {
-				type: 'line',
+				type: chartType,
 				data: {		
-				datasets: [{			
-					label: dataset.label,
-					data: dataset.data,
-					borderColor: '#B92424', // Linjens färg
-					borderWidth: 1,
-					pointBackgroundColor: '#B92424', // Punktens bakgrundsfärg
-					pointBorderColor: '#B92424' // Punktens kantfärg
-				}]
+					datasets: dataset
 				},
-				options: {
-					scales: {
-						x: {
-							ticks: {
-								color: '#444450' // Textfärg på x-axeln
-							}
-						},
-						y: {
-						beginAtZero: true,
-						ticks: {
-								color: '#444450' // Textfärg på y-axeln
-							}
-						}
-					}
-				}
+				options: options
 			});
 		})()
 	</script>
-	}
+		}
+	</div>
 }

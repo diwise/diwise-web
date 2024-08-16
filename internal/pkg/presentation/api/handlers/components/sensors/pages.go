@@ -115,8 +115,8 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 	}
 
 	m := make([]string, 0)
-	for _, md := range measurements.Measurements {
-		m = append(m, md.ID)
+	for _, md := range measurements.Values {
+		m = append(m, *md.ID)
 	}
 
 	detailsViewModel := components.SensorDetailsViewModel{

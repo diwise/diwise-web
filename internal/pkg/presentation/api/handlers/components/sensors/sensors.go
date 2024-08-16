@@ -254,21 +254,36 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			return
 		}
 
-		dataset := components.ChartDataset{
-			Data: make([]components.ChartData, 0),
-		}
+		dataset := components.NewChartDataset("", make([]components.ChartData, 0))
 
+		previousValue := 0
 		for _, v := range measurements.Values {
+			if dataset.Label == "" {
+				dataset.Label = v.Unit
+			}
+
 			if v.Value != nil {
-				if dataset.Label == "" {
-					dataset.Label = v.Unit
-				}
 				dataset.Data = append(dataset.Data, components.ChartData{X: v.Timestamp.Format(time.DateTime), Y: *v.Value})
+			}
+
+			if v.Value == nil && v.BoolValue != nil {
+				vb := 0
+				if *v.BoolValue {
+					vb = 1
+				}
+
+				if vb != previousValue {
+					// append value when 0->1 and 1->0
+					dataset.Data = append(dataset.Data, components.ChartData{X: v.Timestamp.Format(time.DateTime), Y: previousValue})
+					previousValue = vb
+				}
+
+				dataset.Data = append(dataset.Data, components.ChartData{X: v.Timestamp.Format(time.DateTime), Y: vb})
 			}
 		}
 
-		//component := components.LineChart("myChart", dataset)
-		component := components.Chart("myChart", "line", dataset)
+		options := components.NewChartOptions()						
+		component := components.Chart("measurement-chart", "", "line", options, []components.ChartDataset{dataset})
 		component.Render(ctx, w)
 	}
 

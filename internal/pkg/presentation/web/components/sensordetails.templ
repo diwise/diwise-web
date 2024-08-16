@@ -107,10 +107,9 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 							<label for="sensorMeasurementTypes" class="hidden block text-sm font-medium text-gray-700">
 								{ l10n.Get("sensorMeasurementTypes") }
 							</label>
-							@SensorMeasurementSelect(l10n, asset, "sensorMeasurementTypes", sensor)
+							@SensorMeasurementSelect(l10n, asset, "sensorMeasurementTypes", "measurementCharts", sensor)
 						</div>
-						<canvas id="myChart"></canvas>
-						<div id="measurementCharts"></div>
+						<div id="measurementCharts" class="max-w-full w-full h-full"></div>
 					</div>
 				</div>
 			</div>
@@ -339,7 +338,7 @@ func sensorMapFeature(sensor SensorDetailsViewModel) FeatureCollection {
 	return NewFeatureCollection([]Feature{feature})
 }
 
-func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
+func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, target string, sensorViewModel SensorDetailsViewModel) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
@@ -361,7 +360,7 @@ func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc
 		})
 	}
 
-	return Select(id, false, "/components/measurements", "#measurementCharts", viewModel)
+	return Select(id, false, "/components/measurements", "#"+target, viewModel)
 }
 
 func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
