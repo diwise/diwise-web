@@ -1,9 +1,9 @@
 package components
 
-func NewChartDataset(label string, data []ChartData) ChartDataset {
+func NewChartDataset(label string) ChartDataset {
 	return ChartDataset{
 		Label:                label,
-		Data:                 data,
+		Data:                 make([]ChartData, 0),
 		BorderColor:          "#B92424",
 		BorderWidth:          1,
 		PointBackgroundColor: "#B92424",
@@ -18,6 +18,15 @@ type ChartDataset struct {
 	BorderWidth          int         `json:"borderWidth"`
 	PointBackgroundColor string      `json:"pointBackgroundColor"`
 	PointBorderColor     string      `json:"pointBorderColor"`
+}
+
+func (dataset *ChartDataset) Append(data ChartData) {
+	dataset.Data = append(dataset.Data, data)
+}
+
+func (dataset *ChartDataset) Add(x string, y any) {
+	data := ChartData{X: x, Y: y}
+	dataset.Append(data)
 }
 
 type ChartData struct {

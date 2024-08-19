@@ -256,7 +256,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			return
 		}
 
-		dataset := components.NewChartDataset("", make([]components.ChartData, 0))
+		dataset := components.NewChartDataset("")
 
 		previousValue := 0
 		for _, v := range measurements.Values {
@@ -265,7 +265,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			}
 
 			if v.Value != nil {
-				dataset.Data = append(dataset.Data, components.ChartData{X: v.Timestamp.Format(time.DateTime), Y: *v.Value})
+				dataset.Add(v.Timestamp.Format(time.DateTime), *v.Value)
 			}
 
 			if v.Value == nil && v.BoolValue != nil {
@@ -276,11 +276,11 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 
 				if vb != previousValue {
 					// append value when 0->1 and 1->0
-					dataset.Data = append(dataset.Data, components.ChartData{X: v.Timestamp.Format(time.DateTime), Y: previousValue})
+					dataset.Add(v.Timestamp.Format(time.DateTime), previousValue)
 					previousValue = vb
 				}
 
-				dataset.Data = append(dataset.Data, components.ChartData{X: v.Timestamp.Format(time.DateTime), Y: vb})
+				dataset.Add(v.Timestamp.Format(time.DateTime), vb)
 			}
 		}
 
