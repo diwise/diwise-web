@@ -202,6 +202,7 @@ templ MenuSegment(title, slug string, icon templ.Component, asset assets.AssetLo
 	<div
 		class={ "self-stretch px-3.5 py-2.5 justify-start items-center gap-2 inline-flex cursor-pointer",
         templ.KV("rounded-xl", !selected),
+		templ.KV("hover:bg-tertiary-surface-hover", !selected),
         templ.KV("rounded-lg", selected), templ.KV("bg-black", selected) }
 		hx-get={ slug }
 		hx-target="#body"
