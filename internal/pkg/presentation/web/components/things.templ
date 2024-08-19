@@ -75,7 +75,7 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingLi
             <div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
                 //TODO: Target för Lägg till ny sak
-                @PrimaryButton("Lägg till ny sak", "", "", templ.URL(fmt.Sprintf("/components/things")), l10n)
+                @PrimaryButton(l10n.Get("addthing"), "", "", templ.URL(fmt.Sprintf("/components/things")), l10n)
 			</div>
 			@SumOfStuff(l10n, things.Statistics)
 		</div>
