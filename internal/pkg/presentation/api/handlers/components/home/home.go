@@ -30,17 +30,14 @@ func NewHomePage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoa
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		datasets, max, err := getUsageData(ctx, app)
-		if err != nil {
-			http.Error(w, "could not compose view model", http.StatusInternalServerError)
-			return
-		}
+		datasets := []components.ChartDataset{}
+		max := 31
 
 		component := components.StartPage(
 			version, localizer,
 			assets, components.Home(localizer, assets, components.HomeViewModel{
 				UsageDatasets: datasets,
-				XScaleMax:     max,
+				XScaleMax:     uint(max),
 			}),
 		)
 
