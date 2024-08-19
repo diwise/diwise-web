@@ -3,6 +3,7 @@ package sensors
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -220,11 +221,12 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		}
 
 		pi, _ := strconv.Atoi(pageIndex)
+		pageLast := float64(sensorResult.TotalRecords) / float64(limit)
 
 		renderCtx := helpers.Decorate(
 			ctx,
 			components.PageIndex, pi,
-			components.PageLast, sensorResult.TotalRecords/limit,
+			components.PageLast, int(math.Ceil(pageLast)),
 			components.PageSize, limit,
 		)
 
@@ -282,7 +284,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			}
 		}
 
-		options := components.NewChartOptions()						
+		options := components.NewChartOptions()
 		component := components.Chart("measurement-chart", "", "line", options, []components.ChartDataset{dataset})
 		component.Render(ctx, w)
 	}

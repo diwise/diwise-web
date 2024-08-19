@@ -73,6 +73,6 @@ func GetOffsetAndLimit(r *http.Request) (offset, limit int) {
 		return
 	}
 
-	offset = index * limit
+	offset = (index - 1) * limit
 	return
 }
