@@ -151,6 +151,7 @@ func SelectedIcon(isSelected bool) func(*svgCfg) {
 	return func(cfg *svgCfg) {
 		if isSelected {
 			(*cfg).classes["fill"] = []string{"fill-white"}
+			(*cfg).classes["dark:fill"] = []string{"dark:fill-black"}
 		}
 	}
 }
@@ -158,7 +159,7 @@ func SelectedIcon(isSelected bool) func(*svgCfg) {
 func SelectedIconNoFill(isSelected bool) func(*svgCfg) {
 	return func(cfg *svgCfg) {
 		if isSelected {
-			(*cfg).classes["stroke"] = []string{"stroke-white", "dark:stroke-zinc-100"}
+			(*cfg).classes["stroke"] = []string{"stroke-white", "dark:stroke-dark-primary"}
 		}
 	}
 }
