@@ -203,17 +203,22 @@ templ MenuSegment(title, slug string, icon templ.Component, asset assets.AssetLo
 		class={ "self-stretch px-3.5 py-2.5 justify-start items-center gap-2 inline-flex cursor-pointer",
         templ.KV("rounded-xl", !selected),
 		templ.KV("hover:bg-tertiary-surface-hover", !selected),
-        templ.KV("rounded-lg", selected), templ.KV("bg-black", selected) }
+		templ.KV("dark:hover:bg-divider-white", !selected),
+        templ.KV("rounded-lg", selected), 
+		templ.KV("bg-black", selected),
+		templ.KV("dark:bg-primary-surface-dark", selected)}
 		hx-get={ slug }
 		hx-target="#body"
 		hx-replace-url="true"
 	>
 		@icon
 		<div
-			class={ "dark:text-neutral-300 text-base font-sans leading-normal",
+			class={ "text-base font-sans leading-normal",
             templ.KV("text-neutral-800", !selected),
 			templ.KV("font-bold", selected),
-            templ.KV("text-white", selected) }
+            templ.KV("text-white", selected),
+			templ.KV("dark:text-dark-primary", selected),
+			templ.KV("dark:text-secondary", !selected)  }
 		>
 			{ title }
 		</div>

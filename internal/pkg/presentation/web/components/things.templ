@@ -15,6 +15,8 @@ type ThingViewModel struct {
 	BatteryLevel int
 	LastSeen     time.Time
 	HasAlerts    bool
+    Type         string
+    Value        string
 }
 
 type ThingListViewModel struct {
@@ -63,9 +65,9 @@ templ ThingsDetailPage(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
 
 templ ThingTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingListViewModel) {
 	@Table(
-		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("id")), TableHeaderText(l10n.Get("measurementvalue")), TableHeaderText(l10n.Get("location")), TableHeaderText(l10n.Get("status"))),
+		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("id")), TableHeaderText(l10n.Get("measurementvalue")), TableHeaderText(l10n.Get("status"))),
 		TableData(tableRowsFromThings(l10n, asset, things.Things)...),
-		DataTableFooter("5", "things"),
+		DataTableFooter("4", "things"),
 	)
 }
 
@@ -96,7 +98,45 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingLi
             <div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
 				//Initialt listinnehåll
 				<div id="things-table" class="w-full">
-					@ThingTable(l10n, asset, things)
+					@ThingTable(l10n, asset, ThingListViewModel{
+                        Things: []ThingViewModel{
+                            {
+                                Name: "Första saken",
+                                ThingID: "2341",
+                                Type: "trashcan",
+                                Value: "32",
+                                Active: true,
+                            },
+                            {
+                                Name: "Andra saken",
+                                ThingID: "2341",
+                                Type: "trashcan",
+                                Value: "90",
+                                Active: true,
+                            },
+                            {
+                                Name: "Tredje saken",
+                                ThingID: "2341",
+                                Type: "trashcan",
+                                Value: "5",
+                                Active: true,
+                            },
+                            {
+                                Name: "Fjärde saken",
+                                ThingID: "2341",
+                                Type: "trashcan",
+                                Value: "60",
+                                Active: true,
+                            },
+                            {
+                                Name: "Femte saken",
+                                ThingID: "2341",
+                                Type: "trashcan",
+                                Value: "100",
+                                Active: true,
+                            },
+                        },
+                    })
 				</div>
 			</div>
 
@@ -130,9 +170,9 @@ func tableRowsFromThings(l10n locale.Localizer, _ assets.AssetLoaderFunc, things
 		isActive := thing.Active
 
 		cells := []templ.Component{TextFirstCell(thing.Name)}
-		cells = append(cells, LabelCell(labelText[isActive], isActive))
 		cells = append(cells, TextCell(thing.ThingID))
-		//cells = append(cells, TextCell(sensor.net))
+        cells = append(cells, ProgressBarCell(thing.Value))
+        cells = append(cells, LabelCell(labelText[isActive], isActive))
 
 		/*if sensor.BatteryLevel >= 0 {
 			cells = append(cells, TextCell(fmt.Sprintf("%d", sensor.BatteryLevel)))
