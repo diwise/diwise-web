@@ -30,8 +30,8 @@ type App struct {
 func New(ctx context.Context) (*App, error) {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
 	thingManagementURL := strings.Replace(deviceManagementURL, "devices", "devices", 1)
-	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)
-	measurementURL := strings.Replace(deviceManagementURL, "devices", "measurements", 1)
+	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)	
+	measurementURL := env.GetVariableOrDefault(ctx, "MEASUREMENTS_URL", "https://test.diwise.io/api/v0/measurements")
 
 	c := NewCache()
 	c.Cleanup(60 * time.Second)
