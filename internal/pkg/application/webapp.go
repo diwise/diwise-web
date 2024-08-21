@@ -270,8 +270,8 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlToGet, nil)
 	if err != nil {
-		log.Error("failed to create http request", "err", err.Error())
-		err = fmt.Errorf("failed to create http request: %w", err)		
+		log.Error("failed to create http request", slog.String("url", urlToGet), "err", err.Error())
+		err = fmt.Errorf("failed to create http request: %w", err)
 		return nil, err
 	}
 
@@ -289,20 +289,20 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Error("http request failed", "err", err.Error())
+		log.Error("http request failed", slog.String("url", urlToGet), "err", err.Error())
 		err = fmt.Errorf("failed to retrieve information: %w", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		log.Error("unauthorized")
+		log.Error("unauthorized", slog.String("url", urlToGet))
 		err = fmt.Errorf("request failed, not authorized")
 		return nil, err
 	}
 
 	if resp.StatusCode >= http.StatusBadRequest {
-		log.Error("request failed", slog.Int("status_code", resp.StatusCode))
+		log.Error("request failed", slog.String("url", urlToGet), slog.Int("status_code", resp.StatusCode))
 		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
 		return nil, err
 	}
