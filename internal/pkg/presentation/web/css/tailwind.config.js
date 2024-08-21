@@ -31,6 +31,8 @@ module.exports = {
           'red-600': '#D62E2E',
           'secondary': '#E5E5E5',
           'secondary-text': '#971A1A',
+          'secondary-surface-hover': '#FFFFFF1A',
+          'secondary-outline-hover': '#1C1C28A3',
           'tertiary-surface': '#1C1C281F',
           'tertiary-surface-hover': '#1C1C2829',
           'white': '#FFFFFF'
