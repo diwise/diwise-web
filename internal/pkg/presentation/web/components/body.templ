@@ -147,6 +147,12 @@ func StrokeColor(color, darkStrokeColor string) func(*svgCfg) {
 	}
 }
 
+func HoverStrokeColor() func(*svgCfg) {
+	return func(cfg *svgCfg) {
+		cfg.classes["group-hover:stroke"] = []string{"group-hover:stroke-dark-primary"}
+	}
+}
+
 func SelectedIcon(isSelected bool) func(*svgCfg) {
 	return func(cfg *svgCfg) {
 		if isSelected {

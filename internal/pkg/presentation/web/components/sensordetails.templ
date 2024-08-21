@@ -261,18 +261,18 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 				</div>
 			</div>
 			<div class="h-px border-t border-divider-gray w-full"></div>
-			<div class="flex justify-between items-center py-6">
-				<button name="delete" class="text-secondary-text hover:text-dark-primary text-right w-auto h-10 pl-[18px] gap-2 pr-4 py-2 bg-err-prim-surf hover:bg-err-prim-surf-hover rounded-xl flex items-center cursor-pointer">
+			<div class="flex items-center justify-between py-6">
+				<button name="delete" class="flex items-center group rounded-xl gap-2 px-4 py-2 bg-err-prim-surf hover:bg-err-prim-surf-hover cursor-pointer">
 					<div class="w-[20px] h-[20px]">
-						@SVG("trashcan", Size(20), NoFill(), Box(24, 24), StrokeColor("secondary-text", "secondary-text"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@SVG("trashcan", Size(20), NoFill(), Box(24, 24), StrokeColor("secondary-text", "secondary-text"), HoverStrokeColor(), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					</div>
 					//<svg class="fill-none dark:fill-none h-6 w-6 stroke-secondary-text dark:stroke-zinc-100"></svg>
-					<div class="text-base font-sans font-bold leading-normal">
+					<div class="text-secondary-text group-hover:text-dark-primary text-base font-sans font-bold leading-normal">
 						{ l10n.Get("delete") }
 					</div>
 				</button>
-				<div class="flex items-end gap-4">
-					<button name="cancel" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 border-divider-gray border-2 dark:border-divider-white rounded-xl flex items-center cursor-pointer">
+				<div class="flex items-center gap-4">
+					<button name="cancel" class="flex items-center group rounded-xl gap-2 px-3.5 py-2 border-divider-gray border-2 dark:border-divider-white cursor-pointer">
 						<div class="w-[20px] h-[20px]">
 							@SVG("close", Size(20), NoFill(), Box(24, 24), StrokeColor("dark-primary", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
 						</div>
@@ -280,7 +280,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 							{ l10n.Get("cancel") }
 						</div>
 					</button>
-					<button type="submit" name="save" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-primary-surface-dark rounded-xl flex items-center cursor-pointer">
+					<button type="submit" name="save" class="flex items-center group rounded-xl gap-2 px-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-primary-surface-dark cursor-pointer">
 						<div class="w-[20px] h-[20px]">
 							@SVG("check", Size(20), NoFill(), Box(24, 24), StrokeColor("white", "dark-primary"), Stroke(templ.Attributes{"stroke-width": "2"}))
 						</div>
