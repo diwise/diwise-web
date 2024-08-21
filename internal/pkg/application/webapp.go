@@ -256,20 +256,22 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 		path = strings.TrimSuffix(path, "/")
 	}
 
+	log := logging.GetFromContext(ctx)
+
 	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseUrl, path), "/"))
 	if err != nil {
+		log.Error("could not parse url", "err", err.Error())
 		return nil, err
 	}
 
 	u.RawQuery = params.Encode()
-
 	token := authz.Token(ctx)
-
 	urlToGet := u.String()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlToGet, nil)
 	if err != nil {
-		err = fmt.Errorf("failed to create http request: %w", err)
+		log.Error("failed to create http request", "err", err.Error())
+		err = fmt.Errorf("failed to create http request: %w", err)		
 		return nil, err
 	}
 
@@ -287,17 +289,20 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Error("http request failed", "err", err.Error())
 		err = fmt.Errorf("failed to retrieve information: %w", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
+		log.Error("unauthorized")
 		err = fmt.Errorf("request failed, not authorized")
 		return nil, err
 	}
 
 	if resp.StatusCode >= http.StatusBadRequest {
+		log.Error("request failed", slog.Int("status_code", resp.StatusCode))
 		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
 		return nil, err
 	}
