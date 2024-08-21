@@ -374,6 +374,8 @@ func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc
 
 func MeasurementChart(datasets []ChartDataset) templ.Component {
 	options := NewChartOptions()
+	xScalesType := "timeseries"
+	options.Scales.X.Type = &xScalesType
 	return Chart("measurement-chart", "", "line", options, datasets)
 }
 

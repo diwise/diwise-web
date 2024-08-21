@@ -265,7 +265,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			}
 
 			if v.Value != nil {
-				dataset.Add(v.Timestamp.Format(time.DateTime), *v.Value)
+				dataset.Add(v.Timestamp.Format(time.RFC3339Nano), *v.Value)
 			}
 
 			if v.Value == nil && v.BoolValue != nil {
@@ -276,11 +276,11 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 
 				if vb != previousValue {
 					// append value when 0->1 and 1->0
-					dataset.Add(v.Timestamp.Format(time.DateTime), previousValue)
+					dataset.Add(v.Timestamp.Format(time.RFC3339Nano), previousValue)
 					previousValue = vb
 				}
 
-				dataset.Add(v.Timestamp.Format(time.DateTime), vb)
+				dataset.Add(v.Timestamp.Format(time.RFC3339Nano), vb)
 			}
 		}
 
