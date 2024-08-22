@@ -82,53 +82,52 @@ type InputParam func(v *url.Values)
 
 func WithReverse(reverse bool) InputParam {
 	return func(v *url.Values) {
-		v.Del("reverse")
-		v.Add("reverse", fmt.Sprintf("%t", reverse))
+		v.Set("reverse", fmt.Sprintf("%t", reverse))
 	}
 }
 func WithLimit(limit int) InputParam {
 	return func(v *url.Values) {
-		v.Del("limit")
-		v.Add("limit", fmt.Sprintf("%d", limit))
+		v.Set("limit", fmt.Sprintf("%d", limit))
 	}
 }
 func WithLastN(lastN bool) InputParam {
 	return func(v *url.Values) {
-		v.Del("lastN")
-		v.Add("lastN", fmt.Sprintf("%t", lastN))
+		v.Set("lastN", fmt.Sprintf("%t", lastN))
 	}
 }
 
 func WithTimeRel(timeRel string, timeAt, endTimeAt time.Time) InputParam {
 	return func(v *url.Values) {
-		v.Del("timeRel")
-		v.Del("timeAt")
-		v.Del("endTimeAt")
-		v.Add("timeRel", timeRel)
-		v.Add("timeAt", timeAt.UTC().Format(time.RFC3339))
-		v.Add("endTimeAt", endTimeAt.UTC().Format(time.RFC3339))
+		v.Set("timeRel", timeRel)
+		v.Set("timeAt", timeAt.UTC().Format(time.RFC3339))
+		v.Set("endTimeAt", endTimeAt.UTC().Format(time.RFC3339))
 	}
 }
 
 func WithAggrMethods(methods ...string) InputParam {
 	return func(v *url.Values) {
-		v.Del("aggrMethods")
-		v.Add("aggrMethods", strings.Join(methods, ","))
+		v.Set("aggrMethods", strings.Join(methods, ","))
 	}
 }
 
 func WithTimeUnit(timeUnit string) InputParam {
 	return func(v *url.Values) {
-		v.Del("timeUnit")
-		v.Add("timeUnit", timeUnit)
+		v.Set("timeUnit", timeUnit)
+	}
+}
+
+func WithAfter(timeAt time.Time) InputParam {
+	return func(v *url.Values) {
+		v.Set("timeRel", "after")
+		v.Set("timeAt", timeAt.UTC().Format(time.RFC3339))
 	}
 }
 
 type MeasurementData struct {
-	DeviceID     string             `json:"deviceID"`
-	Urn          *string            `json:"urn,omitempty"`
-	Name         *string            `json:"name,omitempty"`	
-	Values       []MeasurementValue `json:"values,omitempty"`
+	DeviceID string             `json:"deviceID"`
+	Urn      *string            `json:"urn,omitempty"`
+	Name     *string            `json:"name,omitempty"`
+	Values   []MeasurementValue `json:"values,omitempty"`
 }
 
 type MeasurementInfo struct {

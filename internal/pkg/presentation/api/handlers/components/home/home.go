@@ -121,13 +121,11 @@ func getUsageData(ctx context.Context, app application.DeviceManagement) ([]comp
 		m := fmt.Sprintf("%d-%02d", v.Timestamp.Year(), v.Timestamp.Month())
 		ds, ok := sets[m]
 		if !ok {
-			ds = components.NewChartDataset(m, make([]components.ChartData, 0))
+			ds = components.NewChartDataset(m)
 			ds.BorderColor = ""
 		}
-		ds.Data = append(ds.Data, components.ChartData{
-			X: strconv.Itoa(v.Timestamp.Day()),
-			Y: v.Count,
-		})
+		ds.Add(strconv.Itoa(v.Timestamp.Day()), v.Count)
+
 		sets[m] = ds
 	}
 

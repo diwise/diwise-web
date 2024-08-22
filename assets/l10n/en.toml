@@ -156,3 +156,36 @@ other = "Type"
 
 [unregistered]
 other = "Unregistered"
+
+[3-9]
+other = "Battery level (%)"
+
+[3-7]
+other = "Battery level (mV)"
+
+[3303-5700]
+other = "Temperature"
+
+[3424-1]
+other = "Cumulated water consumption"
+
+[3435-5700]
+other = "Filling level"
+
+[3304-5700]
+other = "Relative humidity"
+
+[3200-5501]
+other = "Digital input counter"
+
+[3428-17]
+other = "Carbon dioxide"
+
+[3350-5544]
+other = "Cumulative time"
+
+[3330-5700]
+other = "Distance"
+
+[3331-5700]
+other = "Cumulated energy consumption"

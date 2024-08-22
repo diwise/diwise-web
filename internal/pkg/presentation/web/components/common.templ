@@ -27,7 +27,9 @@ templ PrimaryButton(title, icon, target string, hxget templ.SafeURL, l10n locale
 	<div class="flex items-center text-white dark:text-dark-primary font-bold">
 		<button
 			class="flex justify-center items-center gap-2 px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover rounded-xl cursor-pointer"
-			hx-get={ string(hxget) }
+			if string(hxget) != "" {
+				hx-get={ string(hxget) }
+			}
 			if target != "" {
 				hx-target={ "#" + target }
 			}
@@ -43,27 +45,45 @@ templ PrimaryButton(title, icon, target string, hxget templ.SafeURL, l10n locale
 	</div>
 }
 
-templ SecondaryButton(title string) {
-	<div class="w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-divider-gray border-opacity-30 bg-white bg-opacity-20 dark:bg-gray-800 justify-center items-center gap-2 inline-flex dark:border-zinc-600">
-		<svg class="w-[18px] h-[18px] dark:fill-zinc-600">
-			@templ.Raw(iconSVG("filter"))
-		</svg>
-		<div class="text-dark-secondary text-base font-bold font-sans leading-normal dark:text-white">
-			{ title }
-		</div>
+templ SecondaryButton(buttonName, title, icon, target, method, btnType, hxTrigger string, hxUrl templ.SafeURL, l10n locale.Localizer) {
+	<div>
+		<button 
+			if buttonName != "" {
+				name={ buttonName }
+			}
+
+			class="flex items-center group rounded-xl gap-2 px-3.5 py-2 border-divider-gray border-2 dark:border-divider-white hover:dark:border-secondary-outline-hover-dark hover:border-secondary-outline-hover cursor-pointer"
+			
+			if method != "" {
+				if method == "get" {
+					hx-get={ string(hxUrl)}
+				} else if method == "post" {
+					hx-post={ string(hxUrl)}
+				}
+			}
+
+			if target != "" {
+				hx-target={ "#" + target }
+			}
+			if hxTrigger != ""{
+				hx-trigger={ hxTrigger }
+			}
+			
+			if btnType != "" {
+				type={ btnType }
+			}
+			>
+			
+			if icon != "" {
+				<div class="w-[20px] h-[20px]">
+					@SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("dark-primary", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
+				</div>
+			}
+			<div class="text-dark-secondary dark:text-secondary text-base font-sans font-bold leading-normal">
+				{ l10n.Get( title ) }
+			</div>
+		</button>
 	</div>
-	//Styling SecondaryButton
-	/*<button
-		class="w-auto h-10 pl-[18px] pr-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-[white] rounded-xl flex items-center gap-2 cursor-pointer"
-		hx-get={ string(templ.URL(fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID))) }
-		hx-target="#sensor-view"
-		hx-trigger="click"
-	>
-		<div class="w-[20px] h-[20px] dark:stroke-dark-primary">
-			@SVG("pen", Box(24, 24), NoFill(), StrokeColor("white", "dark-primary"), Stroke(templ.Attributes{"stroke-width": "1"}))
-		</div>
-		{ l10n.Get("edit") }
-	</button>*/
 }
 
 templ TertiaryButton(title, icon, target string, hxget templ.SafeURL, l10n locale.Localizer) {
@@ -107,7 +127,7 @@ templ Select(id string, multiple bool, hxGet, hxTarget string, options []OptionV
 			if hxTarget != "" {
 				hx-target={ hxTarget }
 			}
-			class="appearance-none cursor-pointer block w-full pl-3 pr-3 py-2 text-base dark:border dark:border-input-outline dark:bg-darkmode-input-surface dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
+			class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base dark:border dark:border-input-outline dark:bg-darkmode-input-surface dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
 			multiple?={ multiple }
 		>
 			@Options(options)

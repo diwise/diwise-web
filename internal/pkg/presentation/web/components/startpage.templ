@@ -1,32 +1,34 @@
 package components
 
 import (
-    "github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
-    "github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 )
 
 templ StartPage(version string, localizer locale.Localizer, asset assets.AssetLoaderFunc, mainContent templ.Component) {
-    <!doctype html>
-    <html>
-        <head>
-            <meta charset="UTF-8"/>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-            <link href={ asset("/css/diwise.css").Path() } rel="stylesheet" />
-            <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet" />
-            <script src={ asset("/js/htmx.min.js").Path() }></script>
-            <script src={ asset("/js/leaflet.js").Path() }></script>
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-            <link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet" />
-            <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
-            <link rel="icon" type="image/x-icon" href={ asset("/icons/favicon.ico").Path() } />
-            <title>diwise</title>
-        </head>
-        if authz.IsLoggedIn(ctx) {
-            @Body(version, localizer, asset, mainContent)
-        } else {
-            @NotLoggedIn(localizer, asset)
-        }
-    </html>
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link href={ asset("/css/diwise.css").Path() } rel="stylesheet"/>
+			<link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
+			<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+			<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+			<script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
+			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+			<script src={ asset("/js/htmx.min.js").Path() }></script>
+			<script src={ asset("/js/leaflet.js").Path() }></script>
+			<link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet"/>
+			<link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,700;1,700&display=swap" rel="stylesheet"/>
+			<link rel="icon" type="image/x-icon" href={ asset("/icons/favicon.ico").Path() }/>
+			<title>diwise</title>
+		</head>
+		if authz.IsLoggedIn(ctx) {
+			@Body(version, localizer, asset, mainContent)
+		} else {
+			@NotLoggedIn(localizer, asset)
+		}
+	</html>
 }
