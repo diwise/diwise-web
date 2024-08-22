@@ -276,7 +276,9 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 
 				<div class="flex items-center gap-4">
 					@SecondaryButton("cancel", "cancel", "close", "", "", "", "", "", l10n)
-					<button type="submit" name="save" class="flex items-center group rounded-xl gap-2 px-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-primary-surface-dark hover:bg-primary-surface-hover cursor-pointer">
+					
+					
+					<button type="submit" name="save" class="flex items-center group rounded-xl gap-2 px-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-primary-surface-dark hover:bg-primary-surface-hover hover:dark:bg-primary-surface-dark-hover cursor-pointer">
 						<div class="w-[20px] h-[20px]">
 							@SVG("check", Size(20), NoFill(), Box(24, 24), StrokeColor("white", "dark-primary"), Stroke(templ.Attributes{"stroke-width": "2"}))
 						</div>
