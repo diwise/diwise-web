@@ -69,6 +69,8 @@ templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc, viewModel H
 }
 
 func UsageChart(xScaleMax uint, datasets []ChartDataset) templ.Component {
+	cfg := NewChartConfiguration("bar")
+
 	var (
 		xScaleType          string = "linear"
 		xScalePosition      string = "bottom"
@@ -76,12 +78,13 @@ func UsageChart(xScaleMax uint, datasets []ChartDataset) templ.Component {
 		xScaleTicksStepSize uint   = 1
 	)
 
-	options := NewChartOptions()
-	options.Scales.X.Type = &xScaleType
-	options.Scales.X.Position = &xScalePosition
-	options.Scales.X.Min = &xScaleMin
-	options.Scales.X.Max = &xScaleMax
-	options.Scales.X.Ticks.StepSize = &xScaleTicksStepSize
+	cfg.Options.Scales.X.Type = &xScaleType
+	cfg.Options.Scales.X.Position = &xScalePosition
+	cfg.Options.Scales.X.Min = &xScaleMin
+	cfg.Options.Scales.X.Max = &xScaleMax
+	cfg.Options.Scales.X.Ticks.StepSize = &xScaleTicksStepSize
 
-	return Chart("usage-chart", "", "bar", options, datasets)
+	cfg.Add(datasets...)
+
+	return Chart("usage-chart", "", cfg)
 }

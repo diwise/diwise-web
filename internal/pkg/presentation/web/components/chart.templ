@@ -1,9 +1,34 @@
 package components
 
+func NewChartConfiguration(chartType string) ChartConfiguration {
+	cfg := ChartConfiguration{}
+	cfg.Type = chartType
+	cfg.Data = NewChartData()
+	cfg.Options = NewChartOptions()
+	return cfg
+}
+
+type ChartConfiguration struct {
+	Type    string       `json:"type"`
+	Data    ChartData    `json:"data"`
+	Options ChartOptions `json:"options"`
+}
+
+func NewChartData() ChartData {
+	return ChartData{
+		Datasets: make([]ChartDataset, 0),
+	}
+}
+
+type ChartData struct {
+	Datasets []ChartDataset `json:"datasets"`
+	Labels   []string       `json:"labels,omitempty"`
+}
+
 func NewChartDataset(label string) ChartDataset {
 	return ChartDataset{
 		Label:                label,
-		Data:                 make([]ChartData, 0),
+		Data:                 make([]ChartValue, 0),
 		BorderColor:          "#1F1F25",
 		BorderWidth:          2,
 		PointBackgroundColor: "#1F1F25",
@@ -12,24 +37,24 @@ func NewChartDataset(label string) ChartDataset {
 }
 
 type ChartDataset struct {
-	Label                string      `json:"label"`
-	Data                 []ChartData `json:"data"`
-	BorderColor          string      `json:"borderColor"`
-	BorderWidth          int         `json:"borderWidth"`
-	PointBackgroundColor string      `json:"pointBackgroundColor"`
-	PointBorderColor     string      `json:"pointBorderColor"`
+	Label                string       `json:"label"`
+	Data                 []ChartValue `json:"data"`
+	BorderColor          string       `json:"borderColor"`
+	BorderWidth          int          `json:"borderWidth"`
+	PointBackgroundColor string       `json:"pointBackgroundColor"`
+	PointBorderColor     string       `json:"pointBorderColor"`
 }
 
-func (dataset *ChartDataset) Append(data ChartData) {
+func (dataset *ChartDataset) Append(data ChartValue) {
 	dataset.Data = append(dataset.Data, data)
 }
 
 func (dataset *ChartDataset) Add(x string, y any) {
-	data := ChartData{X: x, Y: y}
+	data := ChartValue{X: x, Y: y}
 	dataset.Append(data)
 }
 
-type ChartData struct {
+type ChartValue struct {
 	X string `json:"x"`
 	Y any    `json:"y"`
 }
@@ -61,25 +86,20 @@ type ChartOptions struct {
 	Width               *uint              `json:"width,omitempty"`
 }
 
-func (options *ChartOptions) SetResponsive(vb bool) {
-	options.Responsive = &vb
-}
-func (options *ChartOptions) SetMaintainAspectRatio(vb bool) {
-	options.MaintainAspectRatio = &vb
-}
-
 type ChartOptionsScales struct {
 	X ChartOptionsScale `json:"x,omitempty"`
 	Y ChartOptionsScale `json:"y,omitempty"`
 }
 
 type ChartOptionsScale struct {
-	Type        *string           `json:"type,omitempty"`
-	Position    *string           `json:"position,omitempty"`
-	Min         *uint             `json:"min,omitempty"`
-	Max         *uint             `json:"max,omitempty"`
-	BeginAtZero *bool             `json:"beginAtZero,omitempty"`
-	Ticks       ChartOptionsTicks `json:"ticks"`
+	Type         *string                `json:"type,omitempty"`
+	Distribution *string                `json:"distribution,omitempty"`
+	Position     *string                `json:"position,omitempty"`
+	Min          *uint                  `json:"min,omitempty"`
+	Max          *uint                  `json:"max,omitempty"`
+	BeginAtZero  *bool                  `json:"beginAtZero,omitempty"`
+	Ticks        ChartOptionsTicks      `json:"ticks"`
+	Time         *ChartOptionsScaleTime `json:"time,omitempty"`
 }
 
 type ChartOptionsTicks struct {
@@ -87,19 +107,62 @@ type ChartOptionsTicks struct {
 	Color    string `json:"color"`
 }
 
+type ChartOptionsScaleTime struct {
+	Unit          *string                             `json:"unit,omitempty"`
+	TooltipFormat *string                             `json:"tooltipFormat,omitempty"`
+	Parser        *string                             `json:"parser,omitempty"`
+	DisplayFormat *ChartOptionsScaleTimeDisplayFormat `json:"displayFormats,omitempty"`
+}
+
+type ChartOptionsScaleTimeDisplayFormat struct {
+	Hour *string `json:"hour"`
+}
+
+func (cfg *ChartConfiguration) Add(datasets ...ChartDataset) {
+	cfg.Data.Datasets = append(cfg.Data.Datasets, datasets...)
+}
+func (cfg *ChartConfiguration) SetResponsive(vb bool) {
+	cfg.Options.Responsive = &vb
+}
+func (cfg *ChartConfiguration) SetMaintainAspectRatio(vb bool) {
+	cfg.Options.MaintainAspectRatio = &vb
+}
+func (cfg *ChartConfiguration) Timeseries(vb bool) {
+	if vb {
+		t := "time"
+		dist := "linear"
+		unit := "hour"
+		format := "HH:mm"
+
+		cfg.Options.Scales.X.Type = &t
+		cfg.Options.Scales.X.Distribution = &dist
+		cfg.Options.Scales.X.Time = &ChartOptionsScaleTime{
+			Unit:          &unit,
+			TooltipFormat: &format,
+			DisplayFormat: &ChartOptionsScaleTimeDisplayFormat{
+				Hour: &format,
+			},
+		}
+
+		return
+	}
+
+	cfg.Options.Scales.X.Type = nil
+	cfg.Options.Scales.X.Distribution = nil
+	cfg.Options.Scales.X.Time = nil
+}
+
 var chartHandle = templ.NewOnceHandle()
 
-templ Chart(id, className string, chartType string, options ChartOptions, dataset []ChartDataset) {
-	<div id="chart-data" data-chart-id={ templ.JSONString(id) } data-chart-type={ templ.JSONString(chartType) } data-chart-options={ templ.JSONString(options) } data-chart={ templ.JSONString(dataset) } style="display:none;"></div>
+templ Chart(id, className string, cfg ChartConfiguration) {
+	<div id="chart-data" data-chart-id={ templ.JSONString(id) } data-chart-cfg={ templ.JSONString(cfg) } style="display:none;"></div>
 	@chartHandle.Once() {
 		<script>
-		(() => {
+		(() => {			
 			const c = document.getElementById('chart-data');
-        	const dataset = JSON.parse(c.getAttribute('data-chart'));
-			const chartType = JSON.parse(c.getAttribute('data-chart-type'));
-			const chartID = JSON.parse(c.getAttribute('data-chart-id'));
-			const options = JSON.parse(c.getAttribute('data-chart-options'));			
-
+			const chartID = JSON.parse(c.getAttribute('data-chart-id'));	
+        	const cfg = JSON.parse(c.getAttribute('data-chart-cfg'));			
+								
 			try {
 				var existing_chart = Chart.getChart(chartID)
 				existing_chart.destroy();				
@@ -108,13 +171,7 @@ templ Chart(id, className string, chartType string, options ChartOptions, datase
 
 			const ctx = document.getElementById(chartID);
 
-			new Chart(ctx, {
-				type: chartType,
-				data: {		
-					datasets: dataset
-				},
-				options: options
-			});
+			new Chart(ctx, cfg);
 		})()
 	</script>
 	}
