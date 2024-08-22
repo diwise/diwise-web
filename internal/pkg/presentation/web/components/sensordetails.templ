@@ -372,8 +372,11 @@ func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc
 }
 
 func MeasurementChart(datasets []ChartDataset) templ.Component {
-	options := NewChartOptions()
-	return Chart("measurement-chart", "", "line", options, datasets)
+	cfg := NewChartConfiguration("line")
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
 }
 
 func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {

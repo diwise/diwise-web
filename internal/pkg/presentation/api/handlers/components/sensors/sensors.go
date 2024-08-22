@@ -250,7 +250,9 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 		ctx := logging.NewContextWithLogger(r.Context(), log)
 		id := r.URL.Query().Get("sensorMeasurementTypes")
 
-		measurements, err := app.GetMeasurementData(ctx, id, application.WithLastN(true), application.WithLimit(10), application.WithReverse(true))
+		now := time.Now()
+		today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+		measurements, err := app.GetMeasurementData(ctx, id, application.WithLastN(true), application.WithAfter(today), application.WithLimit(100), application.WithReverse(true))
 		if err != nil {
 			http.Error(w, "could not fetch measurement data", http.StatusBadRequest)
 			return
