@@ -71,6 +71,13 @@ type svgCfg struct {
 	viewBox string
 }
 
+type buttonCfg struct {
+	method templ.Attributes
+	btnType string
+	hxUrl templ.SafeURL
+	classes map[string][]string
+}
+
 func (cfg *svgCfg) Classes() string {
 	classNames := make([]string, 0, 6)
 
@@ -96,6 +103,33 @@ func newSVGCfg(fn ...func(*svgCfg)) *svgCfg {
 			"size": {"w-5", "h-5"},
 		},
 		viewBox: "0 0 20 20",
+	}
+
+	for _, f := range fn {
+		f(cfg)
+	}
+
+	return cfg
+}
+
+func (cfg *buttonCfg) Method() templ.Attributes {
+	return cfg.method 
+}
+
+func (cfg *buttonCfg) Classes() string {
+	classNames := make([]string, 0, 6)
+
+	for _, v := range cfg.classes {
+		classNames = append(classNames, v...)
+	}
+
+	return strings.Join(classNames, " ")
+}
+
+
+func newButtonCfg(fn ...func(*buttonCfg)) *buttonCfg {
+	cfg := &buttonCfg{
+		
 	}
 
 	for _, f := range fn {
@@ -203,6 +237,13 @@ templ SVG(name string, config ...func(*svgCfg)) {
 	<svg class={ newSVGCfg(config...).Classes() } viewBox={ newSVGCfg(config...).ViewBox() } { newSVGCfg(config...).Stroke()... }>
 		@templ.Raw(iconSVG(name))
 	</svg>
+}
+
+templ Button(name string, config ...func(*buttonCfg)) {
+	<button { newButtonCfg(config...).Method()... } class={ newButtonCfg(config...).Classes() } >
+		{ "Knapp" }	   
+	</button>
+
 }
 
 templ MenuSegment(title, slug string, icon templ.Component, asset assets.AssetLoaderFunc, selected bool) {
