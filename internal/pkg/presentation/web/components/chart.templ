@@ -1,13 +1,13 @@
 package components
 
-func NewChartDataset(label string, data []ChartData) ChartDataset {
+func NewChartDataset(label string) ChartDataset {
 	return ChartDataset{
 		Label:                label,
-		Data:                 data,
-		BorderColor:          "#B92424",
-		BorderWidth:          1,
-		PointBackgroundColor: "#B92424",
-		PointBorderColor:     "#B92424",
+		Data:                 make([]ChartData, 0),
+		BorderColor:          "#1F1F25",
+		BorderWidth:          2,
+		PointBackgroundColor: "#1F1F25",
+		PointBorderColor:     "#1F1F25",
 	}
 }
 
@@ -18,6 +18,15 @@ type ChartDataset struct {
 	BorderWidth          int         `json:"borderWidth"`
 	PointBackgroundColor string      `json:"pointBackgroundColor"`
 	PointBorderColor     string      `json:"pointBorderColor"`
+}
+
+func (dataset *ChartDataset) Append(data ChartData) {
+	dataset.Data = append(dataset.Data, data)
+}
+
+func (dataset *ChartDataset) Add(x string, y any) {
+	data := ChartData{X: x, Y: y}
+	dataset.Append(data)
 }
 
 type ChartData struct {
@@ -52,6 +61,13 @@ type ChartOptions struct {
 	Width               *uint              `json:"width,omitempty"`
 }
 
+func (options *ChartOptions) SetResponsive(vb bool) {
+	options.Responsive = &vb
+}
+func (options *ChartOptions) SetMaintainAspectRatio(vb bool) {
+	options.MaintainAspectRatio = &vb
+}
+
 type ChartOptionsScales struct {
 	X ChartOptionsScale `json:"x,omitempty"`
 	Y ChartOptionsScale `json:"y,omitempty"`
@@ -74,26 +90,23 @@ type ChartOptionsTicks struct {
 var chartHandle = templ.NewOnceHandle()
 
 templ Chart(id, className string, chartType string, options ChartOptions, dataset []ChartDataset) {
-	<div id={ id + "-chart-container" } class={ "chart-container", className }>
-		<canvas id={ id + "-canvas" }></canvas>
-		<div id="chart-data" data-chart-id={ templ.JSONString(id) } data-chart-type={ templ.JSONString(chartType) } data-chart-options={ templ.JSONString(options) } data-chart={ templ.JSONString(dataset) } style="display:none;"></div>
-		@chartHandle.Once() {
-			<script>
+	<div id="chart-data" data-chart-id={ templ.JSONString(id) } data-chart-type={ templ.JSONString(chartType) } data-chart-options={ templ.JSONString(options) } data-chart={ templ.JSONString(dataset) } style="display:none;"></div>
+	@chartHandle.Once() {
+		<script>
 		(() => {
 			const c = document.getElementById('chart-data');
         	const dataset = JSON.parse(c.getAttribute('data-chart'));
 			const chartType = JSON.parse(c.getAttribute('data-chart-type'));
 			const chartID = JSON.parse(c.getAttribute('data-chart-id'));
-			const options = JSON.parse(c.getAttribute('data-chart-options'));
-			const canvasID = chartID + '-canvas';
+			const options = JSON.parse(c.getAttribute('data-chart-options'));			
 
 			try {
-				var existing_chart = Chart.getChart(canvasID)
+				var existing_chart = Chart.getChart(chartID)
 				existing_chart.destroy();				
 			} catch(e) {				
 			}
 
-			const ctx = document.getElementById(canvasID);
+			const ctx = document.getElementById(chartID);
 
 			new Chart(ctx, {
 				type: chartType,
@@ -104,6 +117,5 @@ templ Chart(id, className string, chartType string, options ChartOptions, datase
 			});
 		})()
 	</script>
-		}
-	</div>
+	}
 }

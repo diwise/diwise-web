@@ -30,8 +30,9 @@ templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc, viewModel H
 				<div class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">
 					<h2>Status</h2>
 				</div>
-				<div class="p-8 bg-white dark:bg-gray-800 rounded-[15px] shadow justify-start items-start gap-4" hx-get="/components/home/usage" hx-trigger="every 60m">
-					@UsageChart(viewModel.XScaleMax, viewModel.UsageDatasets)
+				<div class="p-8 bg-white dark:bg-gray-800 rounded-[15px] shadow justify-start items-start gap-4">
+					<canvas id="usage-chart"></canvas>
+					<div hx-get="/components/home/usage" hx-trigger="load, every 60m" style="display:none;"></div>
 				</div>
 			</div>
 			<div class="col-span-4">

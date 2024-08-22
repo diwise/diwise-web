@@ -30,17 +30,14 @@ func NewHomePage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoa
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		datasets, max, err := getUsageData(ctx, app)
-		if err != nil {
-			http.Error(w, "could not compose view model", http.StatusInternalServerError)
-			return
-		}
+		datasets := []components.ChartDataset{}
+		max := 31
 
 		component := components.StartPage(
 			version, localizer,
 			assets, components.Home(localizer, assets, components.HomeViewModel{
 				UsageDatasets: datasets,
-				XScaleMax:     max,
+				XScaleMax:     uint(max),
 			}),
 		)
 
@@ -77,7 +74,7 @@ func NewOverviewCardsHandler(ctx context.Context, l10n locale.Bundle, assets ass
 func NewUsageHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Cache-Control", "max-age=3600")
 		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
@@ -124,13 +121,11 @@ func getUsageData(ctx context.Context, app application.DeviceManagement) ([]comp
 		m := fmt.Sprintf("%d-%02d", v.Timestamp.Year(), v.Timestamp.Month())
 		ds, ok := sets[m]
 		if !ok {
-			ds = components.NewChartDataset(m, make([]components.ChartData, 0))
+			ds = components.NewChartDataset(m)
 			ds.BorderColor = ""
 		}
-		ds.Data = append(ds.Data, components.ChartData{
-			X: strconv.Itoa(v.Timestamp.Day()),
-			Y: v.Count,
-		})
+		ds.Add(strconv.Itoa(v.Timestamp.Day()), v.Count)
+
 		sets[m] = ds
 	}
 

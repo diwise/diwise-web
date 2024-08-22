@@ -30,8 +30,8 @@ type App struct {
 func New(ctx context.Context) (*App, error) {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
 	thingManagementURL := strings.Replace(deviceManagementURL, "devices", "devices", 1)
-	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)
-	measurementURL := strings.Replace(deviceManagementURL, "devices", "measurements", 1)
+	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)	
+	measurementURL := env.GetVariableOrDefault(ctx, "MEASUREMENTS_URL", "https://test.diwise.io/api/v0/measurements")
 
 	c := NewCache()
 	c.Cleanup(60 * time.Second)
@@ -256,19 +256,21 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 		path = strings.TrimSuffix(path, "/")
 	}
 
+	log := logging.GetFromContext(ctx)
+
 	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseUrl, path), "/"))
 	if err != nil {
+		log.Error("could not parse url", "err", err.Error())
 		return nil, err
 	}
 
 	u.RawQuery = params.Encode()
-
 	token := authz.Token(ctx)
-
 	urlToGet := u.String()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlToGet, nil)
 	if err != nil {
+		log.Error("failed to create http request", slog.String("url", urlToGet), "err", err.Error())
 		err = fmt.Errorf("failed to create http request: %w", err)
 		return nil, err
 	}
@@ -287,17 +289,20 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 
 	resp, err := client.Do(req)
 	if err != nil {
+		log.Error("http request failed", slog.String("url", urlToGet), "err", err.Error())
 		err = fmt.Errorf("failed to retrieve information: %w", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
+		log.Error("unauthorized", slog.String("url", urlToGet))
 		err = fmt.Errorf("request failed, not authorized")
 		return nil, err
 	}
 
 	if resp.StatusCode >= http.StatusBadRequest {
+		log.Error("request failed", slog.String("url", urlToGet), slog.Int("status_code", resp.StatusCode))
 		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
 		return nil, err
 	}

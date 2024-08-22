@@ -3,6 +3,7 @@ package sensors
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"time"
@@ -75,7 +76,7 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 func NewBatteryLevelComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Cache-Control", "max-age=86400")
 		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
@@ -220,11 +221,12 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		}
 
 		pi, _ := strconv.Atoi(pageIndex)
+		pageLast := float64(sensorResult.TotalRecords) / float64(limit)
 
 		renderCtx := helpers.Decorate(
 			ctx,
 			components.PageIndex, pi,
-			components.PageLast, sensorResult.TotalRecords/limit,
+			components.PageLast, int(math.Ceil(pageLast)),
 			components.PageSize, limit,
 		)
 
@@ -240,7 +242,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Cache-Control", "max-age=60")
 		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
@@ -254,7 +256,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			return
 		}
 
-		dataset := components.NewChartDataset("", make([]components.ChartData, 0))
+		dataset := components.NewChartDataset("")
 
 		previousValue := 0
 		for _, v := range measurements.Values {
@@ -263,7 +265,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			}
 
 			if v.Value != nil {
-				dataset.Data = append(dataset.Data, components.ChartData{X: v.Timestamp.Format(time.DateTime), Y: *v.Value})
+				dataset.Add(v.Timestamp.Format(time.DateTime), *v.Value)
 			}
 
 			if v.Value == nil && v.BoolValue != nil {
@@ -274,16 +276,15 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 
 				if vb != previousValue {
 					// append value when 0->1 and 1->0
-					dataset.Data = append(dataset.Data, components.ChartData{X: v.Timestamp.Format(time.DateTime), Y: previousValue})
+					dataset.Add(v.Timestamp.Format(time.DateTime), previousValue)
 					previousValue = vb
 				}
 
-				dataset.Data = append(dataset.Data, components.ChartData{X: v.Timestamp.Format(time.DateTime), Y: vb})
+				dataset.Add(v.Timestamp.Format(time.DateTime), vb)
 			}
 		}
 
-		options := components.NewChartOptions()						
-		component := components.Chart("measurement-chart", "", "line", options, []components.ChartDataset{dataset})
+		component := components.MeasurementChart([]components.ChartDataset{dataset})
 		component.Render(ctx, w)
 	}
 
