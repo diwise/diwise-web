@@ -156,3 +156,36 @@ other = "Typ"
 
 [unregistered]
 other = "Oregistrerade"
+
+[3-9]
+other = "Batterinivå (%)"
+
+[3-7]
+other = "Batterinivå (mV)"
+
+[3303-5700]
+other = "Temperatur"
+
+[3424-1]
+other = "Total vattenförbrukning"
+
+[3435-5700]
+other = "Fyllnadsnivå"
+
+[3304-5700]
+other = "Luftfuktighet"
+
+[3200-5501]
+other = "Digital räknare"
+
+[3428-17]
+other = "Koldioxid"
+
+[3350-5544]
+other = "Total tid"
+
+[3330-5700]
+other = "Distans"
+
+[3331-5700]
+other = "Total energiförbrukning"
