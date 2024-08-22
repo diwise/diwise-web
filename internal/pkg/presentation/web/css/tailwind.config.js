@@ -33,6 +33,7 @@ module.exports = {
           'secondary-text': '#971A1A',
           'secondary-surface-hover': '#FFFFFF1A',
           'secondary-outline-hover': '#1C1C28A3',
+          'secondary-outline-hover-dark': '#FFFFFFA3',
           'tertiary-surface': '#1C1C281F',
           'tertiary-surface-hover': '#1C1C2829',
           'white': '#FFFFFF'
