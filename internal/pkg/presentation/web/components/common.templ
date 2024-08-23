@@ -2,7 +2,6 @@ package components
 
 import (
 	"fmt"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"strings"
 )
 
@@ -157,8 +156,7 @@ func SwitchBtnIcon(icon string, style ButtonStyle) templ.Component {
 		case Tertiary:
 			return SVG(icon, Box(24, 24), NoFill(), StrokeColor("black", "white"), Stroke(templ.Attributes{"stroke-width": "1"}))
 		default:
-			return SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("default-color", "gray"), Stroke(templ.Attributes{"stroke-width": "2"}))
-    }
+			return SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("default-color", "gray"), Stroke(templ.Attributes{"stroke-width": "2"}))	}
 }
 
 templ Button(style ButtonStyle, title, icon string, config ...func(*buttonCfg)) {
@@ -170,94 +168,13 @@ templ Button(style ButtonStyle, title, icon string, config ...func(*buttonCfg)) 
 	{ newButtonCfg(config...).Method()... } 
 	{ newButtonCfg(config...).HxUrl()... } 
 	{ newButtonCfg(config...).Target()... } >
-		<div class="w-[20px] h-[20px]">
-			@SwitchBtnIcon(icon, style)
-		</div>
+		if icon != ""{
+			<div class="w-[20px] h-[20px]">
+				@SwitchBtnIcon(icon, style)
+			</div>	
+		}
 		{ title }	   
 	</button>
-}
-
-templ PrimaryButton(title, icon, target string, hxget templ.SafeURL, l10n locale.Localizer) {
-	<div class="flex items-center text-white dark:text-dark-primary font-bold">
-		<button
-			class="flex justify-center items-center gap-2 px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover rounded-xl cursor-pointer"
-			if string(hxget) != "" {
-				hx-get={ string(hxget) }
-			}
-			if target != "" {
-				hx-target={ "#" + target }
-			}
-			hx-trigger="click"
-		>
-			if icon != "" {
-				<div class="w-[20px] h-[20px]">
-					@SVG(icon, Box(24, 24), NoFill(), StrokeColor("black", "white"), Stroke(templ.Attributes{"stroke-width": "1"}))
-				</div>
-			}
-			{ l10n.Get( title ) }
-		</button>
-	</div>
-}
-
-templ SecondaryButton(buttonName, title, icon, target, method, btnType, hxTrigger string, hxUrl templ.SafeURL, l10n locale.Localizer) {
-	<div>
-		<button 
-			if buttonName != "" {
-				name={ buttonName }
-			}
-
-			class="flex items-center group rounded-xl gap-2 px-3.5 py-2 border-divider-gray border-2 dark:border-divider-white hover:dark:border-secondary-outline-hover-dark hover:border-secondary-outline-hover cursor-pointer"
-			
-			if method != "" {
-				if method == "get" {
-					hx-get={ string(hxUrl)}
-				} else if method == "post" {
-					hx-post={ string(hxUrl)}
-				}
-			}
-
-			if target != "" {
-				hx-target={ "#" + target }
-			}
-			if hxTrigger != ""{
-				hx-trigger={ hxTrigger }
-			}
-			
-			if btnType != "" {
-				type={ btnType }
-			}
-			>
-			
-			if icon != "" {
-				<div class="w-[20px] h-[20px]">
-					@SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("dark-primary", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
-				</div>
-			}
-			<div class="text-dark-secondary dark:text-secondary text-base font-sans font-bold leading-normal">
-				{ l10n.Get( title ) }
-			</div>
-		</button>
-	</div>
-}
-
-templ TertiaryButton(title, icon, target string, hxget templ.SafeURL, l10n locale.Localizer) {
-	<div class="flex items-center text-white dark:text-dark-primary font-bold">
-		<button
-			class="flex justify-center items-center gap-2 px-4 py-2 bg-tertiary-surface hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-divider-white text-dark-primary dark:text-white rounded-xl cursor-pointer"
-			hx-get={ string(hxget) }
-			if target != "" {
-				hx-target={ "#" + target }
-			}
-			hx-trigger="click"
-		>
-			if icon != "" {
-				<div class="w-[20px] h-[20px] dark:stroke-dark-primary">
-					@SVG(icon, Box(24, 24), NoFill(), StrokeColor("black", "white"), Stroke(templ.Attributes{"stroke-width": "1"}))
-				</div>
-			}
-			{ l10n.Get( title ) }
-		</button>
-	</div>
 }
 
 templ Option(option OptionViewModel) {

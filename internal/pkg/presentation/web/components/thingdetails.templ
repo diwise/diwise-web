@@ -85,7 +85,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ thing.Name }</h1>
 				@sensorActive(thing.Active, l10n)
 			</div>
-			@TertiaryButton("edit", "pen", "thing-view", templ.URL(fmt.Sprintf("/components/things/details?id=%s&mode=edit", thing.ThingID)), l10n)
+			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#thing-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", thing.ThingID))))
 		</div>
 		
 		//Innehåll

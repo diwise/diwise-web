@@ -182,7 +182,8 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 					//@SearchField(l10n)
 					@Filter(l10n)
 				</div>
-				//@PrimaryButton("Lägg till sensor")
+				//@Button(Primary, l10n.Get("addthing"), "", HxUrl("get", (fmt.Sprintf("/components/sensors"))))
+				
 				@mapTableButtons(l10n)
 			</div>
 			<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
