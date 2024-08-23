@@ -109,6 +109,16 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 							</label>
 							@SensorMeasurementSelect(l10n, asset, "sensorMeasurementTypes", "measurementCharts", sensor)
 						</div>
+						<div class="flex flex-col items-start gap-2">
+							<div class="text-dark-primary font-bold">
+								{ l10n.Get("timeinterval") }
+							</div>
+							<div class="">
+								<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-dark-secondary"></input>
+								-
+								<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-dark-secondary"></input>
+							</div>
+						</div>
 						<div class="w-full">
 							<canvas id="measurement-chart"></canvas>
 							<div id="measurementCharts" style="display:none;"></div>
