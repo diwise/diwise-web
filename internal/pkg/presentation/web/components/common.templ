@@ -1,6 +1,10 @@
 package components
 
-import "github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+import (
+	"fmt"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+	"strings"
+)
 
 type OptionViewModel struct {
 	Value    string
@@ -10,6 +14,24 @@ type OptionViewModel struct {
 	Hidden   bool
 	Disabled bool
 }
+
+type buttonCfg struct {
+	btnType    	templ.Attributes
+	classes 	map[string][]string
+	hxUrl 		templ.Attributes
+	method 		templ.Attributes
+	name		templ.Attributes
+	style		string
+	target		templ.Attributes
+}
+
+type ButtonStyle string
+
+const (
+	Primary	ButtonStyle = "primary"
+	Secondary ButtonStyle = "secondary"
+	Tertiary ButtonStyle = "tertiary"
+)
 
 templ Div(id string, contents ...templ.Component) {
 	<div id={ id }>
@@ -21,6 +43,138 @@ templ Div(id string, contents ...templ.Component) {
 
 templ Canvas(id string) {
 	<canvas id={ id }></canvas>
+}
+
+func (cfg *buttonCfg) Method() templ.Attributes {
+	return cfg.method 
+}
+
+func Method(attrs templ.Attributes) func(*buttonCfg) {
+	return func(cfg *buttonCfg) {
+		cfg.method = attrs
+	}
+}
+
+func (cfg *buttonCfg) Name() templ.Attributes {
+	return cfg.name 
+}
+
+func Name(name string) func(*buttonCfg) {
+	attrs := templ.Attributes{"name": name}
+	return func(cfg *buttonCfg) {
+		cfg.name = attrs
+	}
+}
+
+func (cfg *buttonCfg) BtnType() templ.Attributes {
+	return cfg.btnType 
+}
+
+func BtnType(btnType string) func(*buttonCfg) {
+	attrs := templ.Attributes{"type": btnType}
+	return func(cfg *buttonCfg) {
+		cfg.btnType = attrs
+	}
+}
+
+func (cfg *buttonCfg) HxUrl() templ.Attributes {
+	return cfg.hxUrl 
+}
+
+func HxUrl(method, url string) func(*buttonCfg) {
+	attrs := templ.Attributes{"hx-" + method: url}
+	return func(cfg *buttonCfg){
+			cfg.hxUrl = attrs
+	}
+}
+
+func (cfg *buttonCfg) Target() templ.Attributes {
+	return cfg.name 
+}
+
+func Target(target string) func(*buttonCfg) {
+	attrs := templ.Attributes{"hx-target": target}
+	return func(cfg *buttonCfg) {
+		cfg.name = attrs
+	}
+}
+	
+func (cfg *buttonCfg) Classes() string {
+	classNames := make([]string, 0, 6)
+
+	for _, v := range cfg.classes {
+		classNames = append(classNames, v...)
+	}
+
+	return strings.Join(classNames, " ")
+}
+
+func newButtonCfg(fn ...func(*buttonCfg)) *buttonCfg {
+	cfg := &buttonCfg{
+		classes: map[string][]string{
+			"border": 	{"border-2", "border-divider-gray"},
+			"rounded": 	{"rounded-xl"},
+			"p": 		{"px-4", "py-2"},
+			"flex": 	{"flex"},
+			"justify": 	{"justify-center"},
+			"items": 	{"items-center"},
+			"gap":		{"gap-2"}, 
+		},
+	}
+
+	for _, f := range fn {
+		f(cfg)
+	}
+
+	return cfg
+}
+
+func SwitchBtnStyle(style ButtonStyle, config ...func(*buttonCfg)) string {
+	var classes = "flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold %s"
+	
+	switch style {
+		case Primary:
+			classes = fmt.Sprintf(classes, "px-4 py-2 text-white dark:text-dark-primary bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover dark:stroke-dark-primary")
+			break
+		case Secondary:
+			classes = fmt.Sprintf(classes, "px-3.5 py-2 border-divider-gray border-2 dark:border-divider-white hover:dark:border-secondary-outline-hover-dark hover:border-secondary-outline-hover text-dark-secondary dark:text-secondary")
+			break
+		case Tertiary:
+			classes = fmt.Sprintf(classes, "px-4 py-2 bg-tertiary-surface hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-divider-white text-dark-primary dark:text-white")
+			break
+		default:
+			classes = newButtonCfg(config...).Classes()
+	}
+	return classes
+}
+
+func SwitchBtnIcon(icon string, style ButtonStyle) templ.Component {
+	switch style {
+		case Primary:
+			return SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("white", "dark-primary"), Stroke(templ.Attributes{"stroke-width": "2"}))
+		case Secondary:
+			return SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("dark-primary", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
+		case Tertiary:
+			return SVG(icon, Box(24, 24), NoFill(), StrokeColor("black", "white"), Stroke(templ.Attributes{"stroke-width": "1"}))
+		default:
+			return SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("default-color", "gray"), Stroke(templ.Attributes{"stroke-width": "2"}))
+    }
+}
+
+templ Button(style ButtonStyle, title, icon string, config ...func(*buttonCfg)) {
+	
+	<button 
+	class={ SwitchBtnStyle(style), config } 
+	{ newButtonCfg(config...).Name()... } 
+	{ newButtonCfg(config...).BtnType()... }
+	{ newButtonCfg(config...).Method()... } 
+	{ newButtonCfg(config...).HxUrl()... } 
+	{ newButtonCfg(config...).Target()... } >
+		<div class="w-[20px] h-[20px]">
+			@SwitchBtnIcon(icon, style)
+		</div>
+		{ title }	   
+	</button>
 }
 
 templ PrimaryButton(title, icon, target string, hxget templ.SafeURL, l10n locale.Localizer) {
@@ -36,7 +190,7 @@ templ PrimaryButton(title, icon, target string, hxget templ.SafeURL, l10n locale
 			hx-trigger="click"
 		>
 			if icon != "" {
-				<div class="w-[20px] h-[20px] dark:stroke-dark-primary">
+				<div class="w-[20px] h-[20px]">
 					@SVG(icon, Box(24, 24), NoFill(), StrokeColor("black", "white"), Stroke(templ.Attributes{"stroke-width": "1"}))
 				</div>
 			}
