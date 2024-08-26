@@ -81,7 +81,7 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingLi
 			</div>
 			@SumOfStuff(l10n, things.Statistics)
 		</div>
-		<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 		<div class="flex px-8 flex-col items-start self-stretch gap-10">
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
@@ -183,7 +183,7 @@ func tableRowsFromThings(l10n locale.Localizer, _ assets.AssetLoaderFunc, things
 		if sensor.LastSeen.IsZero() {
 			cells = append(cells, TextCell(""))
 		} else {
-			cells = append(cells, TextCell(sensor.LastSeen.Format(time.RFC3339)))
+			cells = append(cells, TextCell(sensor.LastSeen.Format("2006-01-02, 15:04")))
 		}
 
 		if sensor.HasAlerts {
@@ -204,28 +204,28 @@ func tableRowsFromThings(l10n locale.Localizer, _ assets.AssetLoaderFunc, things
 
 templ PickedFilters () {
     <div class="flex flex-col gap-4 w-full">
-        <div class="w-full h-10 justify-items-start inline-flex text-dark-primary dark:text-white gap-3">
-            <div class="flex items-center justify-start text-left px-6 border-2 border-divider-gray border-opacity-30 dark:border-divider-white rounded-xl">
+        <div class="w-full h-10 justify-items-start inline-flex text-primary-dark dark:text-white gap-3">
+            <div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
                 Soptunna
-                <svg class="w-[24px] h-[24px] stroke-dark-primary stroke-2 dark:stroke-white">
+                <svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
                     @templ.Raw(iconSVG("close"))
                 </svg>
             </div>
-            <div class="flex items-center justify-start text-left px-6 border-2 border-divider-gray border-opacity-30 dark:border-divider-white rounded-xl">
+            <div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
                 Centrum
-                <svg class="w-[24px] h-[24px] stroke-dark-primary stroke-2 dark:stroke-white">
+                <svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
                     @templ.Raw(iconSVG("close"))
                 </svg>
             </div>
-            <div class="flex items-center justify-start text-left px-6 border-2 border-divider-gray border-opacity-30 dark:border-divider-white rounded-xl">
+            <div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
                 Kvissleby
-                <svg class="w-[24px] h-[24px] stroke-dark-primary stroke-2 dark:stroke-white">
+                <svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
                     @templ.Raw(iconSVG("close"))
                 </svg>
             </div>
-            <div class="flex items-center justify-start text-left px-6 border-2 border-divider-gray border-opacity-30 dark:border-divider-white rounded-xl">
+            <div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
                 0-70%
-                <svg class="w-[24px] h-[24px] stroke-dark-primary stroke-2 dark:stroke-white">
+                <svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
                     @templ.Raw(iconSVG("close"))
                 </svg>
             </div>
@@ -388,11 +388,11 @@ templ FilterThings (l10n locale.Localizer) {
                     <div class="flex justify-between gap-4">
                         <div class="flex flex-col gap-1">
                             <label for="min-value" class="font-bold">Min</label>
-                            <input type="text" id="min-value" placeholder="0%" class="w-20 border border-darkmode-input-surface rounded-lg p-2 text-sm focus:border-black focus:ring-1 focus:ring-black focus:outline-none"/>
+                            <input type="text" id="min-value" placeholder="0%" class="w-20 border border-input-surface-dark rounded-lg p-2 text-sm focus:border-black focus:ring-1 focus:ring-black focus:outline-none"/>
                         </div>
                         <div class="flex flex-col gap-1">
                             <label for="max-value" class="font-bold">Max</label>
-                            <input type="text" id="max-value" placeholder="100%" class="w-20 border border-darkmode-input-surface rounded-lg p-2 text-sm focus:border-black focus:ring-1 focus:ring-black focus:outline-none"/>
+                            <input type="text" id="max-value" placeholder="100%" class="w-20 border border-input-surface-dark rounded-lg p-2 text-sm focus:border-black focus:ring-1 focus:ring-black focus:outline-none"/>
                         </div>
                     </div>
                     <div class="mt-4">
