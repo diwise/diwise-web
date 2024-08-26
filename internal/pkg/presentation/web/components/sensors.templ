@@ -37,7 +37,7 @@ templ SearchField(l10n locale.Localizer) {
 	<div class="w-[237px] h-12 flex-col justify-center items-start gap-2 inline-flex">
 		<div class="self-stretch pl-5 pr-4 py-3 bg-white bg-opacity-50 rounded-xl border border-input-surface border-opacity-50 justify-start items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600">
 			<div class="w-[22px] h-[22px]">
-				<svg class="w-[22px] h-[22px] fill-dark-secondary dark:fill-zinc-600">
+				<svg class="w-[22px] h-[22px] fill-secondary-dark dark:fill-zinc-600">
 					@templ.Raw(iconSVG("search"))
 				</svg>
 			</div>
@@ -175,7 +175,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 			</div>
 			@SumOfStuff(l10n, sensors.Statistics)
 		</div>
-		<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 		<div class="flex px-8 flex-col items-start self-stretch gap-10">
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">

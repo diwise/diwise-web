@@ -92,7 +92,7 @@ func (cfg *svgCfg) ViewBox() string {
 func newSVGCfg(fn ...func(*svgCfg)) *svgCfg {
 	cfg := &svgCfg{
 		classes: map[string][]string{
-			"fill": {"fill-dark-primary", "dark:fill-zinc-100"},
+			"fill": {"fill-primary-dark", "dark:fill-zinc-100"},
 			"size": {"w-5", "h-5"},
 		},
 		viewBox: "0 0 20 20",
@@ -149,7 +149,7 @@ func StrokeColor(color, darkStrokeColor string) func(*svgCfg) {
 
 func HoverStroke() func(*svgCfg) {
 	return func(cfg *svgCfg) {
-		cfg.classes["group-hover:stroke"] = []string{"group-hover:stroke-dark-primary"}
+		cfg.classes["group-hover:stroke"] = []string{"group-hover:stroke-primary-dark"}
 	}
 }
 
@@ -165,7 +165,7 @@ func SelectedIcon(isSelected bool) func(*svgCfg) {
 func SelectedIconNoFill(isSelected bool) func(*svgCfg) {
 	return func(cfg *svgCfg) {
 		if isSelected {
-			(*cfg).classes["stroke"] = []string{"stroke-white", "dark:stroke-dark-primary"}
+			(*cfg).classes["stroke"] = []string{"stroke-white", "dark:stroke-primary-dark"}
 		}
 	}
 }
@@ -210,7 +210,7 @@ templ MenuSegment(title, slug string, icon templ.Component, asset assets.AssetLo
 		class={ "self-stretch px-3.5 py-2.5 justify-start items-center gap-2 inline-flex cursor-pointer",
         templ.KV("rounded-xl", !selected),
 		templ.KV("hover:bg-tertiary-surface-hover", !selected),
-		templ.KV("dark:hover:bg-divider-white", !selected),
+		templ.KV("dark:hover:bg-white-30", !selected),
         templ.KV("rounded-lg", selected), 
 		templ.KV("bg-black", selected),
 		templ.KV("dark:bg-primary-surface-dark", selected)}
@@ -224,7 +224,7 @@ templ MenuSegment(title, slug string, icon templ.Component, asset assets.AssetLo
             templ.KV("text-neutral-800", !selected),
 			templ.KV("font-bold", selected),
             templ.KV("text-white", selected),
-			templ.KV("dark:text-dark-primary", selected),
+			templ.KV("dark:text-primary-dark", selected),
 			templ.KV("dark:text-secondary", !selected)  }
 		>
 			{ title }
@@ -340,7 +340,7 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 	<body id="body" onload={ onPageLoad() }>
 		<div id="reloader" hx-get={ reloaderEndpoint(version) } hx-trigger={ reloaderFrequency(version) }></div>
 		<div class="flex grid grid-cols-12 gap-2 bg-white dark:bg-content-background min-h-screen">
-			<div class="col-span-2 px-3 py-1 bg-white dark:bg-content-background gap-3 flex flex-col justify-between h-full fixed inset-y-0 left-0 w-64 border-r border-divider-gray dark:border-white dark:border-opacity-30">
+			<div class="col-span-2 px-3 py-1 bg-white dark:bg-content-background gap-3 flex flex-col justify-between h-full fixed inset-y-0 left-0 w-64 border-r border-gray-30 dark:border-white dark:border-opacity-30">
 				<div class="self-stretch flex flex-col gap-14">
 					<div
 						class="w-auto h-[90px] bg-left bg-cover bg-no-repeat
@@ -351,7 +351,7 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 						//@SectionDivider(l10n.Get("overview"))
 						@MenuSegment(l10n.Get("home"), "/home", SVG("home", SelectedIcon(isCurrent(ctx, "home"))), asset, isCurrent(ctx, "home"))
 						@MenuSegment(l10n.Get("sensors"), "/sensors", SVG("rss", SelectedIcon(isCurrent(ctx, "sensors"))), asset, isCurrent(ctx, "sensors"))
-						@MenuSegment(l10n.Get("things"), "/things", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "things"))), asset, isCurrent(ctx, "things"))
+						@MenuSegment(l10n.Get("things"), "/things", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "things"))), asset, isCurrent(ctx, "things"))
 						/*
 						@MenuSegment(l10n.Get("functions"), "/functions", "send-to-back", asset, isCurrent(ctx, "functions"))
 						<div class="self-stretch px-3.5 py-2.5 rounded-xl justify-between items-center inline-flex">

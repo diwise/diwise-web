@@ -16,7 +16,7 @@ templ Table(header templ.Component, data templ.Component, footer templ.Component
 }
 
 templ HeaderRow(titles ...templ.Component) {
-	<thead class="border-b border-dark-primary dark:border-white">
+	<thead class="border-b border-primary-dark dark:border-white">
 		<tr>
 			for _, title := range titles {
 				@title
@@ -34,7 +34,7 @@ templ TableData(rows ...templ.Component) {
 }
 
 templ TableRow(cells ...templ.Component) {
-	<tr class="border-b border-divider-gray border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
 		for _, cell := range cells {
 			@cell
 		}
@@ -43,7 +43,7 @@ templ TableRow(cells ...templ.Component) {
 
 templ LinkRow(cells []templ.Component, url, pushUrl templ.SafeURL, viewName string) {
 	<tr
-		class="border-b border-divider-gray border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
+		class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
 		hx-get={ string(url) }
 		hx-target={ fmt.Sprintf("#%s-view", viewName) }
 		hx-push-url={ string(pushUrl) }
