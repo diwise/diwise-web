@@ -229,7 +229,7 @@ func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, senso
 		if sensor.LastSeen.IsZero() {
 			cells = append(cells, TextCell(""))
 		} else {
-			cells = append(cells, TextCell(sensor.LastSeen.Format(time.RFC3339)))
+			cells = append(cells, TextCell(sensor.LastSeen.Format("2006-01-02, 15:04")))
 		}
 
 		if sensor.HasAlerts {
