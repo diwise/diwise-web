@@ -33,6 +33,8 @@ func NewChartDataset(label string) ChartDataset {
 		BorderWidth:          2,
 		PointBackgroundColor: "#1F1F25",
 		PointBorderColor:     "#1F1F25",
+		PointRadius:          1,
+		PointHoverRadius:     6,
 	}
 }
 
@@ -43,6 +45,8 @@ type ChartDataset struct {
 	BorderWidth          int          `json:"borderWidth"`
 	PointBackgroundColor string       `json:"pointBackgroundColor"`
 	PointBorderColor     string       `json:"pointBorderColor"`
+	PointRadius          int          `json:"pointRadius"`
+	PointHoverRadius     int          `json:"pointHoverRadius"`
 }
 
 func (dataset *ChartDataset) Append(data ChartValue) {
