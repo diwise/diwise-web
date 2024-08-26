@@ -272,14 +272,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 			</div>
 			<div class="h-px border-t border-divider-gray w-full"></div>
 			<div class="flex items-center justify-between py-6">
-				<button name="delete" class="flex items-center group rounded-xl gap-2 px-4 py-2 bg-err-prim-surf hover:bg-err-prim-surf-hover cursor-pointer">
-					<div class="w-[20px] h-[20px]">
-						@SVG("trashcan", Size(20), NoFill(), Box(24, 24), StrokeColor("secondary-text", "secondary-text"), HoverStroke(), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					</div>
-					<div class="text-secondary-text group-hover:text-dark-primary text-base font-sans font-bold leading-normal">
-						{ l10n.Get("delete") }
-					</div>
-				</button>
+				@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"))
 
 				<div class="flex items-center gap-4">
 					@Button(Secondary, l10n.Get( "cancel" ), "close", Name("cancel"))

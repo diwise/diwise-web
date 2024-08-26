@@ -30,6 +30,7 @@ const (
 	Primary	ButtonStyle = "primary"
 	Secondary ButtonStyle = "secondary"
 	Tertiary ButtonStyle = "tertiary"
+	Error ButtonStyle = "error"
 )
 
 templ Div(id string, contents ...templ.Component) {
@@ -141,6 +142,9 @@ func SwitchBtnStyle(style ButtonStyle, config ...func(*buttonCfg)) string {
 		case Tertiary:
 			classes = fmt.Sprintf(classes, "px-4 py-2 bg-tertiary-surface hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-divider-white text-dark-primary dark:text-white")
 			break
+		case Error:
+			classes = fmt.Sprintf(classes, "px-4 py-2 group bg-err-prim-surf hover:bg-err-prim-surf-hover text-secondary-text hover:text-dark-primary ")
+			break
 		default:
 			classes = newButtonCfg(config...).Classes()
 	}
@@ -155,6 +159,8 @@ func SwitchBtnIcon(icon string, style ButtonStyle) templ.Component {
 			return SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("dark-primary", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
 		case Tertiary:
 			return SVG(icon, Box(24, 24), NoFill(), StrokeColor("black", "white"), Stroke(templ.Attributes{"stroke-width": "1"}))
+		case Error:
+			return SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("secondary-text", "secondary-text"), HoverStroke(), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 		default:
 			return SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("default-color", "gray"), Stroke(templ.Attributes{"stroke-width": "2"}))	}
 }

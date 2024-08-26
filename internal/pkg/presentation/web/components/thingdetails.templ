@@ -380,26 +380,11 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 			</div>
 			<div class="h-px border-t border-divider-gray w-full"></div>
 			<div class="flex justify-between items-center py-6">
-				<button name="delete" class="text-right w-auto h-10 pl-[18px] gap-2 pr-4 py-2 bg-err-prim-surf rounded-xl flex items-center cursor-pointer">
-					<div class="w-[20px] h-[20px]">
-						@SVG("trashcan", Size(20), NoFill(), Box(24, 24), StrokeColor("secondary-text", "secondary-text"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					</div>
-					//<svg class="fill-none dark:fill-none h-6 w-6 stroke-secondary-text dark:stroke-zinc-100"></svg>
-					<div class="text-secondary-text text-base font-sans font-bold leading-normal">
-						{ l10n.Get("delete") }
-					</div>
-				</button>
+				@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"))
+				
 				<div class="flex items-end gap-4">
-					<button name="cancel" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 border-divider-gray border-2 dark:border-divider-white rounded-xl flex items-center cursor-pointer">
-						<div class="text-dark-secondary dark:text-secondary text-base font-sans font-bold leading-normal">
-							{ l10n.Get("cancel") }
-						</div>
-					</button>
-					<button type="submit" name="save" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-primary-surface-dark rounded-xl flex items-center cursor-pointer">
-						<div class="text-white dark:text-dark-primary text-base font-sans font-bold leading-normal">
-							{ l10n.Get("save") }
-						</div>
-					</button>
+					@Button(Secondary, l10n.Get( "cancel" ), "close", Name("cancel"))
+					@Button(Primary, l10n.Get( "save" ), "check",  Name("save"), BtnType("submit"))
 				</div>
 			</div>
 		</form>
