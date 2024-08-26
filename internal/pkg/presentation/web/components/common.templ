@@ -45,16 +45,6 @@ templ Canvas(id string) {
 	<canvas id={ id }></canvas>
 }
 
-func (cfg *buttonCfg) Method() templ.Attributes {
-	return cfg.method 
-}
-
-func Method(attrs templ.Attributes) func(*buttonCfg) {
-	return func(cfg *buttonCfg) {
-		cfg.method = attrs
-	}
-}
-
 func (cfg *buttonCfg) Name() templ.Attributes {
 	return cfg.name 
 }
@@ -171,7 +161,6 @@ templ Button(style ButtonStyle, title, icon string, config ...func(*buttonCfg)) 
 	class={ SwitchBtnStyle(style), config } 
 	{ newButtonCfg(config...).Name()... } 
 	{ newButtonCfg(config...).BtnType()... }
-	{ newButtonCfg(config...).Method()... } 
 	{ newButtonCfg(config...).HxUrl()... } 
 	{ newButtonCfg(config...).Target()... } >
 		if icon != ""{
