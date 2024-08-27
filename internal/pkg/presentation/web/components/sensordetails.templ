@@ -114,9 +114,23 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 								{ l10n.Get("timeinterval") }
 							</div>
 							<div class="">
-								<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"></input>
+								<input name="timeAt" type="date" id="timeAt"
+									hx-trigger="change"
+									hx-include="#sensorMeasurementTypes,#endTimeAt"
+									hx-target="#measurementCharts"
+									hx-get="/components/measurements"
+									hx-push-url="true"
+									hx-params="*"
+									class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"></input>
 								-
-								<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"></input>
+								<input name="endTimeAt" type="date" id="endTimeAt"
+									hx-trigger="change"
+									hx-include="#sensorMeasurementTypes,#timeAt"
+									hx-target="#measurementCharts"
+									hx-get="/components/measurements"
+									hx-push-url="true"
+									hx-params="*"
+									class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"></input>
 							</div>
 						</div>
 						<div class="w-full">
@@ -358,7 +372,7 @@ func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc
 		})
 	}
 
-	return Select(id, false, "/components/measurements", "#"+target, viewModel)
+	return SelectMultipleInputs(id, false, "/components/measurements", "#"+target, "#timeAt,#endTimeAt",viewModel)
 }
 
 func MeasurementChart(datasets []ChartDataset) templ.Component {

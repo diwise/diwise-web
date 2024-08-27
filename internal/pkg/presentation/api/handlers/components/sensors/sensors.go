@@ -242,7 +242,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "max-age=60")
+		//w.Header().Add("Cache-Control", "max-age=60")
 		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
@@ -250,9 +250,36 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 		ctx := logging.NewContextWithLogger(r.Context(), log)
 		id := r.URL.Query().Get("sensorMeasurementTypes")
 
-		now := time.Now()
-		today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-		measurements, err := app.GetMeasurementData(ctx, id, application.WithLastN(true), application.WithAfter(today), application.WithLimit(100), application.WithReverse(true))
+		/*
+			Kolla om både timeAt och endTimeAt är satta. Då är timeRel = "between"
+			Om bara endTimeAt är satt så är timeRel = "before"
+			Om bara timeAt är satt så är timeRel = "after"
+
+			Default borde vara "between" de senaste 24 timmarna.
+		*/
+
+		layout := "2006-01-02"
+		t := r.URL.Query().Get("timeAt")
+		if t == "" {
+			t = time.Now().Add(time.Hour * -24).Format(layout)
+		}
+		startTime, err := time.Parse(layout, t)
+		if err != nil {
+			log.Error("failed to parse timeAt")
+		}
+
+		et := r.URL.Query().Get("endTimeAt")
+		if et == "" {
+			et = time.Now().Format(layout)
+		}
+		endTime, err := time.Parse(layout, et)
+		if err != nil {
+			log.Error("failed to parse endTimeAt")
+		}
+
+		//now := time.Now()
+		//today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+		measurements, err := app.GetMeasurementData(ctx, id, application.WithLastN(true), application.WithTimeRel("between", startTime, endTime), application.WithLimit(100), application.WithReverse(true))
 		if err != nil {
 			http.Error(w, "could not fetch measurement data", http.StatusBadRequest)
 			return
