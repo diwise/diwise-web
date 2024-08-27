@@ -62,12 +62,12 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 		w.Header().Add("Cache-Control", "no-cache")
 		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
-		pi, _ := strconv.Atoi(pageIndex)
+		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := float64(sensorResult.TotalRecords) / float64(limit)
 
 		renderCtx := helpers.Decorate(
 			ctx,
-			components.PageIndex, pi,
+			components.PageIndex, pageIndex_,
 			components.PageLast, int(math.Ceil(pageLast)),
 			components.PageSize, limit,
 		)

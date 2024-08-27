@@ -10,18 +10,11 @@ type ThingManagement interface {
 }
 
 type Thing struct {
-	Active        bool           `json:"active"`
-	ThingID       string         `json:"thingID,omitempty"`
-	DeviceID      string         `json:"deviceID"`
-	Tenant        string         `json:"tenant,omitempty"`
-	Name          string         `json:"name,omitempty"`
-	Description   string         `json:"description,omitempty"`
+	ThingID       string         `json:"thingID"`	
+	ID            string         `json:"id"`	
+	Type          string         `json:"type,omitempty"`
 	Location      Location       `json:"location,omitempty"`
-	Environment   *string        `json:"environment,omitempty"`
-	Types         []Type         `json:"types,omitempty"`
-	DeviceProfile *DeviceProfile `json:"deviceProfile,omitempty"`
-	DeviceStatus  *DeviceStatus  `json:"deviceStatus,omitempty"`
-	DeviceState   *DeviceState   `json:"deviceState,omitempty"`
+	Tenant        string         `json:"tenant,omitempty"`	
 }
 
 type ThingResult struct {

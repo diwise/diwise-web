@@ -29,8 +29,8 @@ type App struct {
 
 func New(ctx context.Context) (*App, error) {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
-	thingManagementURL := strings.Replace(deviceManagementURL, "devices", "devices", 1)
-	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)	
+	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)
+	thingManagementURL := env.GetVariableOrDefault(ctx, "THINGS_URL", "https://test.diwise.io/api/v0/things")
 	measurementURL := env.GetVariableOrDefault(ctx, "MEASUREMENTS_URL", "https://test.diwise.io/api/v0/measurements")
 
 	c := NewCache()
@@ -76,11 +76,25 @@ func (a *App) GetThings(ctx context.Context, offset, limit int) (ThingResult, er
 		return ThingResult{}, err
 	}
 
+	var total, off, lim int
+	off = offset
+	lim = limit
+
+	if res.Meta != nil {
+		total = int(res.Meta.TotalRecords)
+		if res.Meta.Limit != nil {
+			lim = int(*res.Meta.Limit)
+		}
+		if res.Meta.Offset != nil {
+			off = int(*res.Meta.Offset)
+		}
+	}
+
 	return ThingResult{
 		Things:       things,
-		TotalRecords: int(res.Meta.TotalRecords),
-		Offset:       int(*res.Meta.Offset),
-		Limit:        int(*res.Meta.Limit),
+		TotalRecords: total,
+		Offset:       off,
+		Limit:        lim,
 		Count:        len(things),
 	}, nil
 }

@@ -1,26 +1,22 @@
 package components
 
 import (
-    "fmt"
+	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-    "time"
 )
 
 type ThingViewModel struct {
-	Active       bool
-	ThingID       string
-	DeviceID     string
-	Name         string
-	BatteryLevel int
-	LastSeen     time.Time
-	HasAlerts    bool
-    Type         string
-    Value        string
+	ThingID   string
+	ID        string
+	Type      string
+	Latitude  float64
+	Longitude float64
+	Tenant    string
 }
 
 type ThingListViewModel struct {
-	Things []ThingViewModel
+	Things     []ThingViewModel
 	Statistics StatisticsViewModel
 }
 
@@ -74,10 +70,10 @@ templ ThingTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, things Thi
 templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingListViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
-            <div class="flex items-center w-full justify-between">
+			<div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
-                //TODO: Target för Lägg till ny sak
-                @Button(Primary, l10n.Get("addthing"), "", HxUrl("get", (fmt.Sprintf("/components/things"))))
+				//TODO: Target för Lägg till ny sak
+				@Button(Primary, l10n.Get("addthing"), "", HxUrl("get", (fmt.Sprintf("/components/things"))))
 			</div>
 			@SumOfStuff(l10n, things.Statistics)
 		</div>
@@ -88,58 +84,17 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingLi
 					//@SearchField(l10n)
 					//@FilterThings(l10n)
 				</div>
-                //@tableMapSwitch("list", "Lista", iconSVG("list"))
-                //@tableMapSwitch("mapview", "Karta", iconSVG("map"))
-                @mapTableButtons(l10n)
-					
+				//@tableMapSwitch("list", "Lista", iconSVG("list"))
+				//@tableMapSwitch("mapview", "Karta", iconSVG("map"))
+				@mapTableButtons(l10n)
 			</div>
-            //@PickedFilters()	
-
-            <div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
+			//@PickedFilters()	
+			<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
 				//Initialt listinnehåll
 				<div id="things-table" class="w-full">
-					@ThingTable(l10n, asset, ThingListViewModel{
-                        Things: []ThingViewModel{
-                            {
-                                Name: "Första saken",
-                                ThingID: "2341",
-                                Type: "trashcan",
-                                Value: "32",
-                                Active: true,
-                            },
-                            {
-                                Name: "Andra saken",
-                                ThingID: "2341",
-                                Type: "trashcan",
-                                Value: "90",
-                                Active: true,
-                            },
-                            {
-                                Name: "Tredje saken",
-                                ThingID: "2341",
-                                Type: "trashcan",
-                                Value: "5",
-                                Active: true,
-                            },
-                            {
-                                Name: "Fjärde saken",
-                                ThingID: "2341",
-                                Type: "trashcan",
-                                Value: "60",
-                                Active: true,
-                            },
-                            {
-                                Name: "Femte saken",
-                                ThingID: "2341",
-                                Type: "trashcan",
-                                Value: "100",
-                                Active: true,
-                            },
-                        },
-                    })
+					@ThingTable(l10n, asset, things)
 				</div>
 			</div>
-
 			//Innehåll dolt, hämtas när man klickar på Lista/Karta
 			<div id="fragments" style="display: none;">
 				<div id="list" class="w-full">
@@ -149,10 +104,8 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingLi
 				</div>
 				<div id="mapview" class="w-full">
 					@Map(newMapData(62.3908, 17.3069))
-				</div>	
+				</div>
 			</div>
-
-            
 		</div>
 	</div>
 }
@@ -161,245 +114,220 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingLi
 func tableRowsFromThings(l10n locale.Localizer, _ assets.AssetLoaderFunc, things []ThingViewModel) []templ.Component {
 	rows := []templ.Component{}
 
-	labelText := map[bool]string{
-		false: l10n.Get("inactive"),
-		true:  l10n.Get("active"),
-	}
-
 	for _, thing := range things {
-		isActive := thing.Active
-
-		cells := []templ.Component{TextFirstCell(thing.Name)}
-		cells = append(cells, TextCell(thing.ThingID))
-        cells = append(cells, ProgressBarCell(thing.Value))
-        cells = append(cells, LabelCell(labelText[isActive], isActive))
-
-		/*if sensor.BatteryLevel >= 0 {
-			cells = append(cells, TextCell(fmt.Sprintf("%d", sensor.BatteryLevel)))
-		} else {
-			cells = append(cells, TextCell("?"))
-		}
-
-		if sensor.LastSeen.IsZero() {
-			cells = append(cells, TextCell(""))
-		} else {
-			cells = append(cells, TextCell(sensor.LastSeen.Format("2006-01-02, 15:04")))
-		}
-
-		if sensor.HasAlerts {
-			cells = append(cells, Cell(SVG("alert-triangle", Size(24), AlertStyle())))
-		} else {
-			cells = append(cells, TextCell(""))
-		}*/
+		cells := []templ.Component{TextFirstCell(thing.ThingID)}
+		cells = append(cells, TextCell(thing.ID))
+		cells = append(cells, TextCell(thing.Type))
+		cells = append(cells, ProgressBarCell("45"))
 
 		linkUrl := templ.URL(fmt.Sprintf("/components/things/details?id=%s", thing.ThingID))
 		pushUrl := templ.URL(fmt.Sprintf("/things/%s", thing.ThingID))
 
-		row := LinkRow(cells, linkUrl, pushUrl, "thing")
+		row := LinkRow(cells, linkUrl, pushUrl, "things")
 		rows = append(rows, row)
 	}
 
 	return rows
 }
 
-templ PickedFilters () {
-    <div class="flex flex-col gap-4 w-full">
-        <div class="w-full h-10 justify-items-start inline-flex text-primary-dark dark:text-white gap-3">
-            <div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
-                Soptunna
-                <svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
-                    @templ.Raw(iconSVG("close"))
-                </svg>
-            </div>
-            <div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
-                Centrum
-                <svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
-                    @templ.Raw(iconSVG("close"))
-                </svg>
-            </div>
-            <div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
-                Kvissleby
-                <svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
-                    @templ.Raw(iconSVG("close"))
-                </svg>
-            </div>
-            <div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
-                0-70%
-                <svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
-                    @templ.Raw(iconSVG("close"))
-                </svg>
-            </div>
-        </div>
-    </div>
+templ PickedFilters() {
+	<div class="flex flex-col gap-4 w-full">
+		<div class="w-full h-10 justify-items-start inline-flex text-primary-dark dark:text-white gap-3">
+			<div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
+				Soptunna
+				<svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
+					@templ.Raw(iconSVG("close"))
+				</svg>
+			</div>
+			<div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
+				Centrum
+				<svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
+					@templ.Raw(iconSVG("close"))
+				</svg>
+			</div>
+			<div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
+				Kvissleby
+				<svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
+					@templ.Raw(iconSVG("close"))
+				</svg>
+			</div>
+			<div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
+				0-70%
+				<svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
+					@templ.Raw(iconSVG("close"))
+				</svg>
+			</div>
+		</div>
+	</div>
 }
 
-templ FilterThings (l10n locale.Localizer) {
-    <div class="flex items-center flex-[1_0_0] gap-6">
-        <div class="relative ml-4">
-            <button id="dropdownButtonType" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownType() }>
-                { l10n.Get("sensortype") }
-                <svg class="w-[18px] h-[18px] dark:fill-white">
-                    @templ.Raw(iconSVG("chevron-down"))
-                </svg>
-            </button>
-            <div id="dropdownMenuType" class="absolute z-10 hidden bg-background-100 rounded-md shadow-lg mt-2.5">
-                <ul class="p-3 space-y-2">
-                    <li>
-                        <label for="avlopp-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                            <span class="ml-2 text-gray-700 dark:text-gray-300 ">Avlopp</span>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="avlopp-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="avlopp"/>
-                                <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                    <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                        @templ.Raw(iconSVG("check"))
-                                    </svg>
-                                </div>
-                            </div>
-                        </label>
-                    </li>
-                    <li>
-                        <label for="livboj-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                            <span class="ml-2 text-gray-700 dark:text-gray-300">Livboj</span>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="livboj-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="livboj"/>
-                                <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                    <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                        @templ.Raw(iconSVG("check"))
-                                    </svg>
-                                </div>
-                            </div>
-                        </label>
-                    </li>
-                    <li>
-                        <label for="sandficka-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                            <span class="ml-2 text-gray-700 dark:text-gray-300">Sandficka</span>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="sandficka-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="sandficka"/>
-                                <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                    <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                        @templ.Raw(iconSVG("check"))
-                                    </svg>
-                                </div>
-                            </div>
-                        </label>
-                    </li>
-                    <li>
-                        <label for="soptunna-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                            <span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Soptunna</span>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="soptunna-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="soptunna"/>
-                                <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                    <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                        @templ.Raw(iconSVG("check"))
-                                    </svg>
-                                </div>
-                            </div>
-                        </label>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="relative">
-            <button id="dropdownButtonArea" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownArea() }>
-                { l10n.Get("measurementtype") }
-                <svg class="w-[18px] h-[18px] dark:fill-white">
-                    @templ.Raw(iconSVG("chevron-down"))
-                </svg>
-            </button>
-            <div id="dropdownMenuArea" class="absolute z-10 bg-background-100 rounded-md shadow-lg hidden mt-2.5 ">
-                <ul class="p-3 space-y-2">
-                    <li>
-                        <label for="bydalen-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                            <span class="ml-2 text-gray-700 dark:text-gray-300">Bydalen</span>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="bydalen-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="bydalen"/>
-                                <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                    <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                        @templ.Raw(iconSVG("check"))
-                                    </svg>
-                                </div>
-                            </div>
-                        </label>
-                    </li>
-                    <li>
-                        <label for="haga-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                            <span class="ml-2 text-gray-700 dark:text-gray-300">Haga</span>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="haga-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="haga"/>
-                                <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                    <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                        @templ.Raw(iconSVG("check"))
-                                    </svg>
-                                </div>
-                            </div>
-                        </label>
-                    </li>
-                    <li>
-                        <label for="centrum-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                            <span class="ml-2 text-gray-700 dark:text-gray-300">Centrum</span>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="centrum-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="centrum"/>
-                                <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                    <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                        @templ.Raw(iconSVG("check"))
-                                    </svg>
-                                </div>
-                            </div>
-                        </label>
-                    </li>
-                    <li>
-                        <label for="östermalm-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                            <span class="ml-2 text-gray-700 dark:text-gray-300">Östermalm</span>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="östermalm-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="östermalm"/>
-                                <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                    <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                        @templ.Raw(iconSVG("check"))
-                                    </svg>
-                                </div>
-                            </div>
-                        </label>
-                    </li>
-                    <li>
-                        <label for="skönsmon-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-                            <span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Skönsmon</span>
-                            <div class="flex items-center">
-                                <input type="checkbox" id="skönsmon-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="skönsmon"/>
-                                <div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-                                    <svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-                                        @templ.Raw(iconSVG("check"))
-                                    </svg>
-                                </div>
-                            </div>
-                        </label>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="relative">
-            <button id="dropdownButtonFillinglevel" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownFillingLevel() }>
-                { l10n.Get("fillinglevel") }
-                <svg class="w-[18px] h-[18px] dark:fill-white">
-                    @templ.Raw(iconSVG("chevron-down"))
-                </svg>
-            </button>
-            <div id="dropdownMenuFillingLevel" class="absolute z-10 bg-background-100 rounded-md shadow-lg hidden mt-2.5 dark:bg-gray-800 dark:text-white">
-                <div class="rounded-md shadow-lg p-4">
-                    <div class="flex justify-between gap-4">
-                        <div class="flex flex-col gap-1">
-                            <label for="min-value" class="font-bold">Min</label>
-                            <input type="text" id="min-value" placeholder="0%" class="w-20 border border-input-surface-dark rounded-lg p-2 text-sm focus:border-black focus:ring-1 focus:ring-black focus:outline-none"/>
-                        </div>
-                        <div class="flex flex-col gap-1">
-                            <label for="max-value" class="font-bold">Max</label>
-                            <input type="text" id="max-value" placeholder="100%" class="w-20 border border-input-surface-dark rounded-lg p-2 text-sm focus:border-black focus:ring-1 focus:ring-black focus:outline-none"/>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <input type="range" id="range-slider" name="range-slider" min="0" max="100" class="w-full h-2 bg-background-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"/>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+templ FilterThings(l10n locale.Localizer) {
+	<div class="flex items-center flex-[1_0_0] gap-6">
+		<div class="relative ml-4">
+			<button id="dropdownButtonType" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownType() }>
+				{ l10n.Get("sensortype") }
+				<svg class="w-[18px] h-[18px] dark:fill-white">
+					@templ.Raw(iconSVG("chevron-down"))
+				</svg>
+			</button>
+			<div id="dropdownMenuType" class="absolute z-10 hidden bg-background-100 rounded-md shadow-lg mt-2.5">
+				<ul class="p-3 space-y-2">
+					<li>
+						<label for="avlopp-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 text-gray-700 dark:text-gray-300 ">Avlopp</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="avlopp-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="avlopp"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+					<li>
+						<label for="livboj-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 text-gray-700 dark:text-gray-300">Livboj</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="livboj-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="livboj"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+					<li>
+						<label for="sandficka-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 text-gray-700 dark:text-gray-300">Sandficka</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="sandficka-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="sandficka"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+					<li>
+						<label for="soptunna-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Soptunna</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="soptunna-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="soptunna"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="relative">
+			<button id="dropdownButtonArea" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownArea() }>
+				{ l10n.Get("measurementtype") }
+				<svg class="w-[18px] h-[18px] dark:fill-white">
+					@templ.Raw(iconSVG("chevron-down"))
+				</svg>
+			</button>
+			<div id="dropdownMenuArea" class="absolute z-10 bg-background-100 rounded-md shadow-lg hidden mt-2.5 ">
+				<ul class="p-3 space-y-2">
+					<li>
+						<label for="bydalen-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 text-gray-700 dark:text-gray-300">Bydalen</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="bydalen-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="bydalen"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+					<li>
+						<label for="haga-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 text-gray-700 dark:text-gray-300">Haga</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="haga-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="haga"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+					<li>
+						<label for="centrum-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 text-gray-700 dark:text-gray-300">Centrum</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="centrum-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="centrum"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+					<li>
+						<label for="östermalm-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 text-gray-700 dark:text-gray-300">Östermalm</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="östermalm-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="östermalm"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+					<li>
+						<label for="skönsmon-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Skönsmon</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="skönsmon-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="skönsmon"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="relative">
+			<button id="dropdownButtonFillinglevel" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownFillingLevel() }>
+				{ l10n.Get("fillinglevel") }
+				<svg class="w-[18px] h-[18px] dark:fill-white">
+					@templ.Raw(iconSVG("chevron-down"))
+				</svg>
+			</button>
+			<div id="dropdownMenuFillingLevel" class="absolute z-10 bg-background-100 rounded-md shadow-lg hidden mt-2.5 dark:bg-gray-800 dark:text-white">
+				<div class="rounded-md shadow-lg p-4">
+					<div class="flex justify-between gap-4">
+						<div class="flex flex-col gap-1">
+							<label for="min-value" class="font-bold">Min</label>
+							<input type="text" id="min-value" placeholder="0%" class="w-20 border border-input-surface-dark rounded-lg p-2 text-sm focus:border-black focus:ring-1 focus:ring-black focus:outline-none"/>
+						</div>
+						<div class="flex flex-col gap-1">
+							<label for="max-value" class="font-bold">Max</label>
+							<input type="text" id="max-value" placeholder="100%" class="w-20 border border-input-surface-dark rounded-lg p-2 text-sm focus:border-black focus:ring-1 focus:ring-black focus:outline-none"/>
+						</div>
+					</div>
+					<div class="mt-4">
+						<input type="range" id="range-slider" name="range-slider" min="0" max="100" class="w-full h-2 bg-background-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"/>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 }
