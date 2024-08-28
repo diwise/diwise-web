@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api"
@@ -81,11 +83,25 @@ func main() {
 	webServer := &http.Server{Addr: ":" + apiPort, Handler: webapi.Router()}
 
 	logger.Info("starting to listen for incoming connections", "port", apiPort)
-	err = webServer.ListenAndServe()
 
+	go func() {
+		if err := webServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			fatal(ctx, "failed to start request router", err)
+		}
+	}()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	s := <-sigChan
+
+	logger.Info("received signal", "signal", s)
+
+	err = webServer.Shutdown(ctx)
 	if err != nil {
-		fatal(ctx, "failed to start request router", err)
+		logger.Error("failed to shutdown web server", "err", err.Error())
 	}
+
+	logger.Info("shutting down")
 }
 
 func initialize(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange, assetPath string) (api_ api.Api, app *application.App, err error) {
