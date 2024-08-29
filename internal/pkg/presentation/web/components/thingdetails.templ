@@ -28,7 +28,7 @@ type ThingProfile struct {
 }
 
 templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing ThingDetailsViewModel) {
-	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="thing-view">
+	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
 		@ThingDetails(l10n, asset, thing)
 	</div>
 }
@@ -85,7 +85,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ thing.Name }</h1>
 				@sensorActive(thing.Active, l10n)
 			</div>
-			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#thing-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", thing.ThingID))))
+			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", thing.ThingID))))
 		</div>
 		
 		//Innehåll
@@ -223,7 +223,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 								<div class="font-bold">{ l10n.Get("longitude") }</div>
 								<div class="">{ fmt.Sprintf("%f", thing.Longitude) }</div>
 							</div>
-							@Map(newMapData(thing.Latitude, thing.Longitude))
+							@Map(newMapData(thing.Latitude, thing.Longitude), thingMapFeature(thing))
 						</div>
 					</div>
 				</div>
@@ -373,7 +373,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 									<input type="number" name="longitude" value={ fmt.Sprintf("%f", thing.Longitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
 								</div>
 							</div>
-							@Map(newMapData(thing.Latitude, thing.Longitude))
+							@Map(newMapData(thing.Latitude, thing.Longitude), thingMapFeature(thing))
 						</div>
 					</div>
 				</div>
@@ -389,4 +389,11 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 			</div>
 		</form>
 	</div>
+}
+
+func thingMapFeature(thing ThingDetailsViewModel) FeatureCollection {
+	feature := NewFeature(NewPoint(thing.Latitude, thing.Longitude))
+	feature.AddProperty("desc", thing.Description)
+	feature.AddProperty("type", "trashcan")
+	return NewFeatureCollection([]Feature{feature})
 }

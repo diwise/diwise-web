@@ -53,16 +53,16 @@ script toggleDropdownArea() {
       }
   }*/
 
-templ ThingsDetailPage(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
+templ ThingsDetailPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing ThingDetailsViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
-		//@ThingDetails()
+		@ThingDetails(l10n, asset, thing)
 	</div>
 }
 
 templ ThingTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingListViewModel) {
 	@Table(
 		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("id")), TableHeaderText(l10n.Get("measurementvalue")), TableHeaderText(l10n.Get("status"))),
-		TableData(tableRowsFromThings(l10n, asset, things.Things)...),
+		TableData(tableRowsFromThings(asset, things.Things)...),
 		DataTableFooter("4", "things"),
 	)
 }
@@ -111,7 +111,7 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingLi
 }
 
 //HELPERS
-func tableRowsFromThings(l10n locale.Localizer, _ assets.AssetLoaderFunc, things []ThingViewModel) []templ.Component {
+func tableRowsFromThings(_ assets.AssetLoaderFunc, things []ThingViewModel) []templ.Component {
 	rows := []templ.Component{}
 
 	for _, thing := range things {
