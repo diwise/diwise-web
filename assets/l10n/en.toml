@@ -130,6 +130,9 @@ other = "Type of sensor"
 [status]
 other = "Status"
 
+[statistics]
+other = "Statistics"
+
 [table]
 other = "Table"
 

@@ -130,6 +130,9 @@ other = "Sensortyp"
 [status]
 other = "Status"
 
+[statistics]
+other = "Statistik"
+
 [table]
 other = "Tabell"
 
