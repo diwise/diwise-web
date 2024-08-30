@@ -180,6 +180,20 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 					//@SearchField(l10n)
+					<select id="selectStatus"
+							name="status"
+							hx-target="#fragments" 
+							hx-get="/sensors"
+							hx-push-url="true"
+							hx-trigger="change">
+						<option disabled selected>Status</option>
+						<option value="all">{ l10n.Get("all") }</option>
+						<option value="active">{ l10n.Get("active") }</option>
+						<option value="inactive">{ l10n.Get("inactive") }</option>
+						<option value="unknown">{ l10n.Get("unregistered") }</option>
+					</select>
+
+					
 					@Filter(l10n)
 				</div>
 				//@Button(Primary, l10n.Get("addthing"), "", HxUrl("get", (fmt.Sprintf("/components/sensors"))))
@@ -257,15 +271,17 @@ func BatteryTableCell(sensor SensorViewModel) templ.Component {
 
 templ Filter(l10n locale.Localizer) {
 	<div class="flex items-center flex-[1_0_0] gap-6">
-		
 
-
-		<select name="statistics" hx-post="/sensors" hx-trigger="change" hx-target="#sensors-table" hx-swap="innerHTML">
-			<option value="all">{ l10n.Get("all") }</option>
-			<option value="active">{ l10n.Get("active") }</option>
-			<option value="inactive">{ l10n.Get("inactive") }</option>
-			<option value="unknown">{ l10n.Get("unregistered") }</option>
-		</select>
+		//Sök och dropdown, for the future
+		/*<form hx-push-url="true" hx-trigger="change" hx-get="?" hx-vals='{"filter": this.value}'>
+			<input list="filter-options" name="filter" placeholder="Select filter">
+			<datalist id="filter-options">
+				<option value="all">All</option>
+				<option value="active">Active</option>
+				<option value="inactive">Inactive</option>
+				<option value="unknown">Unknown</option>
+			</datalist>
+		</form>*/
 
 		//Status
 		<div class="relative ml-4">
