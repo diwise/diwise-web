@@ -252,12 +252,18 @@ script onPageLoad() {
 	window.onclick = function(event) {
         var dropdownButtonFillinglevel = document.getElementById("dropdownButtonFillinglevel");
         var dropdownMenuFillingLevel = document.getElementById("dropdownMenuFillingLevel");
-        var dropdownButtonType = document.getElementById("dropdownButtonType");
+        var dropdownButtonStatus = document.getElementById("dropdownButtonStatus");
+        var dropdownMenuStatus = document.getElementById("dropdownMenuStatus");
+		var dropdownButtonType = document.getElementById("dropdownButtonType");
         var dropdownMenuType = document.getElementById("dropdownMenuType");
 		var dropdownButtonArea = document.getElementById("dropdownButtonArea");
 		var dropdownMenuArea = document.getElementById("dropdownMenuArea");
         
-        if (!dropdownMenuType?.contains(event.target) && !dropdownButtonType?.contains(event.target)) {
+        if (!dropdownMenuStatus?.contains(event.target) && !dropdownButtonStatus?.contains(event.target)) {
+            dropdownMenuStatus?.classList?.add("hidden");
+        }
+		
+		if (!dropdownMenuType?.contains(event.target) && !dropdownButtonType?.contains(event.target)) {
             dropdownMenuType?.classList?.add("hidden");
         }
         

@@ -75,9 +75,9 @@ templ SumOfStuff(l10n locale.Localizer, stats StatisticsViewModel) {
 
 templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
 	@Table(
-		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("status")), TableHeaderText(l10n.Get("deveui")), TableHeaderText(l10n.Get("batterylevel")), TableHeaderText(l10n.Get("lastseen")), TableHeaderText(l10n.Get("alerts"))),
+		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("status")), TableHeaderText(l10n.Get("deveui")), TableHeaderText(l10n.Get("batterylevel")), TableHeaderText(l10n.Get("lastseen"))),
 		TableData(tableRowsFromSensors(l10n, asset, sensors.Sensors)...),
-		DataTableFooter("7", "sensors"),
+		DataTableFooter("6", "sensors"),
 	)
 }
 
@@ -232,11 +232,11 @@ func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, senso
 			cells = append(cells, TextCell(sensor.LastSeen.Format("2006-01-02, 15:04")))
 		}
 
-		if sensor.HasAlerts {
+		/*if sensor.HasAlerts {
 			cells = append(cells, Cell(SVG("alert-triangle", Size(24), AlertStyle())))
 		} else {
 			cells = append(cells, TextCell(""))
-		}
+		}*/
 
 		linkUrl := templ.URL(fmt.Sprintf("/components/sensors/details?id=%s", sensor.DeviceID))
 		pushUrl := templ.URL(fmt.Sprintf("/sensors/%s", sensor.DeviceID))
@@ -257,6 +257,83 @@ func BatteryTableCell(sensor SensorViewModel) templ.Component {
 
 templ Filter(l10n locale.Localizer) {
 	<div class="flex items-center flex-[1_0_0] gap-6">
+		
+
+
+		<select name="statistics" hx-post="/sensors" hx-trigger="change" hx-target="#sensors-table" hx-swap="innerHTML">
+			<option value="all">{ l10n.Get("all") }</option>
+			<option value="active">{ l10n.Get("active") }</option>
+			<option value="inactive">{ l10n.Get("inactive") }</option>
+			<option value="unknown">{ l10n.Get("unregistered") }</option>
+		</select>
+
+		//Status
+		<div class="relative ml-4">
+			<button id="dropdownButtonStatus" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownStatus() }>
+				{ l10n.Get("status") }
+				<svg class="w-[18px] h-[18px] dark:fill-white">
+					@templ.Raw(iconSVG("chevron-down"))
+				</svg>
+			</button>
+			<div id="dropdownMenuStatus" class="absolute z-10 hidden bg-background-100 rounded-md shadow-lg mt-2.5">
+				<ul class="p-3 space-y-2">
+					<li>
+						<label for="avlopp-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 text-gray-700 dark:text-gray-300 ">Avlopp</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="avlopp-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="avlopp"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+					<li>
+						<label for="livboj-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 text-gray-700 dark:text-gray-300">Livboj</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="livboj-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="livboj"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+					<li>
+						<label for="sandficka-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 text-gray-700 dark:text-gray-300">Sandficka</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="sandficka-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="sandficka"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+					<li>
+						<label for="soptunna-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							<span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Soptunna</span>
+							<div class="flex items-center">
+								<input type="checkbox" id="soptunna-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="soptunna"/>
+								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+										@templ.Raw(iconSVG("check"))
+									</svg>
+								</div>
+							</div>
+						</label>
+					</li>
+				</ul>
+			</div>
+		</div>
+		
+		//Sensortyp
 		<div class="relative ml-4">
 			<button id="dropdownButtonType" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownType() }>
 				{ l10n.Get("sensortype") }
@@ -321,6 +398,8 @@ templ Filter(l10n locale.Localizer) {
 				</ul>
 			</div>
 		</div>
+
+		//Mättyp
 		<div class="relative">
 			<button id="dropdownButtonArea" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownArea() }>
 				{ l10n.Get("measurementtype") }

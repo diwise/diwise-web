@@ -139,9 +139,10 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 			Latitude:  thing.Location.Latitude,
 			Longitude: thing.Location.Longitude,
 			Tenant:    thing.Tenant,
+			Name:      "namn",
 		}
 
-		thingDetails := components.ThingDetailsPage(localizer, assets, thingsViewModel)
+		thingDetails := components.ThingDetails(localizer, assets, thingsViewModel)
 		//page := components.StartPage(version, localizer, assets, thingDetails)
 
 		w.Header().Add("Content-Type", "text/html")

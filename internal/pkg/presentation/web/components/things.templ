@@ -20,6 +20,12 @@ type ThingListViewModel struct {
 	Statistics StatisticsViewModel
 }
 
+script toggleDropdownStatus() {
+    //Dropdown Typ
+    var dropdownMenuStatus = document.getElementById("dropdownMenuStatus");
+    dropdownMenuStatus.classList.toggle("hidden");
+}
+
 script toggleDropdownType() {
     //Dropdown Typ
     var dropdownMenuType = document.getElementById("dropdownMenuType");

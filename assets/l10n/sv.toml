@@ -10,6 +10,9 @@ other = "Lägg till ny sak"
 [alerts]
 other = "Larm"
 
+[all]
+other = "Alla"
+
 [area]
 other = "Område"
 
