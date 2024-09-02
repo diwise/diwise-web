@@ -206,7 +206,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 					</select>*/
 
 					
-					@Filter(l10n)
+					@FilterSensors(l10n)
 
 				</div>
 				//@Button(Primary, l10n.Get("addthing"), "", HxUrl("get", (fmt.Sprintf("/components/sensors"))))
@@ -301,7 +301,7 @@ templ CheckboxButton(name string, l10n locale.Localizer) {
 
 templ CheckboxList(id, target, hxInclude, hxGet, name string, options []string, l10n locale.Localizer) {
 	<div class="hidden absolute bg-gray-100 min-w-[160px] rounded-md shadow-lg z-10 p-4 group-hover:block">
-		<form id={ id } hx-trigger="change" hx-target={ target } hx-include={ hxInclude } hx-get={ hxGet } hx-push-url="true" class="flex flex-col">
+		<form id={ id } hx-trigger="change" hx-target={ target } hx-include={ hxInclude } hx-get={ hxGet } hx-push-url="true" class="flex flex-col gap-1">
 			for _, option := range options {
 				<label class="flex justify-between items-center">
 					{ l10n.Get( option ) }
@@ -313,7 +313,7 @@ templ CheckboxList(id, target, hxInclude, hxGet, name string, options []string, 
 	</div>
 }
 
-templ Filter(l10n locale.Localizer) {
+templ FilterSensors(l10n locale.Localizer) {
 	<div class="flex items-center flex-[1_0_0] gap-6">
 		<div class="relative inline-block group">
 			@CheckboxButton("status", l10n)

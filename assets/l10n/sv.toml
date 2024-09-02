@@ -73,6 +73,9 @@ other = "Lista"
 [latitude]
 other = "Latitud"
 
+[lifebuoy]
+other = "Livboj"
+
 [location]
 other = "Position"
 
@@ -156,6 +159,9 @@ other = "Tidsintervall"
 
 [total]
 other = "Totalt"
+
+[trashcan]
+other = "Soptunna"
 
 [type]
 other = "Typ"

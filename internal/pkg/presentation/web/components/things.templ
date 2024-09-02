@@ -49,6 +49,7 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingLi
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 					//@SearchField(l10n)
+					@FilterThings(l10n)
 				</div>
 				//@tableMapSwitch("list", "Lista", iconSVG("list"))
 				//@tableMapSwitch("mapview", "Karta", iconSVG("map"))
@@ -94,6 +95,21 @@ func tableRowsFromThings(_ assets.AssetLoaderFunc, things []ThingViewModel) []te
 	}
 
 	return rows
+}
+
+templ FilterThings(l10n locale.Localizer) {
+	<div class="flex items-center flex-[1_0_0] gap-6">
+		<div class="relative inline-block group">
+			@CheckboxButton("type", l10n)
+			@CheckboxList("typeForm", "#fragments", "#statusForm", "/things", "type", []string{"trashcan", "lifebuoy"}, l10n)
+		</div>
+
+		<div class="relative inline-block group">
+			@CheckboxButton("status", l10n)
+			@CheckboxList("statusForm", "#fragments", "#typeForm", "/things", "status", []string{"active", "inactive", "unregistered"}, l10n)
+		</div>
+
+	</div>
 }
 
 templ PickedFilters() {
