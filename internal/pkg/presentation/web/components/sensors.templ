@@ -180,21 +180,89 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 					//@SearchField(l10n)
-					<select id="selectStatus"
-							name="status"
+					/*<select name="status" id="selectStatus"
+							hx-trigger="change"
+							hx-include="#selectTenant"
 							hx-target="#fragments" 
 							hx-get="/sensors"
 							hx-push-url="true"
-							hx-trigger="change">
-						<option disabled selected>Status</option>
+							hx-params="*">
 						<option value="all">{ l10n.Get("all") }</option>
 						<option value="active">{ l10n.Get("active") }</option>
 						<option value="inactive">{ l10n.Get("inactive") }</option>
 						<option value="unknown">{ l10n.Get("unregistered") }</option>
 					</select>
 
+					<select name="tenant" id="selectTenant"
+							hx-trigger="change"
+							hx-include="#selectStatus"
+							hx-target="#fragments" 
+							hx-get="/sensors"
+							hx-push-url="true"
+							hx-params="*">
+						<option value="msva">MSVA</option>
+						<option value="servanet">Servanet</option>
+						<option value="default">default</option>
+					</select>*/
+
 					
-					@Filter(l10n)
+					//@Filter(l10n)
+
+					<div class="relative inline-block group">
+						<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg">
+							Status
+							<svg class="w-[18px] h-[18px] dark:fill-white">
+								@templ.Raw(iconSVG("chevron-down"))
+							</svg>
+						</button>
+						<div class="hidden absolute bg-background-100 min-w-[160px] rounded-md shadow-lg z-10 p-4 group-hover:block">
+							<form class="flex flex-col" id="statusForm" hx-trigger="change" hx-target="#fragments" hx-include="#tenantForm" hx-get="/sensors" hx-push-url="true">
+								<label class="flex justify-between items-center">
+									{ l10n.Get("active") }
+									<input type="checkbox" name="status" value="active" class="sr-only peer form-checkbox cursor-pointer">
+									@CustomCheckbox()
+								</label>
+								<label class="flex justify-between items-center">
+									{ l10n.Get("inactive") }
+									<input type="checkbox" name="status" value="inactive" class="sr-only peer form-checkbox cursor-pointer">
+									@CustomCheckbox()
+								</label>
+								<label class="flex justify-between items-center">
+									{ l10n.Get("unregistered") }
+									<input type="checkbox" name="status" value="unknown" class="sr-only peer form-checkbox cursor-pointer">
+									@CustomCheckbox()
+								</label>
+							</form>
+						</div>
+					</div>
+
+					<div class="relative inline-block group">
+						<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg">
+							Organisation
+							<svg class="w-[18px] h-[18px] dark:fill-white">
+								@templ.Raw(iconSVG("chevron-down"))
+							</svg>
+						</button>
+						<div class="hidden absolute bg-gray-100 min-w-[160px] rounded-md shadow-lg z-10 p-4 group-hover:block">
+							<form class="flex flex-col w-full justify-between" id="tenantForm" hx-trigger="change" hx-target="#fragments" hx-include="#statusForm" hx-get="/sensors" hx-push-url="true">
+								<label class="flex justify-between items-center">
+									MSVA
+									<input type="checkbox" name="tenant" value="msva" class="sr-only peer form-checkbox cursor-pointer">
+									@CustomCheckbox()
+								</label>
+								<label class="flex justify-between items-center">
+									Servanet
+									<input type="checkbox" name="tenant" value="servanet" class="sr-only peer form-checkbox cursor-pointer">
+									@CustomCheckbox()
+								</label>
+								<label class="flex justify-between items-center">
+									Default
+									<input type="checkbox" name="tenant" value="default" class="sr-only peer form-checkbox cursor-pointer">
+									@CustomCheckbox()
+								</label>
+							</form>
+						</div>
+					</div>
 				</div>
 				//@Button(Primary, l10n.Get("addthing"), "", HxUrl("get", (fmt.Sprintf("/components/sensors"))))
 				
@@ -267,6 +335,14 @@ var re = regexp.MustCompile(`[^a-zA-Z0-9]`)
 func BatteryTableCell(sensor SensorViewModel) templ.Component {
 	selector := "batlevel_" + re.ReplaceAllString(sensor.DeviceID, "")
 	return ActiveCell(Text("-"), selector, fmt.Sprintf("/components/sensors/%s/batterylevel", sensor.DeviceID), "load, every 10m")
+}
+
+templ CustomCheckbox() {
+	<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+		<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+			@templ.Raw(iconSVG("check"))
+		</svg>
+	</div>
 }
 
 templ Filter(l10n locale.Localizer) {
