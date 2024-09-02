@@ -180,32 +180,6 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 					//@SearchField(l10n)
-					/*<select name="status" id="selectStatus"
-							hx-trigger="change"
-							hx-include="#selectTenant"
-							hx-target="#fragments" 
-							hx-get="/sensors"
-							hx-push-url="true"
-							hx-params="*">
-						<option value="all">{ l10n.Get("all") }</option>
-						<option value="active">{ l10n.Get("active") }</option>
-						<option value="inactive">{ l10n.Get("inactive") }</option>
-						<option value="unknown">{ l10n.Get("unregistered") }</option>
-					</select>
-
-					<select name="tenant" id="selectTenant"
-							hx-trigger="change"
-							hx-include="#selectStatus"
-							hx-target="#fragments" 
-							hx-get="/sensors"
-							hx-push-url="true"
-							hx-params="*">
-						<option value="msva">MSVA</option>
-						<option value="servanet">Servanet</option>
-						<option value="default">default</option>
-					</select>*/
-
-					
 					@FilterSensors(l10n)
 
 				</div>
