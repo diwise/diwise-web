@@ -247,35 +247,7 @@ templ Switch(isOn bool, onclick templ.ComponentScript) {
 script onPageLoad() {
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.body.classList.add('dark')
-    }
-	
-	window.onclick = function(event) {
-        var dropdownButtonFillinglevel = document.getElementById("dropdownButtonFillinglevel");
-        var dropdownMenuFillingLevel = document.getElementById("dropdownMenuFillingLevel");
-        var dropdownButtonStatus = document.getElementById("dropdownButtonStatus");
-        var dropdownMenuStatus = document.getElementById("dropdownMenuStatus");
-		var dropdownButtonType = document.getElementById("dropdownButtonType");
-        var dropdownMenuType = document.getElementById("dropdownMenuType");
-		var dropdownButtonArea = document.getElementById("dropdownButtonArea");
-		var dropdownMenuArea = document.getElementById("dropdownMenuArea");
-        
-        if (!dropdownMenuStatus?.contains(event.target) && !dropdownButtonStatus?.contains(event.target)) {
-            dropdownMenuStatus?.classList?.add("hidden");
-        }
-		
-		if (!dropdownMenuType?.contains(event.target) && !dropdownButtonType?.contains(event.target)) {
-            dropdownMenuType?.classList?.add("hidden");
-        }
-        
-        if (!dropdownMenuFillingLevel?.contains(event.target) && !dropdownButtonFillinglevel?.contains(event.target)) {
-            dropdownMenuFillingLevel?.classList?.add("hidden");
-        }
-
-		if (!dropdownMenuArea?.contains(event.target) && !dropdownButtonArea?.contains(event.target)) {
-            dropdownMenuArea?.classList?.add("hidden");
-        }
-    }
-	
+    }	
 }
 
 script toggleDarkMode() {
