@@ -20,45 +20,6 @@ type ThingListViewModel struct {
 	Statistics StatisticsViewModel
 }
 
-script toggleDropdownStatus() {
-    //Dropdown Typ
-    var dropdownMenuStatus = document.getElementById("dropdownMenuStatus");
-    dropdownMenuStatus.classList.toggle("hidden");
-}
-
-script toggleDropdownType() {
-    //Dropdown Typ
-    var dropdownMenuType = document.getElementById("dropdownMenuType");
-    dropdownMenuType.classList.toggle("hidden");
-}
-
-script toggleDropdownFillingLevel() {
-    var dropdownMenuFillingLevel = document.getElementById("dropdownMenuFillingLevel");
-    dropdownMenuFillingLevel.classList.toggle("hidden");
-}
-
-script toggleDropdownArea() {
-    var dropdownMenuArea = document.getElementById("dropdownMenuArea");
-    dropdownMenuArea.classList.toggle("hidden");
-}
-
-//Stäng om man klickar utanför
-
-/*//Dropdown Område
-  function toggleDropdown() {
-      var dropdownMenu = document.getElementById("dropdownMenu");
-      dropdownMenu.classList.toggle("hidden");
-  }
-
-  window.onclick = function(event) {
-      var dropdownButton = document.getElementById("dropdownButton");
-      var dropdownMenu = document.getElementById("dropdownMenu");
-      // Kontrollera om klicket är utanför både knappen och menyn
-      if (!dropdownMenu.contains(event.target) && !dropdownButton.contains(event.target)) {
-          dropdownMenu.classList.add("hidden");
-      }
-  }*/
-
 templ ThingsDetailPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing ThingDetailsViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
 		@ThingDetails(l10n, asset, thing)
