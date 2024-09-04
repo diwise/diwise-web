@@ -181,8 +181,14 @@ other = "Temperatur"
 [3424-1]
 other = "Total vattenförbrukning"
 
-[3435-5700]
-other = "Fyllnadsnivå"
+[3435-1]
+other = "Höjd"
+
+[3435-2]
+other = "Fyllnadsnivå (%)"
+
+[3435-3]
+other = "Fyllnadsnivå (cm)"
 
 [3304-5700]
 other = "Luftfuktighet"

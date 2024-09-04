@@ -4,15 +4,29 @@ import (
 	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	"slices"
+	"strings"
+	"time"
 )
 
 type ThingViewModel struct {
-	ThingID   string
-	ID        string
-	Type      string
-	Latitude  float64
-	Longitude float64
-	Tenant    string
+	ThingID      string
+	ID           string
+	Type         string
+	Latitude     float64
+	Longitude    float64
+	Tenant       string
+	Measurements []MeasurementViewModel
+}
+
+type MeasurementViewModel struct {
+	ID          string    `json:"id"`
+	Timestamp   time.Time `json:"timestamp"`
+	Urn         string    `json:"urn"`
+	BoolValue   *bool     `json:"vb,omitempty"`
+	StringValue string    `json:"vs,omitempty"`
+	Unit        string    `json:"unit,omitempty"`
+	Value       *float64  `json:"v,omitempty"`
 }
 
 type ThingListViewModel struct {
@@ -28,9 +42,9 @@ templ ThingsDetailPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 
 templ ThingTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingListViewModel) {
 	@Table(
-		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("id")), TableHeaderText(l10n.Get("measurementvalue")), TableHeaderText(l10n.Get("status"))),
+		HeaderRow(TableHeaderText(l10n.Get("ID")), TableHeaderText(l10n.Get("type")), TableHeaderText(l10n.Get("status"))),
 		TableData(tableRowsFromThings(asset, things.Things)...),
-		DataTableFooter("4", "things"),
+		DataTableFooter("3", "things"),
 	)
 }
 
@@ -82,10 +96,21 @@ func tableRowsFromThings(_ assets.AssetLoaderFunc, things []ThingViewModel) []te
 	rows := []templ.Component{}
 
 	for _, thing := range things {
-		cells := []templ.Component{TextFirstCell(thing.ThingID)}
-		cells = append(cells, TextCell(thing.ID))
+		cells := []templ.Component{TextFirstCell(thing.ID)}
 		cells = append(cells, TextCell(thing.Type))
-		cells = append(cells, ProgressBarCell("45"))
+
+		switch strings.ToLower(thing.Type) {
+		case "combinedsewageoverflow":
+			cells = append(cells, CombinedSewageOverflowCell(thing))
+		case "wastecontainer":
+			cells = append(cells, WasteContainerCell(thing))
+		case "sewer":
+			cells = append(cells, SewerCell(thing))
+		case "sewagepumpingstation":
+			cells = append(cells, SewagePumpingstationCell(thing))
+		default:
+			cells = append(cells, TextCell("N/A"))
+		}
 
 		linkUrl := templ.URL(fmt.Sprintf("/components/things/details?id=%s", thing.ThingID))
 		pushUrl := templ.URL(fmt.Sprintf("/things/%s", thing.ThingID))
@@ -97,18 +122,74 @@ func tableRowsFromThings(_ assets.AssetLoaderFunc, things []ThingViewModel) []te
 	return rows
 }
 
+func WasteContainerCell(t ThingViewModel) templ.Component {
+	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
+	})
+
+	if i == -1 {
+		return TextCell("N/A")
+	}
+
+	return ProgressBarCell(fmt.Sprintf("%.0f", *t.Measurements[i].Value))
+}
+
+func CombinedSewageOverflowCell(t ThingViewModel) templ.Component {
+	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3350/5850") // Stopwatch/OnOff
+	})
+
+	if i == -1 {
+		return TextCell("N/A")
+	}
+
+	state := "false"
+	if *t.Measurements[i].BoolValue {
+		state = "true"
+	}
+
+	return TextCell(state)
+}
+
+func SewerCell(t ThingViewModel) templ.Component {
+	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3330/5700") // Distance/Sensor value
+	})
+
+	if i == -1 || t.Measurements[i].Value == nil {
+		return TextCell("N/A")
+	}
+
+	return TextCell(fmt.Sprintf("%.2f%s", *t.Measurements[i].Value, t.Measurements[i].Unit))
+}
+
+func SewagePumpingstationCell(t ThingViewModel) templ.Component {
+	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3200/5500") // Digital Input/Digital Input State
+	})
+
+	if i == -1 || t.Measurements[i].BoolValue == nil {
+		return TextCell("N/A")
+	}
+
+	state := "false"
+	if *t.Measurements[i].BoolValue {
+		state = "true"
+	}
+
+	return TextCell(state)
+}
+
 templ FilterThings(l10n locale.Localizer) {
 	<div class="flex items-center flex-[1_0_0] gap-6">
 		<div class="relative inline-block group">
 			@CheckboxButton("type", l10n)
 			@CheckboxList("typeForm", "#fragments", "#statusForm", "/things", "type", []string{"trashcan", "lifebuoy"}, l10n)
 		</div>
-
 		<div class="relative inline-block group">
 			@CheckboxButton("status", l10n)
 			@CheckboxList("statusForm", "#fragments", "#typeForm", "/things", "status", []string{"active", "inactive", "unregistered"}, l10n)
 		</div>
-
 	</div>
 }
 

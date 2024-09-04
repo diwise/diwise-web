@@ -75,14 +75,31 @@ func composeViewModel(ctx context.Context, app application.ThingManagement, offs
 		if thingID == "" {
 			thingID = fmt.Sprintf("urn:diwise:%s:%s", strings.ToLower(thing.Type), strings.ToLower(thing.ID))
 		}
-		listViewModel.Things = append(listViewModel.Things, components.ThingViewModel{
-			ThingID:   thingID,
-			ID:        thing.ID,
-			Type:      thing.Type,
-			Latitude:  thing.Location.Latitude,
-			Longitude: thing.Location.Longitude,
-			Tenant:    thing.Tenant,
-		})
+		
+		tvm := components.ThingViewModel{
+			ThingID:      thingID,
+			ID:           thing.ID,
+			Type:         thing.Type,
+			Latitude:     thing.Location.Latitude,
+			Longitude:    thing.Location.Longitude,
+			Tenant:       thing.Tenant,
+			Measurements: make([]components.MeasurementViewModel, 0),
+		}
+
+		for _, measurement := range thing.Measurements {
+			mvm := components.MeasurementViewModel{
+				ID:          measurement.ID,
+				Timestamp:   measurement.Timestamp,
+				Urn:         measurement.Urn,
+				BoolValue:   measurement.BoolValue,
+				StringValue: measurement.StringValue,
+				Unit:        measurement.Unit,
+				Value:       measurement.Value,
+			}
+			tvm.Measurements = append(tvm.Measurements, mvm)
+		}
+
+		listViewModel.Things = append(listViewModel.Things, tvm)
 	}
 
 	return &listViewModel, thingResult.TotalRecords, nil

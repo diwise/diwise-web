@@ -61,7 +61,10 @@ func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
 }
 
 func (a *App) GetThings(ctx context.Context, offset, limit int) (ThingResult, error) {
-	params := url.Values{}
+	params := url.Values{
+		"type":         []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation"},
+		"measurements": []string{"true"},
+	}
 	params.Add("limit", fmt.Sprintf("%d", limit))
 	params.Add("offset", fmt.Sprintf("%d", offset))
 
@@ -334,6 +337,8 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 		err = fmt.Errorf("failed to unmarshal response body: %w", err)
 		return nil, err
 	}
+
+	log.Debug("body", slog.Any("data", impl.Data))
 
 	return &impl, nil
 }
