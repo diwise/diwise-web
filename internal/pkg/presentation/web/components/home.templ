@@ -3,6 +3,7 @@ package components
 import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	"net/http"
 )
 
 templ OverviewCards(localizer locale.Localizer, asset assets.AssetLoaderFunc, stats StatisticsViewModel) {
@@ -17,7 +18,7 @@ type HomeViewModel struct {
 	XScaleMax     uint
 }
 
-templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeViewModel) {
+templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeViewModel, r *http.Request, filterParams map[string][]string) {
 	<div class="p-8">
 		<div class="grid grid-cols-4 gap-8">
 			<div class="col-span-2">
@@ -61,7 +62,7 @@ templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc, viewModel H
 							TextCell("NIAB_lidar_50001c"), LabelCell("Aktiv", true), TextCell("3231383771308416"), TextCell("LoRa"), TextCell("25%"), TextCell("2024-01-29, 12:00"), Cell(SVG("alert-triangle", Size(24), AlertStyle())),
 						),
 					),
-					DataTableFooter("7", "home"),
+					DataTableFooter("7", "home", r, filterParams),
 				)
 			</div>
 		</div>

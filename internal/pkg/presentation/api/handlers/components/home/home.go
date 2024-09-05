@@ -30,6 +30,8 @@ func NewHomePage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoa
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
+		filterParams := extractFilterParamsFromRequest(r)
+
 		datasets := []components.ChartDataset{}
 		max := 31
 
@@ -38,7 +40,7 @@ func NewHomePage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoa
 			assets, components.Home(localizer, assets, components.HomeViewModel{
 				UsageDatasets: datasets,
 				XScaleMax:     uint(max),
-			}),
+			}, r, filterParams),
 		)
 
 		component.Render(ctx, w)
@@ -47,6 +49,16 @@ func NewHomePage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoa
 	return http.HandlerFunc(fn)
 }
 
+func extractFilterParamsFromRequest(r *http.Request) map[string][]string {
+	query := r.URL.Query()
+	filterParams := make(map[string][]string)
+
+	for key, values := range query {
+		filterParams[key] = values
+	}
+
+	return filterParams
+}
 func NewOverviewCardsHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")

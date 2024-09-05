@@ -23,6 +23,9 @@ func NewTableThingsComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		filterParams := extractFilterParamsFromRequest(r)
+
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
 		ctx := logging.NewContextWithLogger(r.Context(), log)
@@ -43,11 +46,23 @@ func NewTableThingsComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			components.PageSize, limit,
 		)
 
-		component := components.ThingTable(localizer, assets, *listViewModel)
+		component := components.ThingTable(localizer, assets, *listViewModel, r, filterParams)
 		component.Render(ctx, w)
 
 		w.WriteHeader(http.StatusOK)
 	}
 
 	return http.HandlerFunc(fn)
+}
+
+func extractFilterParamsFromRequest(r *http.Request) map[string][]string {
+	query := r.URL.Query()
+	filterParams := make(map[string][]string)
+
+	for key, values := range query {
+		if len(values) > 0 {
+			filterParams[key] = values
+		}
+	}
+	return filterParams
 }

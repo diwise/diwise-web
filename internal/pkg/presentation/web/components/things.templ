@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	"net/http"
 )
 
 type ThingViewModel struct {
@@ -26,15 +27,15 @@ templ ThingsDetailPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 	</div>
 }
 
-templ ThingTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingListViewModel) {
+templ ThingTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingListViewModel, r *http.Request, filterParams map[string][]string) {
 	@Table(
 		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("id")), TableHeaderText(l10n.Get("measurementvalue")), TableHeaderText(l10n.Get("status"))),
 		TableData(tableRowsFromThings(asset, things.Things)...),
-		DataTableFooter("4", "things"),
+		DataTableFooter("4", "things", r, filterParams),
 	)
 }
 
-templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingListViewModel) {
+templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingListViewModel, r *http.Request, filterParams map[string][]string) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
 			<div class="flex items-center w-full justify-between">
@@ -49,7 +50,7 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingLi
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 					//@SearchField(l10n)
-					@FilterThings(l10n)
+					@FilterThings(l10n, filterParams)
 				</div>
 				//@tableMapSwitch("list", "Lista", iconSVG("list"))
 				//@tableMapSwitch("mapview", "Karta", iconSVG("map"))
@@ -59,14 +60,14 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingLi
 			<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
 				//Initialt listinnehåll
 				<div id="things-table" class="w-full">
-					@ThingTable(l10n, asset, things)
+					@ThingTable(l10n, asset, things, r, filterParams)
 				</div>
 			</div>
 			//Innehåll dolt, hämtas när man klickar på Lista/Karta
 			<div id="fragments" style="display: none;">
 				<div id="table" class="w-full">
 					<div id="things-table" class="w-full">
-						@ThingTable(l10n, asset, things)
+						@ThingTable(l10n, asset, things, r, filterParams)
 					</div>
 				</div>
 				<div id="mapview" class="w-full">
@@ -97,16 +98,16 @@ func tableRowsFromThings(_ assets.AssetLoaderFunc, things []ThingViewModel) []te
 	return rows
 }
 
-templ FilterThings(l10n locale.Localizer) {
+templ FilterThings(l10n locale.Localizer, filterParams map[string][]string) {
 	<div class="flex items-center flex-[1_0_0] gap-6">
 		<div class="relative inline-block group">
 			@CheckboxButton("type", l10n)
-			@CheckboxList("typeForm", "#fragments", "#statusForm", "/things", "type", []string{"trashcan", "lifebuoy"}, l10n)
+			@CheckboxList("typeForm", "#fragments", "#statusForm", "/things", "type", []string{"trashcan", "lifebuoy"}, l10n, filterParams)
 		</div>
 
 		<div class="relative inline-block group">
 			@CheckboxButton("status", l10n)
-			@CheckboxList("statusForm", "#fragments", "#typeForm", "/things", "status", []string{"active", "inactive", "unregistered"}, l10n)
+			@CheckboxList("statusForm", "#fragments", "#typeForm", "/things", "status", []string{"active", "inactive", "unregistered"}, l10n, filterParams)
 		</div>
 
 	</div>

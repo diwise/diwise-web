@@ -195,6 +195,8 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
+		filterParams := extractFilterParamsFromRequest(r)
+
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
 
@@ -230,7 +232,7 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 			components.PageSize, limit,
 		)
 
-		component := components.SensorTable(localizer, assets, listViewModel)
+		component := components.SensorTable(localizer, assets, listViewModel, r, filterParams)
 		component.Render(renderCtx, w)
 	}
 

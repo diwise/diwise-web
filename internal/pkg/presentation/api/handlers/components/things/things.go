@@ -28,6 +28,9 @@ func NewThingsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		filterParams := extractFilterParamsFromRequest(r)
+
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
 
@@ -37,7 +40,7 @@ func NewThingsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 			return
 		}
 
-		thingList := components.Things(localizer, assets, *listViewModel)
+		thingList := components.Things(localizer, assets, *listViewModel, r, filterParams)
 		page := components.StartPage(version, localizer, assets, thingList)
 
 		pageIndex_, _ := strconv.Atoi(pageIndex)
