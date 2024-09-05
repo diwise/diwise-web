@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"net/http"
 )
 
 type ThingViewModel struct {
@@ -120,64 +121,6 @@ func tableRowsFromThings(l10n locale.Localizer, _ assets.AssetLoaderFunc, things
 	}
 
 	return rows
-}
-
-func WasteContainerCell(l10n locale.Localizer,t ThingViewModel) templ.Component {
-	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
-	})
-
-	if i == -1 {
-		return TextCell("-")
-	}
-
-	return ProgressBarCell(fmt.Sprintf("%.0f", *t.Measurements[i].Value))
-}
-
-func CombinedSewageOverflowCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
-	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3350/5850") // Stopwatch/OnOff
-	})
-
-	if i == -1 {
-		return TextCell("-")
-	}
-
-	state := l10n.Get("Ok")
-	if *t.Measurements[i].BoolValue {
-		state = l10n.Get("Bräddar")
-	}
-
-	return TextCell(state)
-}
-
-func SewerCell(l10n locale.Localizer,t ThingViewModel) templ.Component {
-	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3330/5700") // Distance/Sensor value
-	})
-
-	if i == -1 || t.Measurements[i].Value == nil {
-		return TextCell("-")
-	}
-
-	return TextCell(fmt.Sprintf("%.2f%s", *t.Measurements[i].Value, t.Measurements[i].Unit))
-}
-
-func SewagePumpingstationCell(l10n locale.Localizer,t ThingViewModel) templ.Component {
-	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3200/5500") // Digital Input/Digital Input State
-	})
-
-	if i == -1 || t.Measurements[i].BoolValue == nil {
-		return TextCell("-")
-	}
-
-	state := "Ok"
-	if *t.Measurements[i].BoolValue {
-		state = l10n.Get("Pumpar")
-	}
-
-	return TextCell(state)
 }
 
 func WasteContainerCell(l10n locale.Localizer,t ThingViewModel) templ.Component {
