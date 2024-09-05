@@ -67,7 +67,6 @@ func NewThingsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 func composeViewModel(ctx context.Context, app application.ThingManagement, offset, limit int) (*components.ThingListViewModel, int, error) {
 	thingResult, err := app.GetThings(ctx, offset, limit)
 	if err != nil {
-
 		return nil, 0, err
 	}
 
@@ -78,7 +77,7 @@ func composeViewModel(ctx context.Context, app application.ThingManagement, offs
 		if thingID == "" {
 			thingID = fmt.Sprintf("urn:diwise:%s:%s", strings.ToLower(thing.Type), strings.ToLower(thing.ID))
 		}
-		
+
 		tvm := components.ThingViewModel{
 			ThingID:      thingID,
 			ID:           thing.ID,
