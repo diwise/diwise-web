@@ -197,7 +197,6 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 		<div class="flex px-8 flex-col items-start self-stretch gap-10">
 			@TableOrMapButtons(l10n)
 			<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
-				<input class="filter" name="email" type="email"/>
 				<div id="things-table" class="w-full">
 					@ThingsTable(l10n, model)
 				</div>

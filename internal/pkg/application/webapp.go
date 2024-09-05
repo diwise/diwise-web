@@ -60,13 +60,17 @@ func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
 	return sensor, nil
 }
 
-func (a *App) GetThings(ctx context.Context, offset, limit int) (ThingResult, error) {
+func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string][]string) (ThingResult, error) {
 	params := url.Values{
 		"type":         []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation"},
 		"measurements": []string{"true"},
 	}
 	params.Add("limit", fmt.Sprintf("%d", limit))
 	params.Add("offset", fmt.Sprintf("%d", offset))
+
+	for k, v := range args {
+		params[k] = v
+	}
 
 	res, err := a.get(ctx, a.thingManagementURL, "", params)
 	if err != nil {
@@ -328,6 +332,16 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 	if err != nil {
 		err = fmt.Errorf("failed to read response body: %w", err)
 		return nil, err
+	}
+
+	if string(respBody) == "[]" {
+		var arr json.RawMessage
+		json.Unmarshal(respBody, &arr)
+		return &ApiResponse{
+			Meta:  nil,
+			Data:  arr,
+			Links: nil,
+		}, nil
 	}
 
 	impl := ApiResponse{}
