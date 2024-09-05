@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"net/url"
 	"strconv"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
@@ -41,18 +42,7 @@ func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 
 		// remove args with values in template
 		args := r.URL.Query()
-		args.Del("page")
-		args.Del("limit")
-		args.Del("offset")
-
-		// remove empty values
-		for k, v := range args {
-			if v[len(v)-1] == "" {
-				args.Del(k)
-			} else {
-				args.Set(k, v[len(v)-1])
-			}
-		}
+		sanitizeParams(args, "page", "limit", "offset")
 
 		model := ui.ThingsListViewModel{
 			Things: make([]ui.ThingViewModel, 0),
@@ -138,18 +128,8 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := float64(result.TotalRecords) / float64(limit)
 
-		// remove args with values in template
 		args := r.URL.Query()
-		args.Del("page")
-		args.Del("limit")
-		args.Del("offset")
-
-		// remove empty values
-		for k, v := range args {
-			if v[len(v)-1] == "" {
-				args.Del(k)
-			}
-		}
+		sanitizeParams(args, "page", "limit", "offset")
 
 		model := ui.ThingsListViewModel{
 			Things: make([]ui.ThingViewModel, 0),
@@ -251,4 +231,36 @@ func pagerIndexes(pageIndex, pageCount int) []int64 {
 	}
 
 	return result
+}
+
+func sanitizeParams(params url.Values, keys ...string) {
+	if len(keys) > 0 {
+		for _, k := range keys {
+			params.Del(k)
+		}
+	}
+
+	for k, v := range params {
+		for i := 0; i < len(v); i++ {
+			if v[i] == "" {
+				v = append(v[:i], v[i+1:]...)
+				i--
+			}
+		}
+
+		for i := 0; i < len(v); i++ {
+			for j := i + 1; j < len(v); j++ {
+				if v[i] == v[j] {
+					v = append(v[:j], v[j+1:]...)
+					j--
+				}
+			}
+		}
+
+		if len(v) == 0 {
+			params.Del(k)
+		} else {
+			params[k] = v
+		}
+	}
 }
