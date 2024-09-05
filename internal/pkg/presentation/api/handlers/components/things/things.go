@@ -62,7 +62,7 @@ func NewThingsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 }
 
 func composeViewModel(ctx context.Context, app application.ThingManagement, offset, limit int) (*components.ThingListViewModel, int, error) {
-	thingResult, err := app.GetThings(ctx, offset, limit)
+	thingResult, err := app.GetThings(ctx, offset, limit, nil)
 	if err != nil {
 		return nil, 0, err
 	}

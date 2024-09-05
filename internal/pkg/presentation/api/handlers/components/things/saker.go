@@ -31,7 +31,11 @@ func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
 
-		result, err := app.GetThings(ctx, offset, limit)
+		// remove args with values in template
+		args := r.URL.Query()
+		sanitizeParams(args, "page", "limit", "offset")
+
+		result, err := app.GetThings(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch things", http.StatusInternalServerError)
 			return
@@ -39,10 +43,6 @@ func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := float64(result.TotalRecords) / float64(limit)
-
-		// remove args with values in template
-		args := r.URL.Query()
-		sanitizeParams(args, "page", "limit", "offset")
 
 		model := ui.ThingsListViewModel{
 			Things: make([]ui.ThingViewModel, 0),
@@ -118,8 +118,11 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
-
-		result, err := app.GetThings(ctx, offset, limit)
+		
+		args := r.URL.Query()
+		sanitizeParams(args, "page", "limit", "offset")
+		
+		result, err := app.GetThings(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch things", http.StatusInternalServerError)
 			return
@@ -127,9 +130,6 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := float64(result.TotalRecords) / float64(limit)
-
-		args := r.URL.Query()
-		sanitizeParams(args, "page", "limit", "offset")
 
 		model := ui.ThingsListViewModel{
 			Things: make([]ui.ThingViewModel, 0),
