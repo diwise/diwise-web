@@ -19,8 +19,6 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		filterParams := extractFilterParamsFromRequest(r)
-
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
 
@@ -57,7 +55,7 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 			})
 		}
 
-		sensorList := components.Sensors(localizer, assets, listViewModel, r, filterParams)
+		sensorList := components.Sensors(localizer, assets, listViewModel)
 		page := components.StartPage(version, localizer, assets, sensorList)
 
 		w.Header().Add("Content-Type", "text/html")
@@ -83,18 +81,6 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 	}
 
 	return http.HandlerFunc(fn)
-}
-
-func extractFilterParamsFromRequest(r *http.Request) map[string][]string {
-	query := r.URL.Query()
-	filterParams := make(map[string][]string)
-
-	for key, values := range query {
-		if len(values) > 0 {
-			filterParams[key] = values
-		}
-	}
-	return filterParams
 }
 
 func composeViewModel(ctx context.Context, id string, app application.DeviceManagement) (*components.SensorDetailsViewModel, error) {

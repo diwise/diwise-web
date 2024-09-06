@@ -8,7 +8,6 @@ import (
 	"io"
 	"regexp"
 	"time"
-	"net/http"
 )
 
 type SensorViewModel struct {
@@ -74,11 +73,11 @@ templ SumOfStuff(l10n locale.Localizer, stats StatisticsViewModel) {
 	</div>
 }
 
-templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel, r *http.Request, filterParams map[string][]string) {
+templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
 	@Table(
 		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("status")), TableHeaderText(l10n.Get("deveui")), TableHeaderText(l10n.Get("batterylevel")), TableHeaderText(l10n.Get("lastseen"))),
 		TableData(tableRowsFromSensors(l10n, asset, sensors.Sensors)...),
-		DataTableFooter("6", "sensors", r, filterParams),
+		DataTableFooter("6", "sensors"),
 	)
 }
 
@@ -168,7 +167,7 @@ templ mapTableButtons(l10n locale.Localizer) {
 	</div>
 }
 
-templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel, r *http.Request, filterParams map[string][]string) {
+templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="sensor-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
 			<div class="">
@@ -181,7 +180,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 					//@SearchField(l10n)
-					@FilterSensors(l10n, filterParams)
+					@FilterSensors(l10n)
 				</div>
 				//@Button(Primary, l10n.Get("addthing"), "", HxUrl("get", (fmt.Sprintf("/components/sensors"))))
 				
@@ -190,14 +189,14 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 			<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
 				//Initialt tabellinnehåll
 				<div id="sensors-table" class="w-full">
-					@SensorTable(l10n, asset, sensors, r, filterParams)
+					@SensorTable(l10n, asset, sensors)
 				</div>
 			</div>
 			//Innehåll dolt, hämtas när man klickar på Lista/Karta
 			<div id="fragments" style="display: none;">
 				<div id="table" class="w-full">
 					<div id="sensors-table" class="w-full">
-						@SensorTable(l10n, asset, sensors, r, filterParams)
+						@SensorTable(l10n, asset, sensors)
 					</div>
 				</div>
 				<div id="mapview" class="w-full">
@@ -273,14 +272,9 @@ templ CheckboxButton(name string, l10n locale.Localizer) {
 	</button>
 }
 
-templ CheckboxList(id, target, hxInclude, hxGet, name string, options []string, l10n locale.Localizer, filterParams map[string][]string) {
+templ CheckboxList(id, target, hxInclude, hxGet, name string, options []string, l10n locale.Localizer) {
 	<div class="hidden absolute bg-gray-100 min-w-[160px] rounded-md shadow-lg z-10 p-4 group-hover:block">
-		<form id={ id } 
-			hx-trigger="change" 
-			hx-target={ target } 
-			hx-include={ hxInclude } 
-			hx-get={ fmt.Sprintf("%s?page=1%s", hxGet, buildQueryString("", "", filterParams)) }
-			hx-push-url="true" class="flex flex-col gap-1">
+				<form id={ id } hx-trigger="change" hx-target={ target } hx-include={ hxInclude } hx-get={ hxGet } hx-push-url="true" class="flex flex-col gap-1">
 			for _, option := range options {
 				<label class="flex justify-between items-center">
 					{ l10n.Get( option ) }
@@ -292,35 +286,16 @@ templ CheckboxList(id, target, hxInclude, hxGet, name string, options []string, 
 	</div>
 }
 
-/*templ CheckboxList(id, target, hxInclude, hxGet, name string, options []string, l10n locale.Localizer, filterParams map[string][]string) {
-    <div class="hidden absolute bg-gray-100 min-w-[160px] rounded-md shadow-lg z-10 p-4 group-hover:block">
-        <form id={ id } method="get" action="/components/tables/sensors" class="flex flex-col gap-1"
-              hx-trigger="change" 
-              hx-target={ target } 
-              hx-include={ hxInclude } 
-              hx-get={ fmt.Sprintf("%s?%s", hxGet, buildQueryString("", filterParams)) } 
-              hx-push-url="true">
-            for _, option := range options {
-                <label class="flex justify-between items-center">
-                    { l10n.Get( option ) }
-                    <input type="checkbox" name={ name } value={ option } class="sr-only peer form-checkbox cursor-pointer">
-                    @CustomCheckbox()
-                </label>
-            }
-        </form>
-    </div>
-}*/
-
-templ FilterSensors(l10n locale.Localizer, filterParams map[string][]string) {
+templ FilterSensors(l10n locale.Localizer) {
 	<div class="flex items-center flex-[1_0_0] gap-6">
 		<div class="relative inline-block group">
 			@CheckboxButton("status", l10n)
-			@CheckboxList("statusForm", "#fragments", "#tenantForm", "/sensors", "status", []string{"active", "inactive", "unregistered"}, l10n, filterParams)
+			@CheckboxList("statusForm", "#fragments", "#tenantForm", "/sensors", "status", []string{"active", "inactive", "unregistered"}, l10n)
 		</div>
 
 		<div class="relative inline-block group">
 			@CheckboxButton("organisation", l10n)
-			@CheckboxList("tenantForm", "#fragments", "#statusForm", "/sensors", "tenant", []string{"MSVA", "Servanet", "Default"}, l10n, filterParams)
+			@CheckboxList("tenantForm", "#fragments", "#statusForm", "/sensors", "tenant", []string{"MSVA", "Servanet", "Default"}, l10n)
 		</div>
 
 

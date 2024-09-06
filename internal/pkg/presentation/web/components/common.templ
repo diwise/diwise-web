@@ -264,65 +264,17 @@ templ OptionCheckboxes(options []OptionViewModel) {
 }
 
 templ CheckboxDropdownList(id string, options []OptionViewModel, buttonText string) {
-	<div class="flex">
-		<div
-			x-data="{
-				open: false,
-				toggle() {
-					if (this.open) {
-						return this.close()
-					}
-	
-					this.$refs.button.focus()
-	
-					this.open = true
-				},
-				close(focusAfter) {
-					if (! this.open) return
-	
-					this.open = false
-	
-					focusAfter && focusAfter.focus()
-				}
-			}"
-			x-on:keydown.escape.prevent.stop="close($refs.button)"
-			x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
-			x-id="['dropdown-button']"
-			class="relative w-full"
-		>
-			<button
-				for={ id }
-				x-ref="button"
-				x-on:click="toggle()"
-				:aria-expanded="open"
-				:aria-controls="$id('dropdown-button')"
-				type="button"
-				class="flex items-center justify-between w-full block font-medium"
-			>
-				{ buttonText }
-				<svg class="w-[18px] h-[18px] dark:fill-white">
-					@templ.Raw(iconSVG("chevron-down"))
-				</svg>
-			</button>
-			<div
-				x-ref="panel"
-				x-show="open"
-				x-transition.origin.top.left
-				x-on:click.outside="close($refs.button)"
-				:id="$id('dropdown-button')"
-				style="display: none;"
-				class="absolute left-0 mt-3 py-2 rounded-md bg-white shadow-md"
-			>
-				<div id={ id } class="flex flex-col w-full">
-					@OptionCheckboxes(options)
-				</div>
+	<div class="relative w-full inline-block group">
+		<button type="button" class="flex items-center justify-between p-2 w-full font-medium cursor-pointer">
+			{ buttonText }
+			<svg class="w-[18px] h-[18px] dark:fill-white">
+				@templ.Raw(iconSVG("chevron-down"))
+			</svg>
+		</button>
+		<div class="hidden absolute z-10 py-2 rounded-md bg-white shadow-md group-hover:block hover:block">
+			<div class="flex flex-col w-full">
+				@OptionCheckboxes(options)
 			</div>
 		</div>
 	</div>
-	/*<details class="dropdown">
-		<summary for={ id } class="dropdown-label block text-sm font-medium text-gray-700">Välj</summary>
-		<div id={ id } class="dropdown-content px-2 pt-2 bg-white">
-			@OptionCheckboxes(options)
-		</div>
-	</details>*/
 }
