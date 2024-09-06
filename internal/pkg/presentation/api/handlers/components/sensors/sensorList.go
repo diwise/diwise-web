@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
@@ -124,7 +123,7 @@ func getBatterLevel(ctx context.Context, app application.DeviceManagement, devic
 		if len(data.Values) > 0 && data.Values[0].Value != nil {
 			v := int(math.Min(math.Max(*data.Values[0].Value, 0), 100))
 			return v
-		}		
+		}
 	}
 
 	return -1
@@ -194,14 +193,13 @@ func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asse
 			components.PageLast, int(math.Ceil(pageLast)),
 			components.PageSize, limit,
 		)
-		/*
-			err = component.Render(ctx, w)
-			if err != nil {
-				http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-			}
-		*/
+
+		err = component.Render(ctx, w)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
+		}
+
 		w.WriteHeader(http.StatusOK)
-		templ.Handler(component, templ.WithStreaming()).ServeHTTP(w, r)
 
 	}
 	return http.HandlerFunc(fn)
