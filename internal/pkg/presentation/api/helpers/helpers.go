@@ -3,6 +3,7 @@ package helpers
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"strconv"
 )
 
@@ -75,4 +76,79 @@ func GetOffsetAndLimit(r *http.Request) (offset, limit int) {
 
 	offset = (index - 1) * limit
 	return
+}
+
+func PagerIndexes(pageIndex, pageCount int) []int64 {
+	start := int64(pageIndex)
+	last := int64(pageCount)
+
+	const PagerWidth int64 = 6
+
+	start -= (PagerWidth / 2)
+
+	if start > (last - PagerWidth) {
+		start = last - PagerWidth
+	}
+
+	if start < 1 {
+		start = 1
+	}
+
+	result := []int64{}
+
+	if start != 1 {
+		start = start + 1
+		result = append(result, 1, start)
+	} else {
+		result = append(result, 1)
+	}
+
+	page := start + 1
+
+	for len(result) < int(PagerWidth) {
+		if page >= last {
+			break
+		}
+
+		result = append(result, page)
+		page = page + 1
+	}
+
+	if result[len(result)-1] < last {
+		result = append(result, last)
+	}
+
+	return result
+}
+
+func SanitizeParams(params url.Values, keys ...string) {
+	if len(keys) > 0 {
+		for _, k := range keys {
+			params.Del(k)
+		}
+	}
+
+	for k, v := range params {
+		for i := 0; i < len(v); i++ {
+			if v[i] == "" {
+				v = append(v[:i], v[i+1:]...)
+				i--
+			}
+		}
+
+		for i := 0; i < len(v); i++ {
+			for j := i + 1; j < len(v); j++ {
+				if v[i] == v[j] {
+					v = append(v[:j], v[j+1:]...)
+					j--
+				}
+			}
+		}
+
+		if len(v) == 0 {
+			params.Del(k)
+		} else {
+			params[k] = v
+		}
+	}
 }

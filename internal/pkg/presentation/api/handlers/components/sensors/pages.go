@@ -26,7 +26,7 @@ func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.As
 			components.CurrentComponent, "sensors",
 		)
 
-		sensorResult, err := app.GetSensors(ctx, offset, limit)
+		sensorResult, err := app.GetSensors(ctx, offset, limit, nil)
 		if err != nil {
 			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
 			return

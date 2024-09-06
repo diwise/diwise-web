@@ -200,7 +200,7 @@ func NewTableSensorsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 
 		ctx := logging.NewContextWithLogger(r.Context(), log)
 
-		sensorResult, err := app.GetSensors(ctx, offset, limit)
+		sensorResult, err := app.GetSensors(ctx, offset, limit, nil)
 		if err != nil {
 			http.Error(w, "could not fetch sensors", http.StatusBadRequest)
 			return

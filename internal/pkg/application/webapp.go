@@ -121,10 +121,14 @@ func (a *App) GetSensor(ctx context.Context, id string) (Sensor, error) {
 	return sensor, nil
 }
 
-func (a *App) GetSensors(ctx context.Context, offset, limit int) (SensorResult, error) {
+func (a *App) GetSensors(ctx context.Context, offset, limit int, args map[string][]string) (SensorResult, error) {
 	params := url.Values{}
 	params.Add("limit", fmt.Sprintf("%d", limit))
 	params.Add("offset", fmt.Sprintf("%d", offset))
+
+	for k, v := range args {
+		params[k] = v
+	}
 
 	res, err := a.get(ctx, a.deviceManagementURL, "", params)
 	if err != nil {

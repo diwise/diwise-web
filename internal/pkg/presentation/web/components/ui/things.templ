@@ -8,15 +8,6 @@ import (
 	"time"
 )
 
-type PagingViewModel struct {
-	PageIndex int
-	PageLast  int
-	PageSize  int
-	Offset    int
-	Pages     []int64
-	Query     string
-}
-
 type ThingsListViewModel struct {
 	Things  []ThingViewModel
 	Pageing PagingViewModel
@@ -41,8 +32,6 @@ type ThingViewModel struct {
 	Tenant       string
 	Measurements []MeasurementViewModel
 }
-
-const tableURL string = "/components/tables/saker"
 
 templ ThingsTable(l10n locale.Localizer, model ThingsListViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
@@ -136,6 +125,7 @@ func SewagePumpingstationCell(l10n locale.Localizer, thing ThingViewModel) templ
 
 	return Text(state)
 }
+
 func SewerCell(l10n locale.Localizer, thing ThingViewModel) templ.Component {
 	i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
 		return strings.HasSuffix(m.ID, "3330/5700") // Distance/Sensor value
@@ -160,49 +150,16 @@ func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component
 	return ProgressBar(fmt.Sprintf("pb_%s", t.ID), int(*t.Measurements[i].Value))
 }
 
-templ Text(text string) {
-	{ text }
-}
-
-templ ProgressBar(id string, v int) {
-	<progress id={ id } max="100" value={ fmt.Sprintf("%d", v) }></progress><span>{ fmt.Sprintf("%d", v) }%</span>
-}
-
-templ CheckboxOption(name, value string) {
-	<label class="flex justify-between items-center">
-		{ value }
-		<input
-			type="checkbox"
-			name={ name }
-			value={ value }
-			class="filter sr-only peer form-checkbox cursor-pointer"
-			hx-trigger="change"
-			hx-get={ string(templ.SafeURL(tableURL)) }
-			hx-include=".filter"
-			hx-target="#things-table"
-		/>
-		<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-			<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M20 6 9 17l-5-5"></path></svg>
-		</div>
-	</label>
-}
-
-templ CheckboxList(header string) {
-	<div class="relative inline-block group">
-		<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg">{ header } <svg class="w-[18px] h-[18px] dark:fill-white"><path fill-rule="evenodd" d="M3.97 6.22a.75.75 0 0 1 1.06 0L9 10.19l3.97-3.97a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path></svg></button>
-		<div class="hidden absolute bg-gray-100 min-w-[160px] rounded-md shadow-lg z-10 p-4 group-hover:block">
-			{ children... }
-		</div>
-	</div>
-}
-
 templ TableOrMapButtons(l10n locale.Localizer) {
 	<div class="w-full h-12 justify-between items-center inline-flex">
 		<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 			<div class="flex items-center flex-[1_0_0] gap-6">
 				@CheckboxList(l10n.Get("Typ")) {
 					for _, t := range []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation"} {
-						@CheckboxOption("type", t)
+						@CheckboxOption("type", t, templ.Attributes{
+							"hx-get":    string(templ.SafeURL("/components/tables/saker")),
+							"hx-target": "#things-table",
+						})
 					}
 				}
 			</div>
@@ -242,67 +199,4 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 			</div>
 		</div>
 	</div>
-}
-
-templ Paging(l10n locale.Localizer, p PagingViewModel) {
-	<div id="paginering" class="relative w-full h-[60px] px-4 py-3.5 rounded-b-2xl border-white border-opacity-30 justify-between items-center flex">
-		<div class="h-8 justify-start items-center gap-2 flex">
-			<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{ l10n.Get("Rader per sida") }:</span>
-			<div class="relative inline-flex h-8 bg-white bg-opacity-50 rounded-xl border border-input-surface border-opacity-50">
-				<select
-					id="pageSizeSelector"
-					class="filter appearance-none outline-none px-3 py-1.5 bg-transparent text-sm font-normal font-sans leading-tight w-full h-full cursor-pointer"
-					name="limit"
-				>
-					<option value="5" selected>5</option>
-					<option value="10">10</option>
-					<option value="20">20</option>
-					<option value="50">50</option>
-					<option value="100">100</option>
-				</select>
-				<div class="absolute inset-y-0 right-0 pr-1 flex items-center pointer-events-none"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 text-zinc-700 dark:text-neutral-200"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></div>
-			</div>
-		</div>
-		<div class="absolute inset-0 flex justify-center items-center">
-			@PageButton(p.PageIndex-1, tableURL, p.Query, "#things-table") {
-				<span class="w-5 h-5"><svg class="fill-dark-primary dark:fill-zinc-100 w-5 h-5" viewBox="0 0 20 20"><g fill-rule="evenodd" clip-rule="evenodd"><path d="M11.09 3.577a.833.833 0 0 1 0 1.179L5.844 10l5.244 5.244a.833.833 0 0 1-1.178 1.179l-5.834-5.834a.833.833 0 0 1 0-1.178l5.834-5.834a.833.833 0 0 1 1.178 0Z"></path><path d="M3.833 10c0-.46.373-.833.834-.833h11.666a.833.833 0 0 1 0 1.666H4.667A.833.833 0 0 1 3.833 10Z"></path></g></svg></span>
-			}
-			<span class="h-7 px-3 justify-between items-center flex">
-				for _, page := range p.Pages {
-					@PageButton(int(page), tableURL, p.Query, "#things-table") {
-						<div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex py-0.5 ">
-							<div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-300 text-base font-normal font-sans underline leading-normal">{ fmt.Sprintf("%d", page) }</div>
-						</div>
-					}
-				}
-			</span>
-			@PageButton(p.PageIndex+1, tableURL, p.Query, "#things-table") {
-				<span class="w-5 h-5"><svg class="fill-dark-primary dark:fill-zinc-100 w-5 h-5" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></span>
-			}
-		</div>
-	</div>
-}
-
-templ PageButton(pageIndex int, hxGet, query, hxTarget string) {
-	<button
-		class="flex-col justify-start items-start inline-flex"
-		if hxGet != "" {
-			if query != "" {
-				hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?page=%d&%s", hxGet, pageIndex, query))) }
-			} else {
-				hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?page=%d", hxGet, pageIndex))) }
-			}
-		}
-		if hxTarget != "" {
-			if strings.HasPrefix(hxTarget, "#") {
-				hx-target={ hxTarget }
-			} else {
-				hx-target={ fmt.Sprintf("#%s", hxTarget) }
-			}
-		}
-		hx-trigger="click"
-		hx-include=".filter"
-	>
-		{ children... }
-	</button>
 }

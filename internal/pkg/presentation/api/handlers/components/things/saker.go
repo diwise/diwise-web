@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math"
 	"net/http"
-	"net/url"
 	"strconv"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
@@ -33,7 +32,7 @@ func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 
 		// remove args with values in template
 		args := r.URL.Query()
-		sanitizeParams(args, "page", "limit", "offset")
+		helpers.SanitizeParams(args, "page", "limit", "offset")
 
 		result, err := app.GetThings(ctx, offset, limit, args)
 		if err != nil {
@@ -51,7 +50,7 @@ func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 				PageLast:  int(math.Ceil(pageLast)),
 				PageSize:  limit,
 				Offset:    offset,
-				Pages:     pagerIndexes(pageIndex_, int(math.Ceil(pageLast))),
+				Pages:     helpers.PagerIndexes(pageIndex_, int(math.Ceil(pageLast))),
 				Query:     args.Encode(),
 			},
 		}
@@ -91,6 +90,8 @@ func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 			components.PageSize, limit,
 		)
 
+		//templ.Handler(component, templ.WithStreaming()).ServeHTTP(w, r)
+
 		err = component.Render(ctx, w)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
@@ -118,10 +119,10 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
-		
+
 		args := r.URL.Query()
-		sanitizeParams(args, "page", "limit", "offset")
-		
+		helpers.SanitizeParams(args, "page", "limit", "offset")
+
 		result, err := app.GetThings(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch things", http.StatusInternalServerError)
@@ -138,8 +139,10 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 				PageLast:  int(math.Ceil(pageLast)),
 				PageSize:  limit,
 				Offset:    offset,
-				Pages:     pagerIndexes(pageIndex_, int(math.Ceil(pageLast))),
+				Pages:     helpers.PagerIndexes(pageIndex_, int(math.Ceil(pageLast))),
 				Query:     args.Encode(),
+				TargetURL: "/components/tables/saker",
+				TargetID: "#things-table",
 			},
 		}
 
@@ -188,79 +191,4 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 
 	}
 	return http.HandlerFunc(fn)
-}
-
-func pagerIndexes(pageIndex, pageCount int) []int64 {
-	start := int64(pageIndex)
-	last := int64(pageCount)
-
-	const PagerWidth int64 = 6
-
-	start -= (PagerWidth / 2)
-
-	if start > (last - PagerWidth) {
-		start = last - PagerWidth
-	}
-
-	if start < 1 {
-		start = 1
-	}
-
-	result := []int64{}
-
-	if start != 1 {
-		start = start + 1
-		result = append(result, 1, start)
-	} else {
-		result = append(result, 1)
-	}
-
-	page := start + 1
-
-	for len(result) < int(PagerWidth) {
-		if page >= last {
-			break
-		}
-
-		result = append(result, page)
-		page = page + 1
-	}
-
-	if result[len(result)-1] < last {
-		result = append(result, last)
-	}
-
-	return result
-}
-
-func sanitizeParams(params url.Values, keys ...string) {
-	if len(keys) > 0 {
-		for _, k := range keys {
-			params.Del(k)
-		}
-	}
-
-	for k, v := range params {
-		for i := 0; i < len(v); i++ {
-			if v[i] == "" {
-				v = append(v[:i], v[i+1:]...)
-				i--
-			}
-		}
-
-		for i := 0; i < len(v); i++ {
-			for j := i + 1; j < len(v); j++ {
-				if v[i] == v[j] {
-					v = append(v[:j], v[j+1:]...)
-					j--
-				}
-			}
-		}
-
-		if len(v) == 0 {
-			params.Del(k)
-		} else {
-			params[k] = v
-		}
-	}
 }
