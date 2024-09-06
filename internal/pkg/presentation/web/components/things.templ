@@ -69,7 +69,6 @@ templ Things(l10n locale.Localizer, asset assets.AssetLoaderFunc, things ThingLi
 				//@tableMapSwitch("mapview", "Karta", iconSVG("map"))
 				@mapTableButtons(l10n)
 			</div>
-			//@PickedFilters()	
 			<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
 				//Initialt listinnehåll
 				<div id="things-table" class="w-full">
@@ -189,37 +188,6 @@ templ FilterThings(l10n locale.Localizer) {
 		<div class="relative inline-block group">
 			@CheckboxButton("status", l10n)
 			@CheckboxList("statusForm", "#fragments", "#typeForm", "/things", "status", []string{"active", "inactive", "unregistered"}, l10n)
-		</div>
-	</div>
-}
-
-templ PickedFilters() {
-	<div class="flex flex-col gap-4 w-full">
-		<div class="w-full h-10 justify-items-start inline-flex text-primary-dark dark:text-white gap-3">
-			<div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
-				Soptunna
-				<svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
-					@templ.Raw(iconSVG("close"))
-				</svg>
-			</div>
-			<div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
-				Centrum
-				<svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
-					@templ.Raw(iconSVG("close"))
-				</svg>
-			</div>
-			<div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
-				Kvissleby
-				<svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
-					@templ.Raw(iconSVG("close"))
-				</svg>
-			</div>
-			<div class="flex items-center justify-start text-left px-6 border-2 border-gray-30 border-opacity-30 dark:border-white-30 rounded-xl">
-				0-70%
-				<svg class="w-[24px] h-[24px] stroke-primary-dark stroke-2 dark:stroke-white">
-					@templ.Raw(iconSVG("close"))
-				</svg>
-			</div>
 		</div>
 	</div>
 }
