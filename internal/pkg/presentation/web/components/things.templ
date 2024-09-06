@@ -44,7 +44,7 @@ templ ThingTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, things Thi
 	@Table(
 		HeaderRow(TableHeaderText(l10n.Get("ID")), TableHeaderText(l10n.Get("type")), TableHeaderText(l10n.Get("status"))),
 		TableData(tableRowsFromThings(l10n, asset, things.Things)...),
-		DataTableFooter("3", "things"),
+		DataTableFooter("3", "things"), l10n,
 	)
 }
 

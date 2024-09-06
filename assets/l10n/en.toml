@@ -121,6 +121,9 @@ other = "Save"
 [search]
 other = "Search"
 
+[selectedfilters]
+other = "Selected filters:"
+
 [sensorconnected]
 other = "Connected sensor"
 
