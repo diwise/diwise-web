@@ -33,6 +33,7 @@ type StatisticsViewModel struct {
 	Unknown  int
 }
 
+// TODO: url till /components/sensors/list som hämtar tableOrMap/DataList
 templ Statistics(l10n locale.Localizer, model StatisticsViewModel) {
 	<div class="flex items-start gap-10 dark:text-white">
 		<div class="flex items-start gap-2">{ l10n.Get("Totalt") }<span class="font-bold">{ fmt.Sprintf("%d", model.Total) } </span></div>
