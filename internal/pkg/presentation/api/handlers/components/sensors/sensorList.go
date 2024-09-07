@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
@@ -44,36 +44,20 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		}
 
 		pageIndex_, _ := strconv.Atoi(pageIndex)
-		pageLast := float64(result.TotalRecords) / float64(limit)
+		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 
 		model := ui.SensorListViewModel{
-			Statistics: getStatistics(ctx, app),
-			Sensors:    make([]ui.SensorViewModel, 0),
-			Pageing: ui.PagingViewModel{
-				PageIndex: pageIndex_,
-				PageLast:  int(math.Ceil(pageLast)),
-				PageSize:  limit,
-				Offset:    offset,
-				Pages:     helpers.PagerIndexes(pageIndex_, int(math.Ceil(pageLast))),
-				Query:     args.Encode(),
-				TargetURL: "/components/tables/sensors",
-				TargetID:  "#sensors-table",
-			},
+			Sensors: make([]ui.SensorViewModel, 0),
+			Pageing: getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 		}
 
 		for _, sensor := range result.Sensors {
-			tvm := ui.SensorViewModel{
-				HasAlerts:    false,
-				Active:       sensor.Active,
-				DeviceID:     sensor.DeviceID,
-				DevEUI:       sensor.SensorID,
-				Name:         sensor.Name,
-				BatteryLevel: getBatterLevel(ctx, app, sensor.DeviceID),
-				LastSeen:     sensor.DeviceState.ObservedAt,
-			}
-
+			tvm := sensorToViewModel(sensor)
+			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor.DeviceID)
 			model.Sensors = append(model.Sensors, tvm)
 		}
+
+		model.Statistics = getStatistics(ctx, app)
 
 		sensorList := ui.SensorsList(localizer, model)
 		page := components.StartPage(version, localizer, assets, sensorList)
@@ -81,7 +65,7 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		ctx = helpers.Decorate(
 			ctx,
 			components.PageIndex, pageIndex_,
-			components.PageLast, int(math.Ceil(pageLast)),
+			components.PageLast, pageLast,
 			components.PageSize, limit,
 		)
 
@@ -91,6 +75,65 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		if err != nil {
 			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
 		}
+
+	}
+	return http.HandlerFunc(fn)
+}
+
+func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+
+		ctx = helpers.Decorate(
+			r.Context(),
+			components.CurrentComponent, "sensors",
+		)
+
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
+		offset, limit := helpers.GetOffsetAndLimit(r)
+
+		args := r.URL.Query()
+		helpers.SanitizeParams(args, "page", "limit", "offset")
+
+		result, err := app.GetSensors(ctx, offset, limit, args)
+		if err != nil {
+			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
+			return
+		}
+
+		pageIndex_, _ := strconv.Atoi(pageIndex)
+		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
+
+		model := ui.SensorListViewModel{
+			Statistics: ui.StatisticsViewModel{},
+			Sensors:    make([]ui.SensorViewModel, 0),
+			Pageing:    getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+		}
+
+		for _, sensor := range result.Sensors {
+			tvm := sensorToViewModel(sensor)
+			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor.DeviceID)
+			model.Sensors = append(model.Sensors, tvm)
+		}
+
+		component := ui.SensorsTable(localizer, model)
+
+		ctx = helpers.Decorate(
+			ctx,
+			components.PageIndex, pageIndex_,
+			components.PageLast, pageLast,
+			components.PageSize, limit,
+		)
+
+		err = component.Render(ctx, w)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
+		}
+
+		w.WriteHeader(http.StatusOK)
 
 	}
 	return http.HandlerFunc(fn)
@@ -130,82 +173,27 @@ func getBatterLevel(ctx context.Context, app application.DeviceManagement, devic
 	return -1
 }
 
-func newSensorTableComponent() templ.Component {
-	return templ.NopComponent
+func sensorToViewModel(sensor application.Sensor) ui.SensorViewModel {
+	return ui.SensorViewModel{
+		HasAlerts:    false,
+		Active:       sensor.Active,
+		DeviceID:     sensor.DeviceID,
+		DevEUI:       sensor.SensorID,
+		Name:         sensor.Name,
+		BatteryLevel: 0,
+		LastSeen:     sensor.DeviceState.ObservedAt,
+	}
 }
 
-func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
-
-		ctx = helpers.Decorate(
-			r.Context(),
-			components.CurrentComponent, "sensors",
-		)
-
-		localizer := l10n.For(r.Header.Get("Accept-Language"))
-		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
-		offset, limit := helpers.GetOffsetAndLimit(r)
-
-		args := r.URL.Query()
-		helpers.SanitizeParams(args, "page", "limit", "offset")
-
-		result, err := app.GetSensors(ctx, offset, limit, args)
-		if err != nil {
-			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
-			return
-		}
-
-		pageIndex_, _ := strconv.Atoi(pageIndex)
-		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
-
-		model := ui.SensorListViewModel{
-			Statistics: ui.StatisticsViewModel{},
-			Sensors:    make([]ui.SensorViewModel, 0),
-			Pageing: ui.PagingViewModel{
-				PageIndex: pageIndex_,
-				PageLast:  pageLast,
-				PageSize:  limit,
-				Offset:    offset,
-				Pages:     helpers.PagerIndexes(pageIndex_, pageLast),
-				Query:     args.Encode(),
-				TargetURL: "/components/tables/sensors",
-				TargetID:  "#sensors-table",
-			},
-		}
-
-		for _, sensor := range result.Sensors {
-			tvm := ui.SensorViewModel{
-				HasAlerts:    false,
-				Active:       sensor.Active,
-				DeviceID:     sensor.DeviceID,
-				DevEUI:       sensor.SensorID,
-				Name:         sensor.Name,
-				BatteryLevel: getBatterLevel(ctx, app, sensor.DeviceID),
-				LastSeen:     sensor.DeviceState.ObservedAt,
-			}
-
-			model.Sensors = append(model.Sensors, tvm)
-		}
-
-		component := ui.SensorsTable(localizer, model)
-
-		ctx = helpers.Decorate(
-			ctx,
-			components.PageIndex, pageIndex_,
-			components.PageLast, pageLast,
-			components.PageSize, limit,
-		)
-
-		err = component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-
+func getPaging(pageIndex, pageLast, pageSize, offset int, pages []int64, args url.Values) ui.PagingViewModel {
+	return ui.PagingViewModel{
+		PageIndex: pageIndex,
+		PageLast:  pageLast,
+		PageSize:  pageSize,
+		Offset:    offset,
+		Pages:     pages,
+		Query:     args.Encode(),
+		TargetURL: "/components/tables/sensors",
+		TargetID:  "#sensors-table",
 	}
-	return http.HandlerFunc(fn)
 }

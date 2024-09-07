@@ -1,0 +1,190 @@
+package ui
+
+type mapData struct {
+	Latitude  float64
+	Longitude float64
+	Zoom      int
+}
+
+func newMapData(lat, lon float64) mapData {
+	md := mapData{Latitude: lat, Longitude: lon, Zoom: 15}
+
+	if md.Latitude < 1 {
+		md.Latitude = 62.3908
+		md.Longitude = 17.3069
+		md.Zoom = 9
+	}
+
+	return md
+}
+
+func NewFeatureCollection(features []Feature) FeatureCollection {
+	return FeatureCollection{
+		Type:     "FeatureCollection",
+		Features: features,
+	}
+}
+
+type FeatureCollection struct {
+	Type     string    `json:"type"`
+	Features []Feature `json:"features"`
+}
+
+func NewFeature(point Point) Feature {
+	return Feature{
+		Type:       "Feature",
+		Geometry:   point,
+		Properties: make(map[string]any),
+	}
+}
+
+type Feature struct {
+	Type       string         `json:"type"`
+	Geometry   Point          `json:"geometry"`
+	Properties map[string]any `json:"properties"`
+}
+
+func (f *Feature) AddProperty(key string, value any) {
+	f.Properties[key] = value
+}
+
+func NewPoint(lat, lon float64) Point {
+	return Point{
+		Type:        "Point",
+		Coordinates: []float64{lon, lat},
+	}
+}
+
+type Point struct {
+	Type        string    `json:"type"`
+	Coordinates []float64 `json:"coordinates"`
+}
+
+templ Map(data mapData, featureCollection ...FeatureCollection) {
+	<div id="map" class="h-96 w-full" data-map={ templ.JSONString(data) } data-features={ templ.JSONString(featureCollection) }></div>
+	<script>
+    (() => {
+        const m = document.getElementById('map');
+        const mapData = JSON.parse(m.getAttribute('data-map'));
+        const geodata = JSON.parse(m.getAttribute('data-features'));
+
+        var map = L.map('map').setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            //attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        }).addTo(map);
+
+        var sensorIcon = L.icon({
+            iconUrl: '/assets/092df4bb8f2c8826dd2f1b5c79a16a145d421f40d28c4656a6205cd4816766ac/sensor.svg',  
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+        
+        var trashcanIcon = L.icon({
+            iconUrl: '/assets/9bd4aeb2359eb2bc87a6efc62db884c7beea143a0f7f822330b075bb9e613922/trashcan.svg',  
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        var lifebuoyIcon = L.icon({
+            iconUrl: '/assets/70586d0ec04481509c957c9c53e29e8dff01ccdff43490521c6748cef7301dea/lifebuoy.svg',
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        var thermometerIcon = L.icon({
+            iconUrl: '/assets/f1fb89b6ac04649840b18d82bd99c07e0bd15dabb4e1a571d5268f89e7b90c33/thermometer.svg',
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        var drainIcon = L.icon({
+            iconUrl: '/assets/4b6f555f94417954a8a1d3eace3803fed8bed1a57821134a6f75079d85b4989b/drain.svg',
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        var layers = {};
+
+        if (geodata && Array.isArray(geodata)) {
+            geodata.forEach(data => {
+                var type = data.features[0].properties.type;
+                var icon;
+
+                switch (type) {
+                    case 'sensor':
+                        icon = sensorIcon;
+                        break;
+                    case 'trashcan':
+                        icon = trashcanIcon;
+                        break;
+                    case 'lifebuoy':
+                        icon = lifebuoyIcon;
+                        break;
+                    case 'thermometer':
+                        icon = thermometerIcon;
+                        break;
+                    case 'drain':
+                        icon = drainIcon;
+                        break;
+                    default:
+                        icon = null;
+                }
+
+                var layerGroup = layers[type] = L.geoJSON(data, {
+                    pointToLayer: function(feature, latlng) {
+                        return L.marker(latlng, { icon: icon });
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.bindPopup(feature.properties.desc);
+                    }
+                }).addTo(map);
+
+            });
+        }
+
+        L.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
+
+        function getBoundsCoordinates() {
+            var bounds = map.getBounds();
+
+            var southwest = bounds.getSouthWest();
+            var northeast = bounds.getNorthEast();
+
+            // Uppdatera URL med bounds
+            var newUrl = new URL(window.location.href);
+            newUrl.searchParams.set('bounds', `[${southwest.lat},${southwest.lng};${northeast.lat},${northeast.lng}]`);
+            window.history.replaceState({}, '', newUrl);
+
+        }
+
+        // Kontrollera hörnkoordinater när kartan laddas och vid varje dragning eller zoomning
+        map.on('load moveend zoomend', getBoundsCoordinates);
+
+        /*
+        document.querySelectorAll('.map-checkbox').forEach(checkbox => {
+            checkbox.onchange = function() {
+                var layerGroup = layers[this.id.replace('show', '').toLowerCase()];
+                if (this.checked) {
+                    layerGroup.addTo(map);
+                } else {
+                    map.removeLayer(layerGroup);
+                }
+            }
+        });
+        */
+
+    })()
+    </script>
+}
