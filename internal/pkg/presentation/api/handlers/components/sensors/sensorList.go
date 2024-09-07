@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
@@ -129,6 +130,10 @@ func getBatterLevel(ctx context.Context, app application.DeviceManagement, devic
 	return -1
 }
 
+func newSensorTableComponent() templ.Component {
+	return templ.NopComponent
+}
+
 func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
@@ -154,17 +159,17 @@ func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asse
 		}
 
 		pageIndex_, _ := strconv.Atoi(pageIndex)
-		pageLast := float64(result.TotalRecords) / float64(limit)
+		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 
 		model := ui.SensorListViewModel{
 			Statistics: ui.StatisticsViewModel{},
 			Sensors:    make([]ui.SensorViewModel, 0),
 			Pageing: ui.PagingViewModel{
 				PageIndex: pageIndex_,
-				PageLast:  int(math.Ceil(pageLast)),
+				PageLast:  pageLast,
 				PageSize:  limit,
 				Offset:    offset,
-				Pages:     helpers.PagerIndexes(pageIndex_, int(math.Ceil(pageLast))),
+				Pages:     helpers.PagerIndexes(pageIndex_, pageLast),
 				Query:     args.Encode(),
 				TargetURL: "/components/tables/sensors",
 				TargetID:  "#sensors-table",
@@ -190,7 +195,7 @@ func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asse
 		ctx = helpers.Decorate(
 			ctx,
 			components.PageIndex, pageIndex_,
-			components.PageLast, int(math.Ceil(pageLast)),
+			components.PageLast, pageLast,
 			components.PageSize, limit,
 		)
 
