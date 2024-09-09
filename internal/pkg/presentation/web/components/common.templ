@@ -35,12 +35,14 @@ templ Paging(l10n locale.Localizer, p PagingViewModel) {
 					id="pageSizeSelector"
 					class="filter appearance-none min-w-[80px] outline-none px-3 py-1.5 bg-transparent text-sm font-bold font-sans leading-tight cursor-pointer"
 					name="limit"
+					hx-get={ p.TargetURL }
+					hx-target={ p.TargetID }
 				>
-					<option value="5" selected>5 st</option>
-					<option value="10">10 st</option>
-					<option value="20">20 st</option>
-					<option value="50">50 st</option>
-					<option value="100">100 st</option>
+					<option value="5" selected?={ p.PageSize == 5 }>5 st</option>
+					<option value="10" selected?={ p.PageSize == 10 }>10 st</option>
+					<option value="15" selected?={ p.PageSize == 15 }>15 st</option>
+					<option value="50" selected?={ p.PageSize == 50 }>50 st</option>
+					<option value="100" selected?={ p.PageSize == 100 }>100 st</option>
 				</select>
 				<div class="absolute flex inset-y-0 right-0 px-2 items-center pointer-events-none">
 					<svg class="w-[18px] h-[18px] dark:fill-white">
@@ -66,8 +68,7 @@ templ Paging(l10n locale.Localizer, p PagingViewModel) {
 				<span class="w-5 h-5"><svg class="fill-dark-primary dark:fill-zinc-100 w-5 h-5" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></span>
 			}
 		</div>
-		<div class="h-8 justify-end items-center gap-2 flex flex-1">
-		</div>
+		<div class="h-8 justify-end items-center gap-2 flex flex-1"></div>
 	</div>
 }
 
