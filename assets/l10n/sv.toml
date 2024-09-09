@@ -115,6 +115,9 @@ other = "Översikt"
 [pickOption]
 other = "Välj ett alternativ"
 
+[rowsPerPage]
+other = "Rader per sida"
+
 [save]
 other = "Spara"
 

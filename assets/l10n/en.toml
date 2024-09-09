@@ -115,6 +115,9 @@ other = "Overview"
 [pickOption]
 other = "Pick an option"
 
+[rowsPerPage]
+other = "Rows per page"
+
 [save]
 other = "Save"
 

@@ -23,7 +23,7 @@ type SensorViewModel struct {
 	BatteryLevel int
 	LastSeen     time.Time
 	HasAlerts    bool
-	Type         string
+	Type		 string
 }
 
 type StatisticsViewModel struct {
@@ -36,10 +36,10 @@ type StatisticsViewModel struct {
 
 templ Statistics(l10n locale.Localizer, model StatisticsViewModel) {
 	<div class="flex items-start gap-10 dark:text-white">
-		<div class="flex items-start gap-2">{ l10n.Get("Totalt") }<span class="font-bold">{ fmt.Sprintf("%d", model.Total) } </span></div>
-		<div class="flex items-start gap-2">{ l10n.Get("Aktiva") }<span class="font-bold">{ fmt.Sprintf("%d", model.Active) }</span></div>
-		<div class="flex items-start gap-2">{ l10n.Get("Inaktiva") }<span class="font-bold">{ fmt.Sprintf("%d", model.Inactive) }</span></div>
-		<div class="flex items-start gap-2">{ l10n.Get("Oregistrerade") }<span class="font-bold">{ fmt.Sprintf("%d", model.Unknown) }</span></div>
+		<div class="flex items-start gap-2">{ l10n.Get("total") }<span class="font-bold">{ fmt.Sprintf("%d", model.Total) } </span></div>
+		<div class="flex items-start gap-2">{ l10n.Get("active") }<span class="font-bold">{ fmt.Sprintf("%d", model.Active) }</span></div>
+		<div class="flex items-start gap-2">{ l10n.Get("inactive") }<span class="font-bold">{ fmt.Sprintf("%d", model.Inactive) }</span></div>
+		<div class="flex items-start gap-2">{ l10n.Get("unregistered") }<span class="font-bold">{ fmt.Sprintf("%d", model.Unknown) }</span></div>
 	</div>
 }
 
@@ -146,10 +146,11 @@ templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
 	>
 		<td class="px-6 py-3"><span class="font-bold">{ sensor.Name }</span></td>
 		if sensor.Active {
-			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">Aktiv</span></span></td>
+			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">{ l10n.Get("active") }</span></span></td>
 		} else {
-			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">Inaktiv</span></span></td>
+			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">{ l10n.Get("inactive") }</span></span></td>
 		}
+		<td class="px-6 py-3">{ sensor.Type }</td>
 		<td class="px-6 py-3">{ sensor.DevEUI }</td>
 		<td class="px-6 py-3">
 			if sensor.BatteryLevel >=0 {
@@ -172,11 +173,12 @@ templ SensorsTable(l10n locale.Localizer, model SensorListViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
-				<th class="px-6 py-3">{ l10n.Get("Namn") }</th>
-				<th class="px-6 py-3">{ l10n.Get("Status") }</th>
-				<th class="px-6 py-3">{ l10n.Get("DevEUI") }</th>
-				<th class="px-6 py-3">{ l10n.Get("Batterinivå") }</th>
-				<th class="px-6 py-3">{ l10n.Get("Senast sedd") }</th>
+				<th class="px-6 py-3">{ l10n.Get("name") }</th>
+				<th class="px-6 py-3">{ l10n.Get("status") }</th>
+				<th class="px-6 py-3">{ l10n.Get("type") }</th>
+				<th class="px-6 py-3">{ l10n.Get("deveui") }</th>
+				<th class="px-6 py-3">{ l10n.Get("batterylevel") }</th>
+				<th class="px-6 py-3">{ l10n.Get("lastseen") }</th>
 			</tr>
 		</thead>
 		<tbody>
