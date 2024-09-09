@@ -52,7 +52,7 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		}
 
 		for _, sensor := range result.Sensors {
-			tvm := sensorToViewModel(sensor)
+			tvm := toViewModel(sensor)
 			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor.DeviceID)
 			model.Sensors = append(model.Sensors, tvm)
 		}
@@ -118,7 +118,7 @@ func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asse
 		}
 
 		for _, sensor := range result.Sensors {
-			tvm := sensorToViewModel(sensor)
+			tvm := toViewModel(sensor)
 			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor.DeviceID)
 			model.Sensors = append(model.Sensors, tvm)
 		}
@@ -143,7 +143,7 @@ func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asse
 	return http.HandlerFunc(fn)
 }
 
-func NewSensorsList(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorsDataList(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Cache-Control", "no-cache")
@@ -177,7 +177,7 @@ func NewSensorsList(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		}
 
 		for _, sensor := range result.Sensors {
-			tvm := sensorToViewModel(sensor)
+			tvm := toViewModel(sensor)
 			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor.DeviceID)
 			model.Sensors = append(model.Sensors, tvm)
 		}
@@ -249,7 +249,7 @@ func getBatterLevel(ctx context.Context, app application.DeviceManagement, devic
 	return -1
 }
 
-func sensorToViewModel(sensor application.Sensor) components.SensorViewModel {
+func toViewModel(sensor application.Sensor) components.SensorViewModel {
 	s := components.SensorViewModel{
 		HasAlerts:    false,
 		Active:       sensor.Active,

@@ -33,7 +33,6 @@ type StatisticsViewModel struct {
 	Unknown  int
 }
 
-// TODO: url till /components/sensors/list som hämtar tableOrMap/DataList
 templ Statistics(l10n locale.Localizer, model StatisticsViewModel) {
 	<div class="flex items-start gap-10 dark:text-white">
 		<div class="flex items-start gap-2">{ l10n.Get("Totalt") }<span class="font-bold">{ fmt.Sprintf("%d", model.Total) } </span></div>
@@ -76,7 +75,7 @@ templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
 						}
 					</div>
 				</div>
-				@TableOrMap(l10n)
+				@TableOrMap(l10n, "/components/sensors/list")
 			</div>
 			@DataList(l10n, SensorsTable(l10n, model), SensorMap(l10n, model), model.MapView)
 		</div>
@@ -189,12 +188,12 @@ templ SensorsTable(l10n locale.Localizer, model SensorListViewModel) {
 	</table>
 }
 
-templ TableOrMap(l10n locale.Localizer) {
+templ TableOrMap(l10n locale.Localizer, hxGet string) {
 	<div class="flex items-center self-stretch gap-6">
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
 			<div class="relative group">
 				<button id="tableButton" 
-					hx-get={ string(templ.SafeURL("/components/sensors/list?mapview=false")) } 
+					hx-get={ string(templ.SafeURL( fmt.Sprintf("%s?mapview=false", hxGet))) } 
 					hx-target="#tableOrMap" 
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover">
 					<svg class="w-[18px] h-[18px]">
@@ -214,7 +213,7 @@ templ TableOrMap(l10n locale.Localizer) {
 			</div>
 			<div class="relative group">
 				<button id="mapButton" 
-					hx-get={ string(templ.SafeURL("/components/sensors/list?mapview=true")) } 
+					hx-get={ string(templ.SafeURL( fmt.Sprintf("%s?mapview=true", hxGet))) } 
 					hx-target="#tableOrMap" 
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover">
 					<svg class="w-[18px] h-[18px]">
