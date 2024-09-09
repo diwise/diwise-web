@@ -106,38 +106,40 @@ templ DataTableFooter(colspan, tableName string) {
 				<div id="paginering" class="flex items-center w-full h-[60px] px-4 py-3.5 rounded-b-2xl border-white border-opacity-30">
 					<div class="flex flex-1 h-8 justify-start items-center gap-2">
 						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</span>
-						<div class="inline-flex h-8 bg-white bg-opacity-50 rounded-xl border border-input-surface border-opacity-50">
-							<select
-								class="appearance-none outline-none px-3 py-1.5 bg-transparent text-sm font-normal font-sans leading-tight w-full h-full cursor-pointer"
-								name="pageSize"
-							>
+						<div class="relative flex justify-between items-center bg-tertiary-surface rounded-xl">
+							<select name="pageSize"
+								class="appearance-none min-w-[80px] outline-none px-3 py-1.5 bg-transparent text-sm font-bold font-sans leading-tight cursor-pointer">
 								@Options([]OptionViewModel{
 									{
 										Value:    "10",
-										Text:     "10",
+										Text:     "10 st",
 										Selected: true,
 									},
 									{
 										Value:    "20",
-										Text:     "20",
+										Text:     "20 st",
 										Selected: false,
 									},
 									{
 										Value:    "50",
-										Text:     "50",
+										Text:     "50 st",
 										Selected: false,
 									},
 									{
 										Value:    "100",
-										Text:     "100",
+										Text:     "100 st",
 										Selected: false,
 									},
 								})
 							</select>
-							<div class="inset-y-0 right-0 pr-1 flex items-center pointer-events-none">
-								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 text-zinc-700 dark:text-neutral-200">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+							<div class="absolute flex inset-y-0 right-0 px-2 items-center pointer-events-none"> 
+								<svg class="w-[18px] h-[18px] dark:fill-white">
+									@templ.Raw(iconSVG("chevron-down"))
 								</svg>
+								
+								/*<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 text-zinc-700 dark:text-neutral-200">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+								</svg>*/
 							</div>
 						</div>
 					</div>
