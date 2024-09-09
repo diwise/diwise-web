@@ -47,7 +47,7 @@ templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="sensor-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
 			<div class="">
-				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">Sensorer</h1>
+				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
 			</div>
 			@Statistics(l10n, model.Statistics)
 		</div>
@@ -56,7 +56,7 @@ templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 					<div class="flex items-center flex-[1_0_0] gap-6">
-						@CheckboxList(l10n.Get("Typ")) {
+						@CheckboxList(l10n.Get("type")) {
 							for _, t := range []string{"axsensor", "elsys","elt_2_hp",  "enviot", "milesight",  "niab-fls","qalcosonic",   "senlabt","sensative","sensefarm","vegapuls_air_41"} {
 								@CheckboxOption("type", t, templ.Attributes{
 									"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
@@ -66,7 +66,7 @@ templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
 						}
 					</div>
 					<div class="flex items-center flex-[1_0_0] gap-6">
-						@CheckboxList("Status") {
+						@CheckboxList(l10n.Get("status")) {
 							for _, t := range []string{"active", "inactive"} {
 								@CheckboxOption("status", t, templ.Attributes{
 									"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
@@ -97,11 +97,11 @@ templ DataList(l10n locale.Localizer, model SensorListViewModel) {
 			}
 		/>
 		if model.MapView {
-			<div id="mapview" class="w-full">
+			<div id="mapview" class="w-full z-0">
 				@SensorMap(l10n, model)
 			</div>
 		} else {
-			<div id="sensors-table" class="w-full">
+			<div id="sensors-table" class="w-full z-0">
 				@SensorsTable(l10n, model)
 			</div>
 		}
@@ -190,22 +190,39 @@ templ TableOrMap(l10n locale.Localizer) {
 	<div class="flex items-center self-stretch gap-6">
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
 			<div class="relative group">
-				<button id="tableButton" hx-get={ string(templ.SafeURL("/components/sensors/list?mapview=false")) } hx-target="#tableOrMap" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"><svg class="w-[18px] h-[18px]"><svg class="fill-none dark:fill-none h-6 w-6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path fill-rule="evenodd" d="M12 3v18"></path><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M3 9h18"></path><path d="M3 15h18"></path></svg></svg></button>
+				<button id="tableButton" 
+					hx-get={ string(templ.SafeURL("/components/sensors/list?mapview=false")) } 
+					hx-target="#tableOrMap" 
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover">
+					<svg class="w-[18px] h-[18px]">
+						<svg class="fill-none dark:fill-none h-6 w-6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+							<path fill-rule="evenodd" d="M12 3v18"></path>
+							<rect width="18" height="18" x="3" y="3" rx="2"></rect>
+							<path d="M3 9h18"></path><path d="M3 15h18"></path>
+						</svg>
+					</svg>
+				</button>
 				<div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block">
 					<svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full"><svg class="w-5 h-5 fill-black dark:fill-white" viewBox="0 0 41 8"><g fill-rule="evenodd" id="Tip" clip-path="url(#clip0_1424_3946)"><rect id="Rectangle 1" x="6.5" y="16" width="20" height="20" transform="rotate(-45 6.5 16)"></rect></g><defs><clipPath id="clip0_1424_3946"><rect width="40" height="8" transform="translate(0.5)"></rect></clipPath></defs></svg></svg>
 					<div class="bg-primary-surface text-white dark:bg-white dark:text-black rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
-						{ l10n.Get("Tabell") }
+						{ l10n.Get("table") }
 					</div>
 				</div>
 			</div>
 			<div class="relative group">
-				<button id="mapButton" hx-get={ string(templ.SafeURL("/components/sensors/list?mapview=true")) } hx-target="#tableOrMap" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover">
-					<svg class="w-[18px] h-[18px]"><path fill-rule="evenodd" d="M16.144 1.612a.75.75 0 0 1 .356.638V13.5a.75.75 0 0 1-.415.67l-4.5 2.25a.75.75 0 0 1-.67 0L6.75 14.339l-4.165 2.083A.75.75 0 0 1 1.5 15.75V4.5a.75.75 0 0 1 .415-.67l4.5-2.25a.75.75 0 0 1 .67 0L11.25 3.66l4.165-2.082a.75.75 0 0 1 .73.033ZM3 4.964v9.572l3.415-1.707a.75.75 0 0 1 .67 0l4.165 2.082L15 13.037V3.463L11.585 5.17a.75.75 0 0 1-.67 0L6.75 3.089 3 4.964Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M6.75 1.5a.75.75 0 0 1 .75.75V13.5a.75.75 0 0 1-1.5 0V2.25a.75.75 0 0 1 .75-.75ZM11.25 3.75a.75.75 0 0 1 .75.75v11.25a.75.75 0 0 1-1.5 0V4.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path></svg>
+				<button id="mapButton" 
+					hx-get={ string(templ.SafeURL("/components/sensors/list?mapview=true")) } 
+					hx-target="#tableOrMap" 
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover">
+					<svg class="w-[18px] h-[18px]">
+						<path fill-rule="evenodd" d="M16.144 1.612a.75.75 0 0 1 .356.638V13.5a.75.75 0 0 1-.415.67l-4.5 2.25a.75.75 0 0 1-.67 0L6.75 14.339l-4.165 2.083A.75.75 0 0 1 1.5 15.75V4.5a.75.75 0 0 1 .415-.67l4.5-2.25a.75.75 0 0 1 .67 0L11.25 3.66l4.165-2.082a.75.75 0 0 1 .73.033ZM3 4.964v9.572l3.415-1.707a.75.75 0 0 1 .67 0l4.165 2.082L15 13.037V3.463L11.585 5.17a.75.75 0 0 1-.67 0L6.75 3.089 3 4.964Z" clip-rule="evenodd"></path>
+						<path fill-rule="evenodd" d="M6.75 1.5a.75.75 0 0 1 .75.75V13.5a.75.75 0 0 1-1.5 0V2.25a.75.75 0 0 1 .75-.75ZM11.25 3.75a.75.75 0 0 1 .75.75v11.25a.75.75 0 0 1-1.5 0V4.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path>
+					</svg>
 				</button>
 				<div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block">
 					<svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full"><svg class="fill-black dark:fill-white w-5 h-5" viewBox="0 0 41 8"><g fill-rule="evenodd" id="Tip" clip-path="url(#clip0_1424_3946)"><rect id="Rectangle 1" x="6.5" y="16" width="20" height="20" transform="rotate(-45 6.5 16)"></rect></g><defs><clipPath id="clip0_1424_3946"><rect width="40" height="8" transform="translate(0.5)"></rect></clipPath></defs></svg></svg>
 					<div class="bg-primary-surface text-white dark:bg-white dark:text-black rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
-						{ l10n.Get("Karta") }
+						{ l10n.Get("map") }
 					</div>
 				</div>
 			</div>
