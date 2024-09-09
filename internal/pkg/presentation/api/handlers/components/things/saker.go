@@ -11,8 +11,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/ui"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"	
 )
 
 func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
@@ -43,22 +42,22 @@ func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := float64(result.TotalRecords) / float64(limit)
 
-		model := ui.ThingsListViewModel{
-			Things: make([]ui.ThingViewModel, 0),
-			Pageing: ui.PagingViewModel{
+		model := components.ThingsListViewModel{
+			Things: make([]components.ThingViewModel, 0),
+			Pageing: components.PagingViewModel{
 				PageIndex: pageIndex_,
 				PageLast:  int(math.Ceil(pageLast)),
 				PageSize:  limit,
 				Offset:    offset,
 				Pages:     helpers.PagerIndexes(pageIndex_, int(math.Ceil(pageLast))),
 				Query:     args.Encode(),
-				TargetURL: "/components/tables/saker",
+				TargetURL: "/components/tables/things",
 				TargetID:  "#things-table",
 			},
 		}
 
 		for _, thing := range result.Things {
-			tvm := ui.ThingViewModel{
+			tvm := components.ThingViewModel{
 				ThingID:   thing.ThingID,
 				ID:        thing.ID,
 				Type:      thing.Type,
@@ -68,7 +67,7 @@ func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 			}
 
 			for _, m := range thing.Measurements {
-				mvm := ui.MeasurementViewModel{
+				mvm := components.MeasurementViewModel{
 					ID:          m.ID,
 					Timestamp:   m.Timestamp,
 					Urn:         m.Urn,
@@ -83,7 +82,7 @@ func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 			model.Things = append(model.Things, tvm)
 		}
 
-		component := ui.ThingsTable(localizer, model)
+		component := components.ThingsTable(localizer, model)
 
 		ctx = helpers.Decorate(
 			ctx,
@@ -134,9 +133,9 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := float64(result.TotalRecords) / float64(limit)
 
-		model := ui.ThingsListViewModel{
-			Things: make([]ui.ThingViewModel, 0),
-			Pageing: ui.PagingViewModel{
+		model := components.ThingsListViewModel{
+			Things: make([]components.ThingViewModel, 0),
+			Pageing: components.PagingViewModel{
 				PageIndex: pageIndex_,
 				PageLast:  int(math.Ceil(pageLast)),
 				PageSize:  limit,
@@ -149,7 +148,7 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 		}
 
 		for _, thing := range result.Things {
-			tvm := ui.ThingViewModel{
+			tvm := components.ThingViewModel{
 				ThingID:   thing.ThingID,
 				ID:        thing.ID,
 				Type:      thing.Type,
@@ -159,7 +158,7 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 			}
 
 			for _, m := range thing.Measurements {
-				mvm := ui.MeasurementViewModel{
+				mvm := components.MeasurementViewModel{
 					ID:          m.ID,
 					Timestamp:   m.Timestamp,
 					Urn:         m.Urn,
@@ -174,7 +173,7 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 			model.Things = append(model.Things, tvm)
 		}
 
-		thingList := ui.ThingsList(localizer, model)
+		thingList := components.ThingsList(localizer, model)
 		page := components.StartPage(version, localizer, assets, thingList)
 
 		ctx = helpers.Decorate(

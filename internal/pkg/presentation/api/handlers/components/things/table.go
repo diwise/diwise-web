@@ -1,5 +1,5 @@
 package things
-
+/*
 import (
 	"context"
 	"math"
@@ -52,3 +52,4 @@ func NewTableThingsComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 
 	return http.HandlerFunc(fn)
 }
+*/

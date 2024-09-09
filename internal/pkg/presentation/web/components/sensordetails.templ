@@ -58,7 +58,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 					@statusActive(sensor.Active, l10n)
 				</div>
 			}
-			@Button(Tertiary, l10n.Get( "edit" ), "pen", Target("#sensor-view"), HxUrl("get", fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)))
+			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#sensor-view"), HxUrl("get", fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)))
 		</div>
 		<div class="w-full flex py-6 gap-10">
 			//Yttersta diven
@@ -114,23 +114,31 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 								{ l10n.Get("timeinterval") }
 							</div>
 							<div class="">
-								<input name="timeAt" type="date" id="timeAt"
+								<input
+									name="timeAt"
+									type="date"
+									id="timeAt"
 									hx-trigger="change"
 									hx-include="#sensorMeasurementTypes,#endTimeAt"
 									hx-target="#measurementCharts"
 									hx-get="/components/measurements"
 									hx-push-url="true"
 									hx-params="*"
-									class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"></input>
+									class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
+								/>
 								-
-								<input name="endTimeAt" type="date" id="endTimeAt"
+								<input
+									name="endTimeAt"
+									type="date"
+									id="endTimeAt"
 									hx-trigger="change"
 									hx-include="#sensorMeasurementTypes,#timeAt"
 									hx-target="#measurementCharts"
 									hx-get="/components/measurements"
 									hx-push-url="true"
 									hx-params="*"
-									class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"></input>
+									class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
+								/>
 							</div>
 						</div>
 						<div class="w-full">
@@ -160,7 +168,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 							<div class="font-bold">{ l10n.Get("longitude") }</div>
 							<div class="">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
 						</div>
-						@Map(newMapData(sensor.Latitude, sensor.Longitude), l10n, sensorMapFeature(sensor))
+						@Map(newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
 					</div>
 				</div>
 			</div>
@@ -279,7 +287,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 									<input type="number" name="longitude" value={ fmt.Sprintf("%f", sensor.Longitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
 								</div>
 							</div>
-							@Map(newMapData(sensor.Latitude, sensor.Longitude), l10n, sensorMapFeature(sensor))
+							@Map(newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
 						</div>
 					</div>
 				</div>
@@ -287,10 +295,9 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 			<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
 			<div class="flex items-center justify-between py-6">
 				@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"))
-
 				<div class="flex items-center gap-4">
-					@Button(Secondary, l10n.Get( "cancel" ), "close", Name("cancel"))
-					@Button(Primary, l10n.Get( "save" ), "check",  Name("save"), BtnType("submit"))
+					@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"))
+					@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
 				</div>
 			</div>
 		</form>
@@ -372,7 +379,7 @@ func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc
 		})
 	}
 
-	return SelectMultipleInputs(id, false, "/components/measurements", "#"+target, "#timeAt,#endTimeAt",viewModel)
+	return SelectMultipleInputs(id, false, "/components/measurements", "#"+target, "#timeAt,#endTimeAt", viewModel)
 }
 
 func MeasurementChart(datasets []ChartDataset) templ.Component {

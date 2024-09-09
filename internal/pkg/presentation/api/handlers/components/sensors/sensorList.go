@@ -14,7 +14,6 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/ui"
 )
 
 func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
@@ -46,8 +45,8 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 
-		model := ui.SensorListViewModel{
-			Sensors: make([]ui.SensorViewModel, 0),
+		model := components.SensorListViewModel{
+			Sensors: make([]components.SensorViewModel, 0),
 			Pageing: getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 		}
 
@@ -63,7 +62,7 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 			model.MapView = true
 		}
 
-		sensorList := ui.SensorsList(localizer, model)
+		sensorList := components.SensorsList(localizer, model)
 		page := components.StartPage(version, localizer, assets, sensorList)
 
 		ctx = helpers.Decorate(
@@ -111,9 +110,9 @@ func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asse
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 
-		model := ui.SensorListViewModel{
-			Statistics: ui.StatisticsViewModel{},
-			Sensors:    make([]ui.SensorViewModel, 0),
+		model := components.SensorListViewModel{
+			Statistics: components.StatisticsViewModel{},
+			Sensors:    make([]components.SensorViewModel, 0),
 			Pageing:    getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 		}
 
@@ -123,7 +122,7 @@ func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asse
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
-		component := ui.SensorsTable(localizer, model)
+		component := components.SensorsTable(localizer, model)
 
 		ctx = helpers.Decorate(
 			ctx,
@@ -170,9 +169,9 @@ func NewSensorsList(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 
-		model := ui.SensorListViewModel{
-			Statistics: ui.StatisticsViewModel{},
-			Sensors:    make([]ui.SensorViewModel, 0),
+		model := components.SensorListViewModel{
+			Statistics: components.StatisticsViewModel{},
+			Sensors:    make([]components.SensorViewModel, 0),
 			Pageing:    getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 		}
 
@@ -186,7 +185,7 @@ func NewSensorsList(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 			model.MapView = true
 		}
 
-		component := ui.DataList(localizer, model)
+		component := components.DataList(localizer, model)
 
 		ctx = helpers.Decorate(
 			ctx,
@@ -206,13 +205,13 @@ func NewSensorsList(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 	return http.HandlerFunc(fn)
 }
 
-func getStatistics(ctx context.Context, app application.DeviceManagement) ui.StatisticsViewModel {
+func getStatistics(ctx context.Context, app application.DeviceManagement) components.StatisticsViewModel {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
 	sumOfStuff := app.GetStatistics(ctx)
 
-	stats := ui.StatisticsViewModel{
+	stats := components.StatisticsViewModel{
 		Total:    sumOfStuff.Total,
 		Active:   sumOfStuff.Active,
 		Inactive: sumOfStuff.Inactive,
@@ -240,8 +239,8 @@ func getBatterLevel(ctx context.Context, app application.DeviceManagement, devic
 	return -1
 }
 
-func sensorToViewModel(sensor application.Sensor) ui.SensorViewModel {
-	s := ui.SensorViewModel{
+func sensorToViewModel(sensor application.Sensor) components.SensorViewModel {
+	s := components.SensorViewModel{
 		HasAlerts:    false,
 		Active:       sensor.Active,
 		DeviceID:     sensor.DeviceID,
@@ -256,8 +255,8 @@ func sensorToViewModel(sensor application.Sensor) ui.SensorViewModel {
 	return s
 }
 
-func getPaging(pageIndex, pageLast, pageSize, offset int, pages []int64, args url.Values) ui.PagingViewModel {
-	return ui.PagingViewModel{
+func getPaging(pageIndex, pageLast, pageSize, offset int, pages []int64, args url.Values) components.PagingViewModel {
+	return components.PagingViewModel{
 		PageIndex: pageIndex,
 		PageLast:  pageLast,
 		PageSize:  pageSize,

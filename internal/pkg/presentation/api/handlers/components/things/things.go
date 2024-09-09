@@ -1,5 +1,5 @@
 package things
-
+/*
 import (
 	"context"
 	"fmt"
@@ -104,3 +104,5 @@ func composeViewModel(ctx context.Context, app application.ThingManagement, offs
 
 	return &listViewModel, thingResult.TotalRecords, nil
 }
+
+*/
