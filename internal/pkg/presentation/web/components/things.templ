@@ -203,9 +203,11 @@ func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component
 		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
 	})
 
-	if i == -1 {
+	if i == -1 || t.Measurements[i].Value == nil {
 		return templ.NopComponent
 	}
 
-	return ProgressBar(fmt.Sprintf("pb_%s", t.ID), int(*t.Measurements[i].Value))
+	return progressBar(fmt.Sprintf("%0.f", *t.Measurements[i].Value))
+
+	//return ProgressBar(fmt.Sprintf("pb_%s", t.ID), int(*t.Measurements[i].Value))
 }
