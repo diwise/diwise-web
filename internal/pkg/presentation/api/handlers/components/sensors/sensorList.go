@@ -262,6 +262,10 @@ func toViewModel(sensor application.Sensor) components.SensorViewModel {
 		Longitude:    sensor.Location.Longitude,
 	}
 
+	if sensor.DeviceProfile != nil {
+		s.Type = sensor.DeviceProfile.Name
+	}
+
 	return s
 }
 

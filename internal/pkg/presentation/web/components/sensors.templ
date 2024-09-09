@@ -23,6 +23,7 @@ type SensorViewModel struct {
 	BatteryLevel int
 	LastSeen     time.Time
 	HasAlerts    bool
+	Type         string
 }
 
 type StatisticsViewModel struct {
@@ -95,15 +96,20 @@ templ DataList(l10n locale.Localizer, tableComponent, mapComponent templ.Compone
 				value="false"
 			}
 		/>
-		if mapView {
-			<div id="mapview" class="w-full z-0">
+		<div
+			if mapView {
+				id="mapview"
+			} else {
+				id="tableview"
+			}
+			class="w-full"
+		>
+			if mapView {
 				@mapComponent
-			</div>
-		} else {
-			<div id="tableview" class="w-full z-0">
+			} else {
 				@tableComponent
-			</div>
-		}
+			}
+		</div>
 	</div>
 }
 
@@ -192,10 +198,12 @@ templ TableOrMap(l10n locale.Localizer, hxGet string) {
 	<div class="flex items-center self-stretch gap-6">
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
 			<div class="relative group">
-				<button id="tableButton" 
-					hx-get={ string(templ.SafeURL( fmt.Sprintf("%s?mapview=false", hxGet))) } 
-					hx-target="#tableOrMap" 
-					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover">
+				<button
+					id="tableButton"
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=false", hxGet))) }
+					hx-target="#tableOrMap"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
+				>
 					<svg class="w-[18px] h-[18px]">
 						<svg class="fill-none dark:fill-none h-6 w-6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
 							<path fill-rule="evenodd" d="M12 3v18"></path>
@@ -212,10 +220,12 @@ templ TableOrMap(l10n locale.Localizer, hxGet string) {
 				</div>
 			</div>
 			<div class="relative group">
-				<button id="mapButton" 
-					hx-get={ string(templ.SafeURL( fmt.Sprintf("%s?mapview=true", hxGet))) } 
-					hx-target="#tableOrMap" 
-					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover">
+				<button
+					id="mapButton"
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=true", hxGet))) }
+					hx-target="#tableOrMap"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
+				>
 					<svg class="w-[18px] h-[18px]">
 						<path fill-rule="evenodd" d="M16.144 1.612a.75.75 0 0 1 .356.638V13.5a.75.75 0 0 1-.415.67l-4.5 2.25a.75.75 0 0 1-.67 0L6.75 14.339l-4.165 2.083A.75.75 0 0 1 1.5 15.75V4.5a.75.75 0 0 1 .415-.67l4.5-2.25a.75.75 0 0 1 .67 0L11.25 3.66l4.165-2.082a.75.75 0 0 1 .73.033ZM3 4.964v9.572l3.415-1.707a.75.75 0 0 1 .67 0l4.165 2.082L15 13.037V3.463L11.585 5.17a.75.75 0 0 1-.67 0L6.75 3.089 3 4.964Z" clip-rule="evenodd"></path>
 						<path fill-rule="evenodd" d="M6.75 1.5a.75.75 0 0 1 .75.75V13.5a.75.75 0 0 1-1.5 0V2.25a.75.75 0 0 1 .75-.75ZM11.25 3.75a.75.75 0 0 1 .75.75v11.25a.75.75 0 0 1-1.5 0V4.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path>
