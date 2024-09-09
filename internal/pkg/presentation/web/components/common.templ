@@ -37,6 +37,7 @@ templ Paging(l10n locale.Localizer, p PagingViewModel) {
 					name="limit"
 					hx-get={ p.TargetURL }
 					hx-target={ p.TargetID }
+					hx-include=".filter"
 				>
 					<option value="5" selected?={ p.PageSize == 5 }>5 st</option>
 					<option value="10" selected?={ p.PageSize == 10 }>10 st</option>
