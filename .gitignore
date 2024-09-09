@@ -4,3 +4,4 @@ diwise.css
 .DS_Store
 .vscode/
 air.log
+__debug_bin*

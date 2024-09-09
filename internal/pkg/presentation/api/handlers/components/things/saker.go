@@ -52,6 +52,8 @@ func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 				Offset:    offset,
 				Pages:     helpers.PagerIndexes(pageIndex_, int(math.Ceil(pageLast))),
 				Query:     args.Encode(),
+				TargetURL: "/components/tables/saker",
+				TargetID:  "#things-table",
 			},
 		}
 
@@ -142,7 +144,7 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 				Pages:     helpers.PagerIndexes(pageIndex_, int(math.Ceil(pageLast))),
 				Query:     args.Encode(),
 				TargetURL: "/components/tables/saker",
-				TargetID: "#things-table",
+				TargetID:  "#things-table",
 			},
 		}
 

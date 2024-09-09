@@ -241,7 +241,7 @@ func getBatterLevel(ctx context.Context, app application.DeviceManagement, devic
 }
 
 func sensorToViewModel(sensor application.Sensor) ui.SensorViewModel {
-	return ui.SensorViewModel{
+	s := ui.SensorViewModel{
 		HasAlerts:    false,
 		Active:       sensor.Active,
 		DeviceID:     sensor.DeviceID,
@@ -249,7 +249,11 @@ func sensorToViewModel(sensor application.Sensor) ui.SensorViewModel {
 		Name:         sensor.Name,
 		BatteryLevel: 0,
 		LastSeen:     sensor.DeviceState.ObservedAt,
+		Latitude:     sensor.Location.Latitude,
+		Longitude:    sensor.Location.Longitude,
 	}
+
+	return s
 }
 
 func getPaging(pageIndex, pageLast, pageSize, offset int, pages []int64, args url.Values) ui.PagingViewModel {

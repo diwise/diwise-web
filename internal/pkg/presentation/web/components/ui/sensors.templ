@@ -112,6 +112,9 @@ func sensorsToMapFeature(model SensorListViewModel) FeatureCollection {
 	features := make([]Feature, 0, len(model.Sensors))
 
 	for _, sensor := range model.Sensors {
+		if sensor.Latitude == 0 || sensor.Longitude == 0 {
+			continue
+		}
 		feature := NewFeature(NewPoint(sensor.Latitude, sensor.Longitude))
 		feature.AddProperty("type", "sensor")
 		features = append(features, feature)
