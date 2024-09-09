@@ -103,10 +103,10 @@ templ DataTableFooter(colspan, tableName string) {
 	<tfoot>
 		<tr>
 			<td colspan={ colspan }>
-				<div id="paginering" class="relative w-full h-[60px] px-4 py-3.5 rounded-b-2xl border-white border-opacity-30 justify-between items-center flex">
-					<div class="h-8 justify-start items-center gap-2 flex">
+				<div id="paginering" class="flex items-center w-full h-[60px] px-4 py-3.5 rounded-b-2xl border-white border-opacity-30">
+					<div class="flex flex-1 h-8 justify-start items-center gap-2">
 						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</span>
-						<div class="relative inline-flex h-8 bg-white bg-opacity-50 rounded-xl border border-input-surface border-opacity-50">
+						<div class="inline-flex h-8 bg-white bg-opacity-50 rounded-xl border border-input-surface border-opacity-50">
 							<select
 								class="appearance-none outline-none px-3 py-1.5 bg-transparent text-sm font-normal font-sans leading-tight w-full h-full cursor-pointer"
 								name="pageSize"
@@ -134,14 +134,14 @@ templ DataTableFooter(colspan, tableName string) {
 									},
 								})
 							</select>
-							<div class="absolute inset-y-0 right-0 pr-1 flex items-center pointer-events-none">
+							<div class="inset-y-0 right-0 pr-1 flex items-center pointer-events-none">
 								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 text-zinc-700 dark:text-neutral-200">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
 								</svg>
 							</div>
 						</div>
 					</div>
-					<div class="absolute inset-0 flex justify-center items-center">
+					<div class="flex justify-center items-center flex-none">
 						<button
 							class="p-1.5 rounded-full justify-center items-center gap-1 flex"
 							if !isFirstPage(ctx) {
@@ -183,6 +183,8 @@ templ DataTableFooter(colspan, tableName string) {
 								}
 							</span>
 						</button>
+					</div>
+					<div class="h-8 justify-end items-center gap-2 flex flex-1">
 					</div>
 					//Döljer Radhöjd i tabellfootern
 					/*<div class="h-8 justify-end items-center gap-2 flex">
