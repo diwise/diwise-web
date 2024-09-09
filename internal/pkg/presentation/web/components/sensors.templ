@@ -77,7 +77,7 @@ templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors S
 	@Table(
 		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("status")), TableHeaderText(l10n.Get("deveui")), TableHeaderText(l10n.Get("batterylevel")), TableHeaderText(l10n.Get("lastseen"))),
 		TableData(tableRowsFromSensors(l10n, asset, sensors.Sensors)...),
-		DataTableFooter("6", "sensors"),
+		DataTableFooter("6", "sensors"), l10n,
 	)
 }
 
@@ -180,34 +180,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 			<div class="w-full h-12 justify-between items-center inline-flex">
 				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 					//@SearchField(l10n)
-					/*<select name="status" id="selectStatus"
-							hx-trigger="change"
-							hx-include="#selectTenant"
-							hx-target="#fragments" 
-							hx-get="/sensors"
-							hx-push-url="true"
-							hx-params="*">
-						<option value="all">{ l10n.Get("all") }</option>
-						<option value="active">{ l10n.Get("active") }</option>
-						<option value="inactive">{ l10n.Get("inactive") }</option>
-						<option value="unknown">{ l10n.Get("unregistered") }</option>
-					</select>
-
-					<select name="tenant" id="selectTenant"
-							hx-trigger="change"
-							hx-include="#selectStatus"
-							hx-target="#fragments" 
-							hx-get="/sensors"
-							hx-push-url="true"
-							hx-params="*">
-						<option value="msva">MSVA</option>
-						<option value="servanet">Servanet</option>
-						<option value="default">default</option>
-					</select>*/
-
-					
 					@FilterSensors(l10n)
-
 				</div>
 				//@Button(Primary, l10n.Get("addthing"), "", HxUrl("get", (fmt.Sprintf("/components/sensors"))))
 				
@@ -227,7 +200,7 @@ templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors Senso
 					</div>
 				</div>
 				<div id="mapview" class="w-full">
-					@Map(newMapData(62.3908, 17.3069))
+					@Map(newMapData(62.3908, 17.3069), l10n)
 				</div>
 			</div>
 		</div>
@@ -301,7 +274,7 @@ templ CheckboxButton(name string, l10n locale.Localizer) {
 
 templ CheckboxList(id, target, hxInclude, hxGet, name string, options []string, l10n locale.Localizer) {
 	<div class="hidden absolute bg-gray-100 min-w-[160px] rounded-md shadow-lg z-10 p-4 group-hover:block">
-		<form id={ id } hx-trigger="change" hx-target={ target } hx-include={ hxInclude } hx-get={ hxGet } hx-push-url="true" class="flex flex-col gap-1">
+				<form id={ id } hx-trigger="change" hx-target={ target } hx-include={ hxInclude } hx-get={ hxGet } hx-push-url="true" class="flex flex-col gap-1">
 			for _, option := range options {
 				<label class="flex justify-between items-center">
 					{ l10n.Get( option ) }

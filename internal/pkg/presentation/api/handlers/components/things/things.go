@@ -28,6 +28,7 @@ func NewThingsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
 

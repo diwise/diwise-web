@@ -91,6 +91,7 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 			Latitude:  thing.Location.Latitude,
 			Longitude: thing.Location.Longitude,
 			Tenant:    thing.Tenant,
+			Type:      thing.Type,
 		}
 
 		thingDetails := components.ThingDetailsPage(localizer, assets, detailsViewModel)
@@ -139,7 +140,8 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 			Latitude:  thing.Location.Latitude,
 			Longitude: thing.Location.Longitude,
 			Tenant:    thing.Tenant,
-			Name:      "namn",
+			Type:      thing.Type,
+			ID:        "namn",
 		}
 
 		thingDetails := components.ThingDetails(localizer, assets, thingsViewModel)

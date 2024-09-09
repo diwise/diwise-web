@@ -121,6 +121,9 @@ other = "Spara"
 [search]
 other = "Sök"
 
+[selectedfilters]
+other = "Valda filter:"
+
 [sensorconnected]
 other = "Kopplad sensor"
 

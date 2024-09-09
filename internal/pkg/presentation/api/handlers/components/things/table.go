@@ -23,6 +23,7 @@ func NewTableThingsComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
 		ctx := logging.NewContextWithLogger(r.Context(), log)
