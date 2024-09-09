@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
@@ -185,7 +186,16 @@ func NewSensorsList(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 			model.MapView = true
 		}
 
-		component := components.DataList(localizer, model)
+		var tblComp, mapComp templ.Component
+		if model.MapView {
+			mapComp = components.SensorMap(localizer, model)
+			tblComp = templ.NopComponent
+		} else {
+			mapComp = templ.NopComponent
+			tblComp = components.SensorsTable(localizer, model)
+		}
+
+		component := components.DataList(localizer, tblComp, mapComp, model.MapView)
 
 		ctx = helpers.Decorate(
 			ctx,
@@ -264,6 +274,6 @@ func getPaging(pageIndex, pageLast, pageSize, offset int, pages []int64, args ur
 		Pages:     pages,
 		Query:     args.Encode(),
 		TargetURL: "/components/tables/sensors",
-		TargetID:  "#sensors-table",
+		TargetID:  "#tableview",
 	}
 }

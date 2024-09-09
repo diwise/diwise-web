@@ -11,7 +11,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"	
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 )
 
 func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
@@ -52,7 +52,7 @@ func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 				Pages:     helpers.PagerIndexes(pageIndex_, int(math.Ceil(pageLast))),
 				Query:     args.Encode(),
 				TargetURL: "/components/tables/things",
-				TargetID:  "#things-table",
+				TargetID:  "#tableview",
 			},
 		}
 
