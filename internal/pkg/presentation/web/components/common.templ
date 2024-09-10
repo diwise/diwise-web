@@ -168,10 +168,11 @@ type buttonCfg struct {
 type ButtonStyle string
 
 const (
-	Primary   ButtonStyle = "primary"
-	Secondary ButtonStyle = "secondary"
-	Tertiary  ButtonStyle = "tertiary"
-	Error     ButtonStyle = "error"
+	Primary   		ButtonStyle = "primary"
+	PrimaryInverted ButtonStyle = "primaryInverted"
+	Secondary 		ButtonStyle = "secondary"
+	Tertiary  		ButtonStyle = "tertiary"
+	Error     		ButtonStyle = "error"
 )
 
 templ Div(id string, contents ...templ.Component) {
@@ -266,6 +267,9 @@ func SwitchBtnStyle(style ButtonStyle, config ...func(*buttonCfg)) string {
 	switch style {
 	case Primary:
 		classes = fmt.Sprintf(classes, "px-4 py-2 text-white dark:text-primary-dark bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover dark:stroke-primary-dark")
+		break
+	case PrimaryInverted:
+		classes = fmt.Sprintf(classes, "px-4 py-2 dark:text-white text-primary-dark dark:bg-primary-surface dark:hover:bg-primary-surface-hover bg-primary-surface-dark hover:bg-primary-surface-dark-hover dark:stroke-primary-dark")
 		break
 	case Secondary:
 		classes = fmt.Sprintf(classes, "px-3.5 py-2 border-gray-30 border-2 dark:border-white-30 hover:dark:border-secondary-outline-hover-dark hover:border-secondary-outline-hover text-secondary-dark dark:text-secondary")
