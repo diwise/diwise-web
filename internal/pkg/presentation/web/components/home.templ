@@ -21,14 +21,14 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 	<div class="p-8">
 		<div class="grid grid-cols-4 gap-8">
 			<div class="col-span-2">
-				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">Översikt</h1>
+				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("overview") }</h1>
 				<div hx-get="/components/home/statistics" hx-trigger="load, every 5m" class="grid grid-cols-2 gap-10">
 					@OverviewCards(l10n, asset, StatisticsViewModel{})
 				</div>
 			</div>
 			<div class="col-span-2">
 				<div class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">
-					<h2>Status</h2>
+					<h2>{ l10n.Get("status") }</h2>
 				</div>
 				<div class="p-8 bg-white dark:bg-gray-800 rounded-[15px] shadow justify-start items-start gap-4">
 					<canvas id="usage-chart"></canvas>
@@ -38,7 +38,7 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 			<div class="col-span-4">
 				<div class="col-span-12 justify-start items-center gap-4">
 					<div class="flex gap-4 items-center">
-						<div class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">Larm</div>
+						<div class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("alerts") }</div>
 						@Badge("5")
 					</div>
 				</div>
@@ -61,7 +61,7 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 							TextCell("NIAB_lidar_50001c"), LabelCell("Aktiv", true), TextCell("3231383771308416"), TextCell("LoRa"), TextCell("25%"), TextCell("2024-01-29, 12:00"), Cell(SVG("alert-triangle", Size(24), AlertStyle())),
 						),
 					),
-					DataTableFooter("7", "home"), l10n,
+					DataTableFooter("7", "home", l10n), l10n,
 				)
 			</div>
 		</div>

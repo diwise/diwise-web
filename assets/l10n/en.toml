@@ -79,6 +79,9 @@ other = "List"
 [location]
 other = "Location"
 
+[login]
+other = "Log in"
+
 [logout]
 other = "Log out"
 
@@ -105,6 +108,9 @@ other = "Measurement values"
 
 [name]
 other = "Name"
+
+[notloggedin]
+other = "Please log in"
 
 [organisation]
 other = "Organisation"
