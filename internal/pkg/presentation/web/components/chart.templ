@@ -120,7 +120,7 @@ type ChartOptionsScaleTime struct {
 
 type ChartOptionsScaleTimeDisplayFormat struct {
 	Hour *string `json:"hour"`
-	Day *string `json:"day"`
+	Day  *string `json:"day"`
 }
 
 func (cfg *ChartConfiguration) Add(datasets ...ChartDataset) {
@@ -138,14 +138,14 @@ func (cfg *ChartConfiguration) Timeseries(vb bool) {
 		dist := "linear"
 		unit := "hour"
 		format := "HH:mm"
-		//tooltipFormat := "YYYY-MM-DD HH:mm"
+		tooltipFormat := "yyyy-MM-dd HH:mm"
 		//displayFormat := "YYYY-MM-DD"
 
 		cfg.Options.Scales.X.Type = &t
 		cfg.Options.Scales.X.Distribution = &dist
 		cfg.Options.Scales.X.Time = &ChartOptionsScaleTime{
 			Unit:          &unit,
-			TooltipFormat: &format,
+			TooltipFormat: &tooltipFormat,
 			DisplayFormat: &ChartOptionsScaleTimeDisplayFormat{
 				Hour: &format,
 			},

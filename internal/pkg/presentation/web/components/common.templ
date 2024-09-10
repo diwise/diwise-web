@@ -97,8 +97,16 @@ templ PageButton(pageIndex int, hxGet, query, hxTarget string) {
 	</button>
 }
 
-templ ProgressBar(id string, v int) {
-	<progress id={ id } max="100" value={ fmt.Sprintf("%d", v) }></progress><span>{ fmt.Sprintf("%d", v) }%</span>
+css progressbarwidth(percent int) {
+	width: { fmt.Sprintf("%d%%", percent) };
+	height: 6px;
+}
+
+templ ProgressBar(cssClass, text string, value int) {
+	<div>{ text }</div>
+	<div class="bg-background-200 w-full rounded-lg">
+		<div class={ cssClass, progressbarwidth(value), "rounded-lg" }></div>
+	</div>
 }
 
 templ CheckboxOption(name, value string, attrs templ.Attributes) {

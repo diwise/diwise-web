@@ -187,7 +187,9 @@ func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component
 		return templ.NopComponent
 	}
 
-	return progressBar(fmt.Sprintf("%0.f", *t.Measurements[i].Value))
+	text := fmt.Sprintf("%0.f%s (%s)", *t.Measurements[i].Value, t.Measurements[i].Unit, t.Measurements[i].Timestamp.Format("2006-01-02 15:04:05"))
+
+	return progressBar(text, int(*t.Measurements[i].Value))
 }
 
 func ThingsMap(l10n locale.Localizer, model ThingsListViewModel) templ.Component {

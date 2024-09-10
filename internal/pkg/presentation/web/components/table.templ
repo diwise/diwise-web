@@ -3,9 +3,8 @@ package components
 import (
 	"context"
 	"fmt"
-	"io"
-	"strconv"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+	"strconv"
 )
 
 templ Table(header templ.Component, data templ.Component, footer templ.Component, l10n locale.Localizer) {
@@ -29,7 +28,6 @@ templ Table(header templ.Component, data templ.Component, footer templ.Component
 			</div>
 			//Chips, loop över mappen, innerloop över inre array
 		</div>
-	
 		<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 			@header
 			@data
@@ -107,8 +105,10 @@ templ DataTableFooter(colspan, tableName string, l10n locale.Localizer) {
 					<div class="flex flex-1 h-8 justify-start items-center gap-2">
 						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{ l10n.Get("rowsPerPage") }</span>
 						<div class="relative flex justify-between items-center bg-tertiary-surface rounded-xl">
-							<select name="pageSize"
-								class="appearance-none min-w-[64px] outline-none px-3 py-1.5 bg-transparent text-sm font-bold font-sans leading-tight cursor-pointer">
+							<select
+								name="pageSize"
+								class="appearance-none min-w-[64px] outline-none px-3 py-1.5 bg-transparent text-sm font-bold font-sans leading-tight cursor-pointer"
+							>
 								@Options([]OptionViewModel{
 									{
 										Value:    "10",
@@ -132,11 +132,10 @@ templ DataTableFooter(colspan, tableName string, l10n locale.Localizer) {
 									},
 								})
 							</select>
-							<div class="absolute flex inset-y-0 right-0 px-2 items-center pointer-events-none"> 
+							<div class="absolute flex inset-y-0 right-0 px-2 items-center pointer-events-none">
 								<svg class="w-[18px] h-[18px] dark:fill-white">
 									@templ.Raw(iconSVG("chevron-down"))
 								</svg>
-								
 								/*<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 text-zinc-700 dark:text-neutral-200">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
 								</svg>*/
@@ -186,8 +185,7 @@ templ DataTableFooter(colspan, tableName string, l10n locale.Localizer) {
 							</span>
 						</button>
 					</div>
-					<div class="h-8 justify-end items-center gap-2 flex flex-1">
-					</div>
+					<div class="h-8 justify-end items-center gap-2 flex flex-1"></div>
 					//Döljer Radhöjd i tabellfootern
 					/*<div class="h-8 justify-end items-center gap-2 flex">
 						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Radhöjd:</span>
@@ -260,12 +258,10 @@ templ TextCell(data string) {
 }
 
 templ ProgressBarCell(data string) {
-	@Cell(progressBar(data))
+	@Cell(progressBar(data, 0))
 }
 
-func progressBar(data string) templ.Component {
-	value, _ := strconv.Atoi(data)
-
+func progressBar(text string, value int) templ.Component {
 	colourClass := ""
 	switch {
 	case value >= 70:
@@ -276,17 +272,7 @@ func progressBar(data string) templ.Component {
 		colourClass = "bg-orange-600"
 	}
 
-	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-		_, err := io.WriteString(w, fmt.Sprintf(
-			`<div>
-                %s%%
-            </div>
-            <div class="bg-background-200 w-full rounded-lg">
-                <div class="%s rounded-lg" style="width: %s%%; height: 6px"></div>
-            </div>`, data, colourClass, data,
-		))
-		return err
-	})
+	return ProgressBar(colourClass, text, value)
 }
 
 templ LabelCell(label string, active bool) {
