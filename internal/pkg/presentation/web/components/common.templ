@@ -110,7 +110,7 @@ templ ProgressBar(cssClass, text string, value int) {
 }
 
 templ CheckboxOption(name, value string, l10n locale.Localizer, attrs templ.Attributes) {
-	<label class="flex justify-between items-center">
+	<label class="flex justify-between items-center gap-3">
 		{ l10n.Get(value) }
 		<input
 			type="checkbox"
@@ -130,7 +130,7 @@ templ CheckboxOption(name, value string, l10n locale.Localizer, attrs templ.Attr
 templ CheckboxList(header string) {
 	<div class="relative inline-block group">
 		<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg">{ header } <svg class="w-[18px] h-[18px] dark:fill-white"><path fill-rule="evenodd" d="M3.97 6.22a.75.75 0 0 1 1.06 0L9 10.19l3.97-3.97a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path></svg></button>
-		<div class="hidden absolute bg-gray-100 min-w-[160px] rounded-md shadow-lg z-10 p-4 group-hover:block">
+		<div class="hidden absolute bg-gray-100 min-w-max rounded-md shadow-lg z-10 p-4 group-hover:block">
 			{ children... }
 		</div>
 	</div>
