@@ -58,7 +58,7 @@ templ ThingsFilter(l10n locale.Localizer) {
 			<div class="flex items-center flex-[1_0_0] gap-6">
 				@CheckboxList(l10n.Get("Typ")) {
 					for _, t := range []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation"} {
-						@CheckboxOption("type", t, templ.Attributes{
+						@CheckboxOption("type", t, l10n, templ.Attributes{
 							"hx-get":    string(templ.SafeURL("/components/things/list")),
 							"hx-target": "#tableOrMap",
 						})
@@ -66,7 +66,7 @@ templ ThingsFilter(l10n locale.Localizer) {
 				}
 			</div>
 		</div>
-		@TableOrMap(l10n, "/components/things/list")
+		@TableOrMap(l10n, "/components/things/list") 
 	</div>
 }
 
@@ -103,7 +103,7 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 		hx-trigger="click"
 	>
 		<td class="px-6 py-3"><span class="font-bold">{ thing.ID }</span></td>
-		<td class="px-6 py-3">{ thing.Type }</td>
+		<td class="px-6 py-3">{ l10n.Get(thing.Type) }</td>
 		<td class="px-6 py-3">
 			@ThingStatusCell(l10n, thing)
 		</td>

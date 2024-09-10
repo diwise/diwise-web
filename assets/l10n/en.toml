@@ -219,3 +219,21 @@ other = "Distance"
 
 [3331-5700]
 other = "Cumulated energy consumption"
+
+[CombinedSewageOverflow]
+other = "Combined sewage overflow"
+
+[combinedsewageoverflow]
+other = "Combined sewage overflow"
+
+[Sewer]
+other = "Sewer"
+
+[sewer]
+other = "Sewer"
+
+[WasteContainer]
+other = "Waste container"
+
+[wastecontainer]
+other = "Waste container"

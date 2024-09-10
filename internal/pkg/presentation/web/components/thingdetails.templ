@@ -137,7 +137,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("type") }</div>
-							<div class="">{ model.Thing.Type }</div>
+							<div class="">{ l10n.Get(model.Thing.Type) }</div>
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>

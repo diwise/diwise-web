@@ -101,9 +101,9 @@ templ ProgressBar(id string, v int) {
 	<progress id={ id } max="100" value={ fmt.Sprintf("%d", v) }></progress><span>{ fmt.Sprintf("%d", v) }%</span>
 }
 
-templ CheckboxOption(name, value string, attrs templ.Attributes) {
+templ CheckboxOption(name, value string, l10n locale.Localizer, attrs templ.Attributes) {
 	<label class="flex justify-between items-center">
-		{ value }
+		{ l10n.Get(value) }
 		<input
 			type="checkbox"
 			name={ name }

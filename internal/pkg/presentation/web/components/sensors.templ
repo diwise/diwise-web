@@ -58,7 +58,7 @@ templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
 					<div class="flex items-center flex-[1_0_0] gap-6">
 						@CheckboxList(l10n.Get("type")) {
 							for _, t := range []string{"axsensor", "elsys","elt_2_hp",  "enviot", "milesight",  "niab-fls","qalcosonic",   "senlabt","sensative","sensefarm","vegapuls_air_41"} {
-								@CheckboxOption("type", t, templ.Attributes{
+								@CheckboxOption("type", t, l10n, templ.Attributes{
 									"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 									"hx-target": "#tableOrMap",
 								})
@@ -68,7 +68,7 @@ templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
 					<div class="flex items-center flex-[1_0_0] gap-6">
 						@CheckboxList(l10n.Get("status")) {
 							for _, t := range []string{"active", "inactive"} {
-								@CheckboxOption("status", t, templ.Attributes{
+								@CheckboxOption("status", t, l10n, templ.Attributes{
 									"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 									"hx-target": "#tableOrMap",
 								})
@@ -205,6 +205,9 @@ templ TableOrMap(l10n locale.Localizer, hxGet string) {
 					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=false", hxGet))) }
 					hx-target="#tableOrMap"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
+					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white'); this.classList.remove('dark:fill-white', 'stroke-black'); 
+					document.getElementById('mapButton').classList.add('fill-black', 'dark:fill-white'); 
+					document.getElementById('mapButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');"
 				>
 					<svg class="w-[18px] h-[18px]">
 						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
@@ -218,6 +221,9 @@ templ TableOrMap(l10n locale.Localizer, hxGet string) {
 					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=true", hxGet))) }
 					hx-target="#tableOrMap"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
+					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white'); 
+					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
+					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
 				>
 					<svg class="w-[18px] h-[18px]">
 						@templ.Raw(iconSVG("map"))
