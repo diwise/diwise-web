@@ -46,40 +46,42 @@ templ Statistics(l10n locale.Localizer, model StatisticsViewModel) {
 templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="sensor-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
-			<div class="">
-				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
-			</div>
+			<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
 			@Statistics(l10n, model.Statistics)
 		</div>
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 		<div class="flex px-8 flex-col items-start self-stretch gap-10">
-			<div class="w-full h-12 justify-between items-center inline-flex">
-				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
-					<div class="flex items-center flex-[1_0_0] gap-6">
-						@CheckboxList(l10n.Get("type")) {
-							for _, t := range []string{"axsensor", "elsys","elt_2_hp",  "enviot", "milesight",  "niab-fls","qalcosonic",   "senlabt","sensative","sensefarm","vegapuls_air_41"} {
-								@CheckboxOption("type", t, templ.Attributes{
-									"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
-									"hx-target": "#tableOrMap",
-								})
-							}
-						}
-					</div>
-					<div class="flex items-center flex-[1_0_0] gap-6">
-						@CheckboxList(l10n.Get("status")) {
-							for _, t := range []string{"active", "inactive"} {
-								@CheckboxOption("status", t, templ.Attributes{
-									"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
-									"hx-target": "#tableOrMap",
-								})
-							}
-						}
-					</div>
-				</div>
-				@TableOrMap(l10n, "/components/sensors/list")
-			</div>
+			@SensorsFilter(l10n)
 			@DataList(l10n, SensorsTable(l10n, model), SensorMap(l10n, model), model.MapView)
 		</div>
+	</div>
+}
+
+templ SensorsFilter(l10n locale.Localizer) {
+	<div class="w-full h-12 justify-between items-center inline-flex">			
+		<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
+			<div class="flex items-center flex-[1_0_0] gap-6">
+				@CheckboxList(l10n.Get("type")) {
+					for _, t := range []string{"axsensor", "elsys","elt_2_hp",  "enviot", "milesight",  "niab-fls","qalcosonic",   "senlabt","sensative","sensefarm","vegapuls_air_41"} {
+						@CheckboxOption("type", t, l10n, templ.Attributes{
+							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target": "#tableOrMap",
+						})
+					}
+				}
+			</div>
+			<div class="flex items-center flex-[1_0_0] gap-6">
+				@CheckboxList(l10n.Get("status")) {
+					for _, t := range []string{"active", "inactive"} {
+						@CheckboxOption("status", t, l10n, templ.Attributes{
+							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target": "#tableOrMap",
+						})
+					}
+				}
+			</div>
+		</div>
+		@TableOrMap(l10n, "/components/sensors/list")
 	</div>
 }
 
@@ -205,21 +207,15 @@ templ TableOrMap(l10n locale.Localizer, hxGet string) {
 					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=false", hxGet))) }
 					hx-target="#tableOrMap"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
+					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white'); this.classList.remove('dark:fill-white', 'stroke-black'); 
+					document.getElementById('mapButton').classList.add('fill-black', 'dark:fill-white'); 
+					document.getElementById('mapButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');"
 				>
 					<svg class="w-[18px] h-[18px]">
-						<svg class="fill-none dark:fill-none h-6 w-6" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-							<path fill-rule="evenodd" d="M12 3v18"></path>
-							<rect width="18" height="18" x="3" y="3" rx="2"></rect>
-							<path d="M3 9h18"></path><path d="M3 15h18"></path>
-						</svg>
+						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					</svg>
 				</button>
-				<div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block">
-					<svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full"><svg class="w-5 h-5 fill-black dark:fill-white" viewBox="0 0 41 8"><g fill-rule="evenodd" id="Tip" clip-path="url(#clip0_1424_3946)"><rect id="Rectangle 1" x="6.5" y="16" width="20" height="20" transform="rotate(-45 6.5 16)"></rect></g><defs><clipPath id="clip0_1424_3946"><rect width="40" height="8" transform="translate(0.5)"></rect></clipPath></defs></svg></svg>
-					<div class="bg-primary-surface text-white dark:bg-white dark:text-black rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
-						{ l10n.Get("table") }
-					</div>
-				</div>
+				@Tooltip(l10n.Get("table"))
 			</div>
 			<div class="relative group">
 				<button
@@ -227,18 +223,15 @@ templ TableOrMap(l10n locale.Localizer, hxGet string) {
 					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=true", hxGet))) }
 					hx-target="#tableOrMap"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
+					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white'); 
+					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
+					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
 				>
 					<svg class="w-[18px] h-[18px]">
-						<path fill-rule="evenodd" d="M16.144 1.612a.75.75 0 0 1 .356.638V13.5a.75.75 0 0 1-.415.67l-4.5 2.25a.75.75 0 0 1-.67 0L6.75 14.339l-4.165 2.083A.75.75 0 0 1 1.5 15.75V4.5a.75.75 0 0 1 .415-.67l4.5-2.25a.75.75 0 0 1 .67 0L11.25 3.66l4.165-2.082a.75.75 0 0 1 .73.033ZM3 4.964v9.572l3.415-1.707a.75.75 0 0 1 .67 0l4.165 2.082L15 13.037V3.463L11.585 5.17a.75.75 0 0 1-.67 0L6.75 3.089 3 4.964Z" clip-rule="evenodd"></path>
-						<path fill-rule="evenodd" d="M6.75 1.5a.75.75 0 0 1 .75.75V13.5a.75.75 0 0 1-1.5 0V2.25a.75.75 0 0 1 .75-.75ZM11.25 3.75a.75.75 0 0 1 .75.75v11.25a.75.75 0 0 1-1.5 0V4.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd"></path>
+						@templ.Raw(iconSVG("map"))
 					</svg>
 				</button>
-				<div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block">
-					<svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full"><svg class="fill-black dark:fill-white w-5 h-5" viewBox="0 0 41 8"><g fill-rule="evenodd" id="Tip" clip-path="url(#clip0_1424_3946)"><rect id="Rectangle 1" x="6.5" y="16" width="20" height="20" transform="rotate(-45 6.5 16)"></rect></g><defs><clipPath id="clip0_1424_3946"><rect width="40" height="8" transform="translate(0.5)"></rect></clipPath></defs></svg></svg>
-					<div class="bg-primary-surface text-white dark:bg-white dark:text-black rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
-						{ l10n.Get("map") }
-					</div>
-				</div>
+				@Tooltip(l10n.Get("map"))
 			</div>
 		</div>
 	</div>

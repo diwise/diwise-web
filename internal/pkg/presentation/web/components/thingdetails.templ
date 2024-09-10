@@ -137,7 +137,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("type") }</div>
-							<div class="">{ model.Thing.Type }</div>
+							<div class="">{ l10n.Get(model.Thing.Type) }</div>
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
@@ -370,7 +370,7 @@ templ graphTableButtons(l10n locale.Localizer) {
 						@SVG("chartline", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					</svg>
 				</button>
-				@tooltip(l10n.Get("graph"))
+				@Tooltip(l10n.Get("graph"))
 			</div>
 			<div class="relative group">
 				<button
@@ -390,7 +390,7 @@ templ graphTableButtons(l10n locale.Localizer) {
 						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					</svg>
 				</button>
-				@tooltip(l10n.Get("table"))
+				@Tooltip(l10n.Get("table"))
 			</div>
 		</div>
 	</div>

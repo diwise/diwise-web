@@ -219,3 +219,21 @@ other = "Distans"
 
 [3331-5700]
 other = "Total energiförbrukning"
+
+[CombinedSewageOverflow]
+other = "Avlopp som svämmar över"
+
+[combinedsewageoverflow]
+other = "Avlopp som svämmar över"
+
+[Sewer]
+other = "Avlopp"
+
+[sewer]
+other = "Avlopp"
+
+[WasteContainer]
+other = "Soptunna"
+
+[wastecontainer]
+other = "Soptunna"

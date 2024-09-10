@@ -109,9 +109,9 @@ templ ProgressBar(cssClass, text string, value int) {
 	</div>
 }
 
-templ CheckboxOption(name, value string, attrs templ.Attributes) {
+templ CheckboxOption(name, value string, l10n locale.Localizer, attrs templ.Attributes) {
 	<label class="flex justify-between items-center">
-		{ value }
+		{ l10n.Get(value) }
 		<input
 			type="checkbox"
 			name={ name }
@@ -138,7 +138,7 @@ templ CheckboxList(header string) {
 
 /************************************************************/
 
-templ tooltip(tooltiptext string) {
+templ Tooltip(tooltiptext string) {
 	<div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block">
 		<svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full">
 			@SVG("tip", Box(41, 8), FillColor("black", "white"))

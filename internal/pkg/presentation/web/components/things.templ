@@ -38,13 +38,13 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
 			<div class="flex items-center w-full justify-between">
-				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">Saker</h1>
+				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things")}</h1>
 				<div class="flex items-center text-white dark:text-dark-primary font-bold">
 					<button class="flex justify-center items-center gap-2 px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover rounded-xl cursor-pointer" hx-get="/components/things" hx-trigger="click">Lägg till ny sak</button>
 				</div>
 			</div>
 		</div>
-		<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 		<div class="flex px-8 flex-col items-start self-stretch gap-10">
 			@ThingsFilter(l10n)
 			@DataList(l10n, ThingsTable(l10n, model), ThingsMap(l10n, model), model.MapView)
@@ -56,9 +56,9 @@ templ ThingsFilter(l10n locale.Localizer) {
 	<div class="w-full h-12 justify-between items-center inline-flex">
 		<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 			<div class="flex items-center flex-[1_0_0] gap-6">
-				@CheckboxList(l10n.Get("Typ")) {
+				@CheckboxList(l10n.Get("type")) {
 					for _, t := range []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation"} {
-						@CheckboxOption("type", t, templ.Attributes{
+						@CheckboxOption("type", t, l10n, templ.Attributes{
 							"hx-get":    string(templ.SafeURL("/components/things/list")),
 							"hx-target": "#tableOrMap",
 						})
@@ -66,7 +66,7 @@ templ ThingsFilter(l10n locale.Localizer) {
 				}
 			</div>
 		</div>
-		@TableOrMap(l10n, "/components/things/list")
+		@TableOrMap(l10n, "/components/things/list") 
 	</div>
 }
 
@@ -103,7 +103,7 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 		hx-trigger="click"
 	>
 		<td class="px-6 py-3"><span class="font-bold">{ thing.ID }</span></td>
-		<td class="px-6 py-3">{ thing.Type }</td>
+		<td class="px-6 py-3">{ l10n.Get(thing.Type) }</td>
 		<td class="px-6 py-3">
 			@ThingStatusCell(l10n, thing)
 		</td>
