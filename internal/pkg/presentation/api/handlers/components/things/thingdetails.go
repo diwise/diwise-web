@@ -2,6 +2,7 @@ package things
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
@@ -10,59 +11,6 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 )
-
-/*
-	func NewThingsListPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
-		version := helpers.GetVersion(ctx)
-
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			localizer := l10n.For(r.Header.Get("Accept-Language"))
-
-			pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
-			offset, limit := helpers.GetOffsetAndLimit(r)
-
-			ctx := helpers.Decorate(r.Context(),
-				components.CurrentComponent, "things",
-			)
-
-			thingResult, err := app.GetThings(ctx, offset, limit)
-			if err != nil {
-				http.Error(w, "could not fetch things", http.StatusInternalServerError)
-				return
-			}
-
-			listViewModel := components.ThingListViewModel{}
-			for _, thing := range thingResult.Things {
-				listViewModel.Things = append(listViewModel.Things, components.ThingViewModel{
-					ThingID:      thing.ThingID,
-				})
-			}
-
-			thingList := components.Things(localizer, assets, listViewModel)
-			page := components.StartPage(version, localizer, assets, thingList)
-
-			w.Header().Add("Content-Type", "text/html")
-			w.Header().Add("Cache-Control", "no-cache")
-			w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
-
-			renderCtx := helpers.Decorate(
-				ctx,
-				components.PageIndex, pageIndex,
-				components.PageLast, thingResult.TotalRecords/limit,
-				components.PageSize, limit,
-			)
-
-			err = page.Render(renderCtx, w)
-			if err != nil {
-				http.Error(w, "could not render thing details page", http.StatusInternalServerError)
-			}
-
-			w.WriteHeader(http.StatusOK)
-		}
-
-		return http.HandlerFunc(fn)
-	}
-*/
 
 func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
@@ -87,11 +35,21 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 		}
 
 		detailsViewModel := components.ThingDetailsViewModel{
-			ThingID:   thing.ThingID,
-			Latitude:  thing.Location.Latitude,
-			Longitude: thing.Location.Longitude,
-			Tenant:    thing.Tenant,
-			Type:      thing.Type,
+			Thing: components.ThingViewModel{
+				ThingID:   thing.ThingID,
+				Latitude:  thing.Location.Latitude,
+				Longitude: thing.Location.Longitude,
+				Tenant:    thing.Tenant,
+				Type:      thing.Type,
+			},
+		}
+
+		for _, r := range thing.Related {
+			detailsViewModel.Related = append(detailsViewModel.Related, components.ThingViewModel{
+				ThingID: fmt.Sprintf("urn:diwise:%s:%s", r.Type, r.ID),
+				ID:      r.ID,
+				Type:    r.Type,
+			})
 		}
 
 		thingDetails := components.ThingDetailsPage(localizer, assets, detailsViewModel)
@@ -136,12 +94,21 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		}
 
 		thingsViewModel := components.ThingDetailsViewModel{
-			ThingID:   thing.ThingID,
-			Latitude:  thing.Location.Latitude,
-			Longitude: thing.Location.Longitude,
-			Tenant:    thing.Tenant,
-			Type:      thing.Type,
-			ID:        "namn",
+			Thing: components.ThingViewModel{
+				ThingID:   thing.ThingID,
+				Latitude:  thing.Location.Latitude,
+				Longitude: thing.Location.Longitude,
+				Tenant:    thing.Tenant,
+				Type:      thing.Type,
+			},
+		}
+
+		for _, r := range thing.Related {
+			thingsViewModel.Related = append(thingsViewModel.Related, components.ThingViewModel{
+				ThingID: fmt.Sprintf("urn:diwise:%s:%s", r.Type, r.ID),
+				ID:      r.ID,
+				Type:    r.Type,
+			})
 		}
 
 		thingDetails := components.ThingDetails(localizer, assets, thingsViewModel)

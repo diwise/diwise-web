@@ -99,9 +99,6 @@ templ PageButton(pageIndex int, hxGet, query, hxTarget string) {
 
 templ ProgressBar(id string, v int) {
 	<progress id={ id } max="100" value={ fmt.Sprintf("%d", v) }></progress><span>{ fmt.Sprintf("%d", v) }%</span>
-
-
-
 }
 
 templ CheckboxOption(name, value string, attrs templ.Attributes) {

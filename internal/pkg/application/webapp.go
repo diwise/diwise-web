@@ -46,18 +46,32 @@ func New(ctx context.Context) (*App, error) {
 }
 
 func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
-	res, err := a.get(ctx, a.thingManagementURL, id, url.Values{})
+	params := url.Values{
+		"measurements": []string{"true"},
+		"state":        []string{"true"},
+	}
+
+	res, err := a.get(ctx, a.thingManagementURL, id, params)
 	if err != nil {
 		return Thing{}, err
 	}
 
-	var sensor Thing
-	err = json.Unmarshal(res.Data, &sensor)
+	var thing Thing
+	err = json.Unmarshal(res.Data, &thing)
 	if err != nil {
 		return Thing{}, err
 	}
 
-	return sensor, nil
+	if len(res.Included) > 0 {
+		for _, r := range res.Included {
+			thing.Related = append(thing.Related, Thing{
+				ID:   r.ID,
+				Type: r.Type,
+			})
+		}
+	}
+
+	return thing, nil
 }
 
 func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string][]string) (ThingResult, error) {
@@ -425,8 +439,14 @@ type Links struct {
 	Last  *string `json:"last,omitempty"`
 }
 
+type Resource struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+}
+
 type ApiResponse struct {
-	Meta  *Meta           `json:"meta,omitempty"`
-	Data  json.RawMessage `json:"data"`
-	Links *Links          `json:"links,omitempty"`
+	Meta     *Meta           `json:"meta,omitempty"`
+	Data     json.RawMessage `json:"data"`
+	Links    *Links          `json:"links,omitempty"`
+	Included []Resource      `json:"included,omitempty"`
 }

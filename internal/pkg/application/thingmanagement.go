@@ -17,6 +17,7 @@ type Thing struct {
 	Location     Location      `json:"location,omitempty"`
 	Tenant       string        `json:"tenant,omitempty"`
 	Measurements []Measurement `json:"measurements,omitempty"`
+	Related      []Thing       `json:"related,omitempty"`
 }
 
 type Measurement struct {

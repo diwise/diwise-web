@@ -6,27 +6,9 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 )
 
-/*type ThingDetailsViewModel struct {
-	ThingID           string
-	Name              string
-	Latitude          float64
-	Longitude         float64
-	ThingProfileName  string
-	Types             []string
-	Tenant            string
-	Description       string
-	Active            bool
-	Organisations     []string
-	ThingProfiles     []ThingProfile
-}*/
-
 type ThingDetailsViewModel struct {
-	ThingID      string
-	ID           string
-	Type         string
-	Latitude     float64
-	Longitude    float64
-	Tenant       string
+	Thing        ThingViewModel
+	Related      []ThingViewModel
 	Measurements []MeasurementViewModel
 }
 
@@ -37,81 +19,32 @@ type ThingProfile struct {
 	Types    []string `json:"types,omitempty"`
 }
 
-templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing ThingDetailsViewModel) {
+templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
-		@ThingDetails(l10n, asset, thing)
+		@ThingDetails(l10n, asset, model)
 	</div>
 }
 
-templ graphTableButtons(l10n locale.Localizer) {
-	<div class="flex items-center self-stretch gap-6">
-		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
-			/*@tableMapSwitch("list", "Lista", iconSVG("list"))
-			  @tableMapSwitch("mapview", "Karta", iconSVG("map"))*/
-			<div class="relative group">
-				<button
-					id="graphButton"
-					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black stroke-white dark:bg-white dark:stroke-black hover:bg-tertiary-surface-hover"
-					hx-get="?view=graphView"
-					hx-target="#graphOrTable"
-					hx-push-url="true"
-					hx-trigger="click"
-					hx-swap="innerHTML"
-					hx-select="#graphView"
-					hx-on="click: this.classList.add('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black'); this.classList.remove('stroke-black', 'dark:stroke-white'); 
-					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
-					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
-				>
-					<svg class="w-[18px] h-[18px]">
-						@SVG("chartline", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					</svg>
-				</button>
-				@tooltip(l10n.Get("graph"))
-			</div>
-			<div class="relative group">
-				<button
-					id="tableButton"
-					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer stroke-black dark:stroke-white dark:fill-white hover:bg-tertiary-surface-hover"
-					hx-get="?view=tableView"
-					hx-target="#graphOrTable"
-					hx-push-url="true"
-					hx-trigger="click"
-					hx-swap="innerHTML"
-					hx-select="#tableView"
-					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'dark:stroke-black', 'stroke-white' ); this.classList.remove('dark:fill-white', 'dark:stroke-white'); 
-					document.getElementById('graphButton').classList.add('stroke-black', 'dark:stroke-white'); 
-					document.getElementById('graphButton').classList.remove('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');"
-				>
-					<svg class="w-[18px] h-[18px]">
-						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					</svg>
-				</button>
-				@tooltip(l10n.Get("table"))
-			</div>
-		</div>
-	</div>
-}
-
-templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing ThingDetailsViewModel) {
+templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
 	<div class="w-full px-8">
 		//Rubrik och redigera
 		<div class="flex items-center w-full justify-between">
-			if thing.ThingID == "" {
+			if model.Thing.ThingID == "" {
 				<div class="flex items-center align-middle">
 					<h1 class="py-3">&nbsp;</h1>
-					//@statusActive(thing.Active, l10n) TODO
+					//@statusActive(model.Thing.Active, l10n) TODO
 				</div>
 			} else {
 				<div class="flex items-center gap-6 align-middle">
-					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ thing.ThingID }</h1>
-					//@statusActive(thing.Active, l10n) TODO
+					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ThingID }</h1>
+					//@statusActive(model.Thing.Active, l10n) TODO
 				</div>
 			}
 			/*<div class="flex items-center gap-6 align-middle">
-				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose"> { thing.ThingID }</h1>
-				@statusActive(thing.Active, l10n)
+				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose"> { model.Thing.ThingID }</h1>
+				@statusActive(model.Thing.Active, l10n)
 			</div>*/
-			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", thing.ThingID))))
+			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", model.Thing.ThingID))))
 		</div>
 		//Innehåll
 		<div class="flex flex-col items-start gap-10">
@@ -200,19 +133,25 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 					<div class="flex flex-col items-start self-stretch gap-6 px-9 text-secondary-dark dark:text-secondary">
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("id") }</div>
-							<div class="">{ thing.ThingID }</div>
+							<div class="">{ model.Thing.ThingID }</div>
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("type") }</div>
-							<div class="">{ thing.Type }</div>
+							<div class="">{ model.Thing.Type }</div>
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-							<div class="italic">{ l10n.Get("sensormissing") }</div> //TODO
+							if len(model.Related) == 0 {
+								<div>{ l10n.Get("sensormissing") }</div>
+							} else {
+								for _, r := range model.Related {
+									<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", r.ID)) }>{ r.ThingID }</a>
+								}
+							}
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("organisation") }</div>
-							<div class="">{ thing.Tenant }</div>
+							<div class="">{ model.Thing.Tenant }</div>
 						</div>
 						/*<div class="flex flex-col gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
@@ -237,13 +176,13 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 							//
 							<div class="flex flex-start gap-2">
 								<div class="font-bold">{ l10n.Get("latitude") }</div>
-								<div class="">{ fmt.Sprintf("%f", thing.Latitude) }</div>
+								<div class="">{ fmt.Sprintf("%f", model.Thing.Latitude) }</div>
 							</div>
 							<div class="flex flex-start gap-2">
 								<div class="font-bold">{ l10n.Get("longitude") }</div>
-								<div class="">{ fmt.Sprintf("%f", thing.Longitude) }</div>
+								<div class="">{ fmt.Sprintf("%f", model.Thing.Longitude) }</div>
 							</div>
-							@Map(newMapData(thing.Latitude, thing.Longitude), thingMapFeature(thing))
+							@Map(newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature([]ThingViewModel{model.Thing}))
 						</div>
 					</div>
 				</div>
@@ -252,13 +191,13 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 	</div>
 }
 
-templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing ThingDetailsViewModel) {
+templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
 	<div class="w-full px-8">
 		<div class="flex items-center justify-between w-full">
-			<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ thing.ThingID }</h1>
+			<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ThingID }</h1>
 		</div>
 		<form action="/components/things/details" method="post">
-			<input type="hidden" name="id" value={ thing.ThingID }/>
+			<input type="hidden" name="id" value={ model.Thing.ThingID }/>
 			<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					//Status och uppgifter
@@ -274,7 +213,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("name") }</div>
-									<input type="text" name="name" value={ thing.ThingID } class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
+									<input type="text" name="name" value={ model.Thing.ThingID } class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
@@ -282,7 +221,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
 											{ l10n.Get("pickOption") }
 										</label>
-										//@OrganisationSelect(l10n, asset, "organisation", thing.Tenant, thing.Organisations)
+										//@OrganisationSelect(l10n, asset, "organisation", model.Thing.Tenant, model.Thing.Organisations)
 									</div>
 								</div>
 							</div>
@@ -293,7 +232,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 										<label for="thingType" class="hidden block text-sm font-medium text-gray-700">
 											{ l10n.Get("pickOption") }
 										</label>
-										//@ThingTypeSelect(l10n, asset, "thingType", thing.ThingProfileName, thing.ThingProfiles)
+										//@ThingTypeSelect(l10n, asset, "thingType", model.Thing.ThingProfileName, model.Thing.ThingProfiles)
 									</div>
 								</div>
 								<!--
@@ -357,7 +296,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 							/*<label for="custom-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 								<span class="font-bold text-gray-900 dark:text-gray-300">{ l10n.Get("activate") }</span>
 								<div class="flex items-center">
-									<input type="checkbox" name="active" id="custom-checkbox" class="sr-only peer" checked?={ thing.Active }/>
+									<input type="checkbox" name="active" id="custom-checkbox" class="sr-only peer" checked?={ model.Thing.Active }/>
 									<div class="w-[24px] h-[24px] bg-white rounded border border-gray-400 peer-checked:bg-emerald-800 peer-checked:border-emerald-800 flex justify-center items-center">
 										<svg class="fill-none w-[24px] h-[24px] stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity">
 											@templ.Raw(iconSVG("check"))
@@ -384,14 +323,14 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("latitude") }</div>
-									<input type="number" name="latitude" value={ fmt.Sprintf("%f", thing.Latitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
+									<input type="number" name="latitude" value={ fmt.Sprintf("%f", model.Thing.Latitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("longitude") }</div>
-									<input type="number" name="longitude" value={ fmt.Sprintf("%f", thing.Longitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
+									<input type="number" name="longitude" value={ fmt.Sprintf("%f", model.Thing.Longitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
 								</div>
 							</div>
-							@Map(newMapData(thing.Latitude, thing.Longitude), thingMapFeature(thing))
+							@Map(newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature([]ThingViewModel{model.Thing}))
 						</div>
 					</div>
 				</div>
@@ -408,9 +347,51 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 	</div>
 }
 
-func thingMapFeature(thing ThingDetailsViewModel) FeatureCollection {
-	feature := NewFeature(NewPoint(thing.Latitude, thing.Longitude))
-	//feature.AddProperty("desc", thing.Description)
-	feature.AddProperty("type", thing.Type)
-	return NewFeatureCollection([]Feature{feature})
+templ graphTableButtons(l10n locale.Localizer) {
+	<div class="flex items-center self-stretch gap-6">
+		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
+			/*@tableMapSwitch("list", "Lista", iconSVG("list"))
+			  @tableMapSwitch("mapview", "Karta", iconSVG("map"))*/
+			<div class="relative group">
+				<button
+					id="graphButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black stroke-white dark:bg-white dark:stroke-black hover:bg-tertiary-surface-hover"
+					hx-get="?view=graphView"
+					hx-target="#graphOrTable"
+					hx-push-url="true"
+					hx-trigger="click"
+					hx-swap="innerHTML"
+					hx-select="#graphView"
+					hx-on="click: this.classList.add('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black'); this.classList.remove('stroke-black', 'dark:stroke-white'); 
+					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
+					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
+				>
+					<svg class="w-[18px] h-[18px]">
+						@SVG("chartline", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@tooltip(l10n.Get("graph"))
+			</div>
+			<div class="relative group">
+				<button
+					id="tableButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer stroke-black dark:stroke-white dark:fill-white hover:bg-tertiary-surface-hover"
+					hx-get="?view=tableView"
+					hx-target="#graphOrTable"
+					hx-push-url="true"
+					hx-trigger="click"
+					hx-swap="innerHTML"
+					hx-select="#tableView"
+					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'dark:stroke-black', 'stroke-white' ); this.classList.remove('dark:fill-white', 'dark:stroke-white'); 
+					document.getElementById('graphButton').classList.add('stroke-black', 'dark:stroke-white'); 
+					document.getElementById('graphButton').classList.remove('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');"
+				>
+					<svg class="w-[18px] h-[18px]">
+						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@tooltip(l10n.Get("table"))
+			</div>
+		</div>
+	</div>
 }
