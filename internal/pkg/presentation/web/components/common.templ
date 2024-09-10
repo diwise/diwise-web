@@ -39,11 +39,11 @@ templ Paging(l10n locale.Localizer, p PagingViewModel) {
 					hx-target={ p.TargetID }
 					hx-include=".filter"
 				>
-					<option value="5" selected?={ p.PageSize == 5 }>5 st</option>
-					<option value="10" selected?={ p.PageSize == 10 }>10 st</option>
-					<option value="15" selected?={ p.PageSize == 15 }>15 st</option>
-					<option value="50" selected?={ p.PageSize == 50 }>50 st</option>
-					<option value="100" selected?={ p.PageSize == 100 }>100 st</option>
+					<option value="5" selected?={ p.PageSize == 5 }>5</option>
+					<option value="10" selected?={ p.PageSize == 10 }>10</option>
+					<option value="15" selected?={ p.PageSize == 15 }>15</option>
+					<option value="50" selected?={ p.PageSize == 50 }>50</option>
+					<option value="100" selected?={ p.PageSize == 100 }>100</option>
 				</select>
 				<div class="absolute flex inset-y-0 right-0 px-2 items-center pointer-events-none">
 					<svg class="w-[18px] h-[18px] dark:fill-white">

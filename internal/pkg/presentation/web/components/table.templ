@@ -99,35 +99,35 @@ templ Label(label string, active bool) {
 	</span>
 }
 
-templ DataTableFooter(colspan, tableName string) {
+templ DataTableFooter(colspan, tableName string, l10n locale.Localizer) {
 	<tfoot>
 		<tr>
 			<td colspan={ colspan }>
 				<div id="paginering" class="flex items-center w-full h-[60px] px-4 py-3.5 rounded-b-2xl border-white border-opacity-30">
 					<div class="flex flex-1 h-8 justify-start items-center gap-2">
-						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Rader per sida:</span>
+						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{ l10n.Get("rowsPerPage") }</span>
 						<div class="relative flex justify-between items-center bg-tertiary-surface rounded-xl">
 							<select name="pageSize"
-								class="appearance-none min-w-[80px] outline-none px-3 py-1.5 bg-transparent text-sm font-bold font-sans leading-tight cursor-pointer">
+								class="appearance-none min-w-[64px] outline-none px-3 py-1.5 bg-transparent text-sm font-bold font-sans leading-tight cursor-pointer">
 								@Options([]OptionViewModel{
 									{
 										Value:    "10",
-										Text:     "10 st",
+										Text:     "10",
 										Selected: true,
 									},
 									{
 										Value:    "20",
-										Text:     "20 st",
+										Text:     "20",
 										Selected: false,
 									},
 									{
 										Value:    "50",
-										Text:     "50 st",
+										Text:     "50",
 										Selected: false,
 									},
 									{
 										Value:    "100",
-										Text:     "100 st",
+										Text:     "100",
 										Selected: false,
 									},
 								})
