@@ -79,6 +79,9 @@ other = "Livboj"
 [location]
 other = "Position"
 
+[login]
+other = "Logga in"
+
 [logout]
 other = "Logga ut"
 
@@ -105,6 +108,9 @@ other = "Mätvärden"
 
 [name]
 other = "Namn"
+
+[notloggedin]
+other = "Du behöver logga in"
 
 [organisation]
 other = "Organisation"

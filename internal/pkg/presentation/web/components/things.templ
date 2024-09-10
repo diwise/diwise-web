@@ -38,9 +38,9 @@ templ ThingsTable(l10n locale.Localizer, model ThingsListViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-dark-primary dark:border-white">
 			<tr>
-				<th class="px-6 py-3">{ l10n.Get("ID") }</th>
-				<th class="px-6 py-3">{ l10n.Get("Typ") }</th>
-				<th class="px-6 py-3">{ l10n.Get("Status") }</th>
+				<th class="px-6 py-3">{ l10n.Get("id") }</th>
+				<th class="px-6 py-3">{ l10n.Get("type") }</th>
+				<th class="px-6 py-3">{ l10n.Get("status") }</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -100,9 +100,9 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
 			<div class="flex items-center w-full justify-between">
-				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">Saker</h1>
+				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
 				<div class="flex items-center text-white dark:text-dark-primary font-bold">
-					<button class="flex justify-center items-center gap-2 px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover rounded-xl cursor-pointer" hx-get="/components/things" hx-trigger="click">Lägg till ny sak</button>
+					<button class="flex justify-center items-center gap-2 px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover rounded-xl cursor-pointer" hx-get="/components/things" hx-trigger="click">{ l10n.Get("addthing") }</button>
 				</div>
 			</div>
 		</div>
