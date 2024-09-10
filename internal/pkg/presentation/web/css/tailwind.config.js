@@ -24,6 +24,7 @@ module.exports = {
           'primary-surface-hover': '#1C1C28E0',
           'primary-surface-dark': '#FFFFFFF2',
           'primary-surface-dark-hover': '#FFFFFFE0',
+          'primary-surface-blue': '#005595',
           'primary-surface-white': '#FFFFFF33',
           'red-600': '#D62E2E',
           'secondary': '#E5E5E5',
