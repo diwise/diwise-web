@@ -139,7 +139,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
 							} else {
 								for _, r := range model.Related {
-									<div class="underline text-primary-surface-blue">
+									<div class="underline text-primary-surface-blue dark:text-primary-surface-blue-dark">
 										<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", r.ID)) }>{ r.ThingID }</a>
 									</div>
 								}

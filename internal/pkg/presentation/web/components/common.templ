@@ -67,7 +67,7 @@ templ Paging(l10n locale.Localizer, p PagingViewModel) {
 					} else {
 						@PageButton(int(page), p.TargetURL, p.Query, p.TargetID) {
 							<div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex py-0.5 ">
-								<div class="grow shrink basis-0 text-center text-primary-surface-blue dark:text-slate-300 text-base font-normal font-sans underline leading-normal">{ fmt.Sprintf("%d", page) }</div>
+								<div class="grow shrink basis-0 text-center text-primary-surface-blue dark:dark:text-primary-surface-blue-dark text-base font-normal font-sans underline leading-normal">{ fmt.Sprintf("%d", page) }</div>
 							</div>
 						}
 					}
