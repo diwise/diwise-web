@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
@@ -82,7 +83,6 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 			return
 		}
 
-		//mode := r.URL.Query().Get("mode")
 		ctx := helpers.Decorate(r.Context(),
 			components.CurrentComponent, "things",
 		)
@@ -101,9 +101,27 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 				Tenant:    thing.Tenant,
 				Type:      thing.Type,
 			},
+			Measurements: make([]components.MeasurementViewModel, 0),
+		}
+
+		for _, m := range thing.Measurements {
+			thingsViewModel.Measurements = append(thingsViewModel.Measurements, components.MeasurementViewModel{
+				ID:          m.ID,
+				Timestamp:   m.Timestamp,
+				Urn:         m.Urn,
+				BoolValue:   m.BoolValue,
+				StringValue: m.StringValue,
+				Value:       m.Value,
+				Unit:        m.Unit,
+			})
 		}
 
 		for _, r := range thing.Related {
+			//TODO: should it be possible to add other types of related things?
+			if strings.ToLower(r.Type) != "device" {
+				continue
+			}
+
 			thingsViewModel.Related = append(thingsViewModel.Related, components.ThingViewModel{
 				ThingID: fmt.Sprintf("urn:diwise:%s:%s", r.Type, r.ID),
 				ID:      r.ID,
@@ -112,7 +130,6 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		}
 
 		thingDetails := components.ThingDetails(localizer, assets, thingsViewModel)
-		//page := components.StartPage(version, localizer, assets, thingDetails)
 
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Cache-Control", "no-cache")

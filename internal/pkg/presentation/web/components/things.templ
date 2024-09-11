@@ -38,7 +38,7 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
 			<div class="flex items-center w-full justify-between">
-				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things")}</h1>
+				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
 				<div class="flex items-center text-white dark:text-dark-primary font-bold">
 					<button class="flex justify-center items-center gap-2 px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover rounded-xl cursor-pointer" hx-get="/components/things" hx-trigger="click">Lägg till ny sak</button>
 				</div>
@@ -66,7 +66,7 @@ templ ThingsFilter(l10n locale.Localizer) {
 				}
 			</div>
 		</div>
-		@TableOrMap(l10n, "/components/things/list") 
+		@TableOrMap(l10n, "/components/things/list")
 	</div>
 }
 
@@ -187,9 +187,20 @@ func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component
 		return templ.NopComponent
 	}
 
-	text := fmt.Sprintf("%0.f%s (%s)", *t.Measurements[i].Value, t.Measurements[i].Unit, t.Measurements[i].Timestamp.Format("2006-01-02 15:04:05"))
+	value := int(*t.Measurements[i].Value)
+	text := fmt.Sprintf("%d%s (%s)", value, t.Measurements[i].Unit, t.Measurements[i].Timestamp.Format("2006-01-02 15:04:05"))
 
-	return progressBar(text, int(*t.Measurements[i].Value))
+	colourClass := ""
+	switch {
+	case value >= 70:
+		colourClass = "bg-red-600"
+	case value <= 40:
+		colourClass = "bg-green-700"
+	default:
+		colourClass = "bg-orange-600"
+	}
+
+	return ProgressBar(colourClass, text, value)
 }
 
 func ThingsMap(l10n locale.Localizer, model ThingsListViewModel) templ.Component {
