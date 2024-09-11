@@ -35,7 +35,9 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 					<div hx-get="/components/home/usage" hx-trigger="load, every 60m" style="display:none;"></div>
 				</div>
 			</div>
-			<div class="col-span-4">
+
+			//Alerts, not in MVP
+			/*<div class="col-span-4">
 				<div class="col-span-12 justify-start items-center gap-4">
 					<div class="flex gap-4 items-center">
 						<div class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("alerts") }</div>
@@ -63,7 +65,7 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 					),
 					DataTableFooter("7", "home", l10n), l10n,
 				)
-			</div>
+			</div>*/
 		</div>
 	</div>
 }

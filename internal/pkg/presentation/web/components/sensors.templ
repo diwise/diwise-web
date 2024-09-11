@@ -83,6 +83,27 @@ templ SensorsFilter(l10n locale.Localizer) {
 		</div>
 		@TableOrMap(l10n, "/components/sensors/list")
 	</div>
+	
+	//Chips, vilka filter har man valt. Loop över mappen, innerloop över inre array
+	//TODO: After MVP
+	/*<div class="flex flex-col flex-start gap-2 self-stretch">
+		<div class="font-bold dark:text-white">
+			{ l10n.Get("selectedfilters") }
+		</div>
+		<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
+			<div class="flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border stroke-primary-dark dark:stroke-white">
+				Status: Aktiv
+				@SVG("close", NoFill(), Size(16), Box(24, 24), StrokeColor("primary-dark", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
+			</div>
+			<div class="flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border">
+				Organisation: Servanet
+				@SVG("close", NoFill(), Size(16), Box(24, 24), StrokeColor("primary-dark", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
+			</div>
+			<div class="flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border">
+				Rensa alla
+			</div>
+		</div>
+	</div>*/
 }
 
 templ DataList(l10n locale.Localizer, tableComponent, mapComponent templ.Component, mapView bool) {
