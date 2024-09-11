@@ -29,26 +29,18 @@ templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 
 templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
 	<div class="w-full px-8">
-		//Rubrik och redigera
 		<div class="flex items-center w-full justify-between">
 			if model.Thing.ThingID == "" {
 				<div class="flex items-center align-middle">
 					<h1 class="py-3">&nbsp;</h1>
-					//@statusActive(model.Thing.Active, l10n) TODO
 				</div>
 			} else {
 				<div class="flex items-center gap-6 align-middle">
 					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ThingID }</h1>
-					//@statusActive(model.Thing.Active, l10n) TODO
 				</div>
 			}
-			/*<div class="flex items-center gap-6 align-middle">
-				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose"> { model.Thing.ThingID }</h1>
-				@statusActive(model.Thing.Active, l10n)
-			</div>*/
 			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", model.Thing.ThingID))))
 		</div>
-		//Innehåll
 		<div class="flex flex-col items-start gap-10">
 			//Statistikdel
 			<div class="flex flex-col items-start self-stretch py-6">
@@ -207,8 +199,16 @@ func fillingLevel(measurements []MeasurementViewModel) float64 {
 
 templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
 	<div class="w-full px-8">
-		<div class="flex items-center justify-between w-full">
-			<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ThingID }</h1>
+		<div class="flex items-center w-full justify-between">
+			if model.Thing.ThingID == "" {
+				<div class="flex items-center align-middle">
+					<h1 class="py-3">&nbsp;</h1>
+				</div>
+			} else {
+				<div class="flex items-center gap-6 align-middle">
+					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ThingID }</h1>
+				</div>
+			}
 		</div>
 		<form action="/components/things/details" method="post">
 			<input type="hidden" name="id" value={ model.Thing.ThingID }/>
@@ -249,15 +249,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 										//@ThingTypeSelect(l10n, asset, "thingType", model.Thing.ThingProfileName, model.Thing.ThingProfiles)
 									</div>
 								</div>
-								<!--
-								<div class="flex flex-col gap-2 flex-[1_0_0]">
-									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
-									<div class="border border-input-surface rounded-xl">
-										<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">{ l10n.Get("pickOption") }</label>
-										@MeasurementTypeSelect(l10n, asset, "measurementType", thing)
-									</div>
-								</div>
-								-->
 								<div class="flex flex-start gap-10 self-stretch">
 									<div class="flex flex-col gap-2 flex-[1_0_0]">
 										<div class="font-bold">{ l10n.Get("measurementtype") }</div>
@@ -270,24 +261,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 									</div>
 									<div class="flex flex-col gap-2 flex-[1_0_0]"></div>
 								</div>
-								<style>
-								details > summary {
-								list-style: none;
-								cursor: pointer;
-								}
-
-								details > summary::-webkit-details-marker {
-								display: none;
-								}
-
-								.dropdown-content {
-								display: none;
-								}
-
-								details[open] .dropdown-content {
-								display: block;
-								}
-							</style>
 							</div>
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
@@ -364,8 +337,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 templ graphTableButtons(l10n locale.Localizer) {
 	<div class="flex items-center self-stretch gap-6">
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
-			/*@tableMapSwitch("list", "Lista", iconSVG("list"))
-			  @tableMapSwitch("mapview", "Karta", iconSVG("map"))*/
 			<div class="relative group">
 				<button
 					id="graphButton"

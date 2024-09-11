@@ -141,7 +141,7 @@ templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
 	<tr
 		class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
 		hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/sensors/details?id=%s", sensor.DeviceID))) }
-		hx-target="#tableview"
+		hx-target="#sensor-view"
 		hx-push-url={ string(templ.SafeURL(fmt.Sprintf("/sensors/%s", sensor.DeviceID))) }
 		hx-trigger="click"
 		hx-disinherit="hx-target hx-push-url"

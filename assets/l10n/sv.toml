@@ -226,6 +226,9 @@ other = "Avlopp som svämmar över"
 [combinedsewageoverflow]
 other = "Avlopp som svämmar över"
 
+[sewagepumpingstation]
+other = "Pumpstation avloppsvatten"
+
 [Sewer]
 other = "Avlopp"
 
