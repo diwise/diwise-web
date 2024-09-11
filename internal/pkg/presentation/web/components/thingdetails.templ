@@ -136,10 +136,12 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
 							if len(model.Related) == 0 {
-								<div>{ l10n.Get("sensormissing") }</div>
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
 							} else {
 								for _, r := range model.Related {
-									<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", r.ID)) }>{ r.ThingID }</a>
+									<div class="underline text-primary-surface-blue">
+										<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", r.ID)) }>{ r.ThingID }</a>
+									</div>
 								}
 							}
 						</div>

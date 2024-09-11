@@ -46,6 +46,10 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 		}
 
 		for _, r := range thing.Related {
+			if strings.ToLower(r.Type) != "device" {
+				continue
+			}
+
 			detailsViewModel.Related = append(detailsViewModel.Related, components.ThingViewModel{
 				ThingID: fmt.Sprintf("urn:diwise:%s:%s", r.Type, r.ID),
 				ID:      r.ID,
