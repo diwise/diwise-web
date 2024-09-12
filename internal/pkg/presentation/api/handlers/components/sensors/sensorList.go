@@ -53,7 +53,7 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
-			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor.DeviceID)
+			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor)
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
@@ -119,7 +119,7 @@ func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asse
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
-			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor.DeviceID)
+			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor)
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
@@ -178,7 +178,7 @@ func NewSensorsDataList(ctx context.Context, l10n locale.Bundle, assets assets.A
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
-			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor.DeviceID)
+			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor)
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
@@ -232,8 +232,14 @@ func getStatistics(ctx context.Context, app application.DeviceManagement) compon
 	return stats
 }
 
-func getBatterLevel(ctx context.Context, app application.DeviceManagement, deviceID string) int {
-	batteryLevelID := fmt.Sprintf("%s/3/9", deviceID)
+func getBatterLevel(ctx context.Context, app application.DeviceManagement, sensor application.Sensor) int {
+	if sensor.DeviceStatus != nil {
+		if sensor.DeviceStatus.BatteryLevel != 0 {
+			return sensor.DeviceStatus.BatteryLevel
+		}
+	}
+	
+	batteryLevelID := fmt.Sprintf("%s/3/9", sensor.DeviceID)
 	data, err := app.GetMeasurementData(ctx, batteryLevelID, application.WithLastN(true), application.WithLimit(1))
 	if err != nil {
 		return -1

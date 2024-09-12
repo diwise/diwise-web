@@ -58,7 +58,7 @@ templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
 }
 
 templ SensorsFilter(l10n locale.Localizer) {
-	<div class="w-full h-12 justify-between items-center inline-flex">			
+	<div class="w-full h-12 justify-between items-center inline-flex">
 		<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 			<div class="flex items-center flex-[1_0_0] gap-6">
 				@CheckboxList(l10n.Get("type")) {
@@ -72,8 +72,18 @@ templ SensorsFilter(l10n locale.Localizer) {
 			</div>
 			<div class="flex items-center flex-[1_0_0] gap-6">
 				@CheckboxList(l10n.Get("status")) {
-					for _, t := range []string{"active", "inactive"} {
-						@CheckboxOption("status", t, l10n, templ.Attributes{
+					for _, t := range []string{"true", "false"} {
+						@CheckboxOption("active", t, l10n, templ.Attributes{
+							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target": "#tableOrMap",
+						})
+					}
+				}
+			</div>
+			<div class="flex items-center flex-[1_0_0] gap-6">
+				@CheckboxList(l10n.Get("Online")) {
+					for _, t := range []string{"true", "false"} {
+						@CheckboxOption("online", t, l10n, templ.Attributes{
 							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 							"hx-target": "#tableOrMap",
 						})
@@ -83,7 +93,6 @@ templ SensorsFilter(l10n locale.Localizer) {
 		</div>
 		@TableOrMap(l10n, "/components/sensors/list")
 	</div>
-	
 	//Chips, vilka filter har man valt. Loop över mappen, innerloop över inre array
 	//TODO: After MVP
 	/*<div class="flex flex-col flex-start gap-2 self-stretch">
