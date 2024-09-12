@@ -12,6 +12,7 @@ type ThingDetailsViewModel struct {
 	Thing        ThingViewModel
 	Related      []ThingViewModel
 	Measurements []MeasurementViewModel
+	TableView	 bool
 }
 
 type ThingProfile struct {
@@ -25,6 +26,126 @@ templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
 		@ThingDetails(l10n, asset, model)
 	</div>
+}
+
+templ FilterStatistics(l10n locale.Localizer) {
+	<div class="flex flex-col items-start gap-2">
+		<div class="font-bold">
+			{ l10n.Get("measurementtype") }
+		</div>
+		<div class="relative min-w-48 border border-input-surface rounded-xl px-3 py-2 dark:border dark:border-white-50">
+			//TODO: Ersätt med en riktig Select() när data finns.
+			<select class="appearance-none min-w-48 dark:bg-input-surface-dark dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
+				<option value="Fyllnadsnivå">{ l10n.Get("fillinglevel") }</option>
+				<option value="Temperatur">{ l10n.Get("temperature") }</option>
+			</select>
+			<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+				<svg class="w-[18px] h-[18px] dark:fill-white">
+					@templ.Raw(iconSVG("chevron-down"))
+				</svg>
+			</div>
+		</div>
+	</div>
+	<div class="flex flex-col items-start gap-2">
+		<div class="font-bold">
+			{ l10n.Get("timeinterval") }
+		</div>
+		<div class="">
+			<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"/>
+			-
+			<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"/>
+		</div>
+	</div>
+}
+
+templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewModel) {
+	//Statistik
+	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
+		<div class="flex items-center w-full justify-between">
+			<div class="flex flex-col gap-2">
+				<div class="">{ l10n.Get("currentlevel") }</div>
+				<div class="text-3xl font-bold">{ fmt.Sprintf("%0.f%%",fillingLevel(model.Measurements)) }</div>
+			</div>
+			<div class="flex items-center gap-6">
+				@FilterStatistics(l10n)
+				<div class="flex flex-col items-start gap-2">
+					<div class="text-primary-dark font-bold">
+						&nbsp;
+					</div>
+					<div class="">
+						@graphTableButtons(l10n, "/components/sensors/list")
+					</div>
+				</div>
+			</div>
+		</div>
+		@StatisticsData(l10n, StatisticsWasteContainerGraph(l10n, model), StatisticsWasteContainerTable(l10n, model), model.TableView)
+	</div>
+}
+
+templ StatisticsData(l10n locale.Localizer, graphComponent, tableComponent templ.Component, tableView bool) {
+	<div id="graphOrTable" class="w-full flex flex-col gap-6 items-start inline-flex">
+		<input
+			type="hidden"
+			id="tableview"
+			name="tableview"
+			class="filter"
+			if tableView {
+				value="true"
+			} else {
+				value="false"
+			}
+		/>
+		<div
+			if tableView {
+				id="tableview"
+			} else {
+				id="graphview"
+			}
+			class="w-full"
+		>
+			if tableView {
+				@tableComponent
+			} else {
+				@graphComponent
+			}
+		</div>
+	</div>
+}
+
+templ StatisticsWasteContainerGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
+	<div id="graphView" class="w-full">
+	</div>
+}
+
+templ StatisticsWasteContainerTable(l10n locale.Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+				<th class="px-6 py-3">{ l10n.Get("fillinglevel") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Measurements {
+				@StatisticsRow(l10n, measurement) 
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsRow(l10n locale.Localizer, thing MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer">
+		<td class="px-6 py-3"><span class="font-bold">Tid</span></td>
+		<td class="px-6 py-3">Fyllnadsnivå</td>
+	</tr>
 }
 
 templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
@@ -44,73 +165,13 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 		<div class="flex flex-col items-start gap-10">
 			//Statistikdel
 			<div class="flex flex-col items-start self-stretch py-6">
-				//Fyllnadsnivå
+				//Rubrik Statistik
 				<div class="flex items-center gap-3 self-stretch">
 					@SVG("chartline", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("statistics") }</h2>
 					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 				</div>
-				//Statistik
-				<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
-					<div class="flex items-center w-full justify-between">
-						<div class="flex flex-col gap-2">
-							<div class="">{ l10n.Get("currentlevel") }</div>
-							<div class="text-3xl font-bold">{ fmt.Sprintf("%0.f%%",fillingLevel(model.Measurements)) }</div>
-						</div>
-						<div class="flex items-center gap-6">
-							//TODO: Ersätt med en riktig Select() när data finns.
-							<div class="flex flex-col items-start gap-2">
-								<div class="font-bold">
-									{ l10n.Get("measurementtype") }
-								</div>
-								<div class="relative min-w-48 border border-input-surface rounded-xl px-3 py-2 dark:border dark:border-white-50">
-									<select class="appearance-none min-w-48 dark:bg-input-surface-dark dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
-										<option value="Fyllnadsnivå">{ l10n.Get("fillinglevel") }</option>
-										<option value="Temperatur">{ l10n.Get("temperature") }</option>
-									</select>
-									<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-										<svg class="w-[18px] h-[18px] dark:fill-white">
-											@templ.Raw(iconSVG("chevron-down"))
-										</svg>
-									</div>
-								</div>
-							</div>
-							<div class="flex flex-col items-start gap-2">
-								<div class="font-bold">
-									{ l10n.Get("timeinterval") }
-								</div>
-								<div class="">
-									<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"/>
-									-
-									<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"/>
-								</div>
-							</div>
-							<div class="flex flex-col items-start gap-2">
-								<div class="text-primary-dark font-bold">
-									&nbsp;
-								</div>
-								<div class="">
-									@graphTableButtons(l10n)
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="flex flex-start gap-2">
-						<div id="graphOrTable" class="w-full flex flex-col gap-6 items-start inline-flex">
-							//Initialt listinnehåll
-							Här ska det visas en graf till att börja med
-						</div>
-						//Innehåll dolt, hämtas när man klickar på Lista/Karta
-						<div id="fragments" style="display: none;">
-							<div id="graphView" class="w-full">
-								Här visas en graf när man flippar emellan
-							</div>
-							<div id="tableView" class="w-full">
-								Här visas tabellen
-							</div>
-						</div>
-					</div>
-				</div>
+				@StatisticsWasteContainer(l10n, model)
 			</div>
 			//Uppgifter och position
 			<div class="flex items-start self-stretch py-6 gap-10">
@@ -336,19 +397,17 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 	</div>
 }
 
-templ graphTableButtons(l10n locale.Localizer) {
+
+
+templ graphTableButtons(l10n locale.Localizer, hxGet string) {
 	<div class="flex items-center self-stretch gap-6">
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
 			<div class="relative group">
 				<button
 					id="graphButton"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black stroke-white dark:bg-white dark:stroke-black hover:bg-tertiary-surface-hover"
-					hx-get="?view=graphView"
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?graphview=true", hxGet))) }
 					hx-target="#graphOrTable"
-					hx-push-url="true"
-					hx-trigger="click"
-					hx-swap="innerHTML"
-					hx-select="#graphView"
 					hx-on="click: this.classList.add('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black'); this.classList.remove('stroke-black', 'dark:stroke-white'); 
 					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
 					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
@@ -363,12 +422,8 @@ templ graphTableButtons(l10n locale.Localizer) {
 				<button
 					id="tableButton"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer stroke-black dark:stroke-white dark:fill-white hover:bg-tertiary-surface-hover"
-					hx-get="?view=tableView"
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?graphview=false", hxGet))) }
 					hx-target="#graphOrTable"
-					hx-push-url="true"
-					hx-trigger="click"
-					hx-swap="innerHTML"
-					hx-select="#tableView"
 					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'dark:stroke-black', 'stroke-white' ); this.classList.remove('dark:fill-white', 'dark:stroke-white'); 
 					document.getElementById('graphButton').classList.add('stroke-black', 'dark:stroke-white'); 
 					document.getElementById('graphButton').classList.remove('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');"
@@ -382,3 +437,4 @@ templ graphTableButtons(l10n locale.Localizer) {
 		</div>
 	</div>
 }
+

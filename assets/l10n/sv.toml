@@ -164,7 +164,7 @@ other = "Typ av sak"
 other = "Saker"
 
 [time]
-other = "Starttid"
+other = "Tid"
 
 [timeinterval]
 other = "Tidsintervall"
