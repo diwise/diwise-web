@@ -46,6 +46,9 @@ other = "DevEUI"
 [edit]
 other = "Redigera"
 
+[endtime]
+other = "Sluttid"
+
 [fillinglevel]
 other = "Fyllnadsnivå"
 
@@ -112,8 +115,17 @@ other = "Namn"
 [notloggedin]
 other = "Du behöver logga in"
 
+[numberofpassages]
+other = "Antal passager"
+
+[numberofpassagestoday]
+other = "Antal passager idag"
+
 [organisation]
 other = "Organisation"
+
+[overflowrightnow]
+other = "Bräddar just nu"
 
 [overview]
 other = "Översikt"
@@ -145,6 +157,9 @@ other = "Sensorer"
 [sensortype]
 other = "Sensortyp"
 
+[starttime]
+other = "Starttid"
+
 [status]
 other = "Status"
 
@@ -171,6 +186,9 @@ other = "Tidsintervall"
 
 [total]
 other = "Totalt"
+
+[totaltime]
+other = "Total tid"
 
 [trashcan]
 other = "Soptunna"

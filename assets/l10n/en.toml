@@ -46,6 +46,9 @@ other = "DevEUI"
 [edit]
 other = "Edit"
 
+[endtime]
+other = "End time"
+
 [fillinglevel]
 other = "Filling level"
 
@@ -112,8 +115,17 @@ other = "Name"
 [notloggedin]
 other = "Please log in"
 
+[numberofpassages]
+other = "Number of passages"
+
+[numberofpassagestoday]
+other = "Number of passages today"
+
 [organisation]
 other = "Organisation"
+
+[overflowrightnow]
+other = "Overflow right now"
 
 [overview]
 other = "Overview"
@@ -145,6 +157,9 @@ other = "Sensors"
 [sensortype]
 other = "Type of sensor"
 
+[starttime]
+other = "Start time"
+
 [status]
 other = "Status"
 
@@ -171,6 +186,9 @@ other = "Time interval"
 
 [total]
 other = "Total"
+
+[totaltime]
+other = "Total time"
 
 [trashcan]
 other = "Trashcan"

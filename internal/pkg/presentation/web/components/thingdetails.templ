@@ -58,30 +58,6 @@ templ FilterStatistics(l10n locale.Localizer) {
 	</div>
 }
 
-templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewModel) {
-	//Statistik
-	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
-		<div class="flex items-center w-full justify-between">
-			<div class="flex flex-col gap-2">
-				<div class="">{ l10n.Get("currentlevel") }</div>
-				<div class="text-3xl font-bold">{ fmt.Sprintf("%0.f%%",fillingLevel(model.Measurements)) }</div>
-			</div>
-			<div class="flex items-center gap-6">
-				@FilterStatistics(l10n)
-				<div class="flex flex-col items-start gap-2">
-					<div class="text-primary-dark font-bold">
-						&nbsp;
-					</div>
-					<div class="">
-						@graphTableButtons(l10n, "/components/sensors/list")
-					</div>
-				</div>
-			</div>
-		</div>
-		@StatisticsData(l10n, StatisticsWasteContainerGraph(l10n, model), StatisticsWasteContainerTable(l10n, model), model.TableView)
-	</div>
-}
-
 templ StatisticsData(l10n locale.Localizer, graphComponent, tableComponent templ.Component, tableView bool) {
 	<div id="graphOrTable" class="w-full flex flex-col gap-6 items-start inline-flex">
 		<input
@@ -112,42 +88,6 @@ templ StatisticsData(l10n locale.Localizer, graphComponent, tableComponent templ
 	</div>
 }
 
-templ StatisticsWasteContainerGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
-	<div id="graphView" class="w-full">
-	</div>
-}
-
-templ StatisticsWasteContainerTable(l10n locale.Localizer, model ThingDetailsViewModel) {
-	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
-		<thead class="border-b border-primary-dark dark:border-white">
-			<tr>
-				<th class="px-6 py-3">{ l10n.Get("time") }</th>
-				<th class="px-6 py-3">{ l10n.Get("fillinglevel") }</th>
-			</tr>
-		</thead>
-		<tbody>
-			//TODO: Här ska mätningar listas
-			for _, measurement := range model.Measurements {
-				@StatisticsRow(l10n, measurement) 
-			}
-		</tbody>
-		<tfoot>
-			<tr>
-				<td colspan="6">
-					//@Paging(l10n, model.Pageing)
-				</td>
-			</tr>
-		</tfoot>
-	</table>
-}
-
-templ StatisticsRow(l10n locale.Localizer, thing MeasurementViewModel) {
-	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer">
-		<td class="px-6 py-3"><span class="font-bold">Tid</span></td>
-		<td class="px-6 py-3">Fyllnadsnivå</td>
-	</tr>
-}
-
 templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
 	<div class="w-full px-8">
 		<div class="flex items-center w-full justify-between">
@@ -171,7 +111,14 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 					<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("statistics") }</h2>
 					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 				</div>
-				@StatisticsWasteContainer(l10n, model)
+				if model.Thing.Type == "WasteContainer" {
+					@StatisticsWasteContainer(l10n, model)
+				} else if model.Thing.Type == "CombinedSewageOverflow" {
+					@StatisticsCombinedSewageOverflow(l10n, model)
+				} else if model.Thing.Type == "Passage" {
+					@StatisticsPassage(l10n, model)
+				}
+				
 			</div>
 			//Uppgifter och position
 			<div class="flex items-start self-stretch py-6 gap-10">
