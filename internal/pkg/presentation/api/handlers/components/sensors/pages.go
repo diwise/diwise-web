@@ -122,6 +122,7 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 
 	detailsViewModel := components.SensorDetailsViewModel{
 		DeviceID:          sensor.DeviceID,
+		DevEUI:            sensor.SensorID,
 		Name:              sensor.Name,
 		Latitude:          sensor.Location.Latitude,
 		Longitude:         sensor.Location.Longitude,
