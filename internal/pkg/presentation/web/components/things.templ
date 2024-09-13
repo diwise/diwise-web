@@ -58,7 +58,7 @@ templ ThingsFilter(l10n locale.Localizer) {
 			<div class="flex items-center flex-[1_0_0] gap-6">
 				@CheckboxList(l10n.Get("type")) {
 					for _, t := range []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation"} {
-						@CheckboxOption("type", t, l10n, templ.Attributes{
+						@CheckboxOption("type", t, "", l10n, templ.Attributes{
 							"hx-get":    string(templ.SafeURL("/components/things/list")),
 							"hx-target": "#tableOrMap",
 						})

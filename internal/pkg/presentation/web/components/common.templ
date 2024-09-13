@@ -119,9 +119,13 @@ templ ProgressBar(cssClass, text string, value int) {
 	</div>
 }
 
-templ CheckboxOption(name, value string, l10n locale.Localizer, attrs templ.Attributes) {
+templ CheckboxOption(name, value, text string, l10n locale.Localizer, attrs templ.Attributes) {
 	<label class="flex justify-between items-center gap-3">
-		{ l10n.Get(value) }
+		if text != "" {
+			{ l10n.Get(text) }
+		} else {
+			{ l10n.Get(value) }
+		}
 		<input
 			type="checkbox"
 			name={ name }
@@ -183,11 +187,11 @@ type buttonCfg struct {
 type ButtonStyle string
 
 const (
-	Primary   		ButtonStyle = "primary"
+	Primary         ButtonStyle = "primary"
 	PrimaryInverted ButtonStyle = "primaryInverted"
-	Secondary 		ButtonStyle = "secondary"
-	Tertiary  		ButtonStyle = "tertiary"
-	Error     		ButtonStyle = "error"
+	Secondary       ButtonStyle = "secondary"
+	Tertiary        ButtonStyle = "tertiary"
+	Error           ButtonStyle = "error"
 )
 
 templ Div(id string, contents ...templ.Component) {

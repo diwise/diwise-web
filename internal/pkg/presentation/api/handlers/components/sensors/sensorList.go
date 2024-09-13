@@ -157,9 +157,19 @@ func NewSensorsDataList(ctx context.Context, l10n locale.Bundle, assets assets.A
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
+		showMap := false
 
 		args := r.URL.Query()
 		helpers.SanitizeParams(args, "page", "limit", "offset")
+
+		if mv, ok := args["mapview"]; ok && mv[0] == "true" {
+			showMap = true
+		}
+
+		if showMap {
+			offset = 0
+			limit = 1000
+		}
 
 		result, err := app.GetSensors(ctx, offset, limit, args)
 		if err != nil {
@@ -174,16 +184,13 @@ func NewSensorsDataList(ctx context.Context, l10n locale.Bundle, assets assets.A
 			Statistics: components.StatisticsViewModel{},
 			Sensors:    make([]components.SensorViewModel, 0),
 			Pageing:    getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			MapView:    showMap,
 		}
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
 			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor)
 			model.Sensors = append(model.Sensors, tvm)
-		}
-
-		if mv, ok := args["mapview"]; ok && mv[0] == "true" {
-			model.MapView = true
 		}
 
 		var tblComp, mapComp templ.Component
@@ -238,7 +245,7 @@ func getBatterLevel(ctx context.Context, app application.DeviceManagement, senso
 			return sensor.DeviceStatus.BatteryLevel
 		}
 	}
-	
+
 	batteryLevelID := fmt.Sprintf("%s/3/9", sensor.DeviceID)
 	data, err := app.GetMeasurementData(ctx, batteryLevelID, application.WithLastN(true), application.WithLimit(1))
 	if err != nil {
