@@ -216,34 +216,40 @@ func (a *App) GetStatistics(ctx context.Context) Statistics {
 		return s.(Statistics)
 	}
 
-	q := url.Values{}
-	q.Add("limit", "1")
-
 	s := Statistics{}
 
-	total, err := a.get(ctx, a.deviceManagementURL, "", q)
-	if err == nil {
-		s.Total = int(total.Meta.TotalRecords)
+	count := func(key, value string, ch chan int) {
+		params := url.Values{}
+		params.Add("limit", "1")
+
+		if key != "" && value != "" {
+			params.Add(key, value)
+		}
+
+		res, err := a.get(ctx, a.deviceManagementURL, "", params)
+		if err != nil {
+			ch <- 0
+		}
+		ch <- int(res.Meta.TotalRecords)
 	}
 
-	q.Add("q", "%7B%20%22deviceState%22%3A%7B%22online%22%3Atrue%7D%7D%0A")
-	online, err := a.get(ctx, a.deviceManagementURL, "", q)
-	if err == nil {
-		s.Online = int(online.Meta.TotalRecords)
-	}
+	total := make(chan int)
+	online := make(chan int)
+	active := make(chan int)
+	inactive := make(chan int)
+	unknown := make(chan int)
 
-	q.Set("q", "%7B%22active%22%3Atrue%7D%0A")
-	active, err := a.get(ctx, a.deviceManagementURL, "", q)
-	if err == nil {
-		s.Active = int(active.Meta.TotalRecords)
-	}
+	go count("", "", total)
+	go count("online", "true", online)
+	go count("active", "true", active)
+	go count("active", "false", inactive)
+	go count("profilename", "unknown", unknown)
 
-	q.Set("q", "%7B%22deviceProfile%22%3A%20%7B%22name%22%3A%20%22unknown%22%7D%7D")
-	unknown, err := a.get(ctx, a.deviceManagementURL, "", q)
-	if err == nil {
-		s.Inactive = int(total.Meta.TotalRecords - active.Meta.TotalRecords)
-		s.Unknown = int(unknown.Meta.TotalRecords)
-	}
+	s.Total = <-total
+	s.Online = <-online
+	s.Active = <-active
+	s.Inactive = <-inactive
+	s.Unknown = <-unknown
 
 	a.cache.Set(key, s, 600*time.Second)
 
