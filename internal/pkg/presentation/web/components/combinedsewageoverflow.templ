@@ -1,0 +1,69 @@
+package components
+
+import (
+	//"fmt"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+)
+
+templ StatisticsCombinedSewageOverflow(l10n locale.Localizer, model ThingDetailsViewModel) {
+	//Statistik
+	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
+		<div class="flex items-center w-full justify-between">
+			<div class="flex flex-col gap-2">
+				<div class="">{ l10n.Get("overflowrightnow") }</div>
+				//<div class="text-3xl font-bold">{ fmt.Sprintf("%0.fst",fillingLevel(model.Measurements)) }</div>
+				<div class="text-3xl font-bold">Ja</div>
+			</div>
+			<div class="flex items-center gap-6">
+				@FilterStatistics(l10n)
+				<div class="flex flex-col items-start gap-2">
+					<div class="text-primary-dark font-bold">
+						&nbsp;
+					</div>
+					<div class="">
+						@graphTableButtons(l10n, "/components/sensors/list")
+					</div>
+				</div>
+			</div>
+		</div>
+		@StatisticsData(l10n, StatisticsCombinedSewageOverflowGraph(l10n, model), StatisticsWasteContainerTable(l10n, model), model.TableView)
+	</div>
+}
+
+templ StatisticsCombinedSewageOverflowGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
+	<div id="graphView" class="w-full">
+	</div>
+}
+
+templ StatisticsCombinedSewageOverflowTable(l10n locale.Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("starttime") }</th>
+				<th class="px-6 py-3">{ l10n.Get("endtime") }</th>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Measurements {
+				@StatisticsCombinedSewageOverflowTableRow(l10n, measurement) 
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsCombinedSewageOverflowTableRow(l10n locale.Localizer, thing MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">00:00</td>
+		<td class="px-6 py-3">23:59</td>
+		<td class="px-6 py-3">2 timmar</td>
+	</tr>
+}

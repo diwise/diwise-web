@@ -2,26 +2,32 @@ package application
 
 import (
 	"context"
+	"time"
 )
 
 type ThingManagement interface {
 	GetThing(ctx context.Context, id string) (Thing, error)
-	GetThings(ctx context.Context, offset, limit int) (ThingResult, error)
+	GetThings(ctx context.Context, offset, limit int, parmas map[string][]string) (ThingResult, error)
 }
 
 type Thing struct {
-	Active        bool           `json:"active"`
-	ThingID       string         `json:"thingID,omitempty"`
-	DeviceID      string         `json:"deviceID"`
-	Tenant        string         `json:"tenant,omitempty"`
-	Name          string         `json:"name,omitempty"`
-	Description   string         `json:"description,omitempty"`
-	Location      Location       `json:"location,omitempty"`
-	Environment   *string        `json:"environment,omitempty"`
-	Types         []Type         `json:"types,omitempty"`
-	DeviceProfile *DeviceProfile `json:"deviceProfile,omitempty"`
-	DeviceStatus  *DeviceStatus  `json:"deviceStatus,omitempty"`
-	DeviceState   *DeviceState   `json:"deviceState,omitempty"`
+	ThingID      string        `json:"thing_id"`
+	ID           string        `json:"id"`
+	Type         string        `json:"type,omitempty"`
+	Location     Location      `json:"location,omitempty"`
+	Tenant       string        `json:"tenant,omitempty"`
+	Measurements []Measurement `json:"measurements,omitempty"`
+	Related      []Thing       `json:"related,omitempty"`
+}
+
+type Measurement struct {
+	ID          string    `json:"id"`
+	Timestamp   time.Time `json:"timestamp"`
+	Urn         string    `json:"urn"`
+	BoolValue   *bool     `json:"vb,omitempty"`
+	StringValue string    `json:"vs,omitempty"`
+	Unit        string    `json:"unit,omitempty"`
+	Value       *float64  `json:"v,omitempty"`
 }
 
 type ThingResult struct {

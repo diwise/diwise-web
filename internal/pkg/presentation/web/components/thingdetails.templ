@@ -1,23 +1,18 @@
 package components
 
 import (
+	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"fmt"
+	"slices"
+	"strings"
 )
 
 type ThingDetailsViewModel struct {
-	ThingID          string
-	Name              string
-	Latitude          float64
-	Longitude         float64
-	ThingProfileName string
-	Types             []string
-	Tenant            string
-	Description       string
-	Active            bool
-	Organisations     []string
-	ThingProfiles    []ThingProfile
+	Thing        ThingViewModel
+	Related      []ThingViewModel
+	Measurements []MeasurementViewModel
+	TableView	 bool
 }
 
 type ThingProfile struct {
@@ -27,142 +22,104 @@ type ThingProfile struct {
 	Types    []string `json:"types,omitempty"`
 }
 
-templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing ThingDetailsViewModel) {
-	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="thing-view">
-		@ThingDetails(l10n, asset, thing)
+templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
+	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
+		@ThingDetails(l10n, asset, model)
 	</div>
 }
 
-templ graphTableButtons(l10n locale.Localizer) {
-	<div class="flex items-center self-stretch gap-6">
-		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
-			/*@tableMapSwitch("list", "Lista", iconSVG("list"))
-			  @tableMapSwitch("mapview", "Karta", iconSVG("map"))*/
-			<div class="relative group">
-				<button id="graphButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black stroke-white dark:bg-white dark:stroke-black hover:bg-tertiary-surface-hover"
-					hx-get="?view=graphView"
-					hx-target="#graphOrTable"
-					hx-push-url="true"
-					hx-trigger="click"
-					hx-swap="innerHTML"
-					hx-select="#graphView"
-					hx-on="click: this.classList.add('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black'); this.classList.remove('stroke-black', 'dark:stroke-white'); 
-					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
-					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');">
-					<svg class="w-[18px] h-[18px]"> 
-						@SVG("chartline", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					</svg>
-				</button>
-				@tooltip(l10n.Get("graph"))
+templ FilterStatistics(l10n locale.Localizer) {
+	<div class="flex flex-col items-start gap-2">
+		<div class="font-bold">
+			{ l10n.Get("measurementtype") }
+		</div>
+		<div class="relative min-w-48 border border-input-surface rounded-xl px-3 py-2 dark:border dark:border-white-50">
+			//TODO: Ersätt med en riktig Select() när data finns.
+			<select class="appearance-none min-w-48 dark:bg-input-surface-dark dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
+				<option value="Fyllnadsnivå">{ l10n.Get("fillinglevel") }</option>
+				<option value="Temperatur">{ l10n.Get("temperature") }</option>
+			</select>
+			<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+				<svg class="w-[18px] h-[18px] dark:fill-white">
+					@templ.Raw(iconSVG("chevron-down"))
+				</svg>
 			</div>
-			<div class="relative group">
-				<button id="tableButton" class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer stroke-black dark:stroke-white dark:fill-white hover:bg-tertiary-surface-hover"
-					hx-get="?view=tableView"
-					hx-target="#graphOrTable"
-					hx-push-url="true"
-					hx-trigger="click"
-					hx-swap="innerHTML"
-					hx-select="#tableView"
-					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'dark:stroke-black', 'stroke-white' ); this.classList.remove('dark:fill-white', 'dark:stroke-white'); 
-					document.getElementById('graphButton').classList.add('stroke-black', 'dark:stroke-white'); 
-					document.getElementById('graphButton').classList.remove('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');">
-					<svg class="w-[18px] h-[18px]"> 
-						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					</svg>
-				</button>
-				@tooltip(l10n.Get("table"))
-			</div>
+		</div>
+	</div>
+	<div class="flex flex-col items-start gap-2">
+		<div class="font-bold">
+			{ l10n.Get("timeinterval") }
+		</div>
+		<div class="">
+			<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"/>
+			-
+			<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"/>
 		</div>
 	</div>
 }
 
-templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing ThingDetailsViewModel) {
+templ StatisticsData(l10n locale.Localizer, graphComponent, tableComponent templ.Component, tableView bool) {
+	<div id="graphOrTable" class="w-full flex flex-col gap-6 items-start inline-flex">
+		<input
+			type="hidden"
+			id="tableview"
+			name="tableview"
+			class="filter"
+			if tableView {
+				value="true"
+			} else {
+				value="false"
+			}
+		/>
+		<div
+			if tableView {
+				id="tableview"
+			} else {
+				id="graphview"
+			}
+			class="w-full"
+		>
+			if tableView {
+				@tableComponent
+			} else {
+				@graphComponent
+			}
+		</div>
+	</div>
+}
+
+templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
 	<div class="w-full px-8">
-		
-		//Rubrik och redigera
 		<div class="flex items-center w-full justify-between">
-			<div class="flex items-center gap-6 align-middle">
-				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ thing.Name }</h1>
-				@sensorActive(thing.Active, l10n)
-			</div>
-			@TertiaryButton("edit", "pen", "thing-view", templ.URL(fmt.Sprintf("/components/things/details?id=%s&mode=edit", thing.ThingID)), l10n)
+			if model.Thing.ThingID == "" {
+				<div class="flex items-center align-middle">
+					<h1 class="py-3">&nbsp;</h1>
+				</div>
+			} else {
+				<div class="flex items-center gap-6 align-middle">
+					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ThingID }</h1>
+				</div>
+			}
+			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", model.Thing.ThingID))))
 		</div>
-		
-		//Innehåll
 		<div class="flex flex-col items-start gap-10">
-
 			//Statistikdel
 			<div class="flex flex-col items-start self-stretch py-6">
-				//Fyllnadsnivå
+				//Rubrik Statistik
 				<div class="flex items-center gap-3 self-stretch">
-					@SVG("chartline", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("fillinglevel") }</h2>
-					<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+					@SVG("chartline", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("statistics") }</h2>
+					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 				</div>
-				//Statistik
-				<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-dark-secondary dark:text-secondary">
-					<div class="flex items-center w-full justify-between">
-						<div class="flex flex-col gap-2">
-							<div class="">{ l10n.Get("currentlevel") }</div>
-							<div class="text-3xl font-bold">66%</div>
-						</div>
-						<div class="flex items-center gap-6">
-							//TODO: Ersätt med en riktig Select() när data finns.
-							<div class="flex flex-col items-start gap-2">
-								<div class="text-dark-primary font-bold">
-									{ l10n.Get("measurementtype") }
-								</div>
-								<div class="relative min-w-48 border border-input-surface rounded-xl px-3 py-2 dark:border dark:border-input-outline">
-									<select class="appearance-none min-w-48 dark:bg-darkmode-input-surface dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
-										<option value="Fyllnadsnivå">{ l10n.Get("fillinglevel") }</option>
-										<option value="Temperatur">{ l10n.Get("temperature") }</option>
-									</select>
-									<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-										<svg class="w-[18px] h-[18px] dark:fill-white">
-											@templ.Raw(iconSVG("chevron-down"))
-										</svg>
-									</div>
-								</div>
-							</div>
-							<div class="flex flex-col items-start gap-2">
-								<div class="text-dark-primary font-bold">
-									{ l10n.Get("timeinterval") }
-								</div>
-								<div class="">
-									<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-dark-secondary"></input>
-									-
-									<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-dark-secondary"></input>
-								</div>
-							</div>
-							<div class="flex flex-col items-start gap-2">
-								<div class="text-dark-primary font-bold">
-									&nbsp;
-								</div>
-								<div class="">
-									@graphTableButtons(l10n)
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="flex flex-start gap-2">
-						<div id="graphOrTable" class="w-full flex flex-col gap-6 items-start inline-flex">
-							//Initialt listinnehåll
-							Här ska det visas en graf till att börja med
-						</div>
-
-						//Innehåll dolt, hämtas när man klickar på Lista/Karta
-						<div id="fragments" style="display: none;">
-							<div id="graphView" class="w-full">
-								Här visas en graf när man flippar emellan
-							</div>
-							<div id="tableView" class="w-full">
-								Här visas tabellen
-							</div>	
-						</div>
-					</div>
-				</div>
+				if model.Thing.Type == "WasteContainer" {
+					@StatisticsWasteContainer(l10n, model)
+				} else if model.Thing.Type == "CombinedSewageOverflow" {
+					@StatisticsCombinedSewageOverflow(l10n, model)
+				} else if model.Thing.Type == "Passage" {
+					@StatisticsPassage(l10n, model)
+				}
+				
 			</div>
-
 			//Uppgifter och position
 			<div class="flex items-start self-stretch py-6 gap-10">
 				//Uppgifter och larm
@@ -170,60 +127,66 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 					//Uppgifter
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik
-						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("details") }</h2>
-						<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 					</div>
 					//Innehåll Uppgifter
-					<div class="flex flex-col items-start self-stretch gap-6 px-9 text-dark-secondary dark:text-secondary">
+					<div class="flex flex-col items-start self-stretch gap-6 px-9 text-secondary-dark dark:text-secondary">
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("id") }</div>
-							<div class="">{ thing.ThingID }</div>
+							<div class="">{ model.Thing.ThingID }</div>
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("type") }</div>
-							<div class="">{ thing.ThingProfileName }</div>
+							<div class="">{ l10n.Get(model.Thing.Type) }</div>
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-							<div class="italic">{ l10n.Get("sensormissing") }</div>
+							if len(model.Related) == 0 {
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
+							} else {
+								for _, r := range model.Related {
+									<div class="underline text-primary-surface-blue dark:text-primary-surface-blue-dark">
+										<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", r.ID)) }>{ r.ThingID }</a>
+									</div>
+								}
+							}
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("organisation") }</div>
-							<div class="">{ thing.Tenant }</div>
+							<div class="">{ model.Thing.Tenant }</div>
 						</div>
-						<div class="flex flex-col gap-2">
+						/*<div class="flex flex-col gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
-							<div class="">{ thing.Description }</div>
-						</div>
+							<div class=""></div>
+						</div>*/
 					</div>
 				</div>
-					//@AlarmList(l10n)
-				
-				//Vertikal divider-gray mellan uppgifter och position
-				<div class="flex flex-col items-start self-stretch gap-2 border-l border-divider-gray dark:border-divider-white h-auto"></div> 
-				
+				//@AlarmList(l10n)
+				//Vertikal gray-30 mellan uppgifter och position
+				<div class="flex flex-col items-start self-stretch gap-2 border-l border-gray-30 dark:border-white-30 h-auto"></div>
 				//Position
 				<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
 					<div class="flex flex-col items-start self-stretch">
 						//Karta
 						<div class="flex items-center gap-3 self-stretch">
 							//Position rubrik
-							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("location") }</h2>
-							<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 						</div>
-						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
+						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
 							//
 							<div class="flex flex-start gap-2">
 								<div class="font-bold">{ l10n.Get("latitude") }</div>
-								<div class="">{ fmt.Sprintf("%f", thing.Latitude) }</div>
+								<div class="">{ fmt.Sprintf("%f", model.Thing.Latitude) }</div>
 							</div>
 							<div class="flex flex-start gap-2">
 								<div class="font-bold">{ l10n.Get("longitude") }</div>
-								<div class="">{ fmt.Sprintf("%f", thing.Longitude) }</div>
+								<div class="">{ fmt.Sprintf("%f", model.Thing.Longitude) }</div>
 							</div>
-							@Map(newMapData(thing.Latitude, thing.Longitude))
+							@Map(newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature([]ThingViewModel{model.Thing}))
 						</div>
 					</div>
 				</div>
@@ -232,29 +195,49 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing Th
 	</div>
 }
 
-templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thing ThingDetailsViewModel) {
+func fillingLevel(measurements []MeasurementViewModel) float64 {
+	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
+	})
+
+	if i == -1 || measurements[i].Value == nil {
+		return 0
+	}
+
+	return *measurements[i].Value
+}
+
+templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
 	<div class="w-full px-8">
-		<div class="flex items-center justify-between w-full">
-			<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ thing.Name }</h1>
+		<div class="flex items-center w-full justify-between">
+			if model.Thing.ThingID == "" {
+				<div class="flex items-center align-middle">
+					<h1 class="py-3">&nbsp;</h1>
+				</div>
+			} else {
+				<div class="flex items-center gap-6 align-middle">
+					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ThingID }</h1>
+				</div>
+			}
 		</div>
 		<form action="/components/things/details" method="post">
-			<input type="hidden" name="id" value={ thing.ThingID }/>
-			<div class="w-full flex py-6 gap-10 text-dark-primary dark:text-white">
+			<input type="hidden" name="id" value={ model.Thing.ThingID }/>
+			<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					//Status och uppgifter
 					<div class="flex flex-col items-start self-stretch">
 						<div class="flex items-center gap-3 self-stretch">
 							//Rubrik uppgifter
-							@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
-							<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 						</div>
 						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 							//Uppgifter
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("name") }</div>
-									<input type="text" name="name" value={ thing.Name } class="w-full h-[40px] border border-input-surface dark:border-input-outline dark:bg-darkmode-input-surface focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
+									<input type="text" name="name" value={ model.Thing.ThingID } class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
@@ -262,7 +245,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
 											{ l10n.Get("pickOption") }
 										</label>
-										@OrganisationSelect(l10n, asset, "organisation", thing.Tenant, thing.Organisations)
+										//@OrganisationSelect(l10n, asset, "organisation", model.Thing.Tenant, model.Thing.Organisations)
 									</div>
 								</div>
 							</div>
@@ -273,18 +256,9 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 										<label for="thingType" class="hidden block text-sm font-medium text-gray-700">
 											{ l10n.Get("pickOption") }
 										</label>
-										//@ThingTypeSelect(l10n, asset, "thingType", thing.ThingProfileName, thing.ThingProfiles)
+										//@ThingTypeSelect(l10n, asset, "thingType", model.Thing.ThingProfileName, model.Thing.ThingProfiles)
 									</div>
 								</div>
-								<!--
-								<div class="flex flex-col gap-2 flex-[1_0_0]">
-									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
-									<div class="border border-input-surface rounded-xl">
-										<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">{ l10n.Get("pickOption") }</label>
-										@MeasurementTypeSelect(l10n, asset, "measurementType", thing)
-									</div>
-								</div>
-								-->
 								<div class="flex flex-start gap-10 self-stretch">
 									<div class="flex flex-col gap-2 flex-[1_0_0]">
 										<div class="font-bold">{ l10n.Get("measurementtype") }</div>
@@ -297,31 +271,11 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 									</div>
 									<div class="flex flex-col gap-2 flex-[1_0_0]"></div>
 								</div>
-								<style>
-								details > summary {
-								list-style: none;
-								cursor: pointer;
-								}
-
-								details > summary::-webkit-details-marker {
-								display: none;
-								}
-
-								.dropdown-content {
-								display: none;
-								}
-
-								details[open] .dropdown-content {
-								display: block;
-								}
-							</style>
 							</div>
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("description") }</div>
-									<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface font-bold dark:border dark:border-input-outline dark:bg-darkmode-input-surface focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder={ l10n.Get("description") }>
-										{ thing.Description }
-									</textarea>
+									<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface font-bold dark:border dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder={ l10n.Get("description") }></textarea>
 								</div>
 							</div>
 						</div>
@@ -330,16 +284,16 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 						//Status
 						<div class="flex items-center gap-3 self-stretch">
 							//Rubrik
-							@SVG("circle-check", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@SVG("circle-check", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold">{ l10n.Get("status") }</h2>
-							<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 						</div>
 						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 							//Status
-							<label for="custom-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+							/*<label for="custom-checkbox" class="flex items-center justify-between w-full cursor-pointer">
 								<span class="font-bold text-gray-900 dark:text-gray-300">{ l10n.Get("activate") }</span>
 								<div class="flex items-center">
-									<input type="checkbox" name="active" id="custom-checkbox" class="sr-only peer" checked?={ thing.Active }/>
+									<input type="checkbox" name="active" id="custom-checkbox" class="sr-only peer" checked?={ model.Thing.Active }/>
 									<div class="w-[24px] h-[24px] bg-white rounded border border-gray-400 peer-checked:bg-emerald-800 peer-checked:border-emerald-800 flex justify-center items-center">
 										<svg class="fill-none w-[24px] h-[24px] stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity">
 											@templ.Raw(iconSVG("check"))
@@ -347,61 +301,87 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, thin
 									</div>
 								</div>
 							</label>
-							<div class="w-1/2">Info om vad som händer om man inaktiverar en sak.</div>
+							<div class="w-1/2">Info om vad som händer om man inaktiverar en sak.</div>*/
 						</div>
 					</div>
 				</div>
-				<div class="border-l border-divider-gray dark:border-divider-white h-auto"></div> //Vertikal divider-gray mellan uppgifter och position
+				<div class="border-l border-gray-30 dark:border-white-30 h-auto"></div> //Vertikal gray-30 mellan uppgifter och position
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					<div class="flex flex-col items-start self-stretch">
 						//Karta
 						<div class="flex items-center gap-3 self-stretch">
 							//Position rubrik
-							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold">{ l10n.Get("location") }</h2>
-							<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 						</div>
 						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 							//Position
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("latitude") }</div>
-									<input type="number" name="latitude" value={ fmt.Sprintf("%f", thing.Latitude) } class="w-auto h-[40px] border border-input-surface dark:border-input-outline dark:bg-darkmode-input-surface font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
+									<input type="number" name="latitude" value={ fmt.Sprintf("%f", model.Thing.Latitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("longitude") }</div>
-									<input type="number" name="longitude" value={ fmt.Sprintf("%f", thing.Longitude) } class="w-auto h-[40px] border border-input-surface dark:border-input-outline dark:bg-darkmode-input-surface font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
+									<input type="number" name="longitude" value={ fmt.Sprintf("%f", model.Thing.Longitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
 								</div>
 							</div>
-							@Map(newMapData(thing.Latitude, thing.Longitude))
+							@Map(newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature([]ThingViewModel{model.Thing}))
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="h-px border-t border-divider-gray w-full"></div>
+			<div class="h-px border-t border-gray-30 w-full"></div>
 			<div class="flex justify-between items-center py-6">
-				<button name="delete" class="text-right w-auto h-10 pl-[18px] gap-2 pr-4 py-2 bg-err-prim-surf rounded-xl flex items-center cursor-pointer">
-					<div class="w-[20px] h-[20px]">
-						@SVG("trashcan", Size(20), NoFill(), Box(24, 24), StrokeColor("secondary-text", "secondary-text"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					</div>
-					//<svg class="fill-none dark:fill-none h-6 w-6 stroke-secondary-text dark:stroke-zinc-100"></svg>
-					<div class="text-secondary-text text-base font-sans font-bold leading-normal">
-						{ l10n.Get("delete") }
-					</div>
-				</button>
+				@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"))
 				<div class="flex items-end gap-4">
-					<button name="cancel" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 border-divider-gray border-2 dark:border-divider-white rounded-xl flex items-center cursor-pointer">
-						<div class="text-dark-secondary dark:text-secondary text-base font-sans font-bold leading-normal">
-							{ l10n.Get("cancel") }
-						</div>
-					</button>
-					<button type="submit" name="save" class="text-right w-auto h-10 pl-[18px] pr-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-primary-surface-dark rounded-xl flex items-center cursor-pointer">
-						<div class="text-white dark:text-dark-primary text-base font-sans font-bold leading-normal">
-							{ l10n.Get("save") }
-						</div>
-					</button>
+					@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"))
+					@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
 				</div>
 			</div>
 		</form>
 	</div>
 }
+
+
+
+templ graphTableButtons(l10n locale.Localizer, hxGet string) {
+	<div class="flex items-center self-stretch gap-6">
+		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
+			<div class="relative group">
+				<button
+					id="graphButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black stroke-white dark:bg-white dark:stroke-black hover:bg-tertiary-surface-hover"
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?graphview=true", hxGet))) }
+					hx-target="#graphOrTable"
+					hx-on="click: this.classList.add('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black'); this.classList.remove('stroke-black', 'dark:stroke-white'); 
+					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
+					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
+				>
+					<svg class="w-[18px] h-[18px]">
+						@SVG("chartline", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@Tooltip(l10n.Get("graph"))
+			</div>
+			<div class="relative group">
+				<button
+					id="tableButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer stroke-black dark:stroke-white dark:fill-white hover:bg-tertiary-surface-hover"
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?graphview=false", hxGet))) }
+					hx-target="#graphOrTable"
+					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'dark:stroke-black', 'stroke-white' ); this.classList.remove('dark:fill-white', 'dark:stroke-white'); 
+					document.getElementById('graphButton').classList.add('stroke-black', 'dark:stroke-white'); 
+					document.getElementById('graphButton').classList.remove('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');"
+				>
+					<svg class="w-[18px] h-[18px]">
+						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@Tooltip(l10n.Get("table"))
+			</div>
+		</div>
+	</div>
+}
+

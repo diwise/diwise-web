@@ -29,8 +29,8 @@ type App struct {
 
 func New(ctx context.Context) (*App, error) {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
-	thingManagementURL := strings.Replace(deviceManagementURL, "devices", "devices", 1)
-	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)	
+	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)
+	thingManagementURL := env.GetVariableOrDefault(ctx, "THINGS_URL", "https://test.diwise.io/api/v0/things")
 	measurementURL := env.GetVariableOrDefault(ctx, "MEASUREMENTS_URL", "https://test.diwise.io/api/v0/measurements")
 
 	c := NewCache()
@@ -46,24 +46,45 @@ func New(ctx context.Context) (*App, error) {
 }
 
 func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
-	res, err := a.get(ctx, a.thingManagementURL, id, url.Values{})
+	params := url.Values{
+		"measurements": []string{"true"},
+		"state":        []string{"true"},
+	}
+
+	res, err := a.get(ctx, a.thingManagementURL, id, params)
 	if err != nil {
 		return Thing{}, err
 	}
 
-	var sensor Thing
-	err = json.Unmarshal(res.Data, &sensor)
+	var thing Thing
+	err = json.Unmarshal(res.Data, &thing)
 	if err != nil {
 		return Thing{}, err
 	}
 
-	return sensor, nil
+	if len(res.Included) > 0 {
+		for _, r := range res.Included {
+			thing.Related = append(thing.Related, Thing{
+				ID:   r.ID,
+				Type: r.Type,
+			})
+		}
+	}
+
+	return thing, nil
 }
 
-func (a *App) GetThings(ctx context.Context, offset, limit int) (ThingResult, error) {
-	params := url.Values{}
+func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string][]string) (ThingResult, error) {
+	params := url.Values{
+		"type":         []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation"},
+		"measurements": []string{"true"},
+	}
 	params.Add("limit", fmt.Sprintf("%d", limit))
 	params.Add("offset", fmt.Sprintf("%d", offset))
+
+	for k, v := range args {
+		params[k] = v
+	}
 
 	res, err := a.get(ctx, a.thingManagementURL, "", params)
 	if err != nil {
@@ -76,11 +97,25 @@ func (a *App) GetThings(ctx context.Context, offset, limit int) (ThingResult, er
 		return ThingResult{}, err
 	}
 
+	var total, off, lim int
+	off = offset
+	lim = limit
+
+	if res.Meta != nil {
+		total = int(res.Meta.TotalRecords)
+		if res.Meta.Limit != nil {
+			lim = int(*res.Meta.Limit)
+		}
+		if res.Meta.Offset != nil {
+			off = int(*res.Meta.Offset)
+		}
+	}
+
 	return ThingResult{
 		Things:       things,
-		TotalRecords: int(res.Meta.TotalRecords),
-		Offset:       int(*res.Meta.Offset),
-		Limit:        int(*res.Meta.Limit),
+		TotalRecords: total,
+		Offset:       off,
+		Limit:        lim,
 		Count:        len(things),
 	}, nil
 }
@@ -100,10 +135,14 @@ func (a *App) GetSensor(ctx context.Context, id string) (Sensor, error) {
 	return sensor, nil
 }
 
-func (a *App) GetSensors(ctx context.Context, offset, limit int) (SensorResult, error) {
+func (a *App) GetSensors(ctx context.Context, offset, limit int, args map[string][]string) (SensorResult, error) {
 	params := url.Values{}
 	params.Add("limit", fmt.Sprintf("%d", limit))
 	params.Add("offset", fmt.Sprintf("%d", offset))
+
+	for k, v := range args {
+		params[k] = v
+	}
 
 	res, err := a.get(ctx, a.deviceManagementURL, "", params)
 	if err != nil {
@@ -177,34 +216,40 @@ func (a *App) GetStatistics(ctx context.Context) Statistics {
 		return s.(Statistics)
 	}
 
-	q := url.Values{}
-	q.Add("limit", "1")
-
 	s := Statistics{}
 
-	total, err := a.get(ctx, a.deviceManagementURL, "", q)
-	if err == nil {
-		s.Total = int(total.Meta.TotalRecords)
+	count := func(key, value string, ch chan int) {
+		params := url.Values{}
+		params.Add("limit", "1")
+
+		if key != "" && value != "" {
+			params.Add(key, value)
+		}
+
+		res, err := a.get(ctx, a.deviceManagementURL, "", params)
+		if err != nil {
+			ch <- 0
+		}
+		ch <- int(res.Meta.TotalRecords)
 	}
 
-	q.Add("q", "%7B%20%22deviceState%22%3A%7B%22online%22%3Atrue%7D%7D%0A")
-	online, err := a.get(ctx, a.deviceManagementURL, "", q)
-	if err == nil {
-		s.Online = int(online.Meta.TotalRecords)
-	}
+	total := make(chan int)
+	online := make(chan int)
+	active := make(chan int)
+	inactive := make(chan int)
+	unknown := make(chan int)
 
-	q.Set("q", "%7B%22active%22%3Atrue%7D%0A")
-	active, err := a.get(ctx, a.deviceManagementURL, "", q)
-	if err == nil {
-		s.Active = int(active.Meta.TotalRecords)
-	}
+	go count("", "", total)
+	go count("online", "true", online)
+	go count("active", "true", active)
+	go count("active", "false", inactive)
+	go count("profilename", "unknown", unknown)
 
-	q.Set("q", "%7B%22deviceProfile%22%3A%20%7B%22name%22%3A%20%22unknown%22%7D%7D")
-	unknown, err := a.get(ctx, a.deviceManagementURL, "", q)
-	if err == nil {
-		s.Inactive = int(total.Meta.TotalRecords - active.Meta.TotalRecords)
-		s.Unknown = int(unknown.Meta.TotalRecords)
-	}
+	s.Total = <-total
+	s.Online = <-online
+	s.Active = <-active
+	s.Inactive = <-inactive
+	s.Unknown = <-unknown
 
 	a.cache.Set(key, s, 600*time.Second)
 
@@ -313,6 +358,16 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 		return nil, err
 	}
 
+	if string(respBody) == "[]" {
+		var arr json.RawMessage
+		json.Unmarshal(respBody, &arr)
+		return &ApiResponse{
+			Meta:  nil,
+			Data:  arr,
+			Links: nil,
+		}, nil
+	}
+
 	impl := ApiResponse{}
 
 	err = json.Unmarshal(respBody, &impl)
@@ -320,6 +375,8 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 		err = fmt.Errorf("failed to unmarshal response body: %w", err)
 		return nil, err
 	}
+
+	log.Debug("body", slog.Any("data", impl.Data))
 
 	return &impl, nil
 }
@@ -388,8 +445,14 @@ type Links struct {
 	Last  *string `json:"last,omitempty"`
 }
 
+type Resource struct {
+	ID   string `json:"id"`
+	Type string `json:"type"`
+}
+
 type ApiResponse struct {
-	Meta  *Meta           `json:"meta,omitempty"`
-	Data  json.RawMessage `json:"data"`
-	Links *Links          `json:"links,omitempty"`
+	Meta     *Meta           `json:"meta,omitempty"`
+	Data     json.RawMessage `json:"data"`
+	Links    *Links          `json:"links,omitempty"`
+	Included []Resource      `json:"included,omitempty"`
 }

@@ -1,23 +1,29 @@
 package components
 
 import (
-	"context"
 	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"io"
-	"regexp"
 	"time"
 )
+
+type SensorListViewModel struct {
+	Sensors    []SensorViewModel
+	Statistics StatisticsViewModel
+	Pageing    PagingViewModel
+	MapView    bool
+}
 
 type SensorViewModel struct {
 	Active       bool
 	DevEUI       string
 	DeviceID     string
 	Name         string
+	Latitude     float64
+	Longitude    float64
 	BatteryLevel int
 	LastSeen     time.Time
 	HasAlerts    bool
+	Type         string
 }
 
 type StatisticsViewModel struct {
@@ -28,111 +34,209 @@ type StatisticsViewModel struct {
 	Unknown  int
 }
 
-type SensorListViewModel struct {
-	Sensors    []SensorViewModel
-	Statistics StatisticsViewModel
-}
-
-templ SearchField(l10n locale.Localizer) {
-	<div class="w-[237px] h-12 flex-col justify-center items-start gap-2 inline-flex">
-		<div class="self-stretch pl-5 pr-4 py-3 bg-white bg-opacity-50 rounded-xl border border-input-surface border-opacity-50 justify-start items-center gap-2 inline-flex dark:bg-gray-800 dark:border-zinc-600">
-			<div class="w-[22px] h-[22px]">
-				<svg class="w-[22px] h-[22px] fill-dark-secondary dark:fill-zinc-600">
-					@templ.Raw(iconSVG("search"))
-				</svg>
-			</div>
-			<div class="grow shrink basis-0 text-input-surface text-opacity-30 text-lg font-normal font-sans leading-normal inline-flex">
-				<input
-					class="w-[175px] rounded-xl bg-white dark:bg-gray-800 dark:rounded-none dark:text-white dark:font-normal"
-					type="search"
-					placeholder={ l10n.Get("search") }
-				/>
-			</div>
-		</div>
-	</div>
-}
-
-templ SumOfStuff(l10n locale.Localizer, stats StatisticsViewModel) {
+templ Statistics(l10n locale.Localizer, model StatisticsViewModel) {
 	<div class="flex items-start gap-10 dark:text-white">
-		<div class="flex items-start gap-2">
-			{ l10n.Get("total") }
-			<span class="font-bold">{ fmt.Sprintf("%d", stats.Total) }</span>
+		<div class="flex items-start gap-2">{ l10n.Get("total") }<span class="font-bold">{ fmt.Sprintf("%d", model.Total) } </span></div>
+		<div class="flex items-start gap-2">{ l10n.Get("active") }<span class="font-bold">{ fmt.Sprintf("%d", model.Active) }</span></div>
+		<div class="flex items-start gap-2">{ l10n.Get("inactive") }<span class="font-bold">{ fmt.Sprintf("%d", model.Inactive) }</span></div>
+		<div class="flex items-start gap-2">{ l10n.Get("unregistered") }<span class="font-bold">{ fmt.Sprintf("%d", model.Unknown) }</span></div>
+	</div>
+}
+
+templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
+	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="sensor-view">
+		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
+			<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
+			@Statistics(l10n, model.Statistics)
 		</div>
-		<div class="flex items-start gap-2">
-			{ l10n.Get("manyactive") }
-			<span class="font-bold">{ fmt.Sprintf("%d", stats.Active) }</span>
-		</div>
-		<div class="flex items-start gap-2">
-			{ l10n.Get("manyinactive") }
-			<span class="font-bold">{ fmt.Sprintf("%d", stats.Inactive) }</span>
-		</div>
-		<div class="flex items-start gap-2">
-			{ l10n.Get("unregistered") }
-			<span class="font-bold">{ fmt.Sprintf("%d", stats.Unknown) }</span>
+		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+		<div class="flex px-8 flex-col items-start self-stretch gap-10">
+			@SensorsFilter(l10n)
+			@DataList(l10n, SensorsTable(l10n, model), SensorMap(l10n, model), model.MapView)
 		</div>
 	</div>
 }
 
-templ SensorTable(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
-	@Table(
-		HeaderRow(TableHeaderText(l10n.Get("name")), TableHeaderText(l10n.Get("status")), TableHeaderText(l10n.Get("deveui")), TableHeaderText(l10n.Get("batterylevel")), TableHeaderText(l10n.Get("lastseen")), TableHeaderText(l10n.Get("alerts"))),
-		TableData(tableRowsFromSensors(l10n, asset, sensors.Sensors)...),
-		DataTableFooter("7", "sensors"),
-	)
+templ SensorsFilter(l10n locale.Localizer) {
+	<div class="w-full h-12 justify-between items-center inline-flex">
+		<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
+			<div class="flex items-center flex-[1_0_0] gap-6">
+				@CheckboxList(l10n.Get("type")) {
+					for _, t := range []string{"axsensor", "elsys","elt_2_hp",  "enviot", "milesight",  "niab-fls","qalcosonic",   "senlabt","sensative","sensefarm","vegapuls_air_41"} {
+						@CheckboxOption("type", t, l10n, templ.Attributes{
+							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target": "#tableOrMap",
+						})
+					}
+				}
+			</div>
+			<div class="flex items-center flex-[1_0_0] gap-6">
+				@CheckboxList(l10n.Get("status")) {
+					for _, t := range []string{"true", "false"} {
+						@CheckboxOption("active", t, l10n, templ.Attributes{
+							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target": "#tableOrMap",
+						})
+					}
+				}
+			</div>
+			<div class="flex items-center flex-[1_0_0] gap-6">
+				@CheckboxList(l10n.Get("Online")) {
+					for _, t := range []string{"true", "false"} {
+						@CheckboxOption("online", t, l10n, templ.Attributes{
+							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target": "#tableOrMap",
+						})
+					}
+				}
+			</div>
+		</div>
+		@TableOrMap(l10n, "/components/sensors/list")
+	</div>
+	//Chips, vilka filter har man valt. Loop över mappen, innerloop över inre array
+	//TODO: After MVP
+	/*<div class="flex flex-col flex-start gap-2 self-stretch">
+		<div class="font-bold dark:text-white">
+			{ l10n.Get("selectedfilters") }
+		</div>
+		<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
+			<div class="flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border stroke-primary-dark dark:stroke-white">
+				Status: Aktiv
+				@SVG("close", NoFill(), Size(16), Box(24, 24), StrokeColor("primary-dark", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
+			</div>
+			<div class="flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border">
+				Organisation: Servanet
+				@SVG("close", NoFill(), Size(16), Box(24, 24), StrokeColor("primary-dark", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
+			</div>
+			<div class="flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border">
+				Rensa alla
+			</div>
+		</div>
+	</div>*/
 }
 
-func tableMapSwitch(id, name, icon string) templ.Component {
-
-	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-		_, err := io.WriteString(w, fmt.Sprintf(
-			`
-                <button id="%s-button" class="h-[30px] px-3.5 py-1.5 rounded-xl justify-center items-center gap-2 flex cursor-pointer inactive"
-                    hx-get="?view=%s"
-					hx-target="#tableOrMap"
-                    hx-push-url="true"
-                    hx-trigger="click"
-					hx-swap="innerHTML"
-					hx-select="#%s"
-					hx-on="click: this.classList.add('active'); this.classList.remove('inactive'); 
-                           document.getElementById('%s-button').classList.add('inactive'); 
-                           document.getElementById('%s-button').classList.remove('active');">
-                    <svg class="w-[18px] h-[18px]"> 
-                        %s
-                    </svg>
-                    <div class="text-sm font-bold font-sans leading-[18px]">%s</div>
-                </button>
-            `, id, id, id, id, id, icon, name,
-		))
-		return err
-	})
-}
-
-templ tooltip(tooltiptext string) {
-	<div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block">
-		<svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full">
-			@SVG("tip", Box(41, 8), FillColor("black", "white"))
-		</svg>
-		<div class="bg-primary-surface text-white dark:bg-white dark:text-black rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
-			{ tooltiptext }
+templ DataList(l10n locale.Localizer, tableComponent, mapComponent templ.Component, mapView bool) {
+	<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
+		<input
+			type="hidden"
+			id="mapview"
+			name="mapview"
+			class="filter"
+			if mapView {
+				value="true"
+			} else {
+				value="false"
+			}
+		/>
+		<div
+			if mapView {
+				id="mapview"
+			} else {
+				id="tableview"
+			}
+			class="w-full"
+		>
+			if mapView {
+				@mapComponent
+			} else {
+				@tableComponent
+			}
 		</div>
 	</div>
 }
 
-templ mapTableButtons(l10n locale.Localizer) {
+func sensorsToMapFeature(model SensorListViewModel) FeatureCollection {
+	features := make([]Feature, 0, len(model.Sensors))
+
+	for _, sensor := range model.Sensors {
+		if sensor.Latitude == 0 || sensor.Longitude == 0 {
+			continue
+		}
+		feature := NewFeature(NewPoint(sensor.Latitude, sensor.Longitude))
+		feature.AddProperty("type", "sensor")
+		features = append(features, feature)
+	}
+
+	return NewFeatureCollection(features)
+}
+
+func SensorMap(l10n locale.Localizer, model SensorListViewModel) templ.Component {
+	if !model.MapView {
+		return templ.NopComponent
+	}
+	return Map(newMapData(62.3908, 17.3069), sensorsToMapFeature(model))
+}
+
+templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
+	<tr
+		class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
+		hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/sensors/details?id=%s", sensor.DeviceID))) }
+		hx-target="#sensor-view"
+		hx-push-url={ string(templ.SafeURL(fmt.Sprintf("/sensors/%s", sensor.DeviceID))) }
+		hx-trigger="click"
+		hx-disinherit="hx-target hx-push-url"
+	>
+		<td class="px-6 py-3"><span class="font-bold">{ sensor.Name }</span></td>
+		if sensor.Active {
+			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">{ l10n.Get("active") }</span></span></td>
+		} else {
+			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">{ l10n.Get("inactive") }</span></span></td>
+		}
+		<td class="px-6 py-3">{ sensor.Type }</td>
+		<td class="px-6 py-3">{ sensor.DevEUI }</td>
+		<td class="px-6 py-3">
+			if sensor.BatteryLevel >=0 {
+				{ fmt.Sprintf("%d%%", sensor.BatteryLevel) }
+			} else {
+				{  }
+			}
+		</td>
+		<td class="px-6 py-3">
+			if sensor.LastSeen.IsZero() {
+				{ l10n.Get("-") }
+			} else {
+				{ sensor.LastSeen.Format("2006-01-02, 15:04") }
+			}
+		</td>
+	</tr>
+}
+
+templ SensorsTable(l10n locale.Localizer, model SensorListViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("name") }</th>
+				<th class="px-6 py-3">{ l10n.Get("status") }</th>
+				<th class="px-6 py-3">{ l10n.Get("type") }</th>
+				<th class="px-6 py-3">{ l10n.Get("deveui") }</th>
+				<th class="px-6 py-3">{ l10n.Get("batterylevel") }</th>
+				<th class="px-6 py-3">{ l10n.Get("lastseen") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			for _, sensor := range model.Sensors {
+				@SensorRow(l10n, sensor)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ TableOrMap(l10n locale.Localizer, hxGet string) {
 	<div class="flex items-center self-stretch gap-6">
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
-			/*@tableMapSwitch("list", "Lista", iconSVG("list"))
-			  @tableMapSwitch("mapview", "Karta", iconSVG("map"))*/
 			<div class="relative group">
 				<button
 					id="tableButton"
-					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
-					hx-get="?view=table"
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=false", hxGet))) }
 					hx-target="#tableOrMap"
-					hx-push-url="true"
-					hx-trigger="click"
-					hx-swap="innerHTML"
-					hx-select="#table"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
 					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white'); this.classList.remove('dark:fill-white', 'stroke-black'); 
 					document.getElementById('mapButton').classList.add('fill-black', 'dark:fill-white'); 
 					document.getElementById('mapButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');"
@@ -141,18 +245,14 @@ templ mapTableButtons(l10n locale.Localizer) {
 						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					</svg>
 				</button>
-				@tooltip(l10n.Get("table"))
+				@Tooltip(l10n.Get("table"))
 			</div>
 			<div class="relative group">
 				<button
 					id="mapButton"
-					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
-					hx-get="?view=mapview"
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=true", hxGet))) }
 					hx-target="#tableOrMap"
-					hx-push-url="true"
-					hx-trigger="click"
-					hx-swap="innerHTML"
-					hx-select="#mapview"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
 					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white'); 
 					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
 					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
@@ -161,240 +261,7 @@ templ mapTableButtons(l10n locale.Localizer) {
 						@templ.Raw(iconSVG("map"))
 					</svg>
 				</button>
-				@tooltip(l10n.Get("map"))
-			</div>
-		</div>
-	</div>
-}
-
-templ Sensors(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensors SensorListViewModel) {
-	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="sensor-view">
-		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
-			<div class="">
-				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
-			</div>
-			@SumOfStuff(l10n, sensors.Statistics)
-		</div>
-		<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
-		<div class="flex px-8 flex-col items-start self-stretch gap-10">
-			<div class="w-full h-12 justify-between items-center inline-flex">
-				<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
-					//@SearchField(l10n)
-					@Filter(l10n)
-				</div>
-				//@PrimaryButton("Lägg till sensor")
-				@mapTableButtons(l10n)
-			</div>
-			<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
-				//Initialt tabellinnehåll
-				<div id="sensors-table" class="w-full">
-					@SensorTable(l10n, asset, sensors)
-				</div>
-			</div>
-			//Innehåll dolt, hämtas när man klickar på Lista/Karta
-			<div id="fragments" style="display: none;">
-				<div id="table" class="w-full">
-					<div id="sensors-table" class="w-full">
-						@SensorTable(l10n, asset, sensors)
-					</div>
-				</div>
-				<div id="mapview" class="w-full">
-					@Map(newMapData(62.3908, 17.3069))
-				</div>
-			</div>
-		</div>
-	</div>
-}
-
-//HELPERS
-func tableRowsFromSensors(l10n locale.Localizer, _ assets.AssetLoaderFunc, sensors []SensorViewModel) []templ.Component {
-	rows := []templ.Component{}
-
-	labelText := map[bool]string{
-		false: l10n.Get("inactive"),
-		true:  l10n.Get("active"),
-	}
-
-	for _, sensor := range sensors {
-		isActive := sensor.Active
-
-		cells := []templ.Component{TextFirstCell(sensor.Name)}
-		cells = append(cells, LabelCell(labelText[isActive], isActive))
-		cells = append(cells, TextCell(sensor.DevEUI))
-		//cells = append(cells, TextCell(sensor.net))
-
-		cells = append(cells, BatteryTableCell(sensor))
-
-		if sensor.LastSeen.IsZero() {
-			cells = append(cells, TextCell(""))
-		} else {
-			cells = append(cells, TextCell(sensor.LastSeen.Format(time.RFC3339)))
-		}
-
-		if sensor.HasAlerts {
-			cells = append(cells, Cell(SVG("alert-triangle", Size(24), AlertStyle())))
-		} else {
-			cells = append(cells, TextCell(""))
-		}
-
-		linkUrl := templ.URL(fmt.Sprintf("/components/sensors/details?id=%s", sensor.DeviceID))
-		pushUrl := templ.URL(fmt.Sprintf("/sensors/%s", sensor.DeviceID))
-
-		row := LinkRow(cells, linkUrl, pushUrl, "sensor")
-		rows = append(rows, row)
-	}
-
-	return rows
-}
-
-var re = regexp.MustCompile(`[^a-zA-Z0-9]`)
-
-func BatteryTableCell(sensor SensorViewModel) templ.Component {
-	selector := "batlevel_" + re.ReplaceAllString(sensor.DeviceID, "")
-	return ActiveCell(Text("-"), selector, fmt.Sprintf("/components/sensors/%s/batterylevel", sensor.DeviceID), "load, every 10m")
-}
-
-templ Filter(l10n locale.Localizer) {
-	<div class="flex items-center flex-[1_0_0] gap-6">
-		<div class="relative ml-4">
-			<button id="dropdownButtonType" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownType() }>
-				{ l10n.Get("sensortype") }
-				<svg class="w-[18px] h-[18px] dark:fill-white">
-					@templ.Raw(iconSVG("chevron-down"))
-				</svg>
-			</button>
-			<div id="dropdownMenuType" class="absolute z-10 hidden bg-background-100 rounded-md shadow-lg mt-2.5">
-				<ul class="p-3 space-y-2">
-					<li>
-						<label for="avlopp-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-							<span class="ml-2 text-gray-700 dark:text-gray-300 ">Avlopp</span>
-							<div class="flex items-center">
-								<input type="checkbox" id="avlopp-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="avlopp"/>
-								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-										@templ.Raw(iconSVG("check"))
-									</svg>
-								</div>
-							</div>
-						</label>
-					</li>
-					<li>
-						<label for="livboj-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-							<span class="ml-2 text-gray-700 dark:text-gray-300">Livboj</span>
-							<div class="flex items-center">
-								<input type="checkbox" id="livboj-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="livboj"/>
-								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-										@templ.Raw(iconSVG("check"))
-									</svg>
-								</div>
-							</div>
-						</label>
-					</li>
-					<li>
-						<label for="sandficka-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-							<span class="ml-2 text-gray-700 dark:text-gray-300">Sandficka</span>
-							<div class="flex items-center">
-								<input type="checkbox" id="sandficka-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="sandficka"/>
-								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-										@templ.Raw(iconSVG("check"))
-									</svg>
-								</div>
-							</div>
-						</label>
-					</li>
-					<li>
-						<label for="soptunna-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-							<span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Soptunna</span>
-							<div class="flex items-center">
-								<input type="checkbox" id="soptunna-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="soptunna"/>
-								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-										@templ.Raw(iconSVG("check"))
-									</svg>
-								</div>
-							</div>
-						</label>
-					</li>
-				</ul>
-			</div>
-		</div>
-		<div class="relative">
-			<button id="dropdownButtonArea" type="button" class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg" onclick={ toggleDropdownArea() }>
-				{ l10n.Get("measurementtype") }
-				<svg class="w-[18px] h-[18px] dark:fill-white">
-					@templ.Raw(iconSVG("chevron-down"))
-				</svg>
-			</button>
-			<div id="dropdownMenuArea" class="absolute z-10 bg-background-100 rounded-md shadow-lg hidden mt-2.5 ">
-				<ul class="p-3 space-y-2">
-					<li>
-						<label for="bydalen-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-							<span class="ml-2 text-gray-700 dark:text-gray-300">Bydalen</span>
-							<div class="flex items-center">
-								<input type="checkbox" id="bydalen-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="bydalen"/>
-								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-										@templ.Raw(iconSVG("check"))
-									</svg>
-								</div>
-							</div>
-						</label>
-					</li>
-					<li>
-						<label for="haga-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-							<span class="ml-2 text-gray-700 dark:text-gray-300">Haga</span>
-							<div class="flex items-center">
-								<input type="checkbox" id="haga-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="haga"/>
-								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-										@templ.Raw(iconSVG("check"))
-									</svg>
-								</div>
-							</div>
-						</label>
-					</li>
-					<li>
-						<label for="centrum-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-							<span class="ml-2 text-gray-700 dark:text-gray-300">Centrum</span>
-							<div class="flex items-center">
-								<input type="checkbox" id="centrum-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="centrum"/>
-								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-										@templ.Raw(iconSVG("check"))
-									</svg>
-								</div>
-							</div>
-						</label>
-					</li>
-					<li>
-						<label for="östermalm-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-							<span class="ml-2 text-gray-700 dark:text-gray-300">Östermalm</span>
-							<div class="flex items-center">
-								<input type="checkbox" id="östermalm-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="östermalm"/>
-								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-										@templ.Raw(iconSVG("check"))
-									</svg>
-								</div>
-							</div>
-						</label>
-					</li>
-					<li>
-						<label for="skönsmon-checkbox" class="flex items-center justify-between w-full cursor-pointer">
-							<span class="ml-2 mr-4 text-gray-700 dark:text-gray-300">Skönsmon</span>
-							<div class="flex items-center">
-								<input type="checkbox" id="skönsmon-checkbox" class="sr-only peer form-checkbox cursor-pointer" value="skönsmon"/>
-								<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-									<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
-										@templ.Raw(iconSVG("check"))
-									</svg>
-								</div>
-							</div>
-						</label>
-					</li>
-				</ul>
+				@Tooltip(l10n.Get("map"))
 			</div>
 		</div>
 	</div>

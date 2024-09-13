@@ -2,9 +2,7 @@ package sensors
 
 import (
 	"context"
-	"math"
 	"net/http"
-	"strconv"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
@@ -13,76 +11,77 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 )
 
-func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
-	version := helpers.GetVersion(ctx)
+/*
+	func NewSensorListPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+		version := helpers.GetVersion(ctx)
 
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
-		offset, limit := helpers.GetOffsetAndLimit(r)
+			pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
+			offset, limit := helpers.GetOffsetAndLimit(r)
 
-		ctx := helpers.Decorate(r.Context(),
-			components.CurrentComponent, "sensors",
-		)
+			ctx := helpers.Decorate(r.Context(),
+				components.CurrentComponent, "sensors",
+			)
 
-		sensorResult, err := app.GetSensors(ctx, offset, limit)
-		if err != nil {
-			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
-			return
+			sensorResult, err := app.GetSensors(ctx, offset, limit, nil)
+			if err != nil {
+				http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
+				return
+			}
+
+			sumOfStuff := app.GetStatistics(ctx)
+
+			listViewModel := components.SensorListViewModel{
+				Statistics: components.StatisticsViewModel{
+					Total:    sumOfStuff.Total,
+					Active:   sumOfStuff.Active,
+					Inactive: sumOfStuff.Inactive,
+					Online:   sumOfStuff.Online,
+					Unknown:  sumOfStuff.Unknown,
+				},
+			}
+			for _, sensor := range sensorResult.Sensors {
+				listViewModel.Sensors = append(listViewModel.Sensors, components.SensorViewModel{
+					Active:       sensor.Active,
+					DevEUI:       sensor.SensorID,
+					DeviceID:     sensor.DeviceID,
+					Name:         sensor.Name,
+					BatteryLevel: sensor.DeviceStatus.BatteryLevel,
+					LastSeen:     sensor.DeviceState.ObservedAt,
+					HasAlerts:    false, //TODO: fix this
+				})
+			}
+
+			sensorList := components.Sensors(localizer, assets, listViewModel)
+			page := components.StartPage(version, localizer, assets, sensorList)
+
+			w.Header().Add("Content-Type", "text/html")
+			w.Header().Add("Cache-Control", "no-cache")
+			w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+
+			pageIndex_, _ := strconv.Atoi(pageIndex)
+			pageLast := float64(sensorResult.TotalRecords) / float64(limit)
+
+			renderCtx := helpers.Decorate(
+				ctx,
+				components.PageIndex, pageIndex_,
+				components.PageLast, int(math.Ceil(pageLast)),
+				components.PageSize, limit,
+			)
+
+			err = page.Render(renderCtx, w)
+			if err != nil {
+				http.Error(w, "could not render sensor details page", http.StatusInternalServerError)
+			}
+
+			w.WriteHeader(http.StatusOK)
 		}
 
-		sumOfStuff := app.GetStatistics(ctx)
-
-		listViewModel := components.SensorListViewModel{
-			Statistics: components.StatisticsViewModel{
-				Total:    sumOfStuff.Total,
-				Active:   sumOfStuff.Active,
-				Inactive: sumOfStuff.Inactive,
-				Online:   sumOfStuff.Online,
-				Unknown:  sumOfStuff.Unknown,
-			},
-		}
-		for _, sensor := range sensorResult.Sensors {
-			listViewModel.Sensors = append(listViewModel.Sensors, components.SensorViewModel{
-				Active:       sensor.Active,
-				DevEUI:       sensor.SensorID,
-				DeviceID:     sensor.DeviceID,
-				Name:         sensor.Name,
-				BatteryLevel: sensor.DeviceStatus.BatteryLevel,
-				LastSeen:     sensor.DeviceState.ObservedAt,
-				HasAlerts:    false, //TODO: fix this
-			})
-		}
-
-		sensorList := components.Sensors(localizer, assets, listViewModel)
-		page := components.StartPage(version, localizer, assets, sensorList)
-
-		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
-
-		pi, _ := strconv.Atoi(pageIndex)
-		pageLast := float64(sensorResult.TotalRecords) / float64(limit)
-
-		renderCtx := helpers.Decorate(
-			ctx,
-			components.PageIndex, pi,
-			components.PageLast, int(math.Ceil(pageLast)),
-			components.PageSize, limit,
-		)
-
-		err = page.Render(renderCtx, w)
-		if err != nil {
-			http.Error(w, "could not render sensor details page", http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
+		return http.HandlerFunc(fn)
 	}
-
-	return http.HandlerFunc(fn)
-}
-
+*/
 func composeViewModel(ctx context.Context, id string, app application.DeviceManagement) (*components.SensorDetailsViewModel, error) {
 	sensor, err := app.GetSensor(ctx, id)
 	if err != nil {
@@ -123,6 +122,7 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 
 	detailsViewModel := components.SensorDetailsViewModel{
 		DeviceID:          sensor.DeviceID,
+		DevEUI:            sensor.SensorID,
 		Name:              sensor.Name,
 		Latitude:          sensor.Location.Latitude,
 		Longitude:         sensor.Location.Longitude,

@@ -61,7 +61,7 @@ type Point struct {
 }
 
 templ Map(data mapData, featureCollection ...FeatureCollection) {
-	<div id="map" class="h-96 w-full" data-map={ templ.JSONString(data) } data-features={ templ.JSONString(featureCollection) }></div>
+	<div id="map" class="h-96 w-full z-0" data-map={ templ.JSONString(data) } data-features={ templ.JSONString(featureCollection) }></div>
 	<script>
     (() => {
         const m = document.getElementById('map');
@@ -127,6 +127,7 @@ templ Map(data mapData, featureCollection ...FeatureCollection) {
                         icon = sensorIcon;
                         break;
                     case 'trashcan':
+                    case 'wastecontainer':
                         icon = trashcanIcon;
                         break;
                     case 'lifebuoy':
@@ -135,11 +136,14 @@ templ Map(data mapData, featureCollection ...FeatureCollection) {
                     case 'thermometer':
                         icon = thermometerIcon;
                         break;
+                    case 'sewer':
+                    case 'sewagepumpingstation':
+                    case 'combinedsewageoverflow':
                     case 'drain':
                         icon = drainIcon;
                         break;
                     default:
-                        icon = null;
+                        icon = sensorIcon;
                 }
 
                 var layerGroup = layers[type] = L.geoJSON(data, {

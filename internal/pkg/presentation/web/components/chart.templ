@@ -33,6 +33,8 @@ func NewChartDataset(label string) ChartDataset {
 		BorderWidth:          2,
 		PointBackgroundColor: "#1F1F25",
 		PointBorderColor:     "#1F1F25",
+		PointRadius:          1,
+		PointHoverRadius:     6,
 	}
 }
 
@@ -43,6 +45,8 @@ type ChartDataset struct {
 	BorderWidth          int          `json:"borderWidth"`
 	PointBackgroundColor string       `json:"pointBackgroundColor"`
 	PointBorderColor     string       `json:"pointBorderColor"`
+	PointRadius          int          `json:"pointRadius"`
+	PointHoverRadius     int          `json:"pointHoverRadius"`
 }
 
 func (dataset *ChartDataset) Append(data ChartValue) {
@@ -116,6 +120,7 @@ type ChartOptionsScaleTime struct {
 
 type ChartOptionsScaleTimeDisplayFormat struct {
 	Hour *string `json:"hour"`
+	Day  *string `json:"day"`
 }
 
 func (cfg *ChartConfiguration) Add(datasets ...ChartDataset) {
@@ -133,12 +138,14 @@ func (cfg *ChartConfiguration) Timeseries(vb bool) {
 		dist := "linear"
 		unit := "hour"
 		format := "HH:mm"
+		tooltipFormat := "yyyy-MM-dd HH:mm"
+		//displayFormat := "YYYY-MM-DD"
 
 		cfg.Options.Scales.X.Type = &t
 		cfg.Options.Scales.X.Distribution = &dist
 		cfg.Options.Scales.X.Time = &ChartOptionsScaleTime{
 			Unit:          &unit,
-			TooltipFormat: &format,
+			TooltipFormat: &tooltipFormat,
 			DisplayFormat: &ChartOptionsScaleTimeDisplayFormat{
 				Hour: &format,
 			},

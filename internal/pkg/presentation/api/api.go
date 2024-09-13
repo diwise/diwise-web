@@ -117,15 +117,20 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	r.HandleFunc("GET /components/home/usage", RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
 
 	// things
-	r.HandleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /things/{id}", things.NewThingsDetailsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /things", things.NewSakerPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /things/{id}", things.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /components/things/details", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /components/tables/things", RequireHX(things.NewSakerTable(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /components/things/list", RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))
+
 	// sensors
-	r.HandleFunc("GET /sensors", sensors.NewSensorListPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /sensors", sensors.NewSensorsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /sensors/{id}", sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /components/sensors/details", RequireHX(sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /components/sensors/{id}/batterylevel", RequireHX(sensors.NewBatteryLevelComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("POST /components/sensors/details", sensors.NewSaveSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /components/tables/sensors", RequireHX(sensors.NewTableSensorsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /components/tables/sensors", RequireHX(sensors.NewSensorsTable(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /components/sensors/list", RequireHX(sensors.NewSensorsDataList(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /components/measurements", RequireHX(sensors.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	// admin
 	r.HandleFunc("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))

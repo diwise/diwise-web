@@ -6,10 +6,10 @@ import (
 )
 
 templ OverviewCards(localizer locale.Localizer, asset assets.AssetLoaderFunc, stats StatisticsViewModel) {
-	@OverviewCard("Aktiva sensorer", stats.Active, SVG("rss", Size(32)), asset)
+	@OverviewCard("Antal sensorer", stats.Total, SVG("rss", Size(32)), asset)
+	@OverviewCard("Aktiva sensorer", stats.Active, SVG("rss", Size(32), OKStyle()), asset)
 	@OverviewCard("Inaktiva sensorer", stats.Inactive, SVG("rss", Size(32), AlertStyle()), asset)
 	@OverviewCard("Okända sensorer", stats.Unknown, SVG("rss", Size(32), WarningStyle()), asset)
-	@OverviewCard("Aktiva funktioner", 0, SVG("send-to-back", Size(32), OKStyle()), asset)
 }
 
 type HomeViewModel struct {
@@ -17,28 +17,29 @@ type HomeViewModel struct {
 	XScaleMax     uint
 }
 
-templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeViewModel) {
+templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeViewModel) {
 	<div class="p-8">
 		<div class="grid grid-cols-4 gap-8">
 			<div class="col-span-2">
-				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">Översikt</h1>
-				<div hx-get="/components/home/statistics" hx-trigger="load, every 5m" class="grid grid-cols-2 gap-10">
-					@OverviewCards(localizer, asset, StatisticsViewModel{})
+				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("overview") }</h1>
+				<div hx-get="/components/home/statistics" hx-trigger="load, every 1m" class="grid grid-cols-2 gap-10">
+					@OverviewCards(l10n, asset, StatisticsViewModel{})
 				</div>
 			</div>
 			<div class="col-span-2">
 				<div class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">
-					<h2>Status</h2>
+					<h2>{ l10n.Get("status") }</h2>
 				</div>
 				<div class="p-8 bg-white dark:bg-gray-800 rounded-[15px] shadow justify-start items-start gap-4">
 					<canvas id="usage-chart"></canvas>
 					<div hx-get="/components/home/usage" hx-trigger="load, every 60m" style="display:none;"></div>
 				</div>
 			</div>
-			<div class="col-span-4">
+			//Alerts, not in MVP
+			/*<div class="col-span-4">
 				<div class="col-span-12 justify-start items-center gap-4">
 					<div class="flex gap-4 items-center">
-						<div class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">Larm</div>
+						<div class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("alerts") }</div>
 						@Badge("5")
 					</div>
 				</div>
@@ -61,9 +62,9 @@ templ Home(localizer locale.Localizer, asset assets.AssetLoaderFunc, viewModel H
 							TextCell("NIAB_lidar_50001c"), LabelCell("Aktiv", true), TextCell("3231383771308416"), TextCell("LoRa"), TextCell("25%"), TextCell("2024-01-29, 12:00"), Cell(SVG("alert-triangle", Size(24), AlertStyle())),
 						),
 					),
-					DataTableFooter("7", "home"),
+					DataTableFooter("7", "home", l10n), l10n,
 				)
-			</div>
+			</div>*/
 		</div>
 	</div>
 }

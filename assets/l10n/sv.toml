@@ -10,6 +10,9 @@ other = "Lägg till ny sak"
 [alerts]
 other = "Larm"
 
+[all]
+other = "Alla"
+
 [area]
 other = "Område"
 
@@ -43,6 +46,9 @@ other = "DevEUI"
 [edit]
 other = "Redigera"
 
+[endtime]
+other = "Sluttid"
+
 [fillinglevel]
 other = "Fyllnadsnivå"
 
@@ -70,8 +76,14 @@ other = "Lista"
 [latitude]
 other = "Latitud"
 
+[lifebuoy]
+other = "Livboj"
+
 [location]
 other = "Position"
+
+[login]
+other = "Logga in"
 
 [logout]
 other = "Logga ut"
@@ -100,8 +112,20 @@ other = "Mätvärden"
 [name]
 other = "Namn"
 
+[notloggedin]
+other = "Du behöver logga in"
+
+[numberofpassages]
+other = "Antal passager"
+
+[numberofpassagestoday]
+other = "Antal passager idag"
+
 [organisation]
 other = "Organisation"
+
+[overflowrightnow]
+other = "Bräddar just nu"
 
 [overview]
 other = "Översikt"
@@ -109,11 +133,17 @@ other = "Översikt"
 [pickOption]
 other = "Välj ett alternativ"
 
+[rowsPerPage]
+other = "Rader per sida"
+
 [save]
 other = "Spara"
 
 [search]
 other = "Sök"
+
+[selectedfilters]
+other = "Valda filter:"
 
 [sensorconnected]
 other = "Kopplad sensor"
@@ -127,8 +157,14 @@ other = "Sensorer"
 [sensortype]
 other = "Sensortyp"
 
+[starttime]
+other = "Starttid"
+
 [status]
 other = "Status"
+
+[statistics]
+other = "Statistik"
 
 [table]
 other = "Tabell"
@@ -143,13 +179,19 @@ other = "Typ av sak"
 other = "Saker"
 
 [time]
-other = "Starttid"
+other = "Tid"
 
 [timeinterval]
 other = "Tidsintervall"
 
 [total]
 other = "Totalt"
+
+[totaltime]
+other = "Total tid"
+
+[trashcan]
+other = "Soptunna"
 
 [type]
 other = "Typ"
@@ -169,8 +211,14 @@ other = "Temperatur"
 [3424-1]
 other = "Total vattenförbrukning"
 
-[3435-5700]
-other = "Fyllnadsnivå"
+[3435-1]
+other = "Höjd"
+
+[3435-2]
+other = "Fyllnadsnivå (%)"
+
+[3435-3]
+other = "Fyllnadsnivå (cm)"
 
 [3304-5700]
 other = "Luftfuktighet"
@@ -189,3 +237,24 @@ other = "Distans"
 
 [3331-5700]
 other = "Total energiförbrukning"
+
+[CombinedSewageOverflow]
+other = "Avlopp som svämmar över"
+
+[combinedsewageoverflow]
+other = "Avlopp som svämmar över"
+
+[sewagepumpingstation]
+other = "Pumpstation avloppsvatten"
+
+[Sewer]
+other = "Avlopp"
+
+[sewer]
+other = "Avlopp"
+
+[WasteContainer]
+other = "Soptunna"
+
+[wastecontainer]
+other = "Soptunna"

@@ -10,6 +10,9 @@ other = "Add new thing"
 [alerts]
 other = "Alerts"
 
+[all]
+other = "All"
+
 [area]
 other = "Area"
 
@@ -43,6 +46,9 @@ other = "DevEUI"
 [edit]
 other = "Edit"
 
+[endtime]
+other = "End time"
+
 [fillinglevel]
 other = "Filling level"
 
@@ -67,11 +73,17 @@ other = "Last seen"
 [latitude]
 other = "Latitude"
 
+[lifebuoy]
+other = "Lifebuoy"
+
 [list]
 other = "List"
 
 [location]
 other = "Location"
+
+[login]
+other = "Log in"
 
 [logout]
 other = "Log out"
@@ -100,8 +112,20 @@ other = "Measurement values"
 [name]
 other = "Name"
 
+[notloggedin]
+other = "Please log in"
+
+[numberofpassages]
+other = "Number of passages"
+
+[numberofpassagestoday]
+other = "Number of passages today"
+
 [organisation]
 other = "Organisation"
+
+[overflowrightnow]
+other = "Overflow right now"
 
 [overview]
 other = "Overview"
@@ -109,11 +133,17 @@ other = "Overview"
 [pickOption]
 other = "Pick an option"
 
+[rowsPerPage]
+other = "Rows per page"
+
 [save]
 other = "Save"
 
 [search]
 other = "Search"
+
+[selectedfilters]
+other = "Selected filters:"
 
 [sensorconnected]
 other = "Connected sensor"
@@ -127,8 +157,14 @@ other = "Sensors"
 [sensortype]
 other = "Type of sensor"
 
+[starttime]
+other = "Start time"
+
 [status]
 other = "Status"
+
+[statistics]
+other = "Statistics"
 
 [table]
 other = "Table"
@@ -151,6 +187,12 @@ other = "Time interval"
 [total]
 other = "Total"
 
+[totaltime]
+other = "Total time"
+
+[trashcan]
+other = "Trashcan"
+
 [type]
 other = "Type"
 
@@ -169,8 +211,14 @@ other = "Temperature"
 [3424-1]
 other = "Cumulated water consumption"
 
-[3435-5700]
-other = "Filling level"
+[3435-1]
+other = "Container height"
+
+[3435-2]
+other = "Actual filling percentage"
+
+[3435-3]
+other = "Actual filling level"
 
 [3304-5700]
 other = "Relative humidity"
@@ -189,3 +237,24 @@ other = "Distance"
 
 [3331-5700]
 other = "Cumulated energy consumption"
+
+[CombinedSewageOverflow]
+other = "Combined sewage overflow"
+
+[combinedsewageoverflow]
+other = "Combined sewage overflow"
+
+[sewagepumpingstation]
+other = "Sewage pumping station"
+
+[Sewer]
+other = "Sewer"
+
+[sewer]
+other = "Sewer"
+
+[WasteContainer]
+other = "Waste container"
+
+[wastecontainer]
+other = "Waste container"

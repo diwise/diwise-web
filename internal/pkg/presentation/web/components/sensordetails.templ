@@ -10,6 +10,7 @@ import (
 
 type SensorDetailsViewModel struct {
 	DeviceID          string
+	DevEUI			  string
 	Name              string
 	Latitude          float64
 	Longitude         float64
@@ -36,7 +37,7 @@ templ SensorDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 	</div>
 }
 
-templ sensorActive(active bool, l10n locale.Localizer) {
+templ statusActive(active bool, l10n locale.Localizer) {
 	if active {
 		@Label(l10n.Get("active"), active)
 	} else {
@@ -50,15 +51,15 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 			if sensor.Name == "" {
 				<div class="flex items-center align-middle">
 					<h1 class="py-3">&nbsp;</h1>
-					@sensorActive(sensor.Active, l10n)
+					@statusActive(sensor.Active, l10n)
 				</div>
 			} else {
 				<div class="flex items-center gap-6 align-middle">
 					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
-					@sensorActive(sensor.Active, l10n)
+					@statusActive(sensor.Active, l10n)
 				</div>
 			}
-			@TertiaryButton("edit", "pen", "sensor-view", templ.URL(fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)), l10n)
+			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#sensor-view"), HxUrl("get", fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)))
 		</div>
 		<div class="w-full flex py-6 gap-10">
 			//Yttersta diven
@@ -68,19 +69,23 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 					//Uppgifter
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik
-						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("details") }</h2>
-						<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 					</div>
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
 						//Innehåll Uppgifter
-						/*<div class="flex flex-start gap-2">
-							<div class="">{ l10n.Get("name") }</div>
-							<div class="font-bold">{ sensor.Name }</div>
-						</div>*/
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("deveui") }</div>
+							<div class="">{ sensor.DevEUI }</div>
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("id") }</div>
+							<div class="">{ sensor.DeviceID }</div>
+						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("sensortype") }</div>
-							<div class="">{ sensor.DeviceProfileName }</div>
+							<div class="first-letter:uppercase">{ sensor.DeviceProfileName }</div>
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("organisation") }</div>
@@ -100,14 +105,46 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 						//Rubrik Mätvärden
 						@SVG("graph", Size(24))
 						<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("measurementvalues") }</h2>
-						<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 					</div>
 					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
-						<div class="border border-input-surface dark:border-input-outline rounded-xl w-auto">
+						<div class="border border-input-surface dark:border-white-50 rounded-xl w-auto">
 							<label for="sensorMeasurementTypes" class="hidden block text-sm font-medium text-gray-700">
 								{ l10n.Get("sensorMeasurementTypes") }
 							</label>
 							@SensorMeasurementSelect(l10n, asset, "sensorMeasurementTypes", "measurementCharts", sensor)
+						</div>
+						<div class="flex flex-col items-start gap-2">
+							<div class="text-primary-dark font-bold dark:text-secondary">
+								{ l10n.Get("timeinterval") }
+							</div>
+							<div class="">
+								<input
+									name="timeAt"
+									type="date"
+									id="timeAt"
+									hx-trigger="change"
+									hx-include="#sensorMeasurementTypes,#endTimeAt"
+									hx-target="#measurementCharts"
+									hx-get="/components/measurements"
+									hx-push-url="true"
+									hx-params="*"
+									class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
+								/>
+								-
+								<input
+									name="endTimeAt"
+									type="date"
+									id="endTimeAt"
+									hx-trigger="change"
+									hx-include="#sensorMeasurementTypes,#timeAt"
+									hx-target="#measurementCharts"
+									hx-get="/components/measurements"
+									hx-push-url="true"
+									hx-params="*"
+									class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
+								/>
+							</div>
 						</div>
 						<div class="w-full">
 							<canvas id="measurement-chart"></canvas>
@@ -116,17 +153,17 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 					</div>
 				</div>
 			</div>
-			<div class="border-l border-divider-gray dark:border-divider-white h-auto"></div> //Vertikal divider-gray mellan uppgifter och position
+			<div class="border-l border-gray-30 dark:border-white-30 h-auto"></div> //Vertikal gray-30 mellan uppgifter och position
 			<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 				<div class="flex flex-col items-start self-stretch">
 					//Karta
 					<div class="flex items-center gap-3 self-stretch">
 						//Position rubrik
-						@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("location") }</h2>
-						<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 					</div>
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-dark-secondary dark:text-secondary">
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
 						//
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("latitude") }</div>
@@ -151,22 +188,22 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 		</div>
 		<form action="/components/sensors/details" method="post">
 			<input type="hidden" name="id" value={ sensor.DeviceID }/>
-			<div class="w-full flex py-6 gap-10 text-dark-primary dark:text-white">
+			<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					//Status och uppgifter
 					<div class="flex flex-col items-start self-stretch">
 						<div class="flex items-center gap-3 self-stretch">
 							//Rubrik uppgifter
-							@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
-							<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 						</div>
 						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 							//Uppgifter
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("name") }</div>
-									<input type="text" name="name" value={ sensor.Name } class="w-full h-[40px] border border-input-surface dark:border-input-outline dark:bg-darkmode-input-surface focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
+									<input type="text" name="name" value={ sensor.Name } class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
@@ -190,7 +227,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
-									<div class="border border-input-surface dark:border-input-outline rounded-xl p-2">
+									<div class="border border-input-surface dark:border-white-50 rounded-xl">
 										<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">
 											{ l10n.Get("measurementtype") }
 										</label>
@@ -201,7 +238,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("description") }</div>
-									<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface font-bold dark:border dark:border-input-outline dark:bg-darkmode-input-surface focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder={ l10n.Get("description") }>
+									<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface font-bold dark:border dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder={ l10n.Get("description") }>
 										{ sensor.Description }
 									</textarea>
 								</div>
@@ -212,9 +249,9 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 						//Status
 						<div class="flex items-center gap-3 self-stretch">
 							//Rubrik
-							@SVG("circle-check", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@SVG("circle-check", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold">{ l10n.Get("status") }</h2>
-							<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 						</div>
 						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 							//Status
@@ -233,59 +270,39 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 						</div>
 					</div>
 				</div>
-				<div class="border-l border-divider-gray dark:border-divider-white h-auto"></div> //Vertikal divider-gray mellan uppgifter och position
+				<div class="border-l border-gray-30 dark:border-white-30 h-auto"></div> //Vertikal gray-30 mellan uppgifter och position
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					<div class="flex flex-col items-start self-stretch">
 						//Karta
 						<div class="flex items-center gap-3 self-stretch">
 							//Position rubrik
-							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("dark-primary", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold">{ l10n.Get("location") }</h2>
-							<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 						</div>
 						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 							//Position
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("latitude") }</div>
-									<input type="number" name="latitude" value={ fmt.Sprintf("%f", sensor.Latitude) } class="w-auto h-[40px] border border-input-surface dark:border-input-outline dark:bg-darkmode-input-surface font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
+									<input type="number" name="latitude" value={ fmt.Sprintf("%f", sensor.Latitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("longitude") }</div>
-									<input type="number" name="longitude" value={ fmt.Sprintf("%f", sensor.Longitude) } class="w-auto h-[40px] border border-input-surface dark:border-input-outline dark:bg-darkmode-input-surface font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
+									<input type="number" name="longitude" value={ fmt.Sprintf("%f", sensor.Longitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
 								</div>
 							</div>
-							@Map(newMapData(sensor.Latitude, sensor.Longitude))
+							@Map(newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="h-px border-t border-divider-gray w-full"></div>
+			<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
 			<div class="flex items-center justify-between py-6">
-				
-				<button name="delete" class="flex items-center group rounded-xl gap-2 px-4 py-2 bg-err-prim-surf hover:bg-err-prim-surf-hover cursor-pointer">
-					<div class="w-[20px] h-[20px]">
-						@SVG("trashcan", Size(20), NoFill(), Box(24, 24), StrokeColor("secondary-text", "secondary-text"), HoverStroke(), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					</div>
-					<div class="text-secondary-text group-hover:text-dark-primary text-base font-sans font-bold leading-normal">
-						{ l10n.Get("delete") }
-					</div>
-				</button>
-
-				
-
+				@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"))
 				<div class="flex items-center gap-4">
-					@SecondaryButton("cancel", "cancel", "close", "", "", "", "", "", l10n)
-					
-					
-					<button type="submit" name="save" class="flex items-center group rounded-xl gap-2 px-4 py-2 bg-primary-surface bg-opacity-95 dark:bg-primary-surface-dark hover:bg-primary-surface-hover hover:dark:bg-primary-surface-dark-hover cursor-pointer">
-						<div class="w-[20px] h-[20px]">
-							@SVG("check", Size(20), NoFill(), Box(24, 24), StrokeColor("white", "dark-primary"), Stroke(templ.Attributes{"stroke-width": "2"}))
-						</div>
-						<div class="text-white dark:text-dark-primary text-base font-sans font-bold leading-normal">
-							{ l10n.Get("save") }
-						</div>
-					</button>
+					@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"))
+					@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
 				</div>
 			</div>
 		</form>
@@ -299,13 +316,13 @@ templ AlarmList(l10n locale.Localizer) {
 			//Rubrik larm
 			@SVG("alert-triangle", Size(24))
 			<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("alerts") }</h2>
-			<div class="h-px border-t border-divider-gray w-full dark:border-divider-white"></div>
+			<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 		</div>
 		<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 			//Tabell larm
-			<table class="table-auto w-full border-collapse border outline-divider-gray dark:outline-divider-white outline outline-1 overflow-hidden rounded-2xl text-dark-secondary dark:text-secondary">
+			<table class="table-auto w-full border-collapse border outline-gray-30 dark:outline-white-30 outline outline-1 overflow-hidden rounded-2xl text-secondary-dark dark:text-secondary">
 				<thead>
-					<tr class="bg-background-200 dark:bg-dark-primary font-bold">
+					<tr class="bg-background-200 dark:bg-primary-dark font-bold">
 						<td class="px-6 py-3">{ l10n.Get("time") }</td>
 						<td class="px-6 py-3">{ l10n.Get("type") }</td>
 						<td class="px-6 py-3">{ l10n.Get("status") }</td>
@@ -367,7 +384,7 @@ func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc
 		})
 	}
 
-	return Select(id, false, "/components/measurements", "#"+target, viewModel)
+	return SelectMultipleInputs(id, false, "/components/measurements", "#"+target, "#timeAt,#endTimeAt", viewModel)
 }
 
 func MeasurementChart(datasets []ChartDataset) templ.Component {

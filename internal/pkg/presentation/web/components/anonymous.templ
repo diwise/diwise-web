@@ -14,13 +14,12 @@ templ NotLoggedIn(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
             </div>
             <div class="flex-1 bg-background-orange text-white p-6 flex flex-col justify-center items-left rounded-r-xl">
                 <div class="pl-6 space-y-4">
-                    <h1>You are not logged in!</h1>
-                    <a href="/login" class="inline-block w-28 h-10 pl-4 pr-[18px] py-2 rounded-xl border-2 border-white border-opacity-30 dark:bg-gray-800 justify-center items-center dark:border-zinc-600 flex items-center justify-center text-secondary text-base font-bold font-sans leading-normal dark:text-white">
-                        Login
-                    </a>
+                    <h1>{ l10n.Get("notloggedin") }</h1>
+                    <form action="/login" method="get">
+                        @Button("primaryInverted", l10n.Get("login"), "")
+                    </form>
                 </div>
             </div>
-
         </div>
     </div>
 }

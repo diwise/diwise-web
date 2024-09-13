@@ -10,7 +10,7 @@ import (
 
 type DeviceManagement interface {
 	GetSensor(ctx context.Context, id string) (Sensor, error)
-	GetSensors(ctx context.Context, offset, limit int) (SensorResult, error)
+	GetSensors(ctx context.Context, offset, limit int, args map[string][]string) (SensorResult, error)
 	UpdateSensor(ctx context.Context, deviceID string, fields map[string]any) error
 	GetTenants(ctx context.Context) []string
 	GetDeviceProfiles(ctx context.Context) []DeviceProfile

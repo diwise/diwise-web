@@ -1,6 +1,165 @@
 package components
 
-import "github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+import (
+	"fmt"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+	"strings"
+)
+
+type SlotContents struct {
+	Name    string
+	Content templ.Component
+}
+
+templ Slot(name string) {
+	<slot name={ name }></slot>
+}
+
+type PagingViewModel struct {
+	PageIndex int
+	PageLast  int
+	PageSize  int
+	Offset    int
+	Pages     []int64
+	Query     string
+	TargetURL string
+	TargetID  string
+}
+
+templ Paging(l10n locale.Localizer, p PagingViewModel) {
+	<div id="paginering" class="flex items-center w-full h-[60px] px-4 py-3.5 rounded-b-2xl border-white border-opacity-30">
+		<div class="flex flex-1 h-8 justify-start items-center gap-2">
+			<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{ l10n.Get("rowsPerPage") }:</span>
+			<div class="relative flex justify-between items-center bg-tertiary-surface rounded-xl">
+				<select
+					id="pageSizeSelector"
+					class="filter appearance-none min-w-[64px] outline-none px-3 py-1.5 bg-transparent text-sm font-bold font-sans leading-tight cursor-pointer"
+					name="limit"
+					hx-get={ p.TargetURL }
+					hx-target={ p.TargetID }
+					hx-include=".filter"
+				>
+					<option value="5" selected?={ p.PageSize == 5 }>5</option>
+					<option value="10" selected?={ p.PageSize == 10 }>10</option>
+					<option value="15" selected?={ p.PageSize == 15 }>15</option>
+					<option value="50" selected?={ p.PageSize == 50 }>50</option>
+					<option value="100" selected?={ p.PageSize == 100 }>100</option>
+				</select>
+				<div class="absolute flex inset-y-0 right-0 px-2 items-center pointer-events-none">
+					<svg class="w-[18px] h-[18px] dark:fill-white">
+						@templ.Raw(iconSVG("chevron-down"))
+					</svg>
+				</div>
+			</div>
+		</div>
+		<div class="flex justify-center items-center flex-none">
+			@PageButton(p.PageIndex-1, p.TargetURL, p.Query, p.TargetID) {
+				<span class="w-5 h-5">
+					@SVG("arrow-left")
+				</span>
+			}
+			<span class="h-7 px-3 justify-between items-center flex">
+				for _, page := range p.Pages {
+					if int(page) == p.PageIndex {
+						<div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex py-0.5 ">
+							<div class="grow shrink basis-0 text-center text-primary-dark dark:text-slate-300 text-base font-bold font-sans leading-normal">{ fmt.Sprintf("%d", page) }</div>
+						</div>
+					} else {
+						@PageButton(int(page), p.TargetURL, p.Query, p.TargetID) {
+							<div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex py-0.5 ">
+								<div class="grow shrink basis-0 text-center text-primary-surface-blue dark:dark:text-primary-surface-blue-dark text-base font-normal font-sans underline leading-normal">{ fmt.Sprintf("%d", page) }</div>
+							</div>
+						}
+					}
+				}
+			</span>
+			@PageButton(p.PageIndex+1, p.TargetURL, p.Query, p.TargetID) {
+				<span class="w-5 h-5">
+					@SVG("arrow-right", Box(24, 24))
+				</span>
+			}
+		</div>
+		<div class="h-8 justify-end items-center gap-2 flex flex-1"></div>
+	</div>
+}
+
+templ PageButton(pageIndex int, hxGet, query, hxTarget string) {
+	<button
+		class="p-1.5 rounded-full justify-center items-center gap-1 flex"
+		if hxGet != "" {
+			if query != "" {
+				hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?page=%d&%s", hxGet, pageIndex, query))) }
+			} else {
+				hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?page=%d", hxGet, pageIndex))) }
+			}
+		}
+		if hxTarget != "" {
+			if strings.HasPrefix(hxTarget, "#") {
+				hx-target={ hxTarget }
+			} else {
+				hx-target={ fmt.Sprintf("#%s", hxTarget) }
+			}
+		}
+		hx-trigger="click"
+		hx-include=".filter"
+	>
+		{ children... }
+	</button>
+}
+
+css progressbarwidth(percent int) {
+	width: { fmt.Sprintf("%d%%", percent) };
+	height: 6px;
+}
+
+templ ProgressBar(cssClass, text string, value int) {
+	<div>{ text }</div>
+	<div class="bg-background-200 w-full rounded-lg">
+		<div class={ cssClass, progressbarwidth(value), "rounded-lg" }></div>
+	</div>
+}
+
+templ CheckboxOption(name, value string, l10n locale.Localizer, attrs templ.Attributes) {
+	<label class="flex justify-between items-center gap-3">
+		{ l10n.Get(value) }
+		<input
+			type="checkbox"
+			name={ name }
+			value={ value }
+			class="filter sr-only peer form-checkbox cursor-pointer"
+			hx-trigger="change"
+			hx-include=".filter"
+			{ attrs... }
+		/>
+		<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+			<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M20 6 9 17l-5-5"></path></svg>
+		</div>
+	</label>
+}
+
+templ CheckboxList(header string) {
+	<div class="relative inline-block group">
+		<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg">{ header } <svg class="w-[18px] h-[18px] dark:fill-white"><path fill-rule="evenodd" d="M3.97 6.22a.75.75 0 0 1 1.06 0L9 10.19l3.97-3.97a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path></svg></button>
+		<div class="hidden absolute bg-gray-100 min-w-max rounded-md shadow-lg z-10 p-4 group-hover:block">
+			{ children... }
+		</div>
+	</div>
+}
+
+/************************************************************/
+
+templ Tooltip(tooltiptext string) {
+	<div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block">
+		<svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full">
+			@SVG("tip", Box(41, 8), FillColor("black", "white"))
+		</svg>
+		<div class="bg-primary-surface text-white dark:bg-white dark:text-black rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
+			{ tooltiptext }
+		</div>
+	</div>
+}
+
+/************************************************************/
 
 type OptionViewModel struct {
 	Value    string
@@ -10,6 +169,26 @@ type OptionViewModel struct {
 	Hidden   bool
 	Disabled bool
 }
+
+type buttonCfg struct {
+	btnType templ.Attributes
+	classes map[string][]string
+	hxUrl   templ.Attributes
+	method  templ.Attributes
+	name    templ.Attributes
+	style   string
+	target  templ.Attributes
+}
+
+type ButtonStyle string
+
+const (
+	Primary   		ButtonStyle = "primary"
+	PrimaryInverted ButtonStyle = "primaryInverted"
+	Secondary 		ButtonStyle = "secondary"
+	Tertiary  		ButtonStyle = "tertiary"
+	Error     		ButtonStyle = "error"
+)
 
 templ Div(id string, contents ...templ.Component) {
 	<div id={ id }>
@@ -23,87 +202,135 @@ templ Canvas(id string) {
 	<canvas id={ id }></canvas>
 }
 
-templ PrimaryButton(title, icon, target string, hxget templ.SafeURL, l10n locale.Localizer) {
-	<div class="flex items-center text-white dark:text-dark-primary font-bold">
-		<button
-			class="flex justify-center items-center gap-2 px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover rounded-xl cursor-pointer"
-			if string(hxget) != "" {
-				hx-get={ string(hxget) }
-			}
-			if target != "" {
-				hx-target={ "#" + target }
-			}
-			hx-trigger="click"
-		>
-			if icon != "" {
-				<div class="w-[20px] h-[20px] dark:stroke-dark-primary">
-					@SVG(icon, Box(24, 24), NoFill(), StrokeColor("black", "white"), Stroke(templ.Attributes{"stroke-width": "1"}))
-				</div>
-			}
-			{ l10n.Get( title ) }
-		</button>
-	</div>
+func (cfg *buttonCfg) Name() templ.Attributes {
+	return cfg.name
 }
 
-templ SecondaryButton(buttonName, title, icon, target, method, btnType, hxTrigger string, hxUrl templ.SafeURL, l10n locale.Localizer) {
-	<div>
-		<button 
-			if buttonName != "" {
-				name={ buttonName }
-			}
+func Name(name string) func(*buttonCfg) {
+	attrs := templ.Attributes{"name": name}
+	return func(cfg *buttonCfg) {
+		cfg.name = attrs
+	}
+}
 
-			class="flex items-center group rounded-xl gap-2 px-3.5 py-2 border-divider-gray border-2 dark:border-divider-white hover:dark:border-secondary-outline-hover-dark hover:border-secondary-outline-hover cursor-pointer"
-			
-			if method != "" {
-				if method == "get" {
-					hx-get={ string(hxUrl)}
-				} else if method == "post" {
-					hx-post={ string(hxUrl)}
-				}
-			}
+func (cfg *buttonCfg) BtnType() templ.Attributes {
+	return cfg.btnType
+}
 
-			if target != "" {
-				hx-target={ "#" + target }
-			}
-			if hxTrigger != ""{
-				hx-trigger={ hxTrigger }
-			}
-			
-			if btnType != "" {
-				type={ btnType }
-			}
-			>
-			
-			if icon != "" {
-				<div class="w-[20px] h-[20px]">
-					@SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("dark-primary", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
-				</div>
-			}
-			<div class="text-dark-secondary dark:text-secondary text-base font-sans font-bold leading-normal">
-				{ l10n.Get( title ) }
+func BtnType(btnType string) func(*buttonCfg) {
+	attrs := templ.Attributes{"type": btnType}
+	return func(cfg *buttonCfg) {
+		cfg.btnType = attrs
+	}
+}
+
+func (cfg *buttonCfg) HxUrl() templ.Attributes {
+	return cfg.hxUrl
+}
+
+func HxUrl(method, url string) func(*buttonCfg) {
+	attrs := templ.Attributes{"hx-" + method: url}
+	return func(cfg *buttonCfg) {
+		cfg.hxUrl = attrs
+	}
+}
+
+func (cfg *buttonCfg) Target() templ.Attributes {
+	return cfg.name
+}
+
+func Target(target string) func(*buttonCfg) {
+	attrs := templ.Attributes{"hx-target": target}
+	return func(cfg *buttonCfg) {
+		cfg.name = attrs
+	}
+}
+
+func (cfg *buttonCfg) Classes() string {
+	classNames := make([]string, 0, 6)
+
+	for _, v := range cfg.classes {
+		classNames = append(classNames, v...)
+	}
+
+	return strings.Join(classNames, " ")
+}
+
+func newButtonCfg(fn ...func(*buttonCfg)) *buttonCfg {
+	cfg := &buttonCfg{
+		classes: map[string][]string{
+			"border":  {"border-2", "border-gray-30"},
+			"rounded": {"rounded-xl"},
+			"p":       {"px-4", "py-2"},
+			"flex":    {"flex"},
+			"justify": {"justify-center"},
+			"items":   {"items-center"},
+			"gap":     {"gap-2"},
+		},
+	}
+
+	for _, f := range fn {
+		f(cfg)
+	}
+
+	return cfg
+}
+
+func SwitchBtnStyle(style ButtonStyle, config ...func(*buttonCfg)) string {
+	var classes = "flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold %s"
+
+	switch style {
+	case Primary:
+		classes = fmt.Sprintf(classes, "px-4 py-2 text-white dark:text-primary-dark bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover dark:stroke-primary-dark")
+		break
+	case PrimaryInverted:
+		classes = fmt.Sprintf(classes, "px-4 py-2 dark:text-white text-primary-dark dark:bg-primary-surface dark:hover:bg-primary-surface-hover bg-primary-surface-dark hover:bg-primary-surface-dark-hover dark:stroke-primary-dark")
+		break
+	case Secondary:
+		classes = fmt.Sprintf(classes, "px-3.5 py-2 border-gray-30 border-2 dark:border-white-30 hover:dark:border-secondary-outline-hover-dark hover:border-secondary-outline-hover text-secondary-dark dark:text-secondary")
+		break
+	case Tertiary:
+		classes = fmt.Sprintf(classes, "px-4 py-2 bg-tertiary-surface hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-white-30 text-primary-dark dark:text-white")
+		break
+	case Error:
+		classes = fmt.Sprintf(classes, "px-4 py-2 group bg-err-prim-surf hover:bg-err-prim-surf-hover text-secondary-text hover:text-primary-dark ")
+		break
+	default:
+		classes = newButtonCfg(config...).Classes()
+	}
+	return classes
+}
+
+func SwitchBtnIcon(icon string, style ButtonStyle) templ.Component {
+	switch style {
+	case Primary:
+		return SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("white", "primary-dark"), Stroke(templ.Attributes{"stroke-width": "2"}))
+	case Secondary:
+		return SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("primary-dark", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
+	case Tertiary:
+		return SVG(icon, Box(24, 24), NoFill(), StrokeColor("black", "white"), Stroke(templ.Attributes{"stroke-width": "1"}))
+	case Error:
+		return SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("secondary-text", "secondary-text"), HoverStroke(), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+	default:
+		return SVG(icon, Size(20), NoFill(), Box(24, 24), StrokeColor("default-color", "gray"), Stroke(templ.Attributes{"stroke-width": "2"}))
+	}
+}
+
+templ Button(style ButtonStyle, title, icon string, config ...func(*buttonCfg)) {
+	<button
+		class={ SwitchBtnStyle(style), config }
+		{ newButtonCfg(config...).Name()... }
+		{ newButtonCfg(config...).BtnType()... }
+		{ newButtonCfg(config...).HxUrl()... }
+		{ newButtonCfg(config...).Target()... }
+	>
+		if icon != "" {
+			<div class="w-[20px] h-[20px]">
+				@SwitchBtnIcon(icon, style)
 			</div>
-		</button>
-	</div>
-}
-
-templ TertiaryButton(title, icon, target string, hxget templ.SafeURL, l10n locale.Localizer) {
-	<div class="flex items-center text-white dark:text-dark-primary font-bold">
-		<button
-			class="flex justify-center items-center gap-2 px-4 py-2 bg-tertiary-surface hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-divider-white text-dark-primary dark:text-white rounded-xl cursor-pointer"
-			hx-get={ string(hxget) }
-			if target != "" {
-				hx-target={ "#" + target }
-			}
-			hx-trigger="click"
-		>
-			if icon != "" {
-				<div class="w-[20px] h-[20px] dark:stroke-dark-primary">
-					@SVG(icon, Box(24, 24), NoFill(), StrokeColor("black", "white"), Stroke(templ.Attributes{"stroke-width": "1"}))
-				</div>
-			}
-			{ l10n.Get( title ) }
-		</button>
-	</div>
+		}
+		{ title }
+	</button>
 }
 
 templ Option(option OptionViewModel) {
@@ -127,7 +354,36 @@ templ Select(id string, multiple bool, hxGet, hxTarget string, options []OptionV
 			if hxTarget != "" {
 				hx-target={ hxTarget }
 			}
-			class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base dark:border dark:border-input-outline dark:bg-darkmode-input-surface dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
+			class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base dark:border dark:border-white-50 dark:bg-input-surface-dark dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
+			multiple?={ multiple }
+		>
+			@Options(options)
+		</select>
+		<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+			<svg class="w-[18px] h-[18px] dark:fill-white">
+				@templ.Raw(iconSVG("chevron-down"))
+			</svg>
+		</div>
+	</div>
+}
+
+templ SelectMultipleInputs(id string, multiple bool, hxGet, hxTarget, hxInclude string, options []OptionViewModel) {
+	<div class="relative inline-block w-full">
+		<select
+			id={ id }
+			name={ id }
+			if hxGet != "" {
+				hx-get={ hxGet }
+			}
+			if hxTarget != "" {
+				hx-target={ hxTarget }
+			}
+			if hxInclude != "" {
+				hx-include={ hxInclude }
+			}
+			hx-push-url="true"
+			hx-params="*"
+			class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base dark:border dark:border-white-50 dark:bg-input-surface-dark dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
 			multiple?={ multiple }
 		>
 			@Options(options)
@@ -169,65 +425,17 @@ templ OptionCheckboxes(options []OptionViewModel) {
 }
 
 templ CheckboxDropdownList(id string, options []OptionViewModel, buttonText string) {
-	<div class="flex">
-		<div
-			x-data="{
-				open: false,
-				toggle() {
-					if (this.open) {
-						return this.close()
-					}
-	
-					this.$refs.button.focus()
-	
-					this.open = true
-				},
-				close(focusAfter) {
-					if (! this.open) return
-	
-					this.open = false
-	
-					focusAfter && focusAfter.focus()
-				}
-			}"
-			x-on:keydown.escape.prevent.stop="close($refs.button)"
-			x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
-			x-id="['dropdown-button']"
-			class="relative w-full"
-		>
-			<button
-				for={ id }
-				x-ref="button"
-				x-on:click="toggle()"
-				:aria-expanded="open"
-				:aria-controls="$id('dropdown-button')"
-				type="button"
-				class="flex items-center justify-between w-full block font-medium"
-			>
-				{ buttonText }
-				<svg class="w-[18px] h-[18px] dark:fill-white">
-					@templ.Raw(iconSVG("chevron-down"))
-				</svg>
-			</button>
-			<div
-				x-ref="panel"
-				x-show="open"
-				x-transition.origin.top.left
-				x-on:click.outside="close($refs.button)"
-				:id="$id('dropdown-button')"
-				style="display: none;"
-				class="absolute left-0 mt-3 py-2 rounded-md bg-white shadow-md"
-			>
-				<div id={ id } class="flex flex-col w-full">
-					@OptionCheckboxes(options)
-				</div>
+	<div class="relative w-full inline-block group">
+		<button type="button" class="flex items-center justify-between p-2 w-full font-medium cursor-pointer">
+			{ buttonText }
+			<svg class="w-[18px] h-[18px] dark:fill-white">
+				@templ.Raw(iconSVG("chevron-down"))
+			</svg>
+		</button>
+		<div class="hidden absolute z-10 py-2 rounded-md bg-background-100 shadow-md group-hover:block hover:block">
+			<div class="flex flex-col w-full">
+				@OptionCheckboxes(options)
 			</div>
 		</div>
 	</div>
-	/*<details class="dropdown">
-		<summary for={ id } class="dropdown-label block text-sm font-medium text-gray-700">Välj</summary>
-		<div id={ id } class="dropdown-content px-2 pt-2 bg-white">
-			@OptionCheckboxes(options)
-		</div>
-	</details>*/
 }
