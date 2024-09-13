@@ -6,10 +6,10 @@ import (
 )
 
 templ OverviewCards(localizer locale.Localizer, asset assets.AssetLoaderFunc, stats StatisticsViewModel) {
-	@OverviewCard("Aktiva sensorer", stats.Active, SVG("rss", Size(32)), asset)
+	@OverviewCard("Antal sensorer", stats.Total, SVG("rss", Size(32)), asset)
+	@OverviewCard("Aktiva sensorer", stats.Active, SVG("rss", Size(32), OKStyle()), asset)
 	@OverviewCard("Inaktiva sensorer", stats.Inactive, SVG("rss", Size(32), AlertStyle()), asset)
 	@OverviewCard("Okända sensorer", stats.Unknown, SVG("rss", Size(32), WarningStyle()), asset)
-	@OverviewCard("Aktiva funktioner", 0, SVG("send-to-back", Size(32), OKStyle()), asset)
 }
 
 type HomeViewModel struct {
@@ -22,7 +22,7 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 		<div class="grid grid-cols-4 gap-8">
 			<div class="col-span-2">
 				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("overview") }</h1>
-				<div hx-get="/components/home/statistics" hx-trigger="load, every 5m" class="grid grid-cols-2 gap-10">
+				<div hx-get="/components/home/statistics" hx-trigger="load, every 1m" class="grid grid-cols-2 gap-10">
 					@OverviewCards(l10n, asset, StatisticsViewModel{})
 				</div>
 			</div>
@@ -35,7 +35,6 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 					<div hx-get="/components/home/usage" hx-trigger="load, every 60m" style="display:none;"></div>
 				</div>
 			</div>
-
 			//Alerts, not in MVP
 			/*<div class="col-span-4">
 				<div class="col-span-12 justify-start items-center gap-4">
