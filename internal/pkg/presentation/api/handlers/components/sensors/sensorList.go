@@ -33,9 +33,19 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 		offset, limit := helpers.GetOffsetAndLimit(r)
+		showMap := false
 
 		args := r.URL.Query()
 		helpers.SanitizeParams(args, "page", "limit", "offset")
+
+		if mv, ok := args["mapview"]; ok && mv[0] == "true" {
+			showMap = true
+		}
+
+		if showMap {
+			offset = 0
+			limit = 1000
+		}
 
 		result, err := app.GetSensors(ctx, offset, limit, args)
 		if err != nil {
@@ -49,6 +59,7 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		model := components.SensorListViewModel{
 			Sensors: make([]components.SensorViewModel, 0),
 			Pageing: getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			MapView: showMap,
 		}
 
 		for _, sensor := range result.Sensors {
@@ -58,10 +69,6 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		}
 
 		model.Statistics = getStatistics(ctx, app)
-
-		if mv, ok := args["mapview"]; ok && mv[0] == "true" {
-			model.MapView = true
-		}
 
 		sensorList := components.SensorsList(localizer, model)
 		page := components.StartPage(version, localizer, assets, sensorList)
