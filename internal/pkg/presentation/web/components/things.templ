@@ -209,10 +209,10 @@ func ThingsMap(l10n locale.Localizer, model ThingsListViewModel) templ.Component
 	}
 	mapData := newMapData(62.3908, 17.3069)
 	mapData.CurrentView = "thing"
-	return Map(mapData, thingsToMapFeature(model.Things))
+	return Map(mapData, thingsToMapFeature(l10n, model.Things))
 }
 
-func thingsToMapFeature(things []ThingViewModel) FeatureCollection {
+func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureCollection {
 	features := make([]Feature, 0, len(things))
 
 	for _, thing := range things {
@@ -222,6 +222,7 @@ func thingsToMapFeature(things []ThingViewModel) FeatureCollection {
 		feature := NewFeature(NewPoint(thing.Latitude, thing.Longitude))
 		feature.AddProperty("type", strings.ToLower(thing.Type))
 		feature.AddProperty("id", thing.ID)
+		
 		if strings.ToLower(thing.Type) == "wastecontainer" {
             i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
                 return strings.HasSuffix(m.ID, "3435/2") // ID för fyllnadsnivån
@@ -233,7 +234,27 @@ func thingsToMapFeature(things []ThingViewModel) FeatureCollection {
             } else {
                 feature.AddProperty("fillinglevel", nil) // Eller 0 om det inte finns data
             }
-        } 
+        }
+
+		if strings.ToLower(thing.Type) == "combinedsewageoverflow" {
+			i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
+				return strings.HasSuffix(m.ID, "3350/5850") // ID för Combined Sewage Overflow/Stopwatch/OnOff
+			})
+
+			if i != -1 && thing.Measurements[i].BoolValue != nil {
+				var state string
+				if *thing.Measurements[i].BoolValue {
+					state = l10n.Get("overflow") // Exempelvis när översvämning detekteras
+				} else {
+					state = l10n.Get("Ok") // Exempelvis normalt tillstånd
+				}
+
+				feature.AddProperty("state", state) // Lägg till "state" som egenskap i feature
+			} else {
+				feature.AddProperty("state", "nil") // Hantera fallet där det inte finns data
+			}
+		}
+
 		feature.AddProperty("latitude", thing.Latitude)
 		feature.AddProperty("longitude", thing.Longitude)
 		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ThingID))
