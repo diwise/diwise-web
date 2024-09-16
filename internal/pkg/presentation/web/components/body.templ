@@ -277,7 +277,7 @@ templ Badge(count string) {
 }
 
 templ OverviewCard(title string, count int, icon templ.Component, asset assets.AssetLoaderFunc) {
-	<div class="relative px-6 pt-2.5 pb-2 bg-white dark:bg-gray-800 rounded-[15px] shadow flex-col justify-start items-start gap-[7px] inline-flex">
+	<div class="flex flex-col justify-start items-start pl-6 pr-2 pt-2.5 pb-2 bg-white dark:bg-gray-800 rounded-2xl shadow gap-2 inline-flex">
 		<div class="flex flex-col justify-center items-start gap-4">
 			@icon
 			<div class="text-neutral-800 dark:text-neutral-200 text-[32px] font-bold font-heading leading-10">
@@ -288,11 +288,14 @@ templ OverviewCard(title string, count int, icon templ.Component, asset assets.A
 				}
 			</div>
 		</div>
-		<div class="text-zinc-700 dark:text-zinc-200 text-lg font-normal font-sans leading-relaxed">
-			{ title }
-		</div>
-		<div class="absolute right-2 bottom-[5px] w-6 h-6 flex-col justify-start items-start inline-flex">
-			@SVG("arrow-right", Size(24))
+		
+		<div class="flex items-center w-full justify-between">
+			<div class="text-zinc-700 dark:text-zinc-200 text-lg font-normal font-sans leading-relaxed">
+				{ title }
+			</div>
+			<div class="w-6 h-6 flex items-center justify-center">
+				@SVG("arrow-right", Size(24), Box(24, 24))
+			</div>
 		</div>
 	</div>
 }
