@@ -4,6 +4,9 @@ other = "Aktivera sensor"
 [active]
 other = "Aktiv"
 
+[activesensors]
+other = "Aktiva sensorer"
+
 [addthing]
 other = "Lägg till ny sak"
 
@@ -67,6 +70,9 @@ other = "ID"
 [inactive]
 other = "Inaktiv"
 
+[inactivesensors]
+other = "Inaktiva sensorer"
+
 [lastseen]
 other = "Senast sedd"
 
@@ -100,6 +106,9 @@ other = "Inaktiva"
 [map]
 other = "Karta"
 
+[measurementperday]
+other = "Antal mätvärden per dag"
+
 [measurementtype]
 other = "Mättyp"
 
@@ -120,6 +129,9 @@ other = "Antal passager"
 
 [numberofpassagestoday]
 other = "Antal passager idag"
+
+[numberofsensors]
+other = "Antal sensorer"
 
 [organisation]
 other = "Organisation"
@@ -201,6 +213,9 @@ other = "Typ"
 
 [unknown]
 other = "Okänd"
+
+[unknownsensors]
+other = "Okända sensorer"
 
 [3-9]
 other = "Batterinivå (%)"

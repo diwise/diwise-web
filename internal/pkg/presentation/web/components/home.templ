@@ -5,11 +5,11 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 )
 
-templ OverviewCards(localizer locale.Localizer, asset assets.AssetLoaderFunc, stats StatisticsViewModel) {
-	@OverviewCard("Antal sensorer", stats.Total, SVG("rss", Size(32)), asset)
-	@OverviewCard("Aktiva sensorer", stats.Active, SVG("rss", Size(32), OKStyle()), asset)
-	@OverviewCard("Inaktiva sensorer", stats.Inactive, SVG("rss", Size(32), AlertStyle()), asset)
-	@OverviewCard("Okända sensorer", stats.Unknown, SVG("rss", Size(32), WarningStyle()), asset)
+templ OverviewCards(l10n locale.Localizer, asset assets.AssetLoaderFunc, stats StatisticsViewModel) {
+	@OverviewCard(l10n.Get("numberofsensors"), stats.Total, SVG("rss", Size(32)), asset)
+	@OverviewCard(l10n.Get("activesensors"), stats.Active, SVG("rss", Size(32), OKStyle()), asset)
+	@OverviewCard(l10n.Get("inactivesensors"), stats.Inactive, SVG("rss", Size(32), AlertStyle()), asset)
+	@OverviewCard(l10n.Get("unknownsensors"), stats.Unknown, SVG("rss", Size(32), WarningStyle()), asset)
 }
 
 type HomeViewModel struct {
@@ -28,7 +28,7 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 			</div>
 			<div class="col-span-2">
 				<div class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">
-					<h2>{ l10n.Get("status") }</h2>
+					<h2>{ l10n.Get("measurementperday") }</h2>
 				</div>
 				<div class="p-8 bg-white dark:bg-gray-800 rounded-[15px] shadow justify-start items-start gap-4">
 					<canvas id="usage-chart"></canvas>

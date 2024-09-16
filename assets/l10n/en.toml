@@ -4,6 +4,9 @@ other = "Activate sensor"
 [active]
 other = "Active"
 
+[activesensors]
+other = "Active sensors"
+
 [addthing]
 other = "Add new thing"
 
@@ -67,6 +70,9 @@ other = "ID"
 [inactive]
 other = "Inactive"
 
+[inactivesensors]
+other = "Inactive sensors"
+
 [lastseen]
 other = "Last seen"
 
@@ -100,6 +106,9 @@ other = "Inactive"
 [map]
 other = "Map"
 
+[measurementperday]
+other = "Measurement per day"
+
 [measurementtype]
 other = "Measurement type"
 
@@ -120,6 +129,9 @@ other = "Number of passages"
 
 [numberofpassagestoday]
 other = "Number of passages today"
+
+[numberofsensors]
+other = "Number of sensors"
 
 [organisation]
 other = "Organisation"
@@ -201,6 +213,9 @@ other = "Type"
 
 [unknown]
 other = "Unknown"
+
+[unknownsensors]
+other = "Unknown sensors"
 
 [3-9]
 other = "Battery level (%)"
