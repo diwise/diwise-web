@@ -68,7 +68,7 @@ templ SumOfStuff(l10n locale.Localizer, stats StatisticsViewModel) {
 			<span class="font-bold">{ fmt.Sprintf("%d", stats.Inactive) }</span>
 		</div>
 		<div class="flex items-start gap-2">
-			{ l10n.Get("unregistered") }
+			{ l10n.Get("unknown") }
 			<span class="font-bold">{ fmt.Sprintf("%d", stats.Unknown) }</span>
 		</div>
 	</div>
@@ -291,7 +291,7 @@ templ FilterSensors(l10n locale.Localizer) {
 	<div class="flex items-center flex-[1_0_0] gap-6">
 		<div class="relative inline-block group">
 			@CheckboxButton("status", l10n)
-			@CheckboxList("statusForm", "#fragments", "#tenantForm", "/sensors", "status", []string{"active", "inactive", "unregistered"}, l10n)
+			@CheckboxList("statusForm", "#fragments", "#tenantForm", "/sensors", "status", []string{"active", "inactive", "unknown"}, l10n)
 		</div>
 
 		<div class="relative inline-block group">

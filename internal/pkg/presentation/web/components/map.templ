@@ -4,6 +4,7 @@ type mapData struct {
 	Latitude  float64
 	Longitude float64
 	Zoom      int
+    CurrentView string
 }
 
 func newMapData(lat, lon float64) mapData {
@@ -13,6 +14,7 @@ func newMapData(lat, lon float64) mapData {
 		md.Latitude = 62.3908
 		md.Longitude = 17.3069
 		md.Zoom = 9
+        md.CurrentView = "sensor"
 	}
 
 	return md
@@ -107,6 +109,14 @@ templ Map(data mapData, featureCollection ...FeatureCollection) {
             shadowSize: [41, 41]
         });
 
+        var passageIcon = L.icon({
+            iconUrl: '/assets/16fbeaa496501a4ac0a1b54d2530258c2b4b74090b6703aebdf94d3a3ec3766d/door.svg',
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
         var drainIcon = L.icon({
             iconUrl: '/assets/4b6f555f94417954a8a1d3eace3803fed8bed1a57821134a6f75079d85b4989b/drain.svg',
             iconSize: [40, 40],
@@ -142,6 +152,9 @@ templ Map(data mapData, featureCollection ...FeatureCollection) {
                     case 'drain':
                         icon = drainIcon;
                         break;
+                    case 'passage':
+                        icon = passageIcon;
+                        break;
                     default:
                         icon = sensorIcon;
                 }
@@ -151,7 +164,36 @@ templ Map(data mapData, featureCollection ...FeatureCollection) {
                         return L.marker(latlng, { icon: icon });
                     },
                     onEachFeature: function(feature, layer) {
-                        layer.bindPopup(feature.properties.desc);
+                        var cv = mapData.CurrentView;
+                        var popupContent = null;
+                        
+                            if (cv === "sensor") {
+                                popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base"><div class="flex flex-col items-start self-stretch justify-center gap-6"><div class="flex flex-col items-start gap-2">' +
+                                '<span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 ' + (feature.properties.status ? 'bg-primary-green-accent' : 'bg-tertiary-surface') + '"><span class="text-sm font-bold font-sans leading-none ' + (feature.properties.status ? 'text-primary-green' : 'text-primary-dark"') + '">' + (feature.properties.status ? "Aktiv" : "Inaktiv") + '</span></span>' +
+							    '<h2 class="font-heading text-xl font-bold dark:text-white first-letter:uppercase">' + feature.properties.name + '</h2></div><div class="flex flex-col items-start gap-2 text-primary-dark"><div class="flex items-center gap-2">' +
+								'<div class="font-bold">DevEUI</div><div class="">' + feature.properties.deveui + '</div></div><div class="flex items-center gap-2">' + 
+								'<div class="font-bold">Sensortyp</div><div class="">' + feature.properties.type + '</div></div><div class="flex items-center gap-2">' +
+								'<div class="font-bold">Batterinivå</div><div class="">' + feature.properties.batterylevel + '</div></div><div class="flex items-center gap-2">' +
+								'<div class="font-bold">Position</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div><div class="flex items-center gap-2">' +
+								'<div class="font-bold">Senast sedd</div><div class="">' + feature.properties.lastseen + '</div></div></div></div><div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>' +		
+					            '<a href="' + feature.properties.url + ' "class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 !text-white dark:text-primary-dark bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover dark:stroke-primary-dark --templ-css-class-unknown-type">Mer information' +
+                                '<div class="w-[20px] h-[20px]"><svg class="stroke-white dark:stroke-primary-dark fill-none dark:fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a></div>';
+                            } else if (cv === "thing") {
+                                popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base"><div class="flex flex-col items-start self-stretch justify-center gap-6">' +
+                                '<h2 class="font-heading text-xl font-bold dark:text-white first-letter:uppercase">' + feature.properties.type + '</h2>' +
+                                '<div class="flex flex-col items-start gap-2 text-primary-dark"><div class="flex flex-col items-start justify-center gap-2 self-stretch">' +
+                                '<div class="font-bold text-primary-dark">Fyllnadsnivå</div><div class="flex items-center gap-2 text-sm">' +
+                                '<div class="">Progressbar</div><div class="">' + feature.properties.fillinglevel + '</div></div></div><div class="flex items-center gap-2">' +
+                                '<div class="font-bold">ID</div><div class="">' + feature.properties.id + '</div></div><div class="flex items-center gap-2">' +
+                                '<div class="font-bold">Position</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div></div></div><div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>' + 					
+                                '<a href="' + feature.properties.url + ' " class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 !text-white dark:text-primary-dark bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover dark:stroke-primary-dark --templ-css-class-unknown-type">Mer information<div class="w-[20px] h-[20px]">' +
+                                '<svg class="stroke-white dark:stroke-primary-dark fill-none dark:fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a></div>';
+                            } 
+
+                            if (popupContent) {
+                                layer.bindPopup(popupContent);
+                            }
+                        
                     }
                 }).addTo(map);
 

@@ -207,7 +207,9 @@ func ThingsMap(l10n locale.Localizer, model ThingsListViewModel) templ.Component
 	if !model.MapView {
 		return templ.NopComponent
 	}
-	return Map(newMapData(62.3908, 17.3069), thingsToMapFeature(model.Things))
+	mapData := newMapData(62.3908, 17.3069)
+	mapData.CurrentView = "thing"
+	return Map(mapData, thingsToMapFeature(model.Things))
 }
 
 func thingsToMapFeature(things []ThingViewModel) FeatureCollection {
@@ -219,7 +221,12 @@ func thingsToMapFeature(things []ThingViewModel) FeatureCollection {
 		}
 		feature := NewFeature(NewPoint(thing.Latitude, thing.Longitude))
 		feature.AddProperty("type", strings.ToLower(thing.Type))
-		feature.AddProperty("desc", thing.ThingID)
+		feature.AddProperty("id", thing.ID)
+		feature.AddProperty("fillinglevel", "20%") 
+		feature.AddProperty("latitude", thing.Latitude)
+		feature.AddProperty("longitude", thing.Longitude)
+		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ThingID))
+
 		features = append(features, feature)
 	}
 

@@ -111,11 +111,11 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 					<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("statistics") }</h2>
 					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 				</div>
-				if model.Thing.Type == "WasteContainer" {
+				if strings.ToLower(model.Thing.Type) == "wastecontainer" {
 					@StatisticsWasteContainer(l10n, model)
-				} else if model.Thing.Type == "CombinedSewageOverflow" {
+				} else if strings.ToLower(model.Thing.Type) == "combinedsewageoverflow" {
 					@StatisticsCombinedSewageOverflow(l10n, model)
-				} else if model.Thing.Type == "Passage" {
+				} else if strings.ToLower(model.Thing.Type) == "passage" {
 					@StatisticsPassage(l10n, model)
 				}
 				

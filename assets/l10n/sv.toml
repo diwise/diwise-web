@@ -196,8 +196,8 @@ other = "Soptunna"
 [type]
 other = "Typ"
 
-[unregistered]
-other = "Oregistrerade"
+[unknown]
+other = "Okänd"
 
 [3-9]
 other = "Batterinivå (%)"
@@ -239,13 +239,13 @@ other = "Distans"
 other = "Total energiförbrukning"
 
 [CombinedSewageOverflow]
-other = "Avlopp som svämmar över"
+other = "Bräddavlopp"
 
 [combinedsewageoverflow]
-other = "Avlopp som svämmar över"
+other = "Bräddavlopp"
 
 [sewagepumpingstation]
-other = "Pumpstation avloppsvatten"
+other = "Pumpstation"
 
 [Sewer]
 other = "Avlopp"

@@ -39,7 +39,7 @@ templ Statistics(l10n locale.Localizer, model StatisticsViewModel) {
 		<div class="flex items-start gap-2">{ l10n.Get("total") }<span class="font-bold">{ fmt.Sprintf("%d", model.Total) } </span></div>
 		<div class="flex items-start gap-2">{ l10n.Get("active") }<span class="font-bold">{ fmt.Sprintf("%d", model.Active) }</span></div>
 		<div class="flex items-start gap-2">{ l10n.Get("inactive") }<span class="font-bold">{ fmt.Sprintf("%d", model.Inactive) }</span></div>
-		<div class="flex items-start gap-2">{ l10n.Get("unregistered") }<span class="font-bold">{ fmt.Sprintf("%d", model.Unknown) }</span></div>
+		<div class="flex items-start gap-2">{ l10n.Get("unknown") }<span class="font-bold">{ fmt.Sprintf("%d", model.Unknown) }</span></div>
 	</div>
 }
 
@@ -157,7 +157,24 @@ func sensorsToMapFeature(model SensorListViewModel) FeatureCollection {
 			continue
 		}
 		feature := NewFeature(NewPoint(sensor.Latitude, sensor.Longitude))
-		feature.AddProperty("type", "sensor")
+		feature.AddProperty("status", sensor.Active)
+		feature.AddProperty("type", sensor.Type)
+		feature.AddProperty("name", sensor.Name)
+		feature.AddProperty("deveui", sensor.DevEUI)
+		if sensor.BatteryLevel >= 0 {
+            feature.AddProperty("batterylevel", fmt.Sprintf("%d%%", sensor.BatteryLevel))
+        } else {
+            feature.AddProperty("batterylevel", "-")
+        }
+        if !sensor.LastSeen.IsZero() {
+            feature.AddProperty("lastseen", sensor.LastSeen.Format("2006-01-02, 15:04"))
+        } else {
+            feature.AddProperty("lastseen", "-")
+        }
+		feature.AddProperty("latitude", sensor.Latitude)
+		feature.AddProperty("longitude", sensor.Longitude)
+		feature.AddProperty("url", fmt.Sprintf("/sensors/%s", sensor.DeviceID))
+
 		features = append(features, feature)
 	}
 
@@ -168,7 +185,9 @@ func SensorMap(l10n locale.Localizer, model SensorListViewModel) templ.Component
 	if !model.MapView {
 		return templ.NopComponent
 	}
-	return Map(newMapData(62.3908, 17.3069), sensorsToMapFeature(model))
+	mapData := newMapData(62.3908, 17.3069)
+	mapData.CurrentView = "sensor"
+	return Map(mapData, sensorsToMapFeature(model))
 }
 
 templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
@@ -184,7 +203,7 @@ templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
 		if sensor.Active {
 			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">{ l10n.Get("active") }</span></span></td>
 		} else {
-			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">{ l10n.Get("inactive") }</span></span></td>
+			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-tertiary-surface"><span class="text-sm font-bold font-sans leading-none text-primary-dark">{ l10n.Get("inactive") }</span></span></td>
 		}
 		<td class="px-6 py-3">{ sensor.Type }</td>
 		<td class="px-6 py-3">{ sensor.DevEUI }</td>
@@ -192,7 +211,7 @@ templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
 			if sensor.BatteryLevel >=0 {
 				{ fmt.Sprintf("%d%%", sensor.BatteryLevel) }
 			} else {
-				{  }
+				{ "-" }
 			}
 		</td>
 		<td class="px-6 py-3">

@@ -188,7 +188,7 @@ templ FilterThings(l10n locale.Localizer) {
 		</div>
 		<div class="relative inline-block group">
 			@CheckboxButton("status", l10n)
-			@CheckboxList("statusForm", "#fragments", "#typeForm", "/things", "status", []string{"active", "inactive", "unregistered"}, l10n)
+			@CheckboxList("statusForm", "#fragments", "#typeForm", "/things", "status", []string{"active", "inactive", "unknown"}, l10n)
 		</div>
 	</div>
 }

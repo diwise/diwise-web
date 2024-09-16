@@ -196,8 +196,8 @@ other = "Trashcan"
 [type]
 other = "Type"
 
-[unregistered]
-other = "Unregistered"
+[unknown]
+other = "Unknown"
 
 [3-9]
 other = "Battery level (%)"
