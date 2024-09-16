@@ -229,12 +229,6 @@ templ Map(data mapData, featureCollection ...FeatureCollection) {
 
             var southwest = bounds.getSouthWest();
             var northeast = bounds.getNorthEast();
-
-            // Uppdatera URL med bounds
-            var newUrl = new URL(window.location.href);
-            newUrl.searchParams.set('bounds', `[${southwest.lat},${southwest.lng};${northeast.lat},${northeast.lng}]`);
-            window.history.replaceState({}, '', newUrl);
-
         }
 
         // Kontrollera hörnkoordinater när kartan laddas och vid varje dragning eller zoomning
