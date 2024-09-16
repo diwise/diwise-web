@@ -63,7 +63,7 @@ type Point struct {
 }
 
 templ Map(data mapData, featureCollection ...FeatureCollection) {
-	<div id="map" class="h-96 w-full z-0" data-map={ templ.JSONString(data) } data-features={ templ.JSONString(featureCollection) }></div>
+	<div id="map" class="w-full h-[70vh] z-0" data-map={ templ.JSONString(data) } data-features={ templ.JSONString(featureCollection) }></div>
 	<script>
     (() => {
         const m = document.getElementById('map');
