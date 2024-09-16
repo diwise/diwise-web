@@ -124,6 +124,9 @@ other = "Antal passager idag"
 [organisation]
 other = "Organisation"
 
+[overflow]
+other = "Bräddar"
+
 [overflowrightnow]
 other = "Bräddar just nu"
 

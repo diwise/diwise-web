@@ -143,7 +143,7 @@ func CombinedSewageOverflowCell(l10n locale.Localizer, thing ThingViewModel) tem
 
 	state := l10n.Get("Ok")
 	if *thing.Measurements[i].BoolValue {
-		state = l10n.Get("Bräddar")
+		state = l10n.Get("overflow")
 	}
 
 	return Text(state)
@@ -222,7 +222,18 @@ func thingsToMapFeature(things []ThingViewModel) FeatureCollection {
 		feature := NewFeature(NewPoint(thing.Latitude, thing.Longitude))
 		feature.AddProperty("type", strings.ToLower(thing.Type))
 		feature.AddProperty("id", thing.ID)
-		feature.AddProperty("fillinglevel", "20%") 
+		if strings.ToLower(thing.Type) == "wastecontainer" {
+            i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
+                return strings.HasSuffix(m.ID, "3435/2") // ID för fyllnadsnivån
+            })
+
+            if i != -1 && thing.Measurements[i].Value != nil {
+                fillinglevel := int(*thing.Measurements[i].Value)
+                feature.AddProperty("fillinglevel", fillinglevel)
+            } else {
+                feature.AddProperty("fillinglevel", nil) // Eller 0 om det inte finns data
+            }
+        } 
 		feature.AddProperty("latitude", thing.Latitude)
 		feature.AddProperty("longitude", thing.Longitude)
 		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ThingID))

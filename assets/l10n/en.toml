@@ -124,6 +124,9 @@ other = "Number of passages today"
 [organisation]
 other = "Organisation"
 
+[overflow]
+other = "Overflow"
+
 [overflowrightnow]
 other = "Overflow right now"
 
