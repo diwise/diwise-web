@@ -87,6 +87,8 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 			return
 		}
 
+		mode := r.URL.Query().Get("mode")
+
 		ctx := helpers.Decorate(r.Context(),
 			components.CurrentComponent, "things",
 		)
@@ -131,6 +133,12 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 				ID:      r.ID,
 				Type:    r.Type,
 			})
+		}
+
+		if mode == "edit" {
+			component := components.EditThingDetails(localizer, assets, thingsViewModel)
+			component.Render(ctx, w)
+			return
 		}
 
 		thingDetails := components.ThingDetails(localizer, assets, thingsViewModel)
