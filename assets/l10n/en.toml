@@ -184,6 +184,9 @@ other = "Statistics"
 [table]
 other = "Table"
 
+[tags]
+other = "Tags"
+
 [temperature]
 other = "Temperature"
 
