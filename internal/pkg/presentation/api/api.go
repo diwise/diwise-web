@@ -117,10 +117,10 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	r.HandleFunc("GET /components/home/usage", RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
 
 	// things
-	r.HandleFunc("GET /things", things.NewSakerPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /things/{id}", things.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /components/things/details", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/tables/things", RequireHX(things.NewSakerTable(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /components/tables/things", RequireHX(things.NewThingsTable(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /components/things/list", RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))
 
 	// sensors

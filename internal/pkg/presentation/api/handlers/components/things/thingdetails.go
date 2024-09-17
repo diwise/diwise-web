@@ -35,29 +35,25 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 			return
 		}
 
-		detailsViewModel := components.ThingDetailsViewModel{
-			Thing: components.ThingViewModel{
-				ThingID:   thing.ThingID,
-				Latitude:  thing.Location.Latitude,
-				Longitude: thing.Location.Longitude,
-				Tenant:    thing.Tenant,
-				Type:      thing.Type,
-			},
+		thingDetailsViewModel := components.ThingDetailsViewModel{
+			Thing: toViewModel(thing),			
 		}
+
+		thingDetailsViewModel.Measurements = thingDetailsViewModel.Thing.Measurements
 
 		for _, r := range thing.Related {
 			if strings.ToLower(r.Type) != "device" {
 				continue
 			}
 
-			detailsViewModel.Related = append(detailsViewModel.Related, components.ThingViewModel{
+			thingDetailsViewModel.Related = append(thingDetailsViewModel.Related, components.ThingViewModel{
 				ThingID: fmt.Sprintf("urn:diwise:%s:%s", r.Type, r.ID),
 				ID:      r.ID,
 				Type:    r.Type,
 			})
 		}
 
-		thingDetails := components.ThingDetailsPage(localizer, assets, detailsViewModel)
+		thingDetails := components.ThingDetailsPage(localizer, assets, thingDetailsViewModel)
 		page := components.StartPage(version, localizer, assets, thingDetails)
 
 		w.Header().Add("Content-Type", "text/html")
@@ -76,8 +72,6 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 }
 
 func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
-	//version := helpers.GetVersion(ctx)
-
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
@@ -99,28 +93,11 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 			return
 		}
 
-		thingsViewModel := components.ThingDetailsViewModel{
-			Thing: components.ThingViewModel{
-				ThingID:   thing.ThingID,
-				Latitude:  thing.Location.Latitude,
-				Longitude: thing.Location.Longitude,
-				Tenant:    thing.Tenant,
-				Type:      thing.Type,
-			},
-			Measurements: make([]components.MeasurementViewModel, 0),
+		thingDetailsViewModel := components.ThingDetailsViewModel{
+			Thing: toViewModel(thing),
 		}
-
-		for _, m := range thing.Measurements {
-			thingsViewModel.Measurements = append(thingsViewModel.Measurements, components.MeasurementViewModel{
-				ID:          m.ID,
-				Timestamp:   m.Timestamp,
-				Urn:         m.Urn,
-				BoolValue:   m.BoolValue,
-				StringValue: m.StringValue,
-				Value:       m.Value,
-				Unit:        m.Unit,
-			})
-		}
+		
+		thingDetailsViewModel.Measurements = thingDetailsViewModel.Thing.Measurements
 
 		for _, r := range thing.Related {
 			//TODO: should it be possible to add other types of related things?
@@ -128,7 +105,7 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 				continue
 			}
 
-			thingsViewModel.Related = append(thingsViewModel.Related, components.ThingViewModel{
+			thingDetailsViewModel.Related = append(thingDetailsViewModel.Related, components.ThingViewModel{
 				ThingID: fmt.Sprintf("urn:diwise:%s:%s", r.Type, r.ID),
 				ID:      r.ID,
 				Type:    r.Type,
@@ -136,12 +113,12 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		}
 
 		if mode == "edit" {
-			component := components.EditThingDetails(localizer, assets, thingsViewModel)
+			component := components.EditThingDetails(localizer, assets, thingDetailsViewModel)
 			component.Render(ctx, w)
 			return
 		}
 
-		thingDetails := components.ThingDetails(localizer, assets, thingsViewModel)
+		thingDetails := components.ThingDetails(localizer, assets, thingDetailsViewModel)
 
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Cache-Control", "no-cache")
