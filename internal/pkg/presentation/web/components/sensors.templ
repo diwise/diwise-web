@@ -213,7 +213,7 @@ templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
 		if sensor.Active {
 			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">{ l10n.Get("active") }</span></span></td>
 		} else {
-			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-tertiary-surface"><span class="text-sm font-bold font-sans leading-none text-primary-dark">{ l10n.Get("inactive") }</span></span></td>
+			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-tertiary-surface dark:bg-primary-surface-white"><span class="text-sm font-bold font-sans leading-none text-primary-dark dark:text-white">{ l10n.Get("inactive") }</span></span></td>
 		}
 		<td class="px-6 py-3">{ sensor.Type }</td>
 		<td class="px-6 py-3">{ sensor.DevEUI }</td>
