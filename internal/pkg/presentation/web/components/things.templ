@@ -43,7 +43,7 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 			<div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
 				<div class="flex items-center text-white dark:text-dark-primary font-bold">
-					<button class="flex justify-center items-center gap-2 px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover rounded-xl cursor-pointer" hx-get="/components/things" hx-trigger="click">Lägg till ny sak</button>
+					<button class="flex justify-center items-center gap-2 px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover rounded-xl cursor-pointer" hx-get="/components/things" hx-trigger="click">{ l10n.Get("addthing") }</button>
 				</div>
 			</div>
 		</div>
@@ -98,7 +98,7 @@ templ ThingsTableComponent(l10n locale.Localizer, model ThingsListViewModel) {
 		</tbody>
 		<tfoot>
 			<tr>
-				<td colspan="3">
+				<td colspan="4">
 					@Paging(l10n, model.Pageing)
 				</td>
 			</tr>
@@ -121,11 +121,20 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 		</td>
 		<td class="px-6 py-3">
 			for _, tag := range thing.Tags {
-				<span class="bg-primary-surface text-white dark:bg-primary-surface-dark dark:text-white px-2 py-1 rounded-xl text-xs">{ tag }</span>
+				<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+					{ tag }
+				</span>
 			}
 		</td>
 	</tr>
 }
+
+/*<div class="flex items-center gap-2">
+	<div class="flex items-center px-2.5 py-2 text-sm justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border-2 stroke-primary-dark dark:stroke-white">
+		Tagg 1
+		@SVG("close", NoFill(), Size(16), Box(24, 24), StrokeColor("primary-dark", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
+	</div>
+</div>*/
 
 func ThingsTable(l10n locale.Localizer, model ThingsListViewModel) templ.Component {
 	if model.MapView {
@@ -226,7 +235,7 @@ func ThingsMap(l10n locale.Localizer, model ThingsListViewModel) templ.Component
 	}
 	mapData := newMapData(62.3908, 17.3069)
 	mapData.CurrentView = "thing"
-	return Map(mapData, thingsToMapFeature(l10n, model.Things))
+	return Map("large", mapData, thingsToMapFeature(l10n, model.Things))
 }
 
 func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureCollection {
@@ -275,6 +284,14 @@ func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureC
 		feature.AddProperty("latitude", thing.Latitude)
 		feature.AddProperty("longitude", thing.Longitude)
 		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ThingID))
+
+		//Språkstöd
+		feature.AddProperty("text_fillinglevel", l10n.Get("fillinglevel")) 
+		feature.AddProperty("text_id", l10n.Get("id")) 
+		feature.AddProperty("text_overflow", l10n.Get("overflow")) 
+		feature.AddProperty("text_moreinformation", l10n.Get("moreinformation"))
+		feature.AddProperty("text_position", l10n.Get("location"))
+		feature.AddProperty("text_tags", l10n.Get("tags"))
 
 		features = append(features, feature)
 	}
