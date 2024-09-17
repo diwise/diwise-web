@@ -45,6 +45,36 @@ func New(ctx context.Context) (*App, error) {
 	}, nil
 }
 
+func (a *App) GetTags(ctx context.Context) ([]string, error) {
+	res, err := a.get(ctx, a.thingManagementURL, "tags", url.Values{})
+	if err != nil {
+		return []string{}, err
+	}
+
+	var tags []string
+	err = json.Unmarshal(res.Data, &tags)
+	if err != nil {
+		return []string{}, err
+	}
+
+	return tags, nil
+}
+
+func (a *App) GetTypes(ctx context.Context) ([]string, error) {
+	res, err := a.get(ctx, a.thingManagementURL, "types", url.Values{})
+	if err != nil {
+		return []string{}, err
+	}
+
+	var tags []string
+	err = json.Unmarshal(res.Data, &tags)
+	if err != nil {
+		return []string{}, err
+	}
+
+	return tags, nil
+}
+
 func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
 	params := url.Values{
 		"measurements": []string{"true"},

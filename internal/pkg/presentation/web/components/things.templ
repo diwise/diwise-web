@@ -12,6 +12,8 @@ type ThingsListViewModel struct {
 	Things  []ThingViewModel
 	Pageing PagingViewModel
 	MapView bool
+	Tags    []string
+	Types   []string
 }
 
 type ThingViewModel struct {
@@ -21,6 +23,7 @@ type ThingViewModel struct {
 	Latitude     float64
 	Longitude    float64
 	Tenant       string
+	Tags         []string
 	Measurements []MeasurementViewModel
 }
 
@@ -46,19 +49,27 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 		</div>
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 		<div class="flex px-8 flex-col items-start self-stretch gap-10">
-			@ThingsFilter(l10n)
+			@ThingsFilter(l10n, model)
 			@DataList(l10n, ThingsTable(l10n, model), ThingsMap(l10n, model), model.MapView)
 		</div>
 	</div>
 }
 
-templ ThingsFilter(l10n locale.Localizer) {
+templ ThingsFilter(l10n locale.Localizer, model ThingsListViewModel) {
 	<div class="w-full h-12 justify-between items-center inline-flex">
 		<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 			<div class="flex items-center flex-[1_0_0] gap-6">
 				@CheckboxList(l10n.Get("type")) {
-					for _, t := range []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation"} {
+					for _, t := range model.Types {
 						@CheckboxOption("type", t, "", l10n, templ.Attributes{
+							"hx-get":    string(templ.SafeURL("/components/things/list")),
+							"hx-target": "#tableOrMap",
+						})
+					}
+				}
+				@CheckboxList(l10n.Get("tags")) {
+					for _, t := range model.Tags {
+						@CheckboxOption("tags", t, "", l10n, templ.Attributes{
 							"hx-get":    string(templ.SafeURL("/components/things/list")),
 							"hx-target": "#tableOrMap",
 						})
@@ -77,6 +88,7 @@ templ ThingsTableComponent(l10n locale.Localizer, model ThingsListViewModel) {
 				<th class="px-6 py-3">{ l10n.Get("id") }</th>
 				<th class="px-6 py-3">{ l10n.Get("type") }</th>
 				<th class="px-6 py-3">{ l10n.Get("status") }</th>
+				<th class="px-6 py-3">{ l10n.Get("tags") }</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -106,6 +118,11 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 		<td class="px-6 py-3">{ l10n.Get(thing.Type) }</td>
 		<td class="px-6 py-3">
 			@ThingStatusCell(l10n, thing)
+		</td>
+		<td class="px-6 py-3">
+			for _, tag := range thing.Tags {
+				<span class="bg-primary-surface text-white dark:bg-primary-surface-dark dark:text-white px-2 py-1 rounded-xl text-xs">{ tag }</span>
+			}
 		</td>
 	</tr>
 }
@@ -222,19 +239,19 @@ func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureC
 		feature := NewFeature(NewPoint(thing.Latitude, thing.Longitude))
 		feature.AddProperty("type", strings.ToLower(thing.Type))
 		feature.AddProperty("id", thing.ID)
-		
-		if strings.ToLower(thing.Type) == "wastecontainer" {
-            i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
-                return strings.HasSuffix(m.ID, "3435/2") // ID för fyllnadsnivån
-            })
 
-            if i != -1 && thing.Measurements[i].Value != nil {
-                fillinglevel := int(*thing.Measurements[i].Value)
-                feature.AddProperty("fillinglevel", fillinglevel)
-            } else {
-                feature.AddProperty("fillinglevel", nil) // Eller 0 om det inte finns data
-            }
-        }
+		if strings.ToLower(thing.Type) == "wastecontainer" {
+			i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
+				return strings.HasSuffix(m.ID, "3435/2") // ID för fyllnadsnivån
+			})
+
+			if i != -1 && thing.Measurements[i].Value != nil {
+				fillinglevel := int(*thing.Measurements[i].Value)
+				feature.AddProperty("fillinglevel", fillinglevel)
+			} else {
+				feature.AddProperty("fillinglevel", nil) // Eller 0 om det inte finns data
+			}
+		}
 
 		if strings.ToLower(thing.Type) == "combinedsewageoverflow" {
 			i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {

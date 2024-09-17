@@ -8,6 +8,8 @@ import (
 type ThingManagement interface {
 	GetThing(ctx context.Context, id string) (Thing, error)
 	GetThings(ctx context.Context, offset, limit int, parmas map[string][]string) (ThingResult, error)
+	GetTags(ctx context.Context) ([]string, error)
+	GetTypes(ctx context.Context) ([]string, error)
 }
 
 type Thing struct {
@@ -16,6 +18,7 @@ type Thing struct {
 	Type         string        `json:"type,omitempty"`
 	Location     Location      `json:"location,omitempty"`
 	Tenant       string        `json:"tenant,omitempty"`
+	Tags         []string      `json:"tags,omitempty"`
 	Measurements []Measurement `json:"measurements,omitempty"`
 	Related      []Thing       `json:"related,omitempty"`
 }

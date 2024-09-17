@@ -66,6 +66,7 @@ func NewSakerTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 				Latitude:  thing.Location.Latitude,
 				Longitude: thing.Location.Longitude,
 				Tenant:    thing.Tenant,
+				Tags:      thing.Tags,
 			}
 
 			for _, m := range thing.Measurements {
@@ -200,6 +201,18 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 		args := r.URL.Query()
 		helpers.SanitizeParams(args, "page", "limit", "offset")
 
+		tags, err := app.GetTags(ctx)
+		if err != nil {
+			http.Error(w, "could not fetch tags", http.StatusInternalServerError)
+			return
+		}
+
+		types, err := app.GetTypes(ctx)
+		if err != nil {
+			http.Error(w, "could not fetch tags", http.StatusInternalServerError)
+			return
+		}
+
 		result, err := app.GetThings(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch things", http.StatusInternalServerError)
@@ -212,6 +225,8 @@ func NewSakerPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLo
 		model := components.ThingsListViewModel{
 			Things:  make([]components.ThingViewModel, 0),
 			Pageing: getPaging(pageIndex_, int(math.Ceil(pageLast)), limit, offset, helpers.PagerIndexes(pageIndex_, int(math.Ceil(pageLast))), args),
+			Tags:    tags,
+			Types:   types,
 		}
 
 		for _, thing := range result.Things {
@@ -248,6 +263,7 @@ func toViewModel(thing application.Thing) components.ThingViewModel {
 		Latitude:     thing.Location.Latitude,
 		Longitude:    thing.Location.Longitude,
 		Tenant:       thing.Tenant,
+		Tags:         thing.Tags,
 		Measurements: make([]components.MeasurementViewModel, 0),
 	}
 
