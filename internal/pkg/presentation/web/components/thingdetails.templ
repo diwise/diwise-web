@@ -157,6 +157,17 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 							<div class="font-bold">{ l10n.Get("organisation") }</div>
 							<div class="">{ model.Thing.Tenant }</div>
 						</div>
+						<div class="flex items-center gap-2">
+							<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+								Tagg 1
+							</span>
+							<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+								Tagg 2
+							</span>
+							<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+								Tagg 3
+							</span>
+						</div>
 						/*<div class="flex flex-col gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
 							<div class=""></div>
@@ -186,7 +197,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 								<div class="font-bold">{ l10n.Get("longitude") }</div>
 								<div class="">{ fmt.Sprintf("%f", model.Thing.Longitude) }</div>
 							</div>
-							@Map(newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+							@Map("small", newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
 						</div>
 					</div>
 				</div>
@@ -312,7 +323,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 									<input type="number" name="longitude" value={ fmt.Sprintf("%f", model.Thing.Longitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
 								</div>
 							</div>
-							@Map(newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+							@Map("small", newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
 						</div>
 					</div>
 				</div>
