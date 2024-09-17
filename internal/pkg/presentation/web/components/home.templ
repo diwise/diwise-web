@@ -6,10 +6,10 @@ import (
 )
 
 templ OverviewCards(l10n locale.Localizer, asset assets.AssetLoaderFunc, stats StatisticsViewModel) {
-	@OverviewCard(l10n.Get("numberofsensors"), stats.Total, SVG("rss", Size(32)), asset)
-	@OverviewCard(l10n.Get("activesensors"), stats.Active, SVG("rss", Size(32), OKStyle()), asset)
-	@OverviewCard(l10n.Get("inactivesensors"), stats.Inactive, SVG("rss", Size(32), AlertStyle()), asset)
-	@OverviewCard(l10n.Get("unknownsensors"), stats.Unknown, SVG("rss", Size(32), WarningStyle()), asset)
+	@OverviewCard(l10n.Get("numberofsensors"), "/sensors", stats.Total, SVG("rss", Size(32)), asset)
+	@OverviewCard(l10n.Get("activesensors"), "/sensors", stats.Active, SVG("rss", Size(32), OKStyle()), asset)
+	@OverviewCard(l10n.Get("inactivesensors"), "/sensors", stats.Inactive, SVG("rss", Size(32), AlertStyle()), asset)
+	@OverviewCard(l10n.Get("unknownsensors"), "/sensors", stats.Unknown, SVG("rss", Size(32), WarningStyle()), asset)
 }
 
 type HomeViewModel struct {
