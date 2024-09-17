@@ -136,6 +136,12 @@ other = "Number of passages today"
 [numberofsensors]
 other = "Number of sensors"
 
+[offline]
+other = "Offline"
+
+[online]
+other = "Online"
+
 [organisation]
 other = "Organisation"
 
