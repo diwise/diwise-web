@@ -12,7 +12,7 @@ type ThingDetailsViewModel struct {
 	Thing        ThingViewModel
 	Related      []ThingViewModel
 	Measurements []MeasurementViewModel
-	TableView	 bool
+	TableView    bool
 }
 
 type ThingProfile struct {
@@ -118,7 +118,6 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 				} else if strings.ToLower(model.Thing.Type) == "passage" {
 					@StatisticsPassage(l10n, model)
 				}
-				
 			</div>
 			//Uppgifter och position
 			<div class="flex items-start self-stretch py-6 gap-10">
@@ -158,15 +157,11 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 							<div class="">{ model.Thing.Tenant }</div>
 						</div>
 						<div class="flex items-center gap-2">
-							<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
-								Tagg 1
-							</span>
-							<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
-								Tagg 2
-							</span>
-							<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
-								Tagg 3
-							</span>
+							for _, tag := range model.Thing.Tags {
+								<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+									{ tag }
+								</span>
+							}
 						</div>
 						/*<div class="flex flex-col gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
@@ -340,8 +335,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 	</div>
 }
 
-
-
 templ graphTableButtons(l10n locale.Localizer, hxGet string) {
 	<div class="flex items-center self-stretch gap-6">
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
@@ -380,4 +373,3 @@ templ graphTableButtons(l10n locale.Localizer, hxGet string) {
 		</div>
 	</div>
 }
-
