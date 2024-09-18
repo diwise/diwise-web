@@ -129,13 +129,6 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 	</tr>
 }
 
-/*<div class="flex items-center gap-2">
-	<div class="flex items-center px-2.5 py-2 text-sm justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border-2 stroke-primary-dark dark:stroke-white">
-		Tagg 1
-		@SVG("close", NoFill(), Size(16), Box(24, 24), StrokeColor("primary-dark", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
-	</div>
-</div>*/
-
 func ThingsTable(l10n locale.Localizer, model ThingsListViewModel) templ.Component {
 	if model.MapView {
 		return templ.NopComponent

@@ -101,7 +101,23 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
         });
         
         var trashcanIcon = L.icon({
-            iconUrl: '/assets/9bd4aeb2359eb2bc87a6efc62db884c7beea143a0f7f822330b075bb9e613922/trashcan.svg',  
+            iconUrl: '/assets/0b061153871049297688d0f2a639afb3df59daa5d0f4a1afe414bc1a63d6fca3/trashcan.svg',  
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        var trachcanIconGreen = L.icon({
+            iconUrl: '/assets/6dafe48f14417aefa79996a91a5bb92d241c465d47343829a7bb77c18b3ad312/trashcangreen.svg',
+            iconSize: [40, 40],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+
+        var trachcanIconRed = L.icon({
+            iconUrl: '/assets/76d439309aa36b003fa76abd617fb0341e67714035f03ca1aa99a270931465d5/traschcanred.svg',
             iconSize: [40, 40],
             iconAnchor: [12, 41],
             popupAnchor: [1, -34],
@@ -148,31 +164,43 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
                     var type = feature.properties.type;
                     var icon;
 
-                    switch (type) {
-                        case 'sensor':
-                            icon = sensorIcon;
-                            break;
-                        case 'trashcan':
-                        case 'wastecontainer':
-                            icon = trashcanIcon;
-                            break;
-                        case 'lifebuoy':
-                            icon = lifebuoyIcon;
-                            break;
-                        case 'thermometer':
-                            icon = thermometerIcon;
-                            break;
-                        case 'sewer':
-                        case 'sewagepumpingstation':
-                        case 'combinedsewageoverflow':
-                        case 'drain':
-                            icon = drainIcon;
-                            break;
-                        case 'passage':
-                            icon = passageIcon;
-                            break;
-                        default:
-                            icon = sensorIcon;
+                    if (feature.properties.type.toLowerCase() === 'wastecontainer') {
+                        const fillinglevel = feature.properties.fillinglevel;
+                        
+                        if (fillinglevel <= 40) {
+                            icon = trachcanIconGreen; // Låg fyllnadsnivå
+                        } else if (fillinglevel > 40 && fillinglevel <= 70) {
+                            icon = trashcanIcon; // Medel fyllnadsnivå
+                        } else {
+                            icon = trachcanIconRed; // Hög fyllnadsnivå
+                        }
+                    } else {
+                        switch (type) {
+                            case 'sensor':
+                                icon = sensorIcon;
+                                break;
+                            case 'trashcan':
+                            case 'wastecontainer':
+                                icon = trashcanIcon;
+                                break;
+                            case 'lifebuoy':
+                                icon = lifebuoyIcon;
+                                break;
+                            case 'thermometer':
+                                icon = thermometerIcon;
+                                break;
+                            case 'sewer':
+                            case 'sewagepumpingstation':
+                            case 'combinedsewageoverflow':
+                            case 'drain':
+                                icon = drainIcon;
+                                break;
+                            case 'passage':
+                                icon = passageIcon;
+                                break;
+                            default:
+                                icon = sensorIcon;
+                        }
                     }
                     L.geoJSON(feature, { 
                         pointToLayer: function(feature, latlng) {
