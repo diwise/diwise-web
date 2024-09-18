@@ -20,7 +20,7 @@ templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewMode
 						&nbsp;
 					</div>
 					<div class="">
-						@graphTableButtons(l10n, "/components/sensors/list")
+						@graphTableButtons(l10n, fmt.Sprintf("/things/%s", model.Thing.ThingID))
 					</div>
 				</div>
 			</div>
@@ -31,6 +31,8 @@ templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewMode
 
 templ StatisticsWasteContainerGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
 	<div id="graphView" class="w-full">
+		<canvas id="measurement-chart"></canvas>
+		<div id="measurementCharts" style="display:none;"></div>
 	</div>
 }
 
@@ -45,7 +47,7 @@ templ StatisticsWasteContainerTable(l10n locale.Localizer, model ThingDetailsVie
 		<tbody>
 			//TODO: Här ska mätningar listas
 			for _, measurement := range model.Measurements {
-				@StatisticsWasteContainerTableRow(l10n, measurement) 
+				@StatisticsWasteContainerTableRow(l10n, measurement)
 			}
 		</tbody>
 		<tfoot>
