@@ -157,6 +157,9 @@ other = "Overview"
 [pickOption]
 other = "Pick an option"
 
+[picksensor]
+other = "Pick sensor"
+
 [rowsPerPage]
 other = "Rows per page"
 

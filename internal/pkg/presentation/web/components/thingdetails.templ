@@ -157,11 +157,16 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 							<div class="">{ model.Thing.Tenant }</div>
 						</div>
 						<div class="flex items-center gap-2">
-							for _, tag := range model.Thing.Tags {
-								<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
-									{ tag }
-								</span>
-							}
+							<div class="flex flex-col gap-2">
+								<div class="font-bold">{ l10n.Get("tags") }</div>
+								<div class="flex items-center gap-2">
+									for _, tag := range model.Thing.Tags {
+										<div class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+											{ tag }
+										</div>
+									}
+								</div>
+							</div>
 						</div>
 						/*<div class="flex flex-col gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
@@ -266,6 +271,23 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 											</div>
 										}
 									}
+									<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
+										<form hx-push-url="true" hx-trigger="change" hx-get="?" hx-vals='{"filter": this.value}'>
+											<input list="filter-options" name="filter" placeholder={ l10n.Get("picksensor")}
+												class="text-sm p-2 rounded-xl w-full block focus:outline-none">
+											<datalist id="filter-options">
+												<option value="all"></option>
+												<option value="active"></option>
+												<option value="inactive"></option>
+												<option value="unknown"></option>
+											</datalist>
+											<div class="pointer-events-none absolute bg-white rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
+												<svg class="w-[18px] h-[18px] dark:fill-white">
+													@templ.Raw(iconSVG("chevron-down"))
+												</svg>
+											</div>
+										</form>
+									</div>
 								</div>
 								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
@@ -278,18 +300,12 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 								<div class="flex flex-col gap-2">
 									<div class="font-bold">{ l10n.Get("tags") }</div>
 									<div class="flex items-center gap-2">
-										<div class="flex items-center px-2.5 py-2 text-sm justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border-2 stroke-primary-dark dark:stroke-white">
-											Tagg 1
-											@SVG("close", NoFill(), Size(16), Box(24, 24), StrokeColor("primary-dark", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
-										</div>
-										<div class="flex items-center px-2.5 py-2 text-sm justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border-2 stroke-primary-dark dark:stroke-white">
-											Tagg 2
-											@SVG("close", NoFill(), Size(16), Box(24, 24), StrokeColor("primary-dark", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
-										</div>
-										<div class="flex items-center px-2.5 py-2 text-sm justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border-2 stroke-primary-dark dark:stroke-white">
-											Tagg 3
-											@SVG("close", NoFill(), Size(16), Box(24, 24), StrokeColor("primary-dark", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
-										</div>
+										for _, tag := range model.Thing.Tags {
+											<div class="flex items-center px-2 py-1 text-sm justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border-2 stroke-primary-dark dark:stroke-white">
+												{ tag }
+												@SVG("close", NoFill(), Size(16), Box(24, 24), StrokeColor("primary-dark", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
+											</div>
+										}
 									</div>
 								</div>
 							</div>
