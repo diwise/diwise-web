@@ -216,15 +216,15 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
                                     tagList = feature.properties.tags.map(tag => 
                                         `<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
                                             ${tag}
-                                        </span>`).join('');
+                                        </span>`).join(''); 
                                 } else {
-                                    tagList = '<span>Inga taggar tillgängliga</span>';
+                                    tagList = '-';
                                 }
 
                                 if (cv === "sensor") {
                                     popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base"><div class="flex flex-col items-start self-stretch justify-center gap-6"><div class="flex flex-col items-start gap-2">' +
                                     '<span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 ' + (feature.properties.status ? 'bg-primary-green-accent' : 'bg-tertiary-surface') + '"><span class="text-sm font-bold font-sans leading-none ' + (feature.properties.status ? 'text-primary-green' : 'text-primary-dark"') + '">' + (feature.properties.status ? feature.properties.text_active : feature.properties.text_inactive) + '</span></span>' +
-                                    '<h2 class="font-heading text-xl font-bold first-letter:uppercase">' + feature.properties.name + '</h2></div><div class="flex flex-col items-start gap-2 text-primary-dark"><div class="flex items-center gap-2">' +
+                                    '<h2 class="font-heading text-xl font-bold first-letter:uppercase">' + feature.properties.name + '</h2></div><div class="flex flex-col items-start gap-2"><div class="flex items-center gap-2">' +
                                     '<div class="font-bold">' + feature.properties.text_deveui + '</div><div class="">' + feature.properties.deveui + '</div></div><div class="flex items-center gap-2">' + 
                                     '<div class="font-bold">' + feature.properties.text_sensortype + '</div><div class="">' + feature.properties.type + '</div></div><div class="flex items-center gap-2">' +
                                     '<div class="font-bold">' + feature.properties.text_batterylevel + '</div><div class="">' + feature.properties.batterylevel + '</div></div><div class="flex items-center gap-2">' +
