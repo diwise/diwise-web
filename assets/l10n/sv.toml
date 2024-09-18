@@ -157,6 +157,9 @@ other = "Översikt"
 [pickOption]
 other = "Välj ett alternativ"
 
+[picksensor]
+other = "Välj sensor"
+
 [rowsPerPage]
 other = "Rader per sida"
 

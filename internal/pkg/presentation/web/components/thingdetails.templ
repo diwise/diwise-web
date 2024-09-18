@@ -271,6 +271,23 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 											</div>
 										}
 									}
+									<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
+										<form hx-push-url="true" hx-trigger="change" hx-get="?" hx-vals='{"filter": this.value}'>
+											<input list="filter-options" name="filter" placeholder={ l10n.Get("picksensor")}
+												class="text-sm p-2 rounded-xl w-full block focus:outline-none">
+											<datalist id="filter-options">
+												<option value="all"></option>
+												<option value="active"></option>
+												<option value="inactive"></option>
+												<option value="unknown"></option>
+											</datalist>
+											<div class="pointer-events-none absolute bg-white rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
+												<svg class="w-[18px] h-[18px] dark:fill-white">
+													@templ.Raw(iconSVG("chevron-down"))
+												</svg>
+											</div>
+										</form>
+									</div>
 								</div>
 								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
