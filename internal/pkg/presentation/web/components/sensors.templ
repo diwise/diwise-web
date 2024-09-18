@@ -72,11 +72,11 @@ templ SensorsFilter(l10n locale.Localizer) {
 			</div>
 			<div class="flex items-center flex-[1_0_0] gap-6">
 				@CheckboxList(l10n.Get("status")) {
-					@CheckboxOption("active", "true", "Aktiv", l10n, templ.Attributes{
+					@CheckboxOption("active", "true", l10n.Get("active"), l10n, templ.Attributes{
 						"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 						"hx-target": "#tableOrMap",
 					})
-					@CheckboxOption("active", "false", "Inaktiv", l10n, templ.Attributes{
+					@CheckboxOption("active", "false", l10n.Get("inactive"), l10n, templ.Attributes{
 						"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 						"hx-target": "#tableOrMap",
 					})
@@ -84,11 +84,11 @@ templ SensorsFilter(l10n locale.Localizer) {
 			</div>
 			<div class="flex items-center flex-[1_0_0] gap-6">
 				@CheckboxList(l10n.Get("Online")) {
-					@CheckboxOption("online", "true", "Online", l10n, templ.Attributes{
+					@CheckboxOption("online", "true", l10n.Get("online"), l10n, templ.Attributes{
 						"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 						"hx-target": "#tableOrMap",
 					})
-					@CheckboxOption("online", "false", "Offline", l10n, templ.Attributes{
+					@CheckboxOption("online", "false", l10n.Get("offline"), l10n, templ.Attributes{
 						"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 						"hx-target": "#tableOrMap",
 					})
@@ -197,7 +197,7 @@ func SensorMap(l10n locale.Localizer, model SensorListViewModel) templ.Component
 	}
 	mapData := newMapData(62.3908, 17.3069)
 	mapData.CurrentView = "sensor"
-	return Map("large", mapData, sensorsToMapFeature(l10n, model))
+	return Map("large", true, mapData, sensorsToMapFeature(l10n, model))
 }
 
 templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
@@ -213,7 +213,7 @@ templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
 		if sensor.Active {
 			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">{ l10n.Get("active") }</span></span></td>
 		} else {
-			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-tertiary-surface"><span class="text-sm font-bold font-sans leading-none text-primary-dark">{ l10n.Get("inactive") }</span></span></td>
+			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-tertiary-surface dark:bg-primary-surface-white"><span class="text-sm font-bold font-sans leading-none text-primary-dark dark:text-white">{ l10n.Get("inactive") }</span></span></td>
 		}
 		<td class="px-6 py-3">{ sensor.Type }</td>
 		<td class="px-6 py-3">{ sensor.DevEUI }</td>

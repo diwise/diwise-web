@@ -71,7 +71,7 @@ templ Label(label string, active bool) {
 			class={ "text-sm font-bold font-sans leading-none",
             templ.KV("text-primary-green", active),
             templ.KV("text-neutral-800", !active),
-            templ.KV("dark:text-neutral-300", !active) }
+            templ.KV("dark:text-white", !active) }
 		>
 			{ label }
 		</span>

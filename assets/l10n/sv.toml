@@ -136,6 +136,12 @@ other = "Antal passager idag"
 [numberofsensors]
 other = "Antal sensorer"
 
+[offline]
+other = "Offline"
+
+[online]
+other = "Online"
+
 [organisation]
 other = "Organisation"
 
