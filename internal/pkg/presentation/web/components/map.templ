@@ -169,7 +169,7 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
                         
                         if (fillinglevel <= 40) {
                             icon = trachcanIconGreen; // Låg fyllnadsnivå
-                        } else if (fillinglevel > 40 && fillinglevel <= 70) {
+                        } else if (fillinglevel > 40 && fillinglevel <= 69) {
                             icon = trashcanIcon; // Medel fyllnadsnivå
                         } else {
                             icon = trachcanIconRed; // Hög fyllnadsnivå
@@ -210,6 +210,17 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
                             if (showPopup) {
                                 var cv = mapData.CurrentView;
                                 var popupContent = null;
+
+                                var tagList = '';
+                                if (feature.properties.tags && Array.isArray(feature.properties.tags)) {
+                                    tagList = feature.properties.tags.map(tag => 
+                                        `<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+                                            ${tag}
+                                        </span>`).join('');
+                                } else {
+                                    tagList = '<span>Inga taggar tillgängliga</span>';
+                                }
+
                                 if (cv === "sensor") {
                                     popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base"><div class="flex flex-col items-start self-stretch justify-center gap-6"><div class="flex flex-col items-start gap-2">' +
                                     '<span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 ' + (feature.properties.status ? 'bg-primary-green-accent' : 'bg-tertiary-surface') + '"><span class="text-sm font-bold font-sans leading-none ' + (feature.properties.status ? 'text-primary-green' : 'text-primary-dark"') + '">' + (feature.properties.status ? feature.properties.text_active : feature.properties.text_inactive) + '</span></span>' +
@@ -238,9 +249,7 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
                                         '<div class="text-sm text-right w-auto">' + feature.properties.fillinglevel + '%</div></div></div><div class="flex items-center gap-2">' +
                                         '<div class="font-bold">' + feature.properties.text_position + '</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div><div class="flex items-center gap-2">' +
                                         '<div class="font-bold">' + feature.properties.text_tags + '</div>' +
-                                        '<div class="border border-2 border-gray-30 rounded-full px-2 py-1 text-sm text-secondary-dark">' +
-                                        'Skönsmon</div><div class="border border-2 border-gray-30 rounded-full px-2 py-1 text-sm text-secondary-dark">' +
-                                        '80 l</div></div></div></div><div class="h-px border-t border-gray-30 w-full"></div>' +					
+                                        '<div class="">' + tagList + '</div></div></div><div class="h-px border-t border-gray-30 w-full"></div>' +					
                                         '<a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 !text-white bg-primary-surface hover:bg-primary-surface-hover">' +
                                         '' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a></div>';
                                 } else if (cv === "thing" && feature.properties.type.toLowerCase() === "combinedsewageoverflow") {
@@ -249,9 +258,7 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
                                         '<div class="font-bold">' + feature.properties.text_overflow + '</div><div class="">' + feature.properties.state + '</div></div><div class="flex items-center gap-2">' +
                                         '<div class="font-bold">' + feature.properties.text_position + '</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div><div class="flex items-center gap-2">' +
                                         '<div class="font-bold">' + feature.properties.text_tags + '</div>' +
-                                        '<div class="border border-2 border-gray-30 rounded-full px-2 py-1 text-sm text-secondary-dark">' +
-                                        'Skönsmon</div><div class="border border-2 border-gray-30 rounded-full px-2 py-1 text-sm text-secondary-dark">' +
-                                        '80 l</div></div></div></div><div class="h-px border-t border-gray-30 w-full"></div>' +					
+                                        '<div class="">' + tagList + '</div></div></div><div class="h-px border-t border-gray-30 w-full"></div>' +					
                                         '<a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 !text-white bg-primary-surface hover:bg-primary-surface-hover">' +
                                         '' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a></div>';
                                 } else {
@@ -260,9 +267,7 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
                                         '<div class="font-bold">Information</div><div class="text-italic">Saknas</div></div><div class="flex items-center gap-2">' +
                                         '<div class="font-bold">Position</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div><div class="flex items-center gap-2">' +
                                         '<div class="font-bold">Taggar</div>' +
-                                        '<div class="border border-2 border-gray-30 rounded-full px-2 py-1 text-sm text-secondary-dark">' +
-                                        'Skönsmon</div><div class="border border-2 border-gray-30 rounded-full px-2 py-1 text-sm text-secondary-dark">' +
-                                        '80 l</div></div></div></div><div class="h-px border-t border-gray-30 w-full"></div>' +					
+                                        '<div class="">' + tagList + '</div></div></div><div class="h-px border-t border-gray-30 w-full"></div>' +					
                                         '<a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 !text-white bg-primary-surface hover:bg-primary-surface-hover">' +
                                         '' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a></div>';
                                 }

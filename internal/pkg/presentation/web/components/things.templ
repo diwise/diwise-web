@@ -241,6 +241,12 @@ func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureC
 		feature := NewFeature(NewPoint(thing.Latitude, thing.Longitude))
 		feature.AddProperty("type", strings.ToLower(thing.Type))
 		feature.AddProperty("id", thing.ID)
+		
+		if len(thing.Tags) > 0 {
+			feature.AddProperty("tags", thing.Tags)
+		} else {
+			feature.AddProperty("tags", nil) 
+		}
 
 		if strings.ToLower(thing.Type) == "wastecontainer" {
 			i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
