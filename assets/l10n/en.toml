@@ -107,7 +107,7 @@ other = "Inactive"
 other = "Map"
 
 [measurementperday]
-other = "Measurement per day"
+other = "Measurements per day"
 
 [measurementtype]
 other = "Measurement type"
