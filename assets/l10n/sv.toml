@@ -277,6 +277,9 @@ other = "Bräddavlopp"
 [combinedsewageoverflow]
 other = "Bräddavlopp"
 
+[passage]
+other = "Passage"
+
 [sewagepumpingstation]
 other = "Pumpstation"
 

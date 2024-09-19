@@ -277,6 +277,9 @@ other = "Combined sewage overflow"
 [combinedsewageoverflow]
 other = "Combined sewage overflow"
 
+[passage]
+other = "Passage"
+
 [sewagepumpingstation]
 other = "Sewage pumping station"
 
