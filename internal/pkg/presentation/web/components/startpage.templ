@@ -13,7 +13,7 @@ templ StartPage(version string, localizer locale.Localizer, asset assets.AssetLo
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<link href={ asset("/css/diwise.css").Path() } rel="stylesheet"/>
-			<link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet"/>
+			<link href={ asset("/css/leaflet.css").Path() } rel="stylesheet"/>
 			<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 			<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 			<script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
