@@ -256,10 +256,11 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
 
                                 var tagList = '';
                                 if (feature.properties.tags && Array.isArray(feature.properties.tags)) {
-                                    tagList = feature.properties.tags.map(tag => 
+                                    tagList = `<div class="flex flex-wrap gap-1">` + feature.properties.tags.map(tag => 
                                         `<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
                                             ${tag}
-                                        </span>`).join(''); 
+                                        </span>`).join('')+ 
+                                        `</div>`; 
                                 } else {
                                     tagList = '-';
                                 }
@@ -290,7 +291,7 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
                                         '<div class="font-bold text-primary-dark">' + feature.properties.text_fillinglevel + '</div><div class="flex w-full items-center gap-2 text-sm"><div class="w-[75%] bg-background-200 rounded-lg">' +
                                         '<div class="' + colourClass + ' rounded-lg" style="width: ' + feature.properties.fillinglevel + '%; height: 6px;"></div></div>' +
                                         '<div class="text-sm text-right w-auto">' + feature.properties.fillinglevel + '%</div></div></div><div class="flex items-center gap-2">' +
-                                        '<div class="font-bold">' + feature.properties.text_position + '</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div><div class="flex items-center gap-2">' +
+                                        '<div class="font-bold">' + feature.properties.text_position + '</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div><div class="flex items-start gap-2">' +
                                         '<div class="font-bold">' + feature.properties.text_tags + '</div>' +
                                         '<div class="">' + tagList + '</div></div></div><div class="h-px border-t border-gray-30 w-full"></div>' +					
                                         '<a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 !text-white bg-primary-surface hover:bg-primary-surface-hover">' +
@@ -299,17 +300,17 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
                                     popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base"><div class="flex flex-col items-start self-stretch justify-center gap-6"><div class="flex flex-col items-start gap-4 text-primary-dark"><div class="flex items-center gap-2">' +
                                         '<div class="font-bold">' + feature.properties.text_id + '</div><div class="">' + feature.properties.id + '</div></div><div class="flex items-center gap-2">' +
                                         '<div class="font-bold">' + feature.properties.text_overflow + '</div><div class="">' + feature.properties.state + '</div></div><div class="flex items-center gap-2">' +
-                                        '<div class="font-bold">' + feature.properties.text_position + '</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div><div class="flex items-center gap-2">' +
+                                        '<div class="font-bold">' + feature.properties.text_position + '</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div><div class="flex items-start gap-2">' +
                                         '<div class="font-bold">' + feature.properties.text_tags + '</div>' +
                                         '<div class="">' + tagList + '</div></div></div><div class="h-px border-t border-gray-30 w-full"></div>' +					
                                         '<a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 !text-white bg-primary-surface hover:bg-primary-surface-hover">' +
                                         '' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a></div>';
                                 } else {
                                     popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base"><div class="flex flex-col items-start self-stretch justify-center gap-6"><div class="flex flex-col items-start gap-4 text-primary-dark"><div class="flex items-center gap-2">' +
-                                        '<div class="font-bold">ID</div><div class="">' + feature.properties.id + '</div></div><div class="flex items-center gap-2">' +
-                                        '<div class="font-bold">Information</div><div class="text-italic">Saknas</div></div><div class="flex items-center gap-2">' +
-                                        '<div class="font-bold">Position</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div><div class="flex items-center gap-2">' +
-                                        '<div class="font-bold">Taggar</div>' +
+                                        '<div class="font-bold">' + feature.properties.text_id + '</div><div class="">' + feature.properties.id + '</div></div><div class="flex items-center gap-2">' +
+                                        '<div class="font-bold">' + feature.properties.text_information + '</div><div class="text-italic">Saknas</div></div><div class="flex items-center gap-2">' +
+                                        '<div class="font-bold">' + feature.properties.text_position + '</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div><div class="flex items-start gap-2">' +
+                                        '<div class="font-bold">' + feature.properties.text_tags + '</div>' +
                                         '<div class="">' + tagList + '</div></div></div><div class="h-px border-t border-gray-30 w-full"></div>' +					
                                         '<a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 !text-white bg-primary-surface hover:bg-primary-surface-hover">' +
                                         '' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a></div>';

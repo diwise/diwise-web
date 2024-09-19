@@ -73,6 +73,9 @@ other = "Inaktiv"
 [inactivesensors]
 other = "Inaktiva sensorer"
 
+[information]
+other = "Information"
+
 [lastseen]
 other = "Senast sedd"
 

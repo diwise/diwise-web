@@ -73,6 +73,9 @@ other = "Inactive"
 [inactivesensors]
 other = "Inactive sensors"
 
+[information]
+other = "Information"
+
 [lastseen]
 other = "Last seen"
 
