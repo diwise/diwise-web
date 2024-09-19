@@ -9,6 +9,7 @@ type ThingManagement interface {
 	GetThing(ctx context.Context, id string) (Thing, error)
 	GetThings(ctx context.Context, offset, limit int, parmas map[string][]string) (ThingResult, error)
 	UpdateThing(ctx context.Context, thingID string, fields map[string]any) error
+	GetTenants(ctx context.Context) []string
 	GetTags(ctx context.Context) ([]string, error)
 	GetTypes(ctx context.Context) ([]string, error)
 }

@@ -115,6 +115,10 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		}
 
 		if mode == "edit" {
+			tenants := app.GetTenants(ctx)
+
+			thingDetailsViewModel.Organisations = tenants
+
 			component := components.EditThingDetails(localizer, assets, thingDetailsViewModel)
 			component.Render(ctx, w)
 			return

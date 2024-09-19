@@ -9,10 +9,12 @@ import (
 )
 
 type ThingDetailsViewModel struct {
-	Thing        ThingViewModel
-	Related      []ThingViewModel
-	Measurements []MeasurementViewModel
-	TableView    bool
+	Thing       	ThingViewModel
+	Related      	[]ThingViewModel
+	Measurements 	[]MeasurementViewModel
+	Organisations	[]string
+	Tenant		 	string
+	TableView    	bool
 }
 
 type ThingProfile struct {
@@ -291,8 +293,11 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 								</div>
 								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
-									<div class="break-all">
-										{ model.Thing.Tenant }
+									<div class="border border-input-surface rounded-xl">
+										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
+											{ l10n.Get("pickOption") }
+										</label>
+										@OrganisationSelect(l10n, asset, "organisation", model.Thing.Tenant, model.Organisations)
 									</div>
 								</div>
 							</div>
