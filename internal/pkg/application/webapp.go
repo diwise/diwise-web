@@ -106,7 +106,7 @@ func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
 
 func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string][]string) (ThingResult, error) {
 	params := url.Values{
-		"type":         []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation"},
+		"type":         []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation", "passage"},
 		"measurements": []string{"true"},
 	}
 	params.Add("limit", fmt.Sprintf("%d", limit))
