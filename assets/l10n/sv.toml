@@ -118,6 +118,9 @@ other = "Mätvärde"
 [measurementvalues]
 other = "Mätvärden"
 
+[more]
+other = "till"
+
 [moreinformation]
 other = "Mer information"
 

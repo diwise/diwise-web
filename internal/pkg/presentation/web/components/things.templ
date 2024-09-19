@@ -120,9 +120,16 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 			@ThingStatusCell(l10n, thing)
 		</td>
 		<td class="px-6 py-3">
-			for _, tag := range thing.Tags {
-				<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
-					{ tag }
+			for i, tag := range thing.Tags {
+				if i < 3 {
+					<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+						{ tag }
+					</span>
+				}
+			}
+			if len(thing.Tags) > 3 {
+				<span class="dark:text-secondary px-2 py-1 text-sm">
+					{ fmt.Sprintf("+ %d %s", len(thing.Tags)-3, l10n.Get("more")) }
 				</span>
 			}
 		</td>

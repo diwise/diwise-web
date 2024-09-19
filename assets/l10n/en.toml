@@ -121,6 +121,9 @@ other = "Measurement values"
 [moreinformation]
 other = "More information"
 
+[more]
+other = "more"
+
 [name]
 other = "Name"
 
