@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
@@ -11,6 +12,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
 func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
@@ -36,7 +38,7 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 		}
 
 		thingDetailsViewModel := components.ThingDetailsViewModel{
-			Thing: toViewModel(thing),			
+			Thing: toViewModel(thing),
 		}
 
 		thingDetailsViewModel.Measurements = thingDetailsViewModel.Thing.Measurements
@@ -96,7 +98,7 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		thingDetailsViewModel := components.ThingDetailsViewModel{
 			Thing: toViewModel(thing),
 		}
-		
+
 		thingDetailsViewModel.Measurements = thingDetailsViewModel.Thing.Measurements
 
 		for _, r := range thing.Related {
@@ -130,6 +132,71 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		}
 
 		w.WriteHeader(http.StatusOK)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func NewSaveThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+	log := logging.GetFromContext(ctx)
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		ctx := logging.NewContextWithLogger(r.Context(), log)
+
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "could not parse form data", http.StatusBadRequest)
+			return
+		}
+
+		asFloat := func(s string) (float64, bool) {
+			if f, err := strconv.ParseFloat(s, 64); err == nil {
+				return f, true
+			}
+			return 0.0, false
+		}
+
+		id := r.Form.Get("id")
+
+		if r.Form.Has("save") {
+			fields := make(map[string]any)
+
+			for k := range r.Form {
+				v := r.Form.Get(k)
+
+				if v == "" {
+					continue
+				}
+
+				switch k {
+				case "longitude":
+					if f, ok := asFloat(v); ok {
+						fields[k] = f
+					}
+				case "latitude":
+					if f, ok := asFloat(v); ok {
+						fields[k] = f
+					}
+				case "organisation":
+					fields["tenant"] = v
+				default:
+					fields[k] = r.Form.Get(k)
+				}
+			}
+
+			err = app.UpdateThing(ctx, id, fields)
+			if err != nil {
+				http.Error(w, "could not update thing", http.StatusInternalServerError)
+				return
+			}
+		}
+
+		http.Redirect(w, r, "/things/"+id, http.StatusFound)
 	}
 
 	return http.HandlerFunc(fn)

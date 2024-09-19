@@ -272,7 +272,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 										}
 									}
 									<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-										<form hx-push-url="true" hx-trigger="change" hx-get="?" hx-vals='{"filter": this.value}'>
+										//<form hx-push-url="true" hx-trigger="change" hx-get="?" hx-vals='{"filter": this.value}'>
 											<input list="filter-options" name="filter" placeholder={ l10n.Get("picksensor")}
 												class="text-sm p-2 rounded-xl w-full block focus:outline-none">
 											<datalist id="filter-options">
@@ -286,7 +286,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 													@templ.Raw(iconSVG("chevron-down"))
 												</svg>
 											</div>
-										</form>
+										//</form>
 									</div>
 								</div>
 								<div class="flex flex-col gap-2 flex-1">

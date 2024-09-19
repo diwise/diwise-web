@@ -150,6 +150,15 @@ func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string]
 	}, nil
 }
 
+func (a *App) UpdateThing(ctx context.Context, thingID string, fields map[string]any) error {
+	b, err := json.Marshal(fields)
+	if err != nil {
+		return err
+	}
+
+	return a.patch(ctx, a.thingManagementURL, thingID, b)
+}
+
 func (a *App) GetSensor(ctx context.Context, id string) (Sensor, error) {
 	res, err := a.get(ctx, a.deviceManagementURL, id, url.Values{})
 	if err != nil {
