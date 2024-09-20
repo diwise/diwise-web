@@ -9,12 +9,12 @@ import (
 )
 
 type ThingDetailsViewModel struct {
-	Thing       	ThingViewModel
-	Related      	[]ThingViewModel
-	Measurements 	[]MeasurementViewModel
-	Organisations	[]string
-	Tenant		 	string
-	TableView    	bool
+	Thing         ThingViewModel
+	Related       []ThingViewModel
+	Measurements  []MeasurementViewModel
+	Organisations []string
+	Tenant        string
+	TableView     bool
 }
 
 type ThingProfile struct {
@@ -30,32 +30,58 @@ templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 	</div>
 }
 
-templ FilterStatistics(l10n locale.Localizer) {
+templ FilterStatistics(l10n locale.Localizer, model ThingDetailsViewModel) {
+	/*
 	<div class="flex flex-col items-start gap-2">
+		
 		<div class="font-bold">
 			{ l10n.Get("measurementtype") }
 		</div>
 		<div class="relative min-w-48 border border-input-surface rounded-xl px-3 py-2 dark:border dark:border-white-50">
 			//TODO: Ersätt med en riktig Select() när data finns.
+		
 			<select class="appearance-none min-w-48 dark:bg-input-surface-dark dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
 				<option value="Fyllnadsnivå">{ l10n.Get("fillinglevel") }</option>
 				<option value="Temperatur">{ l10n.Get("temperature") }</option>
 			</select>
+			
 			<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
 				<svg class="w-[18px] h-[18px] dark:fill-white">
 					@templ.Raw(iconSVG("chevron-down"))
 				</svg>
 			</div>
 		</div>
+		
 	</div>
+	*/
 	<div class="flex flex-col items-start gap-2">
 		<div class="font-bold">
 			{ l10n.Get("timeinterval") }
 		</div>
 		<div class="">
-			<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"/>
+			<input
+				name="timeAt"
+				type="date"
+				id="timeAt"
+				hx-trigger="change, load"
+				hx-include="#sensorMeasurementTypes,#endTimeAt"
+				hx-target="#measurementCharts"
+				hx-get={ fmt.Sprintf("/components/things/measurements/%s", strings.ToLower(model.Thing.Type)) }
+				hx-params="*"
+				class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
+			/>
 			-
-			<input type="date" class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"/>
+			<input
+				name="endTimeAt"
+				type="date"
+				id="endTimeAt"
+				hx-trigger="change"
+				hx-include="#sensorMeasurementTypes,#timeAt"
+				hx-target="#measurementCharts"
+				hx-get={ fmt.Sprintf("/components/things/measurements/%s", strings.ToLower(model.Thing.Type)) }
+				hx-params="*"
+				class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
+			/>
 		</div>
 	</div>
 }
@@ -208,6 +234,18 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 	</div>
 }
 
+func fillingLevelSensor(measurements []MeasurementViewModel) string {
+	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
+	})
+
+	if i == -1 {
+		return ""
+	}
+
+	return measurements[i].ID
+}
+
 func fillingLevel(measurements []MeasurementViewModel) float64 {
 	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
 		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
@@ -275,19 +313,23 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 									}
 									<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
 										//<form hx-push-url="true" hx-trigger="change" hx-get="?" hx-vals='{"filter": this.value}'>
-											<input list="filter-options" name="filter" placeholder={ l10n.Get("picksensor")}
-												class="text-sm p-2 rounded-xl w-full block focus:outline-none">
-											<datalist id="filter-options">
-												<option value="all">All</option>
-												<option value="active">Active</option>
-												<option value="inactive">Inactive</option>
-												<option value="unknown">Unknown</option>
-											</datalist>
-											<div class="pointer-events-none absolute bg-white rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
-												<svg class="w-[18px] h-[18px] dark:fill-white">
-													@templ.Raw(iconSVG("chevron-down"))
-												</svg>
-											</div>
+										<input
+											list="filter-options"
+											name="filter"
+											placeholder={ l10n.Get("picksensor") }
+											class="text-sm p-2 rounded-xl w-full block focus:outline-none"
+										/>
+										<datalist id="filter-options">
+											<option value="all">All</option>
+											<option value="active">Active</option>
+											<option value="inactive">Inactive</option>
+											<option value="unknown">Unknown</option>
+										</datalist>
+										<div class="pointer-events-none absolute bg-white rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
+											<svg class="w-[18px] h-[18px] dark:fill-white">
+												@templ.Raw(iconSVG("chevron-down"))
+											</svg>
+										</div>
 										//</form>
 									</div>
 								</div>

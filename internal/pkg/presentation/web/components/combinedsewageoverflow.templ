@@ -1,10 +1,8 @@
 package components
 
-import (
-	//"fmt"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-)
+import "github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 
+//"fmt"
 templ StatisticsCombinedSewageOverflow(l10n locale.Localizer, model ThingDetailsViewModel) {
 	//Statistik
 	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
@@ -15,7 +13,7 @@ templ StatisticsCombinedSewageOverflow(l10n locale.Localizer, model ThingDetails
 				<div class="text-3xl font-bold">Ja</div>
 			</div>
 			<div class="flex items-center gap-6">
-				@FilterStatistics(l10n)
+				@FilterStatistics(l10n, model)
 				<div class="flex flex-col items-start gap-2">
 					<div class="text-primary-dark font-bold">
 						&nbsp;
@@ -31,8 +29,7 @@ templ StatisticsCombinedSewageOverflow(l10n locale.Localizer, model ThingDetails
 }
 
 templ StatisticsCombinedSewageOverflowGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
-	<div id="graphView" class="w-full">
-	</div>
+	<div id="graphView" class="w-full"></div>
 }
 
 templ StatisticsCombinedSewageOverflowTable(l10n locale.Localizer, model ThingDetailsViewModel) {
@@ -47,7 +44,7 @@ templ StatisticsCombinedSewageOverflowTable(l10n locale.Localizer, model ThingDe
 		<tbody>
 			//TODO: Här ska mätningar listas
 			for _, measurement := range model.Measurements {
-				@StatisticsCombinedSewageOverflowTableRow(l10n, measurement) 
+				@StatisticsCombinedSewageOverflowTableRow(l10n, measurement)
 			}
 		</tbody>
 		<tfoot>

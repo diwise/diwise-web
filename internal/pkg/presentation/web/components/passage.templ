@@ -3,6 +3,8 @@ package components
 import (
 	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+	"slices"
+	"strings"
 )
 
 templ StatisticsPassage(l10n locale.Localizer, model ThingDetailsViewModel) {
@@ -11,10 +13,11 @@ templ StatisticsPassage(l10n locale.Localizer, model ThingDetailsViewModel) {
 		<div class="flex items-center w-full justify-between">
 			<div class="flex flex-col gap-2">
 				<div class="">{ l10n.Get("numberofpassagestoday") }</div>
-				<div class="text-3xl font-bold">{ fmt.Sprintf("%0.fst",fillingLevel(model.Measurements)) }</div>
+				<div class="text-3xl font-bold">{ fmt.Sprintf("%0.fst",passages(model.Measurements)) }</div>
+				<input type="hidden" class="filter" id="sensorMeasurementTypes" name="sensorMeasurementTypes" value={ passagesSensor(model.Measurements) }/>
 			</div>
 			<div class="flex items-center gap-6">
-				@FilterStatistics(l10n)
+				@FilterStatistics(l10n, model)
 				<div class="flex flex-col items-start gap-2">
 					<div class="text-primary-dark font-bold">
 						&nbsp;
@@ -29,8 +32,34 @@ templ StatisticsPassage(l10n locale.Localizer, model ThingDetailsViewModel) {
 	</div>
 }
 
+func passages(measurements []MeasurementViewModel) float64 {
+	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3200/5500") // People counter/Actual number of persons
+	})
+
+	if i == -1 || measurements[i].Value == nil {
+		return 0
+	}
+
+	return *measurements[i].Value
+}
+
+func passagesSensor(measurements []MeasurementViewModel) string {
+	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3200/5500") // People counter/Actual number of persons
+	})
+
+	if i == -1 {
+		return ""
+	}
+
+	return measurements[i].ID
+}
+
 templ StatisticsPassageGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
 	<div id="graphView" class="w-full">
+		<canvas id="measurement-chart"></canvas>
+		<div id="measurementCharts" style="display:none;"></div>
 	</div>
 }
 
@@ -45,7 +74,7 @@ templ StatisticsPassageTable(l10n locale.Localizer, model ThingDetailsViewModel)
 		<tbody>
 			//TODO: Här ska mätningar listas
 			for _, measurement := range model.Measurements {
-				@StatisticsPassageTableRow(l10n, measurement) 
+				@StatisticsPassageTableRow(l10n, measurement)
 			}
 		</tbody>
 		<tfoot>

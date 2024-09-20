@@ -1,0 +1,97 @@
+package things
+
+import (
+	"context"
+	"net/http"
+	"time"
+
+	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
+)
+
+func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+	log := logging.GetFromContext(ctx)
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/html")
+		//w.Header().Add("Cache-Control", "max-age=60")
+		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+		w.WriteHeader(http.StatusOK)
+
+		//localizer := l10n.For(r.Header.Get("Accept-Language"))
+		ctx := logging.NewContextWithLogger(r.Context(), log)
+		thingType := r.PathValue("type")
+		if thingType == "" {
+			http.Error(w, "no type found in url", http.StatusBadRequest)
+			return
+		}
+
+		measurementID := r.URL.Query().Get("sensorMeasurementTypes")
+
+		today := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC)
+		timeAt := getTime(r, "timeAt", today)
+		endTimeAt := getTime(r, "endTimeAt", time.Now().UTC())
+
+		params := []application.InputParam{
+			application.WithLastN(true), 
+			application.WithReverse(true),
+			application.WithTimeRel("between", timeAt, endTimeAt),
+		}
+
+		measurements, err := app.GetMeasurementData(ctx, measurementID, params...)
+		if err != nil {
+			http.Error(w, "could not fetch measurement data", http.StatusBadRequest)
+			return
+		}
+
+		dataset := components.NewChartDataset("")
+
+		previousValue := 0
+		for _, v := range measurements.Values {
+			if dataset.Label == "" {
+				dataset.Label = v.Unit
+			}
+
+			if v.Value != nil {
+				dataset.Add(v.Timestamp.Format(time.DateTime), *v.Value)
+			}
+
+			if v.Value == nil && v.BoolValue != nil {
+				vb := 0
+				if *v.BoolValue {
+					vb = 1
+				}
+
+				if vb != previousValue {
+					// append value when 0->1 and 1->0
+					dataset.Add(v.Timestamp.Format(time.DateTime), previousValue)
+					previousValue = vb
+				}
+
+				dataset.Add(v.Timestamp.Format(time.DateTime), vb)
+			}
+		}
+
+		component := components.MeasurementChart([]components.ChartDataset{dataset})
+		component.Render(ctx, w)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func getTime(r *http.Request, key string, def time.Time) time.Time {
+	layout := "2006-01-02"
+
+	v := r.URL.Query().Get(key)
+	if v == "" {
+		return def
+	}
+	t, err := time.Parse(layout, v)
+	if err != nil {
+		return def
+	}
+	return t
+}
