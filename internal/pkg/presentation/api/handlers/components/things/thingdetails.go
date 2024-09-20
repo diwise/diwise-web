@@ -219,7 +219,9 @@ func NewSaveThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle
 				case "organisation":
 					fields["tenant"] = v
 				case "tags":
-					fields["tags"] = r.Form[k]
+					fields["tags"] = appendTag(fields["tags"], r.Form[k])
+				case "newtags":
+					fields["tags"] = appendTag(fields["tags"], strings.Split(v, ","))
 				}
 			}
 
@@ -234,4 +236,33 @@ func NewSaveThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle
 	}
 
 	return http.HandlerFunc(fn)
+}
+
+func appendTag(field any, tags []string) []string {
+	if field == nil {
+		return tags
+	}
+
+	switch v := field.(type) {
+	case []string:
+		return unique(append(tags, v...))
+	case string:
+		return unique(append(tags, v))
+	}
+
+	return tags
+}
+
+func unique(s []string) []string {
+	unique := make(map[string]struct{})
+	for _, v := range s {
+		unique[v] = struct{}{}
+	}
+
+	var result []string
+	for k := range unique {
+		result = append(result, k)
+	}
+
+	return result
 }
