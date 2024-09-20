@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"slices"
 	"strings"
 )
 
@@ -232,30 +231,6 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 			</div>
 		</div>
 	</div>
-}
-
-func fillingLevelSensor(measurements []MeasurementViewModel) string {
-	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
-	})
-
-	if i == -1 {
-		return ""
-	}
-
-	return measurements[i].ID
-}
-
-func fillingLevel(measurements []MeasurementViewModel) float64 {
-	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
-	})
-
-	if i == -1 || measurements[i].Value == nil {
-		return 0
-	}
-
-	return *measurements[i].Value
 }
 
 templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
