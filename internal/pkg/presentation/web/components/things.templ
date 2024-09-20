@@ -153,6 +153,8 @@ func ThingStatusCell(l10n locale.Localizer, thing ThingViewModel) templ.Componen
 		return SewerCell(l10n, thing)
 	case "sewagepumpingstation":
 		return SewagePumpingstationCell(l10n, thing)
+	case "passage":
+		return PassageCell(thing)
 	default:
 		return templ.NopComponent
 	}
@@ -229,6 +231,16 @@ func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component
 	return ProgressBar(colourClass, text, value)
 }
 
+templ PassageCell(t ThingViewModel) {
+	<div hx-disinherit="*">
+		<div
+			class=""
+			hx-get={ fmt.Sprintf("/components/things/measurements/%s/current?sensorMeasurementTypes=%s", t.Type, passagesSensor(t.Measurements)) }
+			hx-trigger="load, every 60s"
+		>0 st</div>
+	</div>
+}
+
 func ThingsMap(l10n locale.Localizer, model ThingsListViewModel) templ.Component {
 	if !model.MapView {
 		return templ.NopComponent
@@ -248,11 +260,11 @@ func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureC
 		feature := NewFeature(NewPoint(thing.Latitude, thing.Longitude))
 		feature.AddProperty("type", strings.ToLower(thing.Type))
 		feature.AddProperty("id", thing.ID)
-		
+
 		if len(thing.Tags) > 0 {
 			feature.AddProperty("tags", thing.Tags)
 		} else {
-			feature.AddProperty("tags", nil) 
+			feature.AddProperty("tags", nil)
 		}
 
 		if strings.ToLower(thing.Type) == "wastecontainer" {
@@ -292,10 +304,10 @@ func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureC
 		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ThingID))
 
 		//Språkstöd
-		feature.AddProperty("text_fillinglevel", l10n.Get("fillinglevel")) 
-		feature.AddProperty("text_id", l10n.Get("id")) 
-		feature.AddProperty("text_information", l10n.Get("information")) 
-		feature.AddProperty("text_overflow", l10n.Get("overflow")) 
+		feature.AddProperty("text_fillinglevel", l10n.Get("fillinglevel"))
+		feature.AddProperty("text_id", l10n.Get("id"))
+		feature.AddProperty("text_information", l10n.Get("information"))
+		feature.AddProperty("text_overflow", l10n.Get("overflow"))
 		feature.AddProperty("text_moreinformation", l10n.Get("moreinformation"))
 		feature.AddProperty("text_position", l10n.Get("location"))
 		feature.AddProperty("text_tags", l10n.Get("tags"))

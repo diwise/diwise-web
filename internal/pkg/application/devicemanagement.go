@@ -123,6 +123,12 @@ func WithAfter(timeAt time.Time) InputParam {
 	}
 }
 
+func WithBoolValue(boolValue bool) InputParam {
+	return func(v *url.Values) {
+		v.Set("vb", fmt.Sprintf("%t", boolValue))
+	}
+}
+
 type MeasurementData struct {
 	DeviceID string             `json:"deviceID"`
 	Urn      *string            `json:"urn,omitempty"`
