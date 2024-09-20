@@ -3,8 +3,6 @@ package components
 import (
 	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"slices"
-	"strings"
 )
 
 templ StatisticsPassage(l10n locale.Localizer, model ThingDetailsViewModel) {
@@ -19,7 +17,7 @@ templ StatisticsPassage(l10n locale.Localizer, model ThingDetailsViewModel) {
 					hx-include="#sensorMeasurementTypes"
 					hx-trigger="load, every 60s"
 				>0 st</div>
-				<input type="hidden" class="filter" id="sensorMeasurementTypes" name="sensorMeasurementTypes" value={ passagesSensor(model.Measurements) }/>
+				<input type="hidden" class="filter" id="sensorMeasurementTypes" name="sensorMeasurementTypes" value={ peopleCounterSensor(model.Measurements) }/>
 			</div>
 			<div class="flex items-center gap-6">
 				@FilterStatistics(l10n, model)
@@ -43,30 +41,6 @@ func PassagesChart(datasets []ChartDataset) templ.Component {
 	cfg.Add(datasets...)
 
 	return Chart("measurement-chart", "", cfg)
-}
-
-func passages(measurements []MeasurementViewModel) float64 {
-	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3200/5500") // People counter/Actual number of persons
-	})
-
-	if i == -1 || measurements[i].Value == nil {
-		return 0
-	}
-
-	return *measurements[i].Value
-}
-
-func passagesSensor(measurements []MeasurementViewModel) string {
-	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3200/5500") // People counter/Actual number of persons
-	})
-
-	if i == -1 {
-		return ""
-	}
-
-	return measurements[i].ID
 }
 
 templ StatisticsPassageGraph(l10n locale.Localizer, model ThingDetailsViewModel) {

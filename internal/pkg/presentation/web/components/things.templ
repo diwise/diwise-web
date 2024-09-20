@@ -235,7 +235,7 @@ templ PassageCell(t ThingViewModel) {
 	<div hx-disinherit="*">
 		<div
 			class=""
-			hx-get={ fmt.Sprintf("/components/things/measurements/%s/current?sensorMeasurementTypes=%s", t.Type, passagesSensor(t.Measurements)) }
+			hx-get={ fmt.Sprintf("/components/things/measurements/%s/current?sensorMeasurementTypes=%s", t.Type, peopleCounterSensor(t.Measurements)) }
 			hx-trigger="load"
 		>0 st</div>
 	</div>
@@ -316,4 +316,52 @@ func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureC
 	}
 
 	return NewFeatureCollection(features)
+}
+
+func peopleCounterSensor(measurements []MeasurementViewModel) string {
+	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3200/5500") // People counter/Actual number of persons
+	})
+
+	if i == -1 {
+		return ""
+	}
+
+	return measurements[i].ID
+}
+
+func fillingLevelSensor(measurements []MeasurementViewModel) string {
+	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
+	})
+
+	if i == -1 {
+		return ""
+	}
+
+	return measurements[i].ID
+}
+
+func fillingLevel(measurements []MeasurementViewModel) float64 {
+	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
+	})
+
+	if i == -1 || measurements[i].Value == nil {
+		return 0
+	}
+
+	return *measurements[i].Value
+}
+
+func digitalInputSensor(measurements []MeasurementViewModel) string {
+	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3200/5500") // Digital input/Digital Input State
+	})
+
+	if i == -1 {
+		return ""
+	}
+
+	return measurements[i].ID
 }

@@ -14,7 +14,7 @@ templ StatisticsCombinedSewageOverflow(l10n locale.Localizer, model ThingDetails
 			<div class="flex flex-col gap-2">
 				<div class="">{ l10n.Get("overflowrightnow") }</div>
 				<div class="text-3xl font-bold">{ combinedSewageOverflow(l10n, model.Measurements) }</div>
-				<input type="hidden" class="filter" id="sensorMeasurementTypes" name="sensorMeasurementTypes" value={ combinedSewageOverflowSensor(model.Measurements) }/>
+				<input type="hidden" class="filter" id="sensorMeasurementTypes" name="sensorMeasurementTypes" value={ digitalInputSensor(model.Measurements) }/>
 			</div>
 			<div class="flex items-center gap-6">
 				@FilterStatistics(l10n, model)
@@ -90,16 +90,4 @@ func combinedSewageOverflow(l10n locale.Localizer, measurements []MeasurementVie
 	}
 
 	return l10n.Get("no")
-}
-
-func combinedSewageOverflowSensor(measurements []MeasurementViewModel) string {
-	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3200/5500") // Digital input/Digital Input State
-	})
-
-	if i == -1 {
-		return ""
-	}
-
-	return measurements[i].ID
 }
