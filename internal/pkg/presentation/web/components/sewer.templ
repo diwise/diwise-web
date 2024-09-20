@@ -5,39 +5,39 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 )
 
-templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsSewer(l10n locale.Localizer, model ThingDetailsViewModel) {
 	//Statistik
 	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
 		<div class="flex items-center w-full justify-between">
 			<div class="flex flex-col gap-2">
 				<div class="">{ l10n.Get("currentlevel") }</div>
-				<div class="text-3xl font-bold">{ fmt.Sprintf("%0.f%%",fillingLevel(model.Measurements)) }</div>
+				<div class="text-3xl font-bold">{ fmt.Sprintf("%0.f%%", fillingLevel(model.Measurements)) }</div>
 				<input type="hidden" class="filter" id="sensorMeasurementTypes" name="sensorMeasurementTypes" value={ fillingLevelSensor(model.Measurements) }/>
 			</div>
 			<div class="flex items-center gap-6">
 				@FilterStatistics(l10n, model)
-				/*<div class="flex flex-col items-start gap-2">
+				<div class="flex flex-col items-start gap-2">
 					<div class="text-primary-dark font-bold">
 						&nbsp;						
 					</div>
 					<div class="">
 						@graphTableButtons(l10n, fmt.Sprintf("/things/%s", model.Thing.ThingID))
 					</div>
-				</div>*/
+				</div>
 			</div>
 		</div>
-		@StatisticsData(l10n, StatisticsWasteContainerGraph(l10n, model), StatisticsWasteContainerTable(l10n, model), model.TableView)
+		@StatisticsData(l10n, StatisticsSewerContainerGraph(l10n, model), StatisticsSewerTable(l10n, model), model.TableView)
 	</div>
 }
 
-templ StatisticsWasteContainerGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
-	<div id="graphView" class="w-full" style="height: 40vh; position: relative;">
+templ StatisticsSewerContainerGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
+	<div id="graphView" class="w-full">
 		<canvas id="measurement-chart"></canvas>
 		<div id="measurementCharts" style="display:none;"></div>
 	</div>
 }
 
-templ StatisticsWasteContainerTable(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsSewerTable(l10n locale.Localizer, model ThingDetailsViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
@@ -48,7 +48,7 @@ templ StatisticsWasteContainerTable(l10n locale.Localizer, model ThingDetailsVie
 		<tbody>
 			//TODO: Här ska mätningar listas
 			for _, measurement := range model.Measurements {
-				@StatisticsWasteContainerTableRow(l10n, measurement)
+				@StatisticsSewerTableRow(l10n, measurement)
 			}
 		</tbody>
 		<tfoot>
@@ -61,7 +61,7 @@ templ StatisticsWasteContainerTable(l10n locale.Localizer, model ThingDetailsVie
 	</table>
 }
 
-templ StatisticsWasteContainerTableRow(l10n locale.Localizer, thing MeasurementViewModel) {
+templ StatisticsSewerTableRow(l10n locale.Localizer, thing MeasurementViewModel) {
 	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
 		<td class="px-6 py-3">00:00</td>
 		<td class="px-6 py-3">20%</td>

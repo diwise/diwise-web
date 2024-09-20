@@ -127,7 +127,6 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 									hx-include="#sensorMeasurementTypes,#endTimeAt"
 									hx-target="#measurementCharts"
 									hx-get="/components/measurements"
-									hx-push-url="true"
 									hx-params="*"
 									class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
 								/>
@@ -140,7 +139,6 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 									hx-include="#sensorMeasurementTypes,#timeAt"
 									hx-target="#measurementCharts"
 									hx-get="/components/measurements"
-									hx-push-url="true"
 									hx-params="*"
 									class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
 								/>
@@ -298,8 +296,8 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 				</div>
 			</div>
 			<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
-			<div class="flex items-center justify-between py-6">
-				@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"))
+			<div class="flex items-center justify-end py-6">
+				//@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"))
 				<div class="flex items-center gap-4">
 					@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"))
 					@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))

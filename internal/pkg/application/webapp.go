@@ -104,6 +104,28 @@ func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
 	return thing, nil
 }
 
+func (a *App) GetValidSensors(ctx context.Context, types []string) ([]string, error) {
+	params := url.Values{
+		"urn": types,
+	}
+	res, err := a.get(ctx, a.deviceManagementURL, "", params)
+	if err != nil {
+		return []string{}, err
+	}
+
+	var sensors []Sensor
+	err = json.Unmarshal(res.Data, &sensors)
+	if err != nil {
+		return []string{}, err
+	}
+
+	var sensorIDs []string
+	for _, s := range sensors {
+		sensorIDs = append(sensorIDs, s.DeviceID)
+	}
+
+	return sensorIDs, nil
+}
 func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string][]string) (ThingResult, error) {
 	params := url.Values{
 		"type":         []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation", "passage"},
@@ -151,12 +173,14 @@ func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string]
 }
 
 func (a *App) UpdateThing(ctx context.Context, thingID string, fields map[string]any) error {
+
 	b, err := json.Marshal(fields)
 	if err != nil {
 		return err
 	}
 
 	return a.patch(ctx, a.thingManagementURL, thingID, b)
+
 }
 
 func (a *App) GetSensor(ctx context.Context, id string) (Sensor, error) {

@@ -11,26 +11,42 @@ templ StatisticsPassage(l10n locale.Localizer, model ThingDetailsViewModel) {
 		<div class="flex items-center w-full justify-between">
 			<div class="flex flex-col gap-2">
 				<div class="">{ l10n.Get("numberofpassagestoday") }</div>
-				<div class="text-3xl font-bold">{ fmt.Sprintf("%0.fst",fillingLevel(model.Measurements)) }</div>
+				<div
+					class="text-3xl font-bold"
+					hx-get={ fmt.Sprintf("/components/things/measurements/%s/current", model.Thing.Type) }
+					hx-include="#sensorMeasurementTypes"
+					hx-trigger="load, every 60s"
+				>0 st</div>
+				<input type="hidden" class="filter" id="sensorMeasurementTypes" name="sensorMeasurementTypes" value={ peopleCounterSensor(model.Measurements) }/>
 			</div>
 			<div class="flex items-center gap-6">
-				@FilterStatistics(l10n)
-				<div class="flex flex-col items-start gap-2">
+				@FilterStatistics(l10n, model)
+				/*<div class="flex flex-col items-start gap-2">
 					<div class="text-primary-dark font-bold">
 						&nbsp;
 					</div>
 					<div class="">
 						@graphTableButtons(l10n, "/components/sensors/list")
 					</div>
-				</div>
+				</div>*/
 			</div>
 		</div>
 		@StatisticsData(l10n, StatisticsPassageGraph(l10n, model), StatisticsPassageTable(l10n, model), model.TableView)
 	</div>
 }
 
+func PassagesChart(datasets []ChartDataset) templ.Component {
+	cfg := NewChartConfiguration("bar")
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
 templ StatisticsPassageGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
-	<div id="graphView" class="w-full">
+	<div id="graphView" class="w-full" style="height: 40vh; position: relative;">
+		<canvas id="measurement-chart"></canvas>
+		<div id="measurementCharts" style="display:none;"></div>
 	</div>
 }
 
@@ -45,7 +61,7 @@ templ StatisticsPassageTable(l10n locale.Localizer, model ThingDetailsViewModel)
 		<tbody>
 			//TODO: Här ska mätningar listas
 			for _, measurement := range model.Measurements {
-				@StatisticsPassageTableRow(l10n, measurement) 
+				@StatisticsPassageTableRow(l10n, measurement)
 			}
 		</tbody>
 		<tfoot>

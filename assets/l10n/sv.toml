@@ -31,6 +31,9 @@ other = "Välj"
 [chooseMeasurementtype]
 other = "Ange mättyp"
 
+[choosetags]
+other = "Välj taggar"
+
 [currentlevel]
 other = "Aktuell nivå"
 

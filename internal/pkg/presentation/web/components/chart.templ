@@ -65,6 +65,7 @@ type ChartValue struct {
 
 func NewChartOptions() ChartOptions {
 	t := true
+	f := false
 	return ChartOptions{
 		Scales: ChartOptionsScales{
 			X: ChartOptionsScale{
@@ -79,6 +80,7 @@ func NewChartOptions() ChartOptions {
 				},
 			},
 		},
+		MaintainAspectRatio: &f,
 	}
 }
 
