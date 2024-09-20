@@ -1,6 +1,10 @@
 package components
 
-import "github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+import (
+	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
+	"slices"
+	"strings"
+)
 
 //"fmt"
 templ StatisticsCombinedSewageOverflow(l10n locale.Localizer, model ThingDetailsViewModel) {
@@ -9,8 +13,8 @@ templ StatisticsCombinedSewageOverflow(l10n locale.Localizer, model ThingDetails
 		<div class="flex items-center w-full justify-between">
 			<div class="flex flex-col gap-2">
 				<div class="">{ l10n.Get("overflowrightnow") }</div>
-				//<div class="text-3xl font-bold">{ fmt.Sprintf("%0.fst",fillingLevel(model.Measurements)) }</div>
-				<div class="text-3xl font-bold">Ja</div>
+				<div class="text-3xl font-bold">{ combinedSewageOverflow(l10n, model.Measurements) }</div>
+				<input type="hidden" class="filter" id="sensorMeasurementTypes" name="sensorMeasurementTypes" value={ combinedSewageOverflowSensor(model.Measurements) }/>
 			</div>
 			<div class="flex items-center gap-6">
 				@FilterStatistics(l10n, model)
@@ -29,7 +33,10 @@ templ StatisticsCombinedSewageOverflow(l10n locale.Localizer, model ThingDetails
 }
 
 templ StatisticsCombinedSewageOverflowGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
-	<div id="graphView" class="w-full"></div>
+	<div id="graphView" class="w-full">
+		<canvas id="measurement-chart"></canvas>
+		<div id="measurementCharts" style="display:none;"></div>
+	</div>
 }
 
 templ StatisticsCombinedSewageOverflowTable(l10n locale.Localizer, model ThingDetailsViewModel) {
@@ -63,4 +70,36 @@ templ StatisticsCombinedSewageOverflowTableRow(l10n locale.Localizer, thing Meas
 		<td class="px-6 py-3">23:59</td>
 		<td class="px-6 py-3">2 timmar</td>
 	</tr>
+}
+
+func combinedSewageOverflow(l10n locale.Localizer, measurements []MeasurementViewModel) string {
+	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3200/5500") // Digital input/Digital Input State
+	})
+
+	if i == -1 {
+		return "-"
+	}
+
+	if measurements[i].BoolValue == nil {
+		return "-"
+	}
+
+	if *measurements[i].BoolValue {
+		return l10n.Get("yes")
+	}
+
+	return l10n.Get("no")
+}
+
+func combinedSewageOverflowSensor(measurements []MeasurementViewModel) string {
+	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3200/5500") // Digital input/Digital Input State
+	})
+
+	if i == -1 {
+		return ""
+	}
+
+	return measurements[i].ID
 }
