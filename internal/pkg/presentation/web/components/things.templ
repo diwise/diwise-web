@@ -236,7 +236,7 @@ templ PassageCell(t ThingViewModel) {
 		<div
 			class=""
 			hx-get={ fmt.Sprintf("/components/things/measurements/%s/current?sensorMeasurementTypes=%s", t.Type, passagesSensor(t.Measurements)) }
-			hx-trigger="load, every 60s"
+			hx-trigger="load"
 		>0 st</div>
 	</div>
 }
