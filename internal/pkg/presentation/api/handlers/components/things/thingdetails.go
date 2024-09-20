@@ -114,10 +114,28 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 			})
 		}
 
-		if mode == "edit" {
-			tenants := app.GetTenants(ctx)
+		if len(thingDetailsViewModel.Related) > 0 {
+			thingDetailsViewModel.RelatedDevice = thingDetailsViewModel.Related[0].ID
+		}
 
-			thingDetailsViewModel.Organisations = tenants
+		if mode == "edit" {
+			urn := []string{}
+			switch thing.Type {
+			case "combinedsewageoverflow":
+				urn = append(urn, "urn:oma:lwm2m:ext:3200")
+			case "wastecontainer":
+				urn = append(urn, "urn:oma:lwm2m:ext:3300", "urn:oma:lwm2m:ext:3435")
+			case "sewer":
+				urn = append(urn, "urn:oma:lwm2m:ext:3200")
+			case "sewagepumpingstation":
+				urn = append(urn, "urn:oma:lwm2m:ext:3200")
+			case "passage":
+				urn = append(urn, "urn:oma:lwm2m:ext:3200", "urn:oma:lwm2m:ext:3434")
+			}
+
+			thingDetailsViewModel.ValidSensors, _ = app.GetValidSensors(ctx, urn)
+			thingDetailsViewModel.Organisations = app.GetTenants(ctx)
+			thingDetailsViewModel.Tags, _ = app.GetTags(ctx)
 
 			component := components.EditThingDetails(localizer, assets, thingDetailsViewModel)
 			component.Render(ctx, w)
@@ -179,17 +197,29 @@ func NewSaveThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle
 
 				switch k {
 				case "longitude":
+					if _, ok := fields["location"]; !ok {
+						fields["location"] = application.Location{}
+					}
+
 					if f, ok := asFloat(v); ok {
-						fields[k] = f
+						loc := fields["location"].(application.Location)
+						loc.Longitude = f
+						fields["location"] = loc
 					}
 				case "latitude":
+					if _, ok := fields["location"]; !ok {
+						fields["location"] = application.Location{}
+					}
+
 					if f, ok := asFloat(v); ok {
-						fields[k] = f
+						loc := fields["location"].(application.Location)
+						loc.Latitude = f
+						fields["location"] = loc
 					}
 				case "organisation":
 					fields["tenant"] = v
-				default:
-					fields[k] = r.Form.Get(k)
+				case "tags":
+					fields["tags"] = r.Form[k]
 				}
 			}
 

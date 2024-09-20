@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	"slices"
 	"strings"
 )
 
@@ -14,13 +15,9 @@ type ThingDetailsViewModel struct {
 	Organisations []string
 	Tenant        string
 	TableView     bool
-}
-
-type ThingProfile struct {
-	Name     string   `json:"name"`
-	Decoder  string   `json:"decoder,omitempty"`
-	Interval int      `json:"interval,omitempty"`
-	Types    []string `json:"types,omitempty"`
+	ValidSensors  []string
+	Tags          []string
+	RelatedDevice string
 }
 
 templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
@@ -293,12 +290,12 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 											name="filter"
 											placeholder={ l10n.Get("picksensor") }
 											class="text-sm p-2 rounded-xl w-full block focus:outline-none"
+											value={ model.RelatedDevice }
 										/>
 										<datalist id="filter-options">
-											<option value="all">All</option>
-											<option value="active">Active</option>
-											<option value="inactive">Inactive</option>
-											<option value="unknown">Unknown</option>
+											for _, sensor := range model.ValidSensors {
+												<option value={ sensor }></option>
+											}
 										</datalist>
 										<div class="pointer-events-none absolute bg-white rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
 											<svg class="w-[18px] h-[18px] dark:fill-white">
@@ -320,18 +317,23 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 							</div>
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2">
-									<div class="font-bold">{ l10n.Get("tags") }</div>
-									<div class="border border-input-surface dark:border-white-50 rounded-xl">
-										<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">
-											{ l10n.Get("measurementtype") }
-										</label>
-										//@CheckboxDropdownList("chooseTag", options, l10n.Get("choosetags"))
+									<div class="flex items-center gap-2 flex-wrap">
+										<div class="flex items-center flex-[1_0_0] gap-6">
+											@CheckboxList(l10n.Get("tags")) {
+												for _, t := range model.Tags {
+													@CheckboxOption("tags", t, "", l10n, templ.Attributes{
+														"checked": slices.Contains(model.Thing.Tags, t),
+													})
+												}
+											}
+										</div>
 									</div>
+								</div>
+								<div class="flex flex-col gap-2">
 									<div class="flex items-center gap-2 flex-wrap">
 										for _, tag := range model.Thing.Tags {
-											<div class="flex items-center px-2 py-1 text-sm justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border-2 stroke-primary-dark dark:stroke-white">
+											<div class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
 												{ tag }
-												@SVG("close", NoFill(), Size(16), Box(24, 24), StrokeColor("primary-dark", "white"), Stroke(templ.Attributes{"stroke-width": "2"}))
 											</div>
 										}
 									</div>
