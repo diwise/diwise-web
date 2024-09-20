@@ -274,7 +274,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 										}
 									}
 									<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-										//<form hx-push-url="true" hx-trigger="change" hx-get="?" hx-vals='{"filter": this.value}'>
+										//<form hx-trigger="change" hx-get="?" hx-vals='{"filter": this.value}'>
 											<input list="filter-options" name="filter" placeholder={ l10n.Get("picksensor")}
 												class="text-sm p-2 rounded-xl w-full block focus:outline-none">
 											<datalist id="filter-options">
@@ -304,6 +304,12 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2">
 									<div class="font-bold">{ l10n.Get("tags") }</div>
+									<div class="border border-input-surface dark:border-white-50 rounded-xl">
+										<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">
+											{ l10n.Get("measurementtype") }
+										</label>
+										//@CheckboxDropdownList("chooseTag", options, l10n.Get("choosetags"))
+									</div>
 									<div class="flex items-center gap-2 flex-wrap">
 										for _, tag := range model.Thing.Tags {
 											<div class="flex items-center px-2 py-1 text-sm justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border-2 stroke-primary-dark dark:stroke-white">

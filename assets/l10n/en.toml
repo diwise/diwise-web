@@ -31,6 +31,9 @@ other = "Choose"
 [chooseMeasurementtype]
 other = "Pick measurement type"
 
+[choosetags]
+other = "Choose tags"
+
 [currentlevel]
 other = "Current level"
 
