@@ -187,6 +187,7 @@ func NewSaveThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle
 
 		if r.Form.Has("save") {
 			fields := make(map[string]any)
+			fields["tags"] = []string{}
 
 			for k := range r.Form {
 				v := r.Form.Get(k)
