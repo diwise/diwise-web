@@ -130,6 +130,9 @@ other = "Mätvärde"
 [measurementvalues]
 other = "Mätvärden"
 
+[missing]
+other = "Saknas"
+
 [more]
 other = "till"
 

@@ -101,7 +101,7 @@ templ ThingsTableComponent(l10n locale.Localizer, model ThingsListViewModel) {
 			<tr>
 				<th class="px-6 py-3">{ l10n.Get("name") }</th>
 				<th class="px-6 py-3">{ l10n.Get("type") }</th>
-				<th class="px-6 py-3">{ l10n.Get("status") }</th>
+				<th class="px-6 py-3 min-w-[200px]">{ l10n.Get("status") }</th>
 				<th class="px-6 py-3">{ l10n.Get("tags") }</th>
 			</tr>
 		</thead>
@@ -138,7 +138,7 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 			</span>
 		</td>
 		<td class="px-6 py-3">{ l10n.Get(thing.Type) }</td>
-		<td class="px-6 py-3">
+		<td class="px-6 py-3 ">
 			@ThingStatusCell(l10n, thing)
 		</td>
 		<td class="px-6 py-3">
@@ -239,7 +239,8 @@ func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component
 	})
 
 	value := int(v)
-	text := fmt.Sprintf("%d%s (%s)", value, t.Measurements[i].Unit, t.Measurements[i].Timestamp.Format("2006-01-02 15:04:05"))
+	text := fmt.Sprintf("%d%s", value, t.Measurements[i].Unit)
+	//text := fmt.Sprintf("%d%s (%s)", value, t.Measurements[i].Unit, t.Measurements[i].Timestamp.Format("2006-01-02 15:04:05"))
 
 	colourClass := ""
 	switch {

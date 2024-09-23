@@ -130,6 +130,9 @@ other = "Measurement value"
 [measurementvalues]
 other = "Measurement values"
 
+[missing]
+other = "Missing"
+
 [moreinformation]
 other = "More information"
 

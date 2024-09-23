@@ -309,15 +309,23 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("name") }</div>
-							<div class="">
-								{ l10n.Get(model.Thing.Name) }
-							</div>
+							if model.Thing.Name == "" {
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
+							} else {
+								<div class="">
+									{ l10n.Get(model.Thing.Name) }
+								</div>
+							}
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
-							<div class="">
-								{ l10n.Get(model.Thing.Description) }
-							</div>
+							if model.Thing.Description == "" {
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
+							} else {
+								<div class="">
+									{ l10n.Get(model.Thing.Description) }
+								</div>
+							}
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
@@ -522,10 +530,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 									<input type="hidden" id="selectedTags" name="selectedTags" value={ strings.Join(model.Thing.Tags, ",") }>
 								</div>
 							</div>
-
-							
-
-							
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("description") }</div>
