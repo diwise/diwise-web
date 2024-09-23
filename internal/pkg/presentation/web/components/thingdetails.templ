@@ -157,6 +157,12 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 		// Funktion för att lägga tillbaka en tagg till datalistan
 		function addTagToDatalist(tag) {
 			const datalist = document.getElementById('tag-options');
+
+			// Kontrollera om taggen redan finns
+			if (datalist.querySelector(`option[value="${tag}"]`)) {
+				return; // Taggen finns redan, gör inget
+			}
+
 			const option = document.createElement('option');
 			option.value = tag;
 			option.textContent = tag;
