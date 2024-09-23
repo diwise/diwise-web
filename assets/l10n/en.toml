@@ -10,6 +10,9 @@ other = "Active sensors"
 [addthing]
 other = "Add new thing"
 
+[addtag]
+other = "Add new tag"
+
 [alerts]
 other = "Alerts"
 
@@ -303,3 +306,6 @@ other = "Waste container"
 
 [wastecontainer]
 other = "Waste container"
+
+[noData]
+other = "-"

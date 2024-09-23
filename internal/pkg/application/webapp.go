@@ -1,22 +1,15 @@
 package application
 
 import (
-	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
-	"log/slog"
-	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/service-chassis/pkg/infrastructure/env"
-	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type App struct {
@@ -75,6 +68,50 @@ func (a *App) GetTypes(ctx context.Context) ([]string, error) {
 	return tags, nil
 }
 
+func (a *App) ConnectSensor(ctx context.Context, thingID, currentID, newID string) error {
+	thing, err := a.GetThing(ctx, thingID)
+	if err != nil {
+		return err
+	}
+
+	sensorThing := Thing{
+		ID:     newID,
+		Type:   "device",
+		Tenant: thing.Tenant,
+	}
+
+	sensor, err := a.GetSensor(ctx, newID)
+	if err != nil {
+		if !errors.Is(err, ErrNotFound) {
+			return err
+		}
+		sensorThing.Location = thing.Location
+	} else {
+		sensorThing.Location = sensor.Location
+	}
+
+	if currentID != "" {
+		urlToDelete := a.thingManagementURL + "/" + thingID + "/" + "urn:diwise:device:" + currentID
+		err = a.delete(ctx, urlToDelete)
+		if err != nil {
+			return err
+		}
+	}
+
+	b, err := json.Marshal(sensorThing)
+	if err != nil {
+		return err
+	}
+
+	urlToPost := a.thingManagementURL + "/" + thingID
+	err = a.post(ctx, urlToPost, b)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
 	params := url.Values{
 		"measurements": []string{"true"},
@@ -101,27 +138,39 @@ func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
 		}
 	}
 
+	m := make(map[string]any)
+	err = json.Unmarshal(res.Data, &m)
+	if err != nil {
+		return thing, err
+	}
+
+	thing.AddProperties(m)
+
 	return thing, nil
 }
 
-func (a *App) GetValidSensors(ctx context.Context, types []string) ([]string, error) {
+func (a *App) GetValidSensors(ctx context.Context, types []string) ([]SensorIdentifier, error) {
 	params := url.Values{
 		"urn": types,
 	}
 	res, err := a.get(ctx, a.deviceManagementURL, "", params)
 	if err != nil {
-		return []string{}, err
+		return []SensorIdentifier{}, err
 	}
 
 	var sensors []Sensor
 	err = json.Unmarshal(res.Data, &sensors)
 	if err != nil {
-		return []string{}, err
+		return []SensorIdentifier{}, err
 	}
 
-	var sensorIDs []string
+	var sensorIDs []SensorIdentifier
 	for _, s := range sensors {
-		sensorIDs = append(sensorIDs, s.DeviceID)
+		sensorIDs = append(sensorIDs, SensorIdentifier{
+			SensorID: s.SensorID,
+			DeviceID: s.DeviceID,
+			Decoder:  s.DeviceProfile.Decoder,
+		})
 	}
 
 	return sensorIDs, nil
@@ -172,8 +221,7 @@ func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string]
 	}, nil
 }
 
-func (a *App) UpdateThing(ctx context.Context, thingID string, fields map[string]any) error {
-
+func (a *App) UpdateThing(ctx context.Context, thingID string, fields map[string]any) error {			
 	b, err := json.Marshal(fields)
 	if err != nil {
 		return err
@@ -356,166 +404,4 @@ func (a *App) GetMeasurementData(ctx context.Context, id string, params ...Input
 	}
 
 	return data, nil
-}
-
-func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) (*ApiResponse, error) {
-	if strings.ContainsAny(path, "/") {
-		path = strings.TrimPrefix(path, "/")
-		path = strings.TrimSuffix(path, "/")
-	}
-
-	log := logging.GetFromContext(ctx)
-
-	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseUrl, path), "/"))
-	if err != nil {
-		log.Error("could not parse url", "err", err.Error())
-		return nil, err
-	}
-
-	u.RawQuery = params.Encode()
-	token := authz.Token(ctx)
-	urlToGet := u.String()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlToGet, nil)
-	if err != nil {
-		log.Error("failed to create http request", slog.String("url", urlToGet), "err", err.Error())
-		err = fmt.Errorf("failed to create http request: %w", err)
-		return nil, err
-	}
-
-	req.Header.Add("Authorization", "Bearer "+token)
-
-	transport := http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	}
-
-	client := http.Client{
-		Transport: otelhttp.NewTransport(&transport),
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Error("http request failed", slog.String("url", urlToGet), "err", err.Error())
-		err = fmt.Errorf("failed to retrieve information: %w", err)
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == http.StatusUnauthorized {
-		log.Error("unauthorized", slog.String("url", urlToGet))
-		err = fmt.Errorf("request failed, not authorized")
-		return nil, err
-	}
-
-	if resp.StatusCode >= http.StatusBadRequest {
-		log.Error("request failed", slog.String("url", urlToGet), slog.Int("status_code", resp.StatusCode))
-		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
-		return nil, err
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		err = fmt.Errorf("failed to read response body: %w", err)
-		return nil, err
-	}
-
-	if string(respBody) == "[]" {
-		var arr json.RawMessage
-		json.Unmarshal(respBody, &arr)
-		return &ApiResponse{
-			Meta:  nil,
-			Data:  arr,
-			Links: nil,
-		}, nil
-	}
-
-	impl := ApiResponse{}
-
-	err = json.Unmarshal(respBody, &impl)
-	if err != nil {
-		err = fmt.Errorf("failed to unmarshal response body: %w", err)
-		return nil, err
-	}
-
-	log.Debug("body", slog.Any("data", impl.Data))
-
-	return &impl, nil
-}
-
-func (a *App) patch(ctx context.Context, baseUrl, sensorID string, body []byte) error {
-	log := logging.GetFromContext(ctx)
-
-	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseUrl, sensorID), "/"))
-	if err != nil {
-		return err
-	}
-
-	log.Debug("PATCH", slog.String("body", string(body)), slog.String("url", u.String()))
-
-	token := authz.Token(ctx)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, u.String(), bytes.NewReader(body))
-	if err != nil {
-		err = fmt.Errorf("failed to create http request: %w", err)
-		return err
-	}
-
-	req.Header.Add("Authorization", "Bearer "+token)
-
-	transport := http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	}
-
-	client := http.Client{
-		Transport: otelhttp.NewTransport(&transport),
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		err = fmt.Errorf("failed to patch: %w", err)
-		return err
-	}
-
-	if resp.StatusCode == http.StatusUnauthorized {
-		err = fmt.Errorf("request failed, not authorized")
-		return err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
-		return err
-	}
-
-	return nil
-}
-
-type Meta struct {
-	TotalRecords uint64  `json:"totalRecords"`
-	Offset       *uint64 `json:"offset,omitempty"`
-	Limit        *uint64 `json:"limit,omitempty"`
-	Count        uint64  `json:"count"`
-}
-
-type Links struct {
-	Self  *string `json:"self,omitempty"`
-	First *string `json:"first,omitempty"`
-	Prev  *string `json:"prev,omitempty"`
-	Next  *string `json:"next,omitempty"`
-	Last  *string `json:"last,omitempty"`
-}
-
-type Resource struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
-}
-
-type ApiResponse struct {
-	Meta     *Meta           `json:"meta,omitempty"`
-	Data     json.RawMessage `json:"data"`
-	Links    *Links          `json:"links,omitempty"`
-	Included []Resource      `json:"included,omitempty"`
 }

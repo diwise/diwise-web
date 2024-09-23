@@ -7,9 +7,9 @@ import (
 
 templ OverviewCards(l10n locale.Localizer, asset assets.AssetLoaderFunc, stats StatisticsViewModel) {
 	@OverviewCard(l10n.Get("numberofsensors"), "/sensors", stats.Total, SVG("rss", Size(32)), asset)
-	@OverviewCard(l10n.Get("activesensors"), "/sensors", stats.Active, SVG("rss", Size(32), OKStyle()), asset)
-	@OverviewCard(l10n.Get("inactivesensors"), "/sensors", stats.Inactive, SVG("rss", Size(32), AlertStyle()), asset)
-	@OverviewCard(l10n.Get("unknownsensors"), "/sensors", stats.Unknown, SVG("rss", Size(32), WarningStyle()), asset)
+	@OverviewCard(l10n.Get("activesensors"), "/sensors?active=true", stats.Active, SVG("rss", Size(32), OKStyle()), asset)
+	@OverviewCard(l10n.Get("inactivesensors"), "/sensors?active=false", stats.Inactive, SVG("rss", Size(32), AlertStyle()), asset)
+	@OverviewCard(l10n.Get("unknownsensors"), "/sensors?type=unknown", stats.Unknown, SVG("rss", Size(32), WarningStyle()), asset)
 }
 
 type HomeViewModel struct {
@@ -70,7 +70,7 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 }
 
 func UsageChart(xScaleMax uint, datasets []ChartDataset) templ.Component {
-	cfg := NewChartConfiguration("bar")
+	cfg := NewChartConfiguration("bar", true)
 
 	var (
 		xScaleType          string = "linear"

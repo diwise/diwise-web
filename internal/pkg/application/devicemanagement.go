@@ -70,6 +70,8 @@ type Sensor struct {
 	DeviceState   *DeviceState   `json:"deviceState,omitempty"`
 }
 
+
+
 type SensorResult struct {
 	Sensors      []Sensor
 	TotalRecords int

@@ -20,11 +20,25 @@ type ThingViewModel struct {
 	ThingID      string
 	ID           string
 	Type         string
+	Name         string
+	Description  string
 	Latitude     float64
 	Longitude    float64
 	Tenant       string
 	Tags         []string
 	Measurements []MeasurementViewModel
+}
+
+func (t ThingViewModel) FillingLevel() (float64, bool) {
+	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
+	})
+
+	if i == -1 || t.Measurements[i].Value == nil {
+		return 0.0, false
+	}
+
+	return *t.Measurements[i].Value, true
 }
 
 type MeasurementViewModel struct {
@@ -85,7 +99,7 @@ templ ThingsTableComponent(l10n locale.Localizer, model ThingsListViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-dark-primary dark:border-white">
 			<tr>
-				<th class="px-6 py-3">{ l10n.Get("id") }</th>
+				<th class="px-6 py-3">{ l10n.Get("name") }</th>
 				<th class="px-6 py-3">{ l10n.Get("type") }</th>
 				<th class="px-6 py-3">{ l10n.Get("status") }</th>
 				<th class="px-6 py-3">{ l10n.Get("tags") }</th>
@@ -114,7 +128,15 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 		hx-push-url={ string(templ.SafeURL(fmt.Sprintf("/things/%s", thing.ThingID))) }
 		hx-trigger="click"
 	>
-		<td class="px-6 py-3"><span class="font-bold">{ thing.ID }</span></td>
+		<td class="px-6 py-3">
+			<span class="font-bold">
+				if len(thing.Name) > 0 {
+					{ thing.Name }
+				} else {
+					{ thing.ID }
+				}
+			</span>
+		</td>
 		<td class="px-6 py-3">{ l10n.Get(thing.Type) }</td>
 		<td class="px-6 py-3">
 			@ThingStatusCell(l10n, thing)
@@ -207,15 +229,16 @@ func SewerCell(l10n locale.Localizer, thing ThingViewModel) templ.Component {
 }
 
 func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
+	v, ok := t.FillingLevel()
+	if !ok {
+		return Text(l10n.Get("noData"))
+	}
+
 	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
 		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
 	})
 
-	if i == -1 || t.Measurements[i].Value == nil {
-		return templ.NopComponent
-	}
-
-	value := int(*t.Measurements[i].Value)
+	value := int(v)
 	text := fmt.Sprintf("%d%s (%s)", value, t.Measurements[i].Unit, t.Measurements[i].Timestamp.Format("2006-01-02 15:04:05"))
 
 	colourClass := ""
@@ -330,16 +353,16 @@ func peopleCounterSensor(measurements []MeasurementViewModel) string {
 	return measurements[i].ID
 }
 
-func fillingLevelSensor(measurements []MeasurementViewModel) string {
-	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
+func fillingLevelSensor(model ThingDetailsViewModel) string {
+	i := slices.IndexFunc(model.Measurements, func(m MeasurementViewModel) bool {
 		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
 	})
 
 	if i == -1 {
-		return ""
+		return fmt.Sprintf("%s/3435/2", model.RelatedDevice)
 	}
 
-	return measurements[i].ID
+	return model.Measurements[i].ID
 }
 
 func fillingLevel(measurements []MeasurementViewModel) float64 {

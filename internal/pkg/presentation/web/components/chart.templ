@@ -1,10 +1,10 @@
 package components
 
-func NewChartConfiguration(chartType string) ChartConfiguration {
+func NewChartConfiguration(chartType string, keepRatio bool) ChartConfiguration {
 	cfg := ChartConfiguration{}
 	cfg.Type = chartType
 	cfg.Data = NewChartData()
-	cfg.Options = NewChartOptions()
+	cfg.Options = NewChartOptions(keepRatio)
 	return cfg
 }
 
@@ -35,6 +35,7 @@ func NewChartDataset(label string) ChartDataset {
 		PointBorderColor:     "#1F1F25",
 		PointRadius:          1,
 		PointHoverRadius:     6,
+		MaintainAspectRatio:  true,
 	}
 }
 
@@ -47,6 +48,7 @@ type ChartDataset struct {
 	PointBorderColor     string       `json:"pointBorderColor"`
 	PointRadius          int          `json:"pointRadius"`
 	PointHoverRadius     int          `json:"pointHoverRadius"`
+	MaintainAspectRatio  bool		  `json:"maintainAspectRatio"`
 }
 
 func (dataset *ChartDataset) Append(data ChartValue) {
@@ -63,9 +65,8 @@ type ChartValue struct {
 	Y any    `json:"y"`
 }
 
-func NewChartOptions() ChartOptions {
+func NewChartOptions(keepRatio bool) ChartOptions {
 	t := true
-	f := false
 	return ChartOptions{
 		Scales: ChartOptionsScales{
 			X: ChartOptionsScale{
@@ -80,7 +81,7 @@ func NewChartOptions() ChartOptions {
 				},
 			},
 		},
-		MaintainAspectRatio: &f,
+		MaintainAspectRatio: &keepRatio,
 	}
 }
 

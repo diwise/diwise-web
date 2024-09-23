@@ -11,8 +11,19 @@ templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewMode
 		<div class="flex items-center w-full justify-between">
 			<div class="flex flex-col gap-2">
 				<div class="">{ l10n.Get("currentlevel") }</div>
-				<div class="text-3xl font-bold">{ fmt.Sprintf("%0.f%%",fillingLevel(model.Measurements)) }</div>
-				<input type="hidden" class="filter" id="sensorMeasurementTypes" name="sensorMeasurementTypes" value={ fillingLevelSensor(model.Measurements) }/>
+				<div
+					class="text-3xl font-bold"
+					hx-get={ fmt.Sprintf("/components/things/measurements/%s/current", model.Thing.Type) }
+					hx-include="#sensorMeasurementTypes"
+					hx-trigger="every 60s"
+				>
+					if v,ok := model.Thing.FillingLevel(); ok {
+						{ fmt.Sprintf("%0.f%%", v) }
+					} else {
+						{ l10n.Get("noData") }
+					}
+				</div>
+				<input type="hidden" class="filter" id="sensorMeasurementTypes" name="sensorMeasurementTypes" value={ fillingLevelSensor(model) }/>
 			</div>
 			<div class="flex items-center gap-6">
 				@FilterStatistics(l10n, model)
