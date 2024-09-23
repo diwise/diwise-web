@@ -7,6 +7,9 @@ other = "Aktiv"
 [activesensors]
 other = "Aktiva sensorer"
 
+[add]
+other = "Lägg till"
+
 [addthing]
 other = "Lägg till ny sak"
 
@@ -136,6 +139,9 @@ other = "Mer information"
 [name]
 other = "Namn"
 
+[no]
+other = "Nej"
+
 [notloggedin]
 other = "Du behöver logga in"
 
@@ -243,6 +249,9 @@ other = "Okänd"
 
 [unknownsensors]
 other = "Okända sensorer"
+
+[yes]
+other = "Ja"
 
 [3-9]
 other = "Batterinivå (%)"
