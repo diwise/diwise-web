@@ -258,7 +258,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			}
 		}
 
-		component := components.MeasurementChart([]components.ChartDataset{dataset})
+		component := components.MeasurementChart([]components.ChartDataset{dataset}, true)
 		component.Render(ctx, w)
 	}
 

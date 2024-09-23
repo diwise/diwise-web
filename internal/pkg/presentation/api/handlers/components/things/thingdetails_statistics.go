@@ -73,7 +73,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 		case "passage":
 			component = components.PassagesChart([]components.ChartDataset{dataset})
 		default:
-			component = components.MeasurementChart([]components.ChartDataset{dataset})
+			component = components.MeasurementChart([]components.ChartDataset{dataset}, false)
 		}
 
 		component.Render(ctx, w)

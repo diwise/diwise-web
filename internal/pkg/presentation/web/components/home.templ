@@ -70,7 +70,7 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 }
 
 func UsageChart(xScaleMax uint, datasets []ChartDataset) templ.Component {
-	cfg := NewChartConfiguration("bar")
+	cfg := NewChartConfiguration("bar", true)
 
 	var (
 		xScaleType          string = "linear"
