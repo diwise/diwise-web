@@ -282,18 +282,23 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 										{ l10n.Get(model.Thing.Type) }
 									</div>
 								</div>
+							</div>
+							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("name") }</div>
 									<div class="">
-										{ l10n.Get(model.Thing.Name) }
-										<input type="text" name="name" class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" placeholder="" value={ model.Thing.Name }/>
+										<input type="text" name="name" class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" 
+												placeholder="" 
+												value={ model.Thing.Name }/>
 									</div>
 								</div>
 								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("description") }</div>
-									<div class="">
-										{ l10n.Get(model.Thing.Description) }
-										<input type="text" name="description" class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" placeholder="" value={ model.Thing.Description }/>
+									<div class="font-bold">{ l10n.Get("organisation") }</div>
+									<div class="border border-input-surface rounded-xl">
+										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
+											{ l10n.Get("pickOption") }
+										</label>
+										@OrganisationSelect(l10n, asset, "organisation", model.Thing.Tenant, model.Organisations)
 									</div>
 								</div>
 							</div>
@@ -310,7 +315,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 										}
 									}
 									<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-										//<form hx-trigger="change" hx-get="?" hx-vals='{"filter": this.value}'>
 										<input
 											list="filter-options"
 											name="filter"
@@ -328,16 +332,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 												@templ.Raw(iconSVG("chevron-down"))
 											</svg>
 										</div>
-										//</form>
-									</div>
-								</div>
-								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("organisation") }</div>
-									<div class="border border-input-surface rounded-xl">
-										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
-											{ l10n.Get("pickOption") }
-										</label>
-										@OrganisationSelect(l10n, asset, "organisation", model.Thing.Tenant, model.Organisations)
 									</div>
 								</div>
 							</div>
@@ -366,6 +360,14 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 											</div>
 										}
 									</div>
+								</div>
+							</div>
+							<div class="flex flex-start gap-10 self-stretch">
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="font-bold">{ l10n.Get("description") }</div>
+									<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" placeholder={ l10n.Get("description") }>
+											{ model.Thing.Description }
+									</textarea>
 								</div>
 							</div>
 						</div>
