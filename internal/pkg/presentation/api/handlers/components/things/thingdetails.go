@@ -269,9 +269,7 @@ func formToFields(form url.Values) map[string]any {
 			}
 		case "organisation":
 			fields["tenant"] = v
-		case "tags":
-			fields["tags"] = appendTag(fields["tags"], form[k])
-		case "newtags":
+		case "selectedTags":
 			fields["tags"] = appendTag(fields["tags"], strings.Split(v, ","))
 		case "name":
 			fields["name"] = strings.TrimSpace(v)

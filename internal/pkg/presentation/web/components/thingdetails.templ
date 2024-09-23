@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"slices"
 	"strings"
 )
 
@@ -119,6 +118,128 @@ templ StatisticsData(l10n locale.Localizer, graphComponent, tableComponent templ
 }
 
 templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
+	<script>
+		document.addEventListener('htmx:afterSwap', function(evt) {
+			function checkTagsLoaded() {
+				var tagItems = document.querySelectorAll('.tagItem');
+				if (tagItems.length > 0) {
+					initializeTags(); 
+					document.getElementById('addTagButton').addEventListener('click', function() {
+						var selectedValue = document.getElementById('tagInput').value;
+						if (selectedValue) { 
+							updateSelectedTag(selectedValue); 
+							document.getElementById('tagInput').value = ""; 
+						}
+					});
+				} 
+				if (document.getElementById('addTagButton') != undefined) {
+					document.getElementById('addTagButton').addEventListener('click', function() {
+						var selectedValue = document.getElementById('tagInput').value;
+						if (selectedValue) { 
+							updateSelectedTag(selectedValue); 
+							document.getElementById('tagInput').value = ""; 
+						}
+					});
+				}
+			}
+			checkTagsLoaded();
+		});
+
+		// Funktion för att uppdatera datalistan genom att ta bort en tagg
+		function removeTagFromDatalist(tag) {
+			const datalist = document.getElementById('tag-options');
+			const option = datalist.querySelector(`option[value="${tag}"]`);
+			if (option) {
+				option.remove();
+			}
+		}
+
+		// Funktion för att lägga tillbaka en tagg till datalistan
+		function addTagToDatalist(tag) {
+			const datalist = document.getElementById('tag-options');
+			const option = document.createElement('option');
+			option.value = tag;
+			option.textContent = tag;
+			datalist.appendChild(option);
+		}
+
+		// Funktion för att skapa en ny tag med en stängningsikon
+		function createTagElement(tag) {
+			return `
+				<div class="flex items-center p-2 rounded-full gap-1 tagItem border-gray-30 dark:border-white-30 border stroke-primary-dark dark:stroke-white">
+					<span>${tag}</span>
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x removeTagIcon cursor-pointer">
+						<line x1="18" y1="6" x2="6" y2="18"></line>
+						<line x1="6" y1="6" x2="18" y2="18"></line>
+					</svg>
+				</div>
+			`;
+		}
+
+		// Funktion för att uppdatera hidden input med aktuella taggar
+		function updateHiddenInput(tags) {
+			var hiddenInput = document.getElementById('selectedTags');
+			hiddenInput.value = tags.join(',');
+		}
+
+		// Funktion för att lägga till händelselyssnare på en tag och hantera borttagning
+		function addRemoveTagListener(tagElement, tagText, currentTags) {
+			const removeIcon = tagElement.querySelector('.removeTagIcon');
+			if (removeIcon) {
+				removeIcon.addEventListener('click', function() {
+					tagElement.remove(); // Ta bort hela tag-elementet
+
+					// Lägg tillbaka taggen till datalistan
+					addTagToDatalist(tagText);
+
+					// Uppdatera hidden input genom att ta bort taggen
+					var index = currentTags.indexOf(tagText);
+					if (index > -1) {
+						currentTags.splice(index, 1);
+					}
+					updateHiddenInput(currentTags);
+				});
+			} 
+		}
+
+		// Funktion för att hantera både server-renderade och dynamiskt tillagda taggar
+		function initializeTags() {
+			var hiddenInput = document.getElementById('selectedTags');
+			var currentTags = hiddenInput.value ? hiddenInput.value.split(',') : [];
+
+			// Lägg till händelselyssnare på befintliga taggar (server-renderade)
+			var tagItems = document.querySelectorAll('.tagItem');
+			tagItems.forEach(function(tagElement) {
+				var tagText = tagElement.querySelector('span').innerText;
+				addRemoveTagListener(tagElement, tagText, currentTags);
+				removeTagFromDatalist(tagText);
+			});
+		}
+
+		// Funktion för att lägga till ny tagg i container och uppdatera hidden input
+		function updateSelectedTag(tag) {
+			if (tag) {
+				var tagElement = document.createElement('div');
+				tagElement.innerHTML = createTagElement(tag).trim(); // Skapa taggen
+				tagElement = tagElement.firstChild;
+				
+				document.getElementById('selectedTagContainer').appendChild(tagElement); // Lägg till i DOM
+
+				// Lägg till taggen i hidden input (komma-separerade värden)
+				var hiddenInput = document.getElementById('selectedTags');
+				var currentTags = hiddenInput.value ? hiddenInput.value.split(',') : [];
+				currentTags.push(tag);
+				updateHiddenInput(currentTags);
+
+				// Lägg till händelselyssnare för den nya taggen
+				addRemoveTagListener(tagElement, tag, currentTags);
+
+				// Ta bort taggen från datalistan
+				removeTagFromDatalist(tag);
+			}
+		}
+	</script>
+
 	<div class="w-full px-8">
 		<div class="flex items-center w-full justify-between">
 			if model.Thing.ThingID == "" {
@@ -210,10 +331,6 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 								</div>
 							</div>
 						</div>
-						/*<div class="flex flex-col gap-2">
-							<div class="font-bold">{ l10n.Get("description") }</div>
-							<div class=""></div>
-						</div>*/
 					</div>
 				</div>
 				//@AlarmList(l10n)
@@ -332,6 +449,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 											placeholder={ l10n.Get("picksensor") }
 											class="text-sm p-2 rounded-xl w-full block focus:outline-none"
 											value={ model.RelatedDevice }
+											id="sensorInput"
 										/>
 										<datalist id="filter-options">
 											for _, sensor := range model.ValidSensors {
@@ -346,33 +464,53 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 									</div>
 								</div>
 							</div>
-							<div class="flex flex-start gap-10 self-stretch">
-								<div class="flex flex-col gap-2">
-									<div class="flex items-center gap-2 flex-wrap">
-										<div class="flex items-center flex-[1_0_0] gap-6">
-											@CheckboxList( l10n.Get("choosetags") ) {
-												for _, t := range model.Tags {
-													@CheckboxOption("tags", t, "", l10n, templ.Attributes{
-														"checked": slices.Contains(model.Thing.Tags, t),
-													})
-												}
-											}
-											<input type="text" name="newtags" class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2 italic text-sm" placeholder={ l10n.Get("addtag") }/>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="flex flex-start gap-10 self-stretch">
-								<div class="flex flex-col gap-2">
-									<div class="flex items-center gap-2 flex-wrap">
-										for _, tag := range model.Thing.Tags {
-											<div class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
-												{ tag }
-											</div>
+							//Lägg till taggar
+							<div class="font-bold">{ l10n.Get("tags") }</div>
+							<div class="flex flex-start self-stretch gap-3">
+								<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
+									<input
+										list="tag-options"
+										name="tags"
+										placeholder={ l10n.Get("addtag") }
+										class="text-sm p-2 rounded-xl w-full block focus:outline-none"
+										id="tagInput"
+									/>
+									<datalist id="tag-options">
+										for _, t := range model.Tags {
+											<option value={ t }>{ t }</option>
 										}
+									</datalist>
+									<div class="pointer-events-none absolute bg-white rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
+										<svg class="w-[18px] h-[18px] dark:fill-white">
+											@templ.Raw(iconSVG("chevron-down"))
+										</svg>
 									</div>
 								</div>
+								<div id="addTagButton" class="flex gap-2 rounded-xl whitespace-nowrap cursor-pointer font-bold px-4 py-2 bg-tertiary-surface rounded-xl hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-white-30 text-primary-dark dark:text-white">
+									Lägg till
+								</div>
 							</div>
+
+							<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
+								<div id="selectedTagContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full">
+									for _, tag := range model.Thing.Tags {
+										<div class="flex items-center p-2 rounded-full gap-1 tagItem border-gray-30 dark:border-white-30 border stroke-primary-dark dark:stroke-white">
+											<span>{ tag }</span>
+											<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x removeTagIcon cursor-pointer">
+												<line x1="18" y1="6" x2="6" y2="18"></line>
+												<line x1="6" y1="6" x2="18" y2="18"></line>
+											</svg>
+										</div>
+									}
+								</div>
+							</div>
+
+							<!-- Ett hidden input för alla taggar separerade med kommatecken, förifylld från backend -->
+							<input type="hidden" id="selectedTags" name="selectedTags" value={ strings.Join(model.Thing.Tags, ",") }>
+
+							
+
+							
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("description") }</div>
