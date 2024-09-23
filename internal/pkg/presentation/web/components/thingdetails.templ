@@ -293,9 +293,13 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("name") }</div>
 									<div class="">
-										<input type="text" name="name" class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" 
-												placeholder="" 
-												value={ model.Thing.Name }/>
+										<input
+											type="text"
+											name="name"
+											class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
+											placeholder=""
+											value={ model.Thing.Name }
+										/>
 									</div>
 								</div>
 								<div class="flex flex-col gap-2 flex-1">
@@ -321,9 +325,10 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 										}
 									}
 									<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
+										<input type="hidden" name="currentDevice" value={ model.RelatedDevice }/>
 										<input
 											list="filter-options"
-											name="filter"
+											name="relatedDevice"
 											placeholder={ l10n.Get("picksensor") }
 											class="text-sm p-2 rounded-xl w-full block focus:outline-none"
 											value={ model.RelatedDevice }
@@ -372,7 +377,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("description") }</div>
 									<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" placeholder={ l10n.Get("description") }>
-											{ model.Thing.Description }
+										{ model.Thing.Description }
 									</textarea>
 								</div>
 							</div>

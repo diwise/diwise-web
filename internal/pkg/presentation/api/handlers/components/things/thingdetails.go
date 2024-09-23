@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -184,61 +185,15 @@ func NewSaveThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle
 			return
 		}
 
-		asFloat := func(s string) (float64, bool) {
-			if f, err := strconv.ParseFloat(s, 64); err == nil {
-				return f, true
-			}
-			return 0.0, false
-		}
-
 		id := r.Form.Get("id")
 
 		if r.Form.Has("save") {
-			fields := make(map[string]any)
-			fields["tags"] = []string{}
-
-			for k := range r.Form {
-				v := r.Form.Get(k)
-
-				if v == "" {
-					continue
-				}
-
-				switch k {
-				case "longitude":
-					if _, ok := fields["location"]; !ok {
-						fields["location"] = application.Location{}
-					}
-
-					if f, ok := asFloat(v); ok {
-						loc := fields["location"].(application.Location)
-						loc.Longitude = f
-						fields["location"] = loc
-					}
-				case "latitude":
-					if _, ok := fields["location"]; !ok {
-						fields["location"] = application.Location{}
-					}
-
-					if f, ok := asFloat(v); ok {
-						loc := fields["location"].(application.Location)
-						loc.Latitude = f
-						fields["location"] = loc
-					}
-				case "organisation":
-					fields["tenant"] = v
-				case "tags":
-					fields["tags"] = appendTag(fields["tags"], r.Form[k])
-				case "newtags":
-					fields["tags"] = appendTag(fields["tags"], strings.Split(v, ","))
-				case "name":
-					fields["name"] = strings.TrimSpace(v)
-				case "description":
-					fields["description"] = strings.TrimSpace(v)
-
-				}
+			fields := formToFields(r.Form)
+			err = connectSensor(ctx, id, fields, app)
+			if err != nil {
+				http.Error(w, "could not connect sensor", http.StatusInternalServerError)
+				return
 			}
-
 			err = app.UpdateThing(ctx, id, fields)
 			if err != nil {
 				http.Error(w, "could not update thing", http.StatusInternalServerError)
@@ -250,6 +205,86 @@ func NewSaveThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle
 	}
 
 	return http.HandlerFunc(fn)
+}
+
+func connectSensor(ctx context.Context, thingID string, fields map[string]any, app application.ThingManagement) error {
+	currentID, currentOk := fields["currentDevice"].(string)
+	newID, newOk := fields["relatedDevice"].(string)
+
+	if !currentOk || !newOk {
+		return fmt.Errorf("could not connect sensor, invalid ID")
+	}
+
+	if currentID == newID {
+		return nil
+	}
+
+	err := app.ConnectSensor(ctx, thingID, currentID, newID)
+
+	delete(fields, "currentDevice")
+	delete(fields, "relatedDevice")
+
+	return err
+}
+
+func formToFields(form url.Values) map[string]any {
+	asFloat := func(s string) (float64, bool) {
+		if f, err := strconv.ParseFloat(s, 64); err == nil {
+			return f, true
+		}
+		return 0.0, false
+	}
+
+	fields := make(map[string]any)
+	fields["tags"] = []string{}
+	fields["currentDevice"] = ""
+
+	for k := range form {
+		v := form.Get(k)
+
+		if v == "" {
+			continue
+		}
+
+		switch k {
+		case "longitude":
+			if _, ok := fields["location"]; !ok {
+				fields["location"] = application.Location{}
+			}
+
+			if f, ok := asFloat(v); ok {
+				loc := fields["location"].(application.Location)
+				loc.Longitude = f
+				fields["location"] = loc
+			}
+		case "latitude":
+			if _, ok := fields["location"]; !ok {
+				fields["location"] = application.Location{}
+			}
+
+			if f, ok := asFloat(v); ok {
+				loc := fields["location"].(application.Location)
+				loc.Latitude = f
+				fields["location"] = loc
+			}
+		case "organisation":
+			fields["tenant"] = v
+		case "tags":
+			fields["tags"] = appendTag(fields["tags"], form[k])
+		case "newtags":
+			fields["tags"] = appendTag(fields["tags"], strings.Split(v, ","))
+		case "name":
+			fields["name"] = strings.TrimSpace(v)
+		case "description":
+			fields["description"] = strings.TrimSpace(v)
+		case "currentDevice":
+			fields["currentDevice"] = strings.TrimSpace(v)
+		case "relatedDevice":
+			fields["relatedDevice"] = strings.TrimSpace(v)
+		}
+	}
+
+	return fields
 }
 
 func appendTag(field any, tags []string) []string {
