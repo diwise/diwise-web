@@ -19,6 +19,8 @@ type Thing struct {
 	ThingID      string        `json:"thing_id"`
 	ID           string        `json:"id"`
 	Type         string        `json:"type,omitempty"`
+	Name         string        `json:"name,omitempty"`
+	Description  string        `json:"description,omitempty"`
 	Location     Location      `json:"location,omitempty"`
 	Tenant       string        `json:"tenant,omitempty"`
 	Tags         []string      `json:"tags,omitempty"`

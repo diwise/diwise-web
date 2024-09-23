@@ -223,6 +223,11 @@ func NewSaveThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle
 					fields["tags"] = appendTag(fields["tags"], r.Form[k])
 				case "newtags":
 					fields["tags"] = appendTag(fields["tags"], strings.Split(v, ","))
+				case "name":
+					fields["name"] = strings.TrimSpace(v)
+				case "description":
+					fields["description"] = strings.TrimSpace(v)
+
 				}
 			}
 
@@ -257,6 +262,7 @@ func appendTag(field any, tags []string) []string {
 func unique(s []string) []string {
 	unique := make(map[string]struct{})
 	for _, v := range s {
+		v = strings.TrimSpace(v)
 		unique[v] = struct{}{}
 	}
 

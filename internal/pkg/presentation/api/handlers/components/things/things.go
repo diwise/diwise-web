@@ -246,6 +246,8 @@ func toViewModel(thing application.Thing) components.ThingViewModel {
 		ThingID:      thing.ThingID,
 		ID:           thing.ID,
 		Type:         thing.Type,
+		Name:         thing.Name,
+		Description:  thing.Description,
 		Latitude:     thing.Location.Latitude,
 		Longitude:    thing.Location.Longitude,
 		Tenant:       thing.Tenant,
