@@ -45,13 +45,16 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			params = append(params,
 				application.WithLastN(true),
 				application.WithReverse(true),
-				application.WithTimeRel("between", timeAt, endTimeAt))
+				application.WithTimeRel("between", timeAt, endTimeAt),
+				application.WithLimit(1000))
+
 		case "passage":
 			params = append(params,
 				application.WithTimeUnit("hour"),
 				application.WithAggrMethods("rate"),
 				application.WithBoolValue(true),
-				application.WithTimeRel("between", timeAt, endTimeAt))
+				application.WithTimeRel("between", timeAt, endTimeAt),
+				application.WithLimit(100))
 		default:
 			params = append(params,
 				application.WithLastN(true),
@@ -91,7 +94,7 @@ func NewCurrentValueComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
-		//localizer := l10n.For(r.Header.Get("Accept-Language"))
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		ctx := logging.NewContextWithLogger(r.Context(), log)
 		thingType := strings.ToLower(r.PathValue("type"))
 		if thingType == "" {
@@ -136,10 +139,15 @@ func NewCurrentValueComponentHandler(ctx context.Context, l10n locale.Bundle, as
 
 		switch thingType {
 		case "wastecontainer":
-
+			if len(measurements.Values) == 0 {
+				component = components.Text(localizer.Get("noData"))
+			} else {
+				last := measurements.Values[len(measurements.Values)-1]
+				component = components.Text(fmt.Sprintf("%0.f%%", *last.Value))
+			}
 		case "passage":
 			if len(measurements.Values) == 0 {
-				component = components.Text("-")
+				component = components.Text(localizer.Get("noData"))
 			} else {
 				last := measurements.Values[len(measurements.Values)-1]
 				component = components.Text(fmt.Sprintf("%d st", last.Count))
