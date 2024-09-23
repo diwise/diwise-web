@@ -12,7 +12,7 @@ type ThingManagement interface {
 	GetTenants(ctx context.Context) []string
 	GetTags(ctx context.Context) ([]string, error)
 	GetTypes(ctx context.Context) ([]string, error)
-	GetValidSensors(ctx context.Context, types []string) ([]string, error)
+	GetValidSensors(ctx context.Context, types []string) ([]SensorIdentifier, error)
 }
 
 type Thing struct {
@@ -37,6 +37,8 @@ type Measurement struct {
 	Unit        string    `json:"unit,omitempty"`
 	Value       *float64  `json:"v,omitempty"`
 }
+
+
 
 type ThingResult struct {
 	Things       []Thing

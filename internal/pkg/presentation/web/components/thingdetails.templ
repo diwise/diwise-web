@@ -15,9 +15,15 @@ type ThingDetailsViewModel struct {
 	Organisations []string
 	Tenant        string
 	TableView     bool
-	ValidSensors  []string
+	ValidSensors  []ValidSensorViewModel
 	Tags          []string
 	RelatedDevice string
+}
+
+type ValidSensorViewModel struct {
+	SensorID string
+	DeviceID string
+	Decoder  string
 }
 
 templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
@@ -320,7 +326,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 										/>
 										<datalist id="filter-options">
 											for _, sensor := range model.ValidSensors {
-												<option value={ sensor }></option>
+												<option value={ sensor.DeviceID }>{ fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder) }</option>
 											}
 										</datalist>
 										<div class="pointer-events-none absolute bg-white rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">

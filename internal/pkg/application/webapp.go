@@ -104,24 +104,28 @@ func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
 	return thing, nil
 }
 
-func (a *App) GetValidSensors(ctx context.Context, types []string) ([]string, error) {
+func (a *App) GetValidSensors(ctx context.Context, types []string) ([]SensorIdentifier, error) {
 	params := url.Values{
 		"urn": types,
 	}
 	res, err := a.get(ctx, a.deviceManagementURL, "", params)
 	if err != nil {
-		return []string{}, err
+		return []SensorIdentifier{}, err
 	}
 
 	var sensors []Sensor
 	err = json.Unmarshal(res.Data, &sensors)
 	if err != nil {
-		return []string{}, err
+		return []SensorIdentifier{}, err
 	}
 
-	var sensorIDs []string
+	var sensorIDs []SensorIdentifier
 	for _, s := range sensors {
-		sensorIDs = append(sensorIDs, s.DeviceID)
+		sensorIDs = append(sensorIDs, SensorIdentifier{
+			SensorID: s.SensorID,
+			DeviceID: s.DeviceID,
+			Decoder:  s.DeviceProfile.Decoder,
+		})
 	}
 
 	return sensorIDs, nil

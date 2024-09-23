@@ -133,7 +133,15 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 				urn = append(urn, "urn:oma:lwm2m:ext:3200", "urn:oma:lwm2m:ext:3434")
 			}
 
-			thingDetailsViewModel.ValidSensors, _ = app.GetValidSensors(ctx, urn)
+			validSensors, _ := app.GetValidSensors(ctx, urn)
+			for _, s := range validSensors {
+				thingDetailsViewModel.ValidSensors = append(thingDetailsViewModel.ValidSensors, components.ValidSensorViewModel{
+					SensorID: s.SensorID,
+					DeviceID: s.DeviceID,
+					Decoder:  s.Decoder,
+				})
+			}
+
 			thingDetailsViewModel.Organisations = app.GetTenants(ctx)
 			thingDetailsViewModel.Tags, _ = app.GetTags(ctx)
 

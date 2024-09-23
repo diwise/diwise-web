@@ -70,6 +70,12 @@ type Sensor struct {
 	DeviceState   *DeviceState   `json:"deviceState,omitempty"`
 }
 
+type SensorIdentifier struct {
+	SensorID string `json:"sensorID,omitempty"`
+	DeviceID string `json:"deviceID"`
+	Decoder  string `json:"decoder"`
+}
+
 type SensorResult struct {
 	Sensors      []Sensor
 	TotalRecords int
