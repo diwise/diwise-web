@@ -7,6 +7,9 @@ other = "Active"
 [activesensors]
 other = "Active sensors"
 
+[add]
+other = "Add"
+
 [addthing]
 other = "Add new thing"
 
@@ -136,6 +139,9 @@ other = "more"
 [name]
 other = "Name"
 
+[no]
+other = "No"
+
 [notloggedin]
 other = "Please log in"
 
@@ -243,6 +249,9 @@ other = "Unknown"
 
 [unknownsensors]
 other = "Unknown sensors"
+
+[yes]
+other = "Yes"
 
 [3-9]
 other = "Battery level (%)"
