@@ -87,7 +87,7 @@ templ ThingsTableComponent(l10n locale.Localizer, model ThingsListViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-dark-primary dark:border-white">
 			<tr>
-				<th class="px-6 py-3">{ l10n.Get("id") }</th>
+				<th class="px-6 py-3">{ l10n.Get("name") }</th>
 				<th class="px-6 py-3">{ l10n.Get("type") }</th>
 				<th class="px-6 py-3">{ l10n.Get("status") }</th>
 				<th class="px-6 py-3">{ l10n.Get("tags") }</th>
@@ -116,7 +116,15 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 		hx-push-url={ string(templ.SafeURL(fmt.Sprintf("/things/%s", thing.ThingID))) }
 		hx-trigger="click"
 	>
-		<td class="px-6 py-3"><span class="font-bold">{ thing.ID }</span></td>
+		<td class="px-6 py-3">
+			<span class="font-bold">
+				if len(thing.Name) > 0 {
+					{ thing.Name }
+				} else {
+					{ thing.ID }
+				}
+			</span>
+		</td>
 		<td class="px-6 py-3">{ l10n.Get(thing.Type) }</td>
 		<td class="px-6 py-3">
 			@ThingStatusCell(l10n, thing)
