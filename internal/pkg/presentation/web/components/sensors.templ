@@ -62,7 +62,7 @@ templ SensorsFilter(l10n locale.Localizer) {
 		<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 			<div class="flex items-center flex-[1_0_0] gap-6">
 				@CheckboxList(l10n.Get("type")) {
-					for _, t := range []string{"axsensor", "elsys","elt_2_hp",  "enviot", "milesight",  "niab-fls","qalcosonic",   "senlabt","sensative","sensefarm","vegapuls_air_41"} {
+					for _, t := range []string{"axsensor", "elsys","elt_2_hp",  "enviot", "milesight",  "niab-fls","qalcosonic",   "senlabt","sensative","sensefarm","vegapuls_air_41","unknown"} {
 						@CheckboxOption("type", t, "", l10n, templ.Attributes{
 							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 							"hx-target": "#tableOrMap",
@@ -162,29 +162,29 @@ func sensorsToMapFeature(l10n locale.Localizer, model SensorListViewModel) Featu
 		feature.AddProperty("name", sensor.Name)
 		feature.AddProperty("deveui", sensor.DevEUI)
 		if sensor.BatteryLevel >= 0 {
-            feature.AddProperty("batterylevel", fmt.Sprintf("%d%%", sensor.BatteryLevel))
-        } else {
-            feature.AddProperty("batterylevel", "-")
-        }
-        if !sensor.LastSeen.IsZero() {
-            feature.AddProperty("lastseen", sensor.LastSeen.Format("2006-01-02, 15:04"))
-        } else {
-            feature.AddProperty("lastseen", "-")
-        }
+			feature.AddProperty("batterylevel", fmt.Sprintf("%d%%", sensor.BatteryLevel))
+		} else {
+			feature.AddProperty("batterylevel", "-")
+		}
+		if !sensor.LastSeen.IsZero() {
+			feature.AddProperty("lastseen", sensor.LastSeen.Format("2006-01-02, 15:04"))
+		} else {
+			feature.AddProperty("lastseen", "-")
+		}
 		feature.AddProperty("latitude", sensor.Latitude)
 		feature.AddProperty("longitude", sensor.Longitude)
 		feature.AddProperty("url", fmt.Sprintf("/sensors/%s", sensor.DeviceID))
 
 		//Språkstöd
-		feature.AddProperty("text_active", l10n.Get("active")) 
-		feature.AddProperty("text_inactive", l10n.Get("inactive")) 
-		feature.AddProperty("text_deveui", l10n.Get("deveui")) 
-		feature.AddProperty("text_sensortype", l10n.Get("sensortype")) 
-		feature.AddProperty("text_batterylevel", l10n.Get("batterylevel")) 
+		feature.AddProperty("text_active", l10n.Get("active"))
+		feature.AddProperty("text_inactive", l10n.Get("inactive"))
+		feature.AddProperty("text_deveui", l10n.Get("deveui"))
+		feature.AddProperty("text_sensortype", l10n.Get("sensortype"))
+		feature.AddProperty("text_batterylevel", l10n.Get("batterylevel"))
 		feature.AddProperty("text_position", l10n.Get("location"))
 		feature.AddProperty("text_lastseen", l10n.Get("lastseen"))
 		feature.AddProperty("text_moreinformation", l10n.Get("moreinformation"))
-		
+
 		features = append(features, feature)
 	}
 

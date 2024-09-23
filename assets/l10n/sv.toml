@@ -306,3 +306,6 @@ other = "Soptunna"
 
 [wastecontainer]
 other = "Soptunna"
+
+[noData]
+other = "-"
