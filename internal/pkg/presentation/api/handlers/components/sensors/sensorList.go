@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"time"
 
@@ -57,15 +58,24 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 
 		model := components.SensorListViewModel{
-			Sensors: make([]components.SensorViewModel, 0),
-			Pageing: getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
-			MapView: showMap,
+			Sensors:        make([]components.SensorViewModel, 0),
+			Pageing:        getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			MapView:        showMap,
+			DeviceProfiles: make([]string, 0),
 		}
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
 			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor)
 			model.Sensors = append(model.Sensors, tvm)
+		}
+
+		profiles := app.GetDeviceProfiles(ctx)
+		for _, p := range profiles {
+			model.DeviceProfiles = append(model.DeviceProfiles, p.Decoder)
+		}
+		if !slices.Contains(model.DeviceProfiles, "unknown") {
+			model.DeviceProfiles = append(model.DeviceProfiles, "unknown")
 		}
 
 		model.Statistics = getStatistics(ctx, app)
