@@ -245,11 +245,11 @@ func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component
 	colourClass := ""
 	switch {
 	case value >= 70:
-		colourClass = "bg-red-600"
+		colourClass = "bg-red-600 dark:bg-err-prim-surf"
 	case value <= 40:
-		colourClass = "bg-green-700"
+		colourClass = "bg-green-700 dark:bg-primary-surface-green-accent"
 	default:
-		colourClass = "bg-orange-600"
+		colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent"
 	}
 
 	return ProgressBar(colourClass, text, value)
