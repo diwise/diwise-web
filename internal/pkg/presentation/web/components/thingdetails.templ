@@ -333,7 +333,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 							<div class="flex flex-col gap-2">
 								<div class="flex items-center gap-2 flex-wrap">
 									for _, tag := range model.Thing.Tags {
-										<div class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+										<div class="px-2 py-1 rounded-full text-sm border-gray-30 dark:border-white-30 border-2 dark:text-secondary ">
 											{ tag }
 										</div>
 									}
@@ -450,7 +450,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 											list="filter-options"
 											name="relatedDevice"
 											placeholder={ l10n.Get("picksensor") }
-											class="text-sm p-2 rounded-xl w-full block focus:outline-none"
+											class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
 											value={ model.RelatedDevice }
 											id="sensorInput"
 										/>
@@ -459,7 +459,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 												<option value={ sensor.DeviceID }>{ fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder) }</option>
 											}
 										</datalist>
-										<div class="pointer-events-none absolute bg-white rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
+										<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
 											<svg class="w-[18px] h-[18px] dark:fill-white">
 												@templ.Raw(iconSVG("chevron-down"))
 											</svg>
@@ -475,7 +475,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 										<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
 											<div id="selectedTagContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full">
 												for _, tag := range model.Thing.Tags {
-													<div class="flex items-center p-2 rounded-full gap-1 tagItem border-gray-30 dark:border-white-30 border stroke-primary-dark dark:stroke-white">
+													<div class="flex items-center p-2 rounded-full gap-1 tagItem border-gray-30 dark:border-white-30 dark:text-secondary border stroke-primary-dark dark:stroke-white">
 														<span>{ tag }</span>
 														<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x removeTagIcon cursor-pointer">
 															<line x1="18" y1="6" x2="6" y2="18"></line>
@@ -492,7 +492,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 												list="tag-options"
 												name="tags"
 												placeholder={ l10n.Get("addtag") }
-												class="text-sm p-2 rounded-xl w-full block focus:outline-none"
+												class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
 												id="tagInput"
 											/>
 											<datalist id="tag-options">
@@ -500,7 +500,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 													<option value={ t }>{ t }</option>
 												}
 											</datalist>
-											<div class="pointer-events-none absolute bg-white rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
+											<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
 												<svg class="w-[18px] h-[18px] dark:fill-white">
 													@templ.Raw(iconSVG("chevron-down"))
 												</svg>
@@ -553,7 +553,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 					</div>
 				</div>
 			</div>
-			<div class="h-px border-t border-gray-30 w-full"></div>
+			<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
 			<div class="flex items-center justify-end py-6">
 				//@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"))
 				<div class="flex items-center gap-4">
