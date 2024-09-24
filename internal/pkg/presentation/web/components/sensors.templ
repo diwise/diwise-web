@@ -7,10 +7,11 @@ import (
 )
 
 type SensorListViewModel struct {
-	Sensors    []SensorViewModel
-	Statistics StatisticsViewModel
-	Pageing    PagingViewModel
-	MapView    bool
+	Sensors        []SensorViewModel
+	Statistics     StatisticsViewModel
+	Pageing        PagingViewModel
+	MapView        bool
+	DeviceProfiles []string
 }
 
 type SensorViewModel struct {
@@ -51,18 +52,18 @@ templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
 		</div>
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 		<div class="flex px-8 flex-col items-start self-stretch gap-10">
-			@SensorsFilter(l10n)
+			@SensorsFilter(l10n, model)
 			@DataList(l10n, SensorsTable(l10n, model), SensorMap(l10n, model), model.MapView)
 		</div>
 	</div>
 }
 
-templ SensorsFilter(l10n locale.Localizer) {
+templ SensorsFilter(l10n locale.Localizer, model SensorListViewModel) {
 	<div class="w-full h-12 justify-between items-center inline-flex">
 		<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
 			<div class="flex items-center flex-[1_0_0] gap-6">
 				@CheckboxList(l10n.Get("type")) {
-					for _, t := range []string{"axsensor", "elsys","elt_2_hp",  "enviot", "milesight",  "niab-fls","qalcosonic",   "senlabt","sensative","sensefarm","vegapuls_air_41","unknown"} {
+					for _, t := range model.DeviceProfiles {
 						@CheckboxOption("type", t, "", l10n, templ.Attributes{
 							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 							"hx-target": "#tableOrMap",
