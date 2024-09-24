@@ -157,14 +157,14 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 		// Funktion för att lägga tillbaka en tagg till datalistan
 		function addTagToDatalist(tag) {
 			const datalist = document.getElementById('tag-options');
+			if (datalist.querySelector(`option[value="${tag}"]`)) {
+				return; 
+			}
 			const option = document.createElement('option');
 			option.value = tag;
 			option.textContent = tag;
-
-			// Hitta rätt plats att sätta in optionen i bokstavsordning
 			const options = Array.from(datalist.children);
 			let inserted = false;
-
 			for (let i = 0; i < options.length; i++) {
 				if (options[i].value.localeCompare(tag) > 0) {
 					datalist.insertBefore(option, options[i]);
@@ -172,8 +172,6 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 					break;
 				}
 			}
-
-			// Om vi inte hittade någon tidigare option att sätta in före, lägg den sist
 			if (!inserted) {
 				datalist.appendChild(option);
 			}
@@ -203,12 +201,8 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 			const removeIcon = tagElement.querySelector('.removeTagIcon');
 			if (removeIcon) {
 				removeIcon.addEventListener('click', function() {
-					tagElement.remove(); // Ta bort hela tag-elementet
-
-					// Lägg tillbaka taggen till datalistan
+					tagElement.remove(); 
 					addTagToDatalist(tagText);
-
-					// Uppdatera hidden input genom att ta bort taggen
 					var index = currentTags.indexOf(tagText);
 					if (index > -1) {
 						currentTags.splice(index, 1);
@@ -222,8 +216,6 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 		function initializeTags() {
 			var hiddenInput = document.getElementById('selectedTags');
 			var currentTags = hiddenInput.value ? hiddenInput.value.split(',') : [];
-
-			// Lägg till händelselyssnare på befintliga taggar (server-renderade)
 			var tagItems = document.querySelectorAll('.tagItem');
 			tagItems.forEach(function(tagElement) {
 				var tagText = tagElement.querySelector('span').innerText;
@@ -236,21 +228,15 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 		function updateSelectedTag(tag) {
 			if (tag) {
 				var tagElement = document.createElement('div');
-				tagElement.innerHTML = createTagElement(tag).trim(); // Skapa taggen
+				tagElement.innerHTML = createTagElement(tag).trim();
 				tagElement = tagElement.firstChild;
 				
-				document.getElementById('selectedTagContainer').appendChild(tagElement); // Lägg till i DOM
-
-				// Lägg till taggen i hidden input (komma-separerade värden)
+				document.getElementById('selectedTagContainer').appendChild(tagElement);
 				var hiddenInput = document.getElementById('selectedTags');
 				var currentTags = hiddenInput.value ? hiddenInput.value.split(',') : [];
 				currentTags.push(tag);
 				updateHiddenInput(currentTags);
-
-				// Lägg till händelselyssnare för den nya taggen
 				addRemoveTagListener(tagElement, tag, currentTags);
-
-				// Ta bort taggen från datalistan
 				removeTagFromDatalist(tag);
 			}
 		}
@@ -309,15 +295,23 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("name") }</div>
-							<div class="">
-								{ l10n.Get(model.Thing.Name) }
-							</div>
+							if model.Thing.Name == "" {
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
+							} else {
+								<div class="">
+									{ l10n.Get(model.Thing.Name) }
+								</div>
+							}
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
-							<div class="">
-								{ l10n.Get(model.Thing.Description) }
-							</div>
+							if model.Thing.Description == "" {
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
+							} else {
+								<div class="">
+									{ l10n.Get(model.Thing.Description) }
+								</div>
+							}
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
@@ -522,10 +516,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 									<input type="hidden" id="selectedTags" name="selectedTags" value={ strings.Join(model.Thing.Tags, ",") }>
 								</div>
 							</div>
-
-							
-
-							
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("description") }</div>
