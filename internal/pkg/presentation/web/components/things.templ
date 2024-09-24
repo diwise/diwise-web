@@ -244,9 +244,9 @@ func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component
 
 	colourClass := ""
 	switch {
-	case value >= 70:
+	case value >= 51:
 		colourClass = "bg-red-600 dark:bg-err-prim-surf"
-	case value <= 40:
+	case value <= 30:
 		colourClass = "bg-green-700 dark:bg-primary-surface-green-accent"
 	default:
 		colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent"
