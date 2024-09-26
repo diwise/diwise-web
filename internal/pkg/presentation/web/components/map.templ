@@ -167,9 +167,9 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
                     if (feature.properties.type.toLowerCase() === 'wastecontainer') {
                         const fillinglevel = feature.properties.fillinglevel;
 
-                        if (fillinglevel <= 40) {
+                        if (fillinglevel <= 30) {
                             icon = trachcanIconGreen; // Låg fyllnadsnivå
-                        } else if (fillinglevel > 40 && fillinglevel <= 69) {
+                        } else if (fillinglevel > 31 && fillinglevel <= 51) {
                             icon = trashcanIcon; // Medel fyllnadsnivå
                         } else {
                             icon = trachcanIconRed; // Hög fyllnadsnivå
@@ -210,10 +210,10 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
                                 let colorClass = 'bg-green-700';
                                 let tipColor = '#00733B';
 
-                                if (fillinglevel >= 70) {
+                                if (fillinglevel >= 51) {
                                     colorClass = 'bg-red-600';
                                     tipColor = '#D62E2E';
-                                } else if (fillinglevel > 40 && fillinglevel < 70) {
+                                } else if (fillinglevel > 30 && fillinglevel < 50) {
                                     colorClass = 'bg-orange-600';
                                     tipColor = '#DB6900';
                                 }
@@ -310,9 +310,9 @@ templ Map(mapsize string, showPopup bool, data mapData, featureCollection ...Fea
                                 } else if (cv === "thing" && feature.properties.type.toLowerCase() === "wastecontainer") {
                                     var colourClass = "bg-background-200";
 
-                                    if (feature.properties.fillinglevel >= 70) {
+                                    if (feature.properties.fillinglevel >= 51) {
                                         colourClass = "bg-red-600 dark:bg-err-prim-surf";
-                                    } else if (feature.properties.fillinglevel <= 40) {
+                                    } else if (feature.properties.fillinglevel <= 30) {
                                         colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
                                     } else {
                                         colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
