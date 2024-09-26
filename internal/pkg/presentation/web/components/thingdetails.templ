@@ -418,7 +418,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("name") }</div>
-									<div class="">
 										<input
 											type="text"
 											name="name"
@@ -426,7 +425,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 											placeholder=""
 											value={ model.Thing.Name }
 										/>
-									</div>
 								</div>
 								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
