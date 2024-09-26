@@ -198,7 +198,7 @@ func SensorMap(l10n locale.Localizer, model SensorListViewModel) templ.Component
 	}
 	mapData := newMapData(62.3908, 17.3069)
 	mapData.CurrentView = "sensor"
-	return Map("large", true, mapData, sensorsToMapFeature(l10n, model))
+	return Map("large", true, false, mapData, sensorsToMapFeature(l10n, model))
 }
 
 templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {

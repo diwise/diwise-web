@@ -177,7 +177,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 							<div class="font-bold">{ l10n.Get("longitude") }</div>
 							<div class="">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
 						</div>
-						@Map("medium", false, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
+						@Map("medium", false, false, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
 					</div>
 				</div>
 			</div>
@@ -290,7 +290,8 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("latitude") }</div>
 									<input type="number" 
-											name="latitude" 
+											name="latitude"
+											id="latitude" 
 											min="-90" 
 											max="90" 
 											step="0.000001"
@@ -302,6 +303,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 									<div class="font-bold">{ l10n.Get("longitude") }</div>
 									<input type="number" 
 											name="longitude" 
+											id="longitude"
 											min="-180" 
 											max="180" 
 											step="0.000001"
@@ -310,7 +312,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 											placeholder="Longitud"/>
 								</div>
 							</div>
-							@Map("medium", false, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
+							@Map("medium", false, true, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
 						</div>
 					</div>
 				</div>

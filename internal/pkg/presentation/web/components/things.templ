@@ -271,7 +271,7 @@ func ThingsMap(l10n locale.Localizer, model ThingsListViewModel) templ.Component
 	}
 	mapData := newMapData(62.3908, 17.3069)
 	mapData.CurrentView = "thing"
-	return Map("large", true, mapData, thingsToMapFeature(l10n, model.Things))
+	return Map("large", true, false, mapData, thingsToMapFeature(l10n, model.Things))
 }
 
 func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureCollection {
