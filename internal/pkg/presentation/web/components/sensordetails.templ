@@ -6,11 +6,12 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"slices"
 	"strings"
+	"time"
 )
 
 type SensorDetailsViewModel struct {
 	DeviceID          string
-	DevEUI			  string
+	DevEUI            string
 	Name              string
 	Latitude          float64
 	Longitude         float64
@@ -22,6 +23,7 @@ type SensorDetailsViewModel struct {
 	Organisations     []string
 	DeviceProfiles    []DeviceProfile
 	MeasurementTypes  []string
+	ObservedAt        time.Time
 }
 
 type DeviceProfile struct {
@@ -94,6 +96,10 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 						<div class="flex flex-col gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
 							<div class="">{ sensor.Description }</div>
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("lastseen") }</div>
+							<div class="">{ sensor.ObservedAt.Format("2006-01-02, 15:04") }</div>
 						</div>
 					</div>
 				</div>

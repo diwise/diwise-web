@@ -64,7 +64,9 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, a
 		}
 
 		mode := r.URL.Query().Get("mode")
-		ctx := r.Context()
+		ctx := helpers.Decorate(r.Context(),
+			components.CurrentComponent, "sensors",
+		)
 
 		detailsViewModel, err := composeViewModel(ctx, id, app)
 		if err != nil {
@@ -239,6 +241,7 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		Organisations:     tenants,
 		DeviceProfiles:    dp,
 		MeasurementTypes:  m,
+		ObservedAt:        sensor.ObservedAt(),
 	}
 	return &detailsViewModel, nil
 }

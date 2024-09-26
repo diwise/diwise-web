@@ -281,7 +281,7 @@ func getBatterLevel(ctx context.Context, app application.DeviceManagement, senso
 
 func toViewModel(sensor application.Sensor) components.SensorViewModel {
 	s := components.SensorViewModel{
-		HasAlerts:    false,
+		HasAlerts:    len(sensor.Alarms) > 0,
 		Active:       sensor.Active,
 		DeviceID:     sensor.DeviceID,
 		DevEUI:       sensor.SensorID,
