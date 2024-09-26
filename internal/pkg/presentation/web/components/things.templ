@@ -292,15 +292,11 @@ func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureC
 		}
 
 		if strings.ToLower(thing.Type) == "wastecontainer" {
-			i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
-				return strings.HasSuffix(m.ID, "3435/2") // ID för fyllnadsnivån
-			})
-
-			if i != -1 && thing.Measurements[i].Value != nil {
-				fillinglevel := int(*thing.Measurements[i].Value)
-				feature.AddProperty("fillinglevel", fillinglevel)
+			fl, ok := thing.FillingLevel()
+			if ok {
+				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
 			} else {
-				feature.AddProperty("fillinglevel", nil) // Eller 0 om det inte finns data
+				feature.AddProperty("fillinglevel", "") // Eller 0 om det inte finns data
 			}
 		}
 
