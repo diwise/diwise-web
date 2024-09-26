@@ -294,9 +294,19 @@ func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureC
 		if strings.ToLower(thing.Type) == "wastecontainer" {
 			fl, ok := thing.FillingLevel()
 			if ok {
+				var state string
+				if fl >= 51 {
+					state = "red"
+				} else if fl > 31 {
+					state = "orange"
+				} else {
+					state = "green"
+				}
 				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
+				feature.AddProperty("state", state) 
 			} else {
 				feature.AddProperty("fillinglevel", "") // Eller 0 om det inte finns data
+				feature.AddProperty("state", "green") 
 			}
 		}
 

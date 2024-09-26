@@ -81,6 +81,52 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
         }></div>
 	<script>
     (() => {
+
+        function createMarker(latlng, icon, editMode = false, onDragCallback = null, zIndexOffset = 0) {
+            const marker = L.marker(latlng, {
+                icon: icon,
+                zIndexOffset: zIndexOffset,
+                draggable: editMode
+            });
+
+            if (editMode) {
+                marker.on('drag', function(event) {
+                    const position = marker.getLatLng();
+                    document.getElementById('latitude').value = position.lat.toFixed(6);
+                    document.getElementById('longitude').value = position.lng.toFixed(6);
+
+                    if (onDragCallback) {
+                        onDragCallback(position);
+                    }
+                });
+
+                marker.on('dragend', function(event) {
+                    const position = marker.getLatLng();
+                    document.getElementById('latitude').value = position.lat.toFixed(6);
+                    document.getElementById('longitude').value = position.lng.toFixed(6);
+
+                    if (onDragCallback) {
+                        onDragCallback(position);
+                    }
+                });
+            }
+
+            marker.on('click', function() {
+                resetZIndex();
+                marker.setZIndexOffset(1000);
+            });
+
+            return marker;
+        }
+
+        function resetZIndex() {
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Marker) {
+                    layer.setZIndexOffset(0);
+                }
+            });
+        }
+
         const m = document.getElementById('map');
         const mapData = JSON.parse(m.getAttribute('data-map'));
         const geodata = JSON.parse(m.getAttribute('data-features'));
@@ -94,65 +140,38 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             //attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
         }).addTo(map);
 
-        var sensorIcon = L.icon({
-            iconUrl: '/assets/092df4bb8f2c8826dd2f1b5c79a16a145d421f40d28c4656a6205cd4816766ac/sensor.svg',  
-            iconSize: [40, 40],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
+        function createIcon(iconUrl, iconSize = [40, 40], iconAnchor = [12, 41], popupAnchor = [1, -34], shadowSize = [41, 41]) {
+            return L.icon({
+                iconUrl: iconUrl,
+                iconSize: iconSize,
+                iconAnchor: iconAnchor,
+                popupAnchor: popupAnchor,
+                shadowSize: shadowSize
+            });
+        }
+
+        var drainIcon = createIcon('/assets/4b6f555f94417954a8a1d3eace3803fed8bed1a57821134a6f75079d85b4989b/drain.svg');
+        var sensorIcon = createIcon('/assets/092df4bb8f2c8826dd2f1b5c79a16a145d421f40d28c4656a6205cd4816766ac/sensor.svg');
+        var wastecontainerIcon = createIcon('/assets/5d00f7f613cd020b3a46427c3854f9f2b3b42f35a2de051b4f5187df4984cbdd/wastecontainer.svg', [16, 16]);
+        var trashcanIcon = createIcon('/assets/0b061153871049297688d0f2a639afb3df59daa5d0f4a1afe414bc1a63d6fca3/trashcan.svg');
+        var lifebuoyIcon = createIcon('/assets/70586d0ec04481509c957c9c53e29e8dff01ccdff43490521c6748cef7301dea/lifebuoy.svg');
+        var thermometerIcon = createIcon('/assets/f1fb89b6ac04649840b18d82bd99c07e0bd15dabb4e1a571d5268f89e7b90c33/thermometer.svg');
+        var passageIcon = createIcon('/assets/16fbeaa496501a4ac0a1b54d2530258c2b4b74090b6703aebdf94d3a3ec3766d/door.svg');
         
-        var trashcanIcon = L.icon({
-            iconUrl: '/assets/0b061153871049297688d0f2a639afb3df59daa5d0f4a1afe414bc1a63d6fca3/trashcan.svg',  
-            iconSize: [40, 40],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-
-        var lifebuoyIcon = L.icon({
-            iconUrl: '/assets/70586d0ec04481509c957c9c53e29e8dff01ccdff43490521c6748cef7301dea/lifebuoy.svg',
-            iconSize: [40, 40],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-
-        var thermometerIcon = L.icon({
-            iconUrl: '/assets/f1fb89b6ac04649840b18d82bd99c07e0bd15dabb4e1a571d5268f89e7b90c33/thermometer.svg',
-            iconSize: [40, 40],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-
-        var passageIcon = L.icon({
-            iconUrl: '/assets/16fbeaa496501a4ac0a1b54d2530258c2b4b74090b6703aebdf94d3a3ec3766d/door.svg',
-            iconSize: [40, 40],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-
-        var drainIcon = L.icon({
-            iconUrl: '/assets/4b6f555f94417954a8a1d3eace3803fed8bed1a57821134a6f75079d85b4989b/drain.svg',
-            iconSize: [40, 40],
-            iconAnchor: [12, 41],
-            popupAnchor: [1, -34],
-            shadowSize: [41, 41]
-        });
-
         var layers = {};
 
         if (geodata && Array.isArray(geodata)) {
             geodata.forEach(data => {
                 data.features.forEach(feature => { 
-                    var type = feature.properties.type;
+                    var type = feature.properties.type.toLowerCase();
                     var icon;
                 
                     switch (type) {
                         case 'sensor':
                             icon = sensorIcon;
+                            break;
+                        case 'wastecontainer':
+                            icon = wastecontainerIcon;
                             break;
                         case 'lifebuoy':
                             icon = lifebuoyIcon;
@@ -172,31 +191,31 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                         default:
                             icon = sensorIcon;
                     }
+
+                    function getColorByState(state) {
+                        switch(state) {
+                            case "red":
+                                return { colorClass: 'bg-red-600', tipColor: '#D62E2E' };
+                            case "orange":
+                                return { colorClass: 'bg-orange-600', tipColor: '#DB6900' };
+                            default: // Standardfärg om state inte matchar något
+                                return { colorClass: 'bg-green-700', tipColor: '#00733B' };
+                        }
+                    }
                     
                     L.geoJSON(feature, { 
                         pointToLayer: function(feature, latlng) {
                             if (feature.properties.type.toLowerCase() === 'wastecontainer') {
                                 
-                                const fillinglevel = feature.properties.fillinglevel;
-                                let colorClass = 'bg-green-700';
-                                let tipColor = '#00733B';
-
-                                if (fillinglevel >= 51) {
-                                    colorClass = 'bg-red-600';
-                                    tipColor = '#D62E2E';
-                                } else if (fillinglevel > 30 && fillinglevel < 50) {
-                                    colorClass = 'bg-orange-600';
-                                    tipColor = '#DB6900';
-                                }
-
-                                const wastecontainerIcon = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.3335 4.00008C1.3335 3.63189 1.63197 3.33341 2.00016 3.33341H14.0002C14.3684 3.33341 14.6668 3.63189 14.6668 4.00008C14.6668 4.36827 14.3684 4.66675 14.0002 4.66675H2.00016C1.63197 4.66675 1.3335 4.36827 1.3335 4.00008Z" fill="white"/><path fill-rule="evenodd" clip-rule="evenodd" d="M3.3335 3.33341C3.70169 3.33341 4.00016 3.63189 4.00016 4.00008V13.3334C4.00016 13.4499 4.06513 13.6222 4.22157 13.7787C4.378 13.9351 4.55032 14.0001 4.66683 14.0001H11.3335C11.45 14.0001 11.6223 13.9351 11.7788 13.7787C11.9352 13.6222 12.0002 13.4499 12.0002 13.3334V4.00008C12.0002 3.63189 12.2986 3.33341 12.6668 3.33341C13.035 3.33341 13.3335 3.63189 13.3335 4.00008V13.3334C13.3335 13.8836 13.0651 14.3779 12.7216 14.7215C12.378 15.065 11.8837 15.3334 11.3335 15.3334H4.66683C4.11668 15.3334 3.62232 15.065 3.27876 14.7215C2.93519 14.3779 2.66683 13.8836 2.66683 13.3334V4.00008C2.66683 3.63189 2.96531 3.33341 3.3335 3.33341Z" fill="white"/><path fill-rule="evenodd" clip-rule="evenodd" d="M6.22157 2.22149C6.06513 2.37792 6.00016 2.55024 6.00016 2.66675V4.00008C6.00016 4.36827 5.70169 4.66675 5.3335 4.66675C4.96531 4.66675 4.66683 4.36827 4.66683 4.00008V2.66675C4.66683 2.11659 4.93519 1.62224 5.27876 1.27868C5.62232 0.935113 6.11668 0.666748 6.66683 0.666748H9.3335C9.88365 0.666748 10.378 0.935113 10.7216 1.27868C11.0651 1.62224 11.3335 2.11659 11.3335 2.66675V4.00008C11.3335 4.36827 11.035 4.66675 10.6668 4.66675C10.2986 4.66675 10.0002 4.36827 10.0002 4.00008V2.66675C10.0002 2.55024 9.93519 2.37792 9.77876 2.22149C9.62232 2.06505 9.45001 2.00008 9.3335 2.00008H6.66683C6.55032 2.00008 6.378 2.06505 6.22157 2.22149Z" fill="white"/></svg>';
+                                const { colorClass, tipColor } = getColorByState(feature.properties.state);
                                 const tipIcon = '<svg width="41" height="8" viewBox="0 0 41 8" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_1768_10260)"><rect x="6.5" y="-8" width="20" height="20" transform="rotate(-45 6.5 -8)" fill="' + tipColor + '"/></g><defs><clipPath id="clip0_1768_10260"><rect width="40" height="8" fill="white" transform="translate(0.5)"/></clipPath></defs></svg>'
 
                                 const divIcon = L.divIcon({
                                     className: '',
                                     html: '<div class="flex flex-col items-center"><div class="flex flex-col items-center justify-center ' + colorClass + ' text-white p-2 rounded-lg shadow-md gap-2">' + 
                                                 '<div class="flex flex-row items-center gap-2">' +
-                                                    wastecontainerIcon + '<div class="text-sm font-bold">' + fillinglevel + '%</div>' +
+                                                    '<img src="' + wastecontainerIcon.options.iconUrl + '" width="' + wastecontainerIcon.options.iconSize[0] + '" height="' + wastecontainerIcon.options.iconSize[1] + '">' +
+                                                        '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' +
                                                 '</div></div>' +
                                            '<div class="flex items-center">' + tipIcon + '</div></div>',
                                     iconSize: [60, 44],
@@ -205,57 +224,11 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                     shadowSize: [41, 41]
                                 });
 
-                                const marker = L.marker(latlng, { 
-                                    icon: divIcon,
-                                    zIndexOffset: 0,
-                                    draggable: editMode
-                                });
-
-                                if (editMode) {
-                                    marker.on('drag', function(event) {
-                                        const position = marker.getLatLng();
-                                        document.getElementById('latitude').value = position.lat.toFixed(6);
-                                        document.getElementById('longitude').value = position.lng.toFixed(6);
-                                    });
-
-                                    marker.on('dragend', function(event) {
-                                        const position = marker.getLatLng();
-                                        document.getElementById('latitude').value = position.lat.toFixed(6);
-                                        document.getElementById('longitude').value = position.lng.toFixed(6);
-                                    });
-                                }
-
-                                marker.on('click', function () {
-                                    resetZIndex();
-                                    marker.setZIndexOffset(1000);
-                                });
+                                const marker = createMarker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], divIcon, editMode);
 
                                 return marker;
                             } else {
-                                const marker = L.marker(latlng, {
-                                    icon: icon,
-                                    zIndexOffset: 0,
-                                    draggable: editMode
-                                });
-
-                                if (editMode) {
-                                    marker.on('drag', function(event) {
-                                        const position = marker.getLatLng();
-                                        document.getElementById('latitude').value = position.lat.toFixed(6);
-                                        document.getElementById('longitude').value = position.lng.toFixed(6);
-                                    });
-
-                                    marker.on('dragend', function(event) {
-                                        const position = marker.getLatLng();
-                                        document.getElementById('latitude').value = position.lat.toFixed(6);
-                                        document.getElementById('longitude').value = position.lng.toFixed(6);
-                                    });
-                                }
-
-                                marker.on('click', function () {
-                                    resetZIndex();
-                                    marker.setZIndexOffset(1000);
-                                });
+                                const marker = createMarker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], icon, editMode);
                                 
                                 return marker;
                             }
@@ -273,7 +246,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                 </span>`).join('')+ 
                                               `</div>`; 
                                 } else {
-                                    tagList = '-';
+                                    tagList = '';
                                 }
 
                                 if (cv === "sensor") {
