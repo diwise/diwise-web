@@ -75,6 +75,8 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 		switch thingType {
 		case "passage":
 			component = components.PassagesChart([]components.ChartDataset{dataset})
+		case "wastecontainer":
+			component = components.WastecontainerChart([]components.ChartDataset{dataset})
 		default:
 			component = components.MeasurementChart([]components.ChartDataset{dataset}, false)
 		}

@@ -408,7 +408,7 @@ func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc
 }
 
 func MeasurementChart(datasets []ChartDataset, keepRatio bool) templ.Component {
-	cfg := NewChartConfiguration("line", keepRatio)
+	cfg := NewChartConfiguration("line", keepRatio, nil, nil, nil)
 	cfg.Timeseries(true)
 	cfg.Add(datasets...)
 

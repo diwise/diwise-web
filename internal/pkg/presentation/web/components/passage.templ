@@ -36,7 +36,9 @@ templ StatisticsPassage(l10n locale.Localizer, model ThingDetailsViewModel) {
 }
 
 func PassagesChart(datasets []ChartDataset) templ.Component {
-	cfg := NewChartConfiguration("bar", false)
+	minvalue := uint(0)
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("bar", false, &minvalue, nil, &stepsize)
 	cfg.Timeseries(true)
 	cfg.Add(datasets...)
 

@@ -41,6 +41,16 @@ templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewMode
 	</div>
 }
 
+func WastecontainerChart(datasets []ChartDataset) templ.Component {
+	maxvalue := uint(100)
+	stepsize := uint(10)
+	cfg := NewChartConfiguration("line", false, nil, &maxvalue, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
 templ StatisticsWasteContainerGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
 	<div id="graphView" class="w-full" style="height: 40vh; position: relative;">
 		<canvas id="measurement-chart"></canvas>

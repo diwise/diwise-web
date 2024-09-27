@@ -98,7 +98,8 @@ templ AlarmRow(l10n locale.Localizer, alarm AlarmViewModel) {
 }
 
 func UsageChart(xScaleMax uint, datasets []ChartDataset) templ.Component {
-	cfg := NewChartConfiguration("bar", true)
+	stepsize := uint(20000)
+	cfg := NewChartConfiguration("bar", true, nil, nil, &stepsize)
 
 	var (
 		xScaleType          string = "linear"
