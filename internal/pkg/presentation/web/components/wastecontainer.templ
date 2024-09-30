@@ -63,7 +63,7 @@ func RenderStatisticsWasteContainerGraph(l10n locale.Localizer, model ThingDetai
 	return StatisticsWasteContainerGraph(l10n, model, startDate, endDate)
 }
 
-templ StatisticsWasteContainerGraph(l10n locale.Localizer, model ThingDetailsViewModel, startDate string, endDate string) {
+templ StatisticsWasteContainerGraph(l10n locale.Localizer, model ThingDetailsViewModel, startDate, endDate string) {
 	<div id="graphView" class="w-full" style="height: 40vh; position: relative;"
 		data-start-date={ fmt.Sprintf("%s", startDate) } 
 		data-end-date={ fmt.Sprintf("%s", endDate) }>
