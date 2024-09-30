@@ -141,7 +141,7 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 		<td class="px-6 py-3 ">
 			@ThingStatusCell(l10n, thing)
 		</td>
-		<td class="px-6 py-3">
+		<td class="px-6 py-3 relative">
 			for i, tag := range thing.Tags {
 				if i < 3 {
 					<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
@@ -150,8 +150,17 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 				}
 			}
 			if len(thing.Tags) > 3 {
-				<span class="dark:text-secondary px-2 py-1 text-sm">
+				<span class="dark:text-secondary px-2 py-1 text-sm relative group cursor-pointer">
 					{ fmt.Sprintf("+ %d %s", len(thing.Tags)-3, l10n.Get("more")) }
+					<div class="absolute hidden z-10 flex flex-col group-hover:block bg-background-100 dark:bg-gray-800 shadow-lg rounded-lg p-2 right-0">
+						for i, tag := range thing.Tags {
+							if i >= 3 {
+								<div class="flex self-stretch dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mt-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+									{ tag }
+								</div>
+							}
+						}
+					</div>
 				</span>
 			}
 		</td>
