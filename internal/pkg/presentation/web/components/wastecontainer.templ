@@ -37,7 +37,7 @@ templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewMode
 				</div>*/
 			</div>
 		</div>
-		@StatisticsData(l10n, RenderStatisticsWasteContainerGraph(l10n, model), StatisticsWasteContainerTable(l10n, model), model.TableView)
+		@StatisticsData(l10n, RenderStatisticsGraph(l10n, model), StatisticsWasteContainerTable(l10n, model), model.TableView)
 	</div>
 }
 
@@ -49,45 +49,6 @@ func WastecontainerChart(datasets []ChartDataset) templ.Component {
 	cfg.Add(datasets...)
 
 	return Chart("measurement-chart", "", cfg)
-}
-
-func RenderStatisticsWasteContainerGraph(l10n locale.Localizer, model ThingDetailsViewModel) templ.Component {
-	startDate := "2024-01-01"
-	endDate := "2024-12-31"
-
-	if len(model.Measurements) > 0 {
-		startDate = model.Measurements[0].Timestamp.Format("2006-01-02")
-		endDate = model.Measurements[len(model.Measurements)-1].Timestamp.Format("2006-01-02")
-	}
-
-	return StatisticsWasteContainerGraph(l10n, model, startDate, endDate)
-}
-
-templ StatisticsWasteContainerGraph(l10n locale.Localizer, model ThingDetailsViewModel, startDate, endDate string) {
-	<div id="graphView" class="w-full" style="height: 40vh; position: relative;"
-		data-start-date={ fmt.Sprintf("%s", startDate) } 
-		data-end-date={ fmt.Sprintf("%s", endDate) }>
-		<canvas id="measurement-chart"></canvas>
-		<div id="measurementCharts" style="display:none;"></div>
-	</div>
-
-	<script>
-		(() => {
-			const graphElement = document.getElementById('graphView');
-			if (graphElement) {
-				const startDate = graphElement.getAttribute('data-start-date');
-				const endDate = graphElement.getAttribute('data-end-date');
-				
-				const timeAtInput = document.getElementById("timeAt");
-				const endTimeAtInput = document.getElementById("endTimeAt");
-
-				if (timeAtInput && endTimeAtInput) {
-					timeAtInput.value = startDate;
-					endTimeAtInput.value = endDate;
-				}
-			}
-		})();
-	</script>
 }
 
 templ StatisticsWasteContainerTable(l10n locale.Localizer, model ThingDetailsViewModel) {

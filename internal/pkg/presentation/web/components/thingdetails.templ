@@ -62,7 +62,7 @@ templ FilterStatistics(l10n locale.Localizer, model ThingDetailsViewModel) {
 		<div class="">
 			<input
 				name="timeAt"
-				type="date"
+				type="datetime-local"
 				id="timeAt"
 				hx-trigger="change, load"
 				hx-include="#sensorMeasurementTypes,#endTimeAt"
@@ -74,7 +74,7 @@ templ FilterStatistics(l10n locale.Localizer, model ThingDetailsViewModel) {
 			-
 			<input
 				name="endTimeAt"
-				type="date"
+				type="datetime-local"
 				id="endTimeAt"
 				hx-trigger="change"
 				hx-include="#sensorMeasurementTypes,#timeAt"
