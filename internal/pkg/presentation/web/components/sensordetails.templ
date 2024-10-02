@@ -23,6 +23,7 @@ type SensorDetailsViewModel struct {
 	Organisations     []string
 	DeviceProfiles    []DeviceProfile
 	MeasurementTypes  []string
+	Measurements	  []MeasurementViewModel
 	ObservedAt        time.Time
 }
 
@@ -113,7 +114,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 						<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("measurementvalues") }</h2>
 						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 					</div>
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-8 pr-2">
 						<div class="border border-input-surface dark:border-white-50 rounded-xl w-auto">
 							<label for="sensorMeasurementTypes" class="hidden block text-sm font-medium text-gray-700">
 								{ l10n.Get("sensorMeasurementTypes") }
@@ -127,9 +128,9 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 							<div class="">
 								<input
 									name="timeAt"
-									type="date"
+									type="datetime-local"
 									id="timeAt"
-									hx-trigger="change"
+									hx-trigger="change, load"
 									hx-include="#sensorMeasurementTypes,#endTimeAt"
 									hx-target="#measurementCharts"
 									hx-get="/components/measurements"
@@ -139,9 +140,9 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 								-
 								<input
 									name="endTimeAt"
-									type="date"
+									type="datetime-local"
 									id="endTimeAt"
-									hx-trigger="change"
+									hx-trigger="change, load"
 									hx-include="#sensorMeasurementTypes,#timeAt"
 									hx-target="#measurementCharts"
 									hx-get="/components/measurements"
@@ -150,10 +151,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 								/>
 							</div>
 						</div>
-						<div class="w-full">
-							<canvas id="measurement-chart"></canvas>
-							<div id="measurementCharts" style="display:none;"></div>
-						</div>
+						@RenderMeasurementGraph(l10n, sensor)
 					</div>
 				</div>
 			</div>
@@ -183,6 +181,18 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 			</div>
 		</div>
 	</div>
+}
+
+func RenderMeasurementGraph(l10n locale.Localizer, model SensorDetailsViewModel) templ.Component {
+	startDate := "2024-01-01"
+	endDate := "2024-12-31"
+
+	if len(model.Measurements) > 0 {
+		startDate = model.Measurements[0].Timestamp.Format("2006-01-02 15:04")
+		endDate = model.Measurements[0].Timestamp.Format("2006-01-02 15:04")
+	}
+	
+	return Graph(l10n, startDate, endDate)
 }
 
 templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {

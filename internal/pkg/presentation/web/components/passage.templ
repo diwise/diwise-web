@@ -54,10 +54,10 @@ func RenderStatisticsGraph(l10n locale.Localizer, model ThingDetailsViewModel) t
 		endDate = model.Measurements[0].Timestamp.Format("2006-01-02 15:04")
 	}
 
-	return StatisticsGraph(l10n, model, startDate, endDate)
+	return Graph(l10n, startDate, endDate)
 }
 
-templ StatisticsGraph(l10n locale.Localizer, model ThingDetailsViewModel, startDate, endDate string) {
+templ Graph(l10n locale.Localizer, startDate, endDate string) {
 	<div id="graphView" class="w-full" style="height: 40vh; position: relative;"
 		data-start-date={ fmt.Sprintf("%s", startDate) } 
 		data-end-date={ fmt.Sprintf("%s", endDate) }>

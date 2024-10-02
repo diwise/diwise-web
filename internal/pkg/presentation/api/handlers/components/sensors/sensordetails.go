@@ -227,6 +227,16 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		m = append(m, *md.ID)
 	}
 
+	mv := make([]components.MeasurementViewModel, 0)
+	for _, md := range measurements.Values {
+		mvm := components.MeasurementViewModel{
+			ID:        *md.ID,
+			Timestamp: md.Timestamp,
+			Value:     md.Value,
+		}
+		mv = append(mv, mvm)
+	}
+
 	detailsViewModel := components.SensorDetailsViewModel{
 		DeviceID:          sensor.DeviceID,
 		DevEUI:            sensor.SensorID,
@@ -241,6 +251,7 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		Organisations:     tenants,
 		DeviceProfiles:    dp,
 		MeasurementTypes:  m,
+		Measurements:      mv,
 		ObservedAt:        sensor.ObservedAt(),
 	}
 	return &detailsViewModel, nil

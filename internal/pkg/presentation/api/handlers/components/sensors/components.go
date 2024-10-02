@@ -68,7 +68,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			Default borde vara "between" de senaste 24 timmarna.
 		*/
 
-		layout := "2006-01-02"
+		layout := "2006-01-02T15:04"
 		t := r.URL.Query().Get("timeAt")
 		if t == "" {
 			t = time.Now().Add(time.Hour * -24).Format(layout)
