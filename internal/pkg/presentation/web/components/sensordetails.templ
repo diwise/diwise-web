@@ -6,11 +6,12 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"slices"
 	"strings"
+	"time"
 )
 
 type SensorDetailsViewModel struct {
 	DeviceID          string
-	DevEUI			  string
+	DevEUI            string
 	Name              string
 	Latitude          float64
 	Longitude         float64
@@ -22,6 +23,7 @@ type SensorDetailsViewModel struct {
 	Organisations     []string
 	DeviceProfiles    []DeviceProfile
 	MeasurementTypes  []string
+	ObservedAt        time.Time
 }
 
 type DeviceProfile struct {
@@ -94,6 +96,10 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 						<div class="flex flex-col gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
 							<div class="">{ sensor.Description }</div>
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("lastseen") }</div>
+							<div class="">{ sensor.ObservedAt.Format("2006-01-02, 15:04") }</div>
 						</div>
 					</div>
 				</div>
@@ -171,7 +177,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 							<div class="font-bold">{ l10n.Get("longitude") }</div>
 							<div class="">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
 						</div>
-						@Map("medium", false, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
+						@Map("medium", false, false, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
 					</div>
 				</div>
 			</div>
@@ -283,14 +289,30 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("latitude") }</div>
-									<input type="number" name="latitude" value={ fmt.Sprintf("%f", sensor.Latitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
+									<input type="number" 
+											name="latitude"
+											id="latitude" 
+											min="-90" 
+											max="90" 
+											step="0.000001"
+											value={ fmt.Sprintf("%f", sensor.Latitude) } 
+											class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
+											placeholder="Latitud"/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("longitude") }</div>
-									<input type="number" name="longitude" value={ fmt.Sprintf("%f", sensor.Longitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
+									<input type="number" 
+											name="longitude" 
+											id="longitude"
+											min="-180" 
+											max="180" 
+											step="0.000001"
+											value={ fmt.Sprintf("%f", sensor.Longitude) } 
+											class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
+											placeholder="Longitud"/>
 								</div>
 							</div>
-							@Map("medium", false, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
+							@Map("medium", false, true, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
 						</div>
 					</div>
 				</div>
@@ -386,7 +408,7 @@ func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc
 }
 
 func MeasurementChart(datasets []ChartDataset, keepRatio bool) templ.Component {
-	cfg := NewChartConfiguration("line", keepRatio)
+	cfg := NewChartConfiguration("line", keepRatio, nil, nil, nil)
 	cfg.Timeseries(true)
 	cfg.Add(datasets...)
 

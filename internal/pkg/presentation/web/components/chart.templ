@@ -1,10 +1,10 @@
 package components
 
-func NewChartConfiguration(chartType string, keepRatio bool) ChartConfiguration {
+func NewChartConfiguration(chartType string, keepRatio bool, min, max, stepSize *uint) ChartConfiguration {
 	cfg := ChartConfiguration{}
 	cfg.Type = chartType
 	cfg.Data = NewChartData()
-	cfg.Options = NewChartOptions(keepRatio)
+	cfg.Options = NewChartOptions(keepRatio, min, max, stepSize)
 	return cfg
 }
 
@@ -65,7 +65,7 @@ type ChartValue struct {
 	Y any    `json:"y"`
 }
 
-func NewChartOptions(keepRatio bool) ChartOptions {
+func NewChartOptions(keepRatio bool, min, max, stepSize *uint) ChartOptions {
 	t := true
 	return ChartOptions{
 		Scales: ChartOptionsScales{
@@ -75,9 +75,12 @@ func NewChartOptions(keepRatio bool) ChartOptions {
 				},
 			},
 			Y: ChartOptionsScale{
+				Min: min,
+                Max: max,
 				BeginAtZero: &t,
 				Ticks: ChartOptionsTicks{
 					Color: "#444450",
+					StepSize: stepSize,
 				},
 			},
 		},

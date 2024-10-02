@@ -36,7 +36,8 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 
 		today := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC)
 		timeAt := getTime(r, "timeAt", today)
-		endTimeAt := getTime(r, "endTimeAt", time.Now().UTC())
+		endOfDay := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 23, 59, 59, 0, time.UTC)
+		endTimeAt := getTime(r, "endTimeAt", endOfDay)
 
 		params := []application.InputParam{}
 
@@ -75,6 +76,8 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 		switch thingType {
 		case "passage":
 			component = components.PassagesChart([]components.ChartDataset{dataset})
+		case "wastecontainer":
+			component = components.WastecontainerChart([]components.ChartDataset{dataset})
 		default:
 			component = components.MeasurementChart([]components.ChartDataset{dataset}, false)
 		}
@@ -197,7 +200,7 @@ func toDataset(measurements []application.MeasurementValue) components.ChartData
 }
 
 func getTime(r *http.Request, key string, def time.Time) time.Time {
-	layout := "2006-01-02"
+	layout := "2006-01-02T15:04"
 
 	v := r.URL.Query().Get(key)
 	if v == "" {

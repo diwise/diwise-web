@@ -37,15 +37,18 @@ templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewMode
 				</div>*/
 			</div>
 		</div>
-		@StatisticsData(l10n, StatisticsWasteContainerGraph(l10n, model), StatisticsWasteContainerTable(l10n, model), model.TableView)
+		@StatisticsData(l10n, RenderStatisticsGraph(l10n, model), StatisticsWasteContainerTable(l10n, model), model.TableView)
 	</div>
 }
 
-templ StatisticsWasteContainerGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
-	<div id="graphView" class="w-full" style="height: 40vh; position: relative;">
-		<canvas id="measurement-chart"></canvas>
-		<div id="measurementCharts" style="display:none;"></div>
-	</div>
+func WastecontainerChart(datasets []ChartDataset) templ.Component {
+	maxvalue := uint(100)
+	stepsize := uint(10)
+	cfg := NewChartConfiguration("line", false, nil, &maxvalue, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
 }
 
 templ StatisticsWasteContainerTable(l10n locale.Localizer, model ThingDetailsViewModel) {

@@ -17,6 +17,7 @@ type DeviceManagement interface {
 	GetStatistics(ctx context.Context) Statistics
 	GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error)
 	GetMeasurementData(ctx context.Context, id string, params ...InputParam) (MeasurementData, error)
+	GetAlarms(ctx context.Context, offset, limit int, args map[string][]string) (AlarmResult, error)
 }
 
 type Statistics struct {
@@ -68,12 +69,36 @@ type Sensor struct {
 	DeviceProfile *DeviceProfile `json:"deviceProfile,omitempty"`
 	DeviceStatus  *DeviceStatus  `json:"deviceStatus,omitempty"`
 	DeviceState   *DeviceState   `json:"deviceState,omitempty"`
+	Alarms        []string       `json:"alarms,omitempty"`
+}
+func (s Sensor) ObservedAt() time.Time {
+	if s.DeviceState != nil {
+		return s.DeviceState.ObservedAt
+	}
+	return time.Time{}
 }
 
 
+type Alarm struct {
+	ID          string    `json:"id"`
+	AlarmType   string    `json:"alarmType"`
+	Description string    `json:"description,omitempty"`
+	ObservedAt  time.Time `json:"observedAt"`
+	RefID       string    `json:"refID"`
+	Severity    int       `json:"severity"`
+	Tenant      string    `json:"tenant"`
+}
 
 type SensorResult struct {
 	Sensors      []Sensor
+	TotalRecords int
+	Count        int
+	Offset       int
+	Limit        int
+}
+
+type AlarmResult struct {
+	Alarms       []Alarm
 	TotalRecords int
 	Count        int
 	Offset       int

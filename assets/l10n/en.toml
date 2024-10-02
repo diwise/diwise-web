@@ -268,6 +268,12 @@ other = "Temperature"
 [3424-1]
 other = "Cumulated water consumption"
 
+[3434-1]
+other = "Actual number of persons"
+
+[3434-2]	
+other = "Daily number of persons"
+
 [3435-1]
 other = "Container height"
 
@@ -279,6 +285,9 @@ other = "Actual filling level"
 
 [3304-5700]
 other = "Relative humidity"
+
+[3200-5500]
+other = "Digital Input State"
 
 [3200-5501]
 other = "Digital input counter"

@@ -17,12 +17,14 @@ type App struct {
 	thingManagementURL  string
 	adminURL            string
 	measurementURL      string
+	alarmsURL           string
 	cache               *Cache
 }
 
 func New(ctx context.Context) (*App, error) {
 	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
 	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)
+	alarmsURL := strings.Replace(deviceManagementURL, "devices", "alarms", 1)
 	thingManagementURL := env.GetVariableOrDefault(ctx, "THINGS_URL", "https://test.diwise.io/api/v0/things")
 	measurementURL := env.GetVariableOrDefault(ctx, "MEASUREMENTS_URL", "https://test.diwise.io/api/v0/measurements")
 
@@ -33,6 +35,7 @@ func New(ctx context.Context) (*App, error) {
 		deviceManagementURL: deviceManagementURL,
 		thingManagementURL:  thingManagementURL,
 		adminURL:            adminURL,
+		alarmsURL:           alarmsURL,
 		measurementURL:      measurementURL,
 		cache:               c,
 	}, nil
@@ -221,7 +224,7 @@ func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string]
 	}, nil
 }
 
-func (a *App) UpdateThing(ctx context.Context, thingID string, fields map[string]any) error {			
+func (a *App) UpdateThing(ctx context.Context, thingID string, fields map[string]any) error {
 	b, err := json.Marshal(fields)
 	if err != nil {
 		return err
@@ -382,6 +385,7 @@ func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurementDat
 
 	return info, nil
 }
+
 func (a *App) GetMeasurementData(ctx context.Context, id string, params ...InputParam) (MeasurementData, error) {
 	q := url.Values{}
 	if id != "" {
@@ -404,4 +408,33 @@ func (a *App) GetMeasurementData(ctx context.Context, id string, params ...Input
 	}
 
 	return data, nil
+}
+
+func (a *App) GetAlarms(ctx context.Context, offset, limit int, args map[string][]string) (AlarmResult, error) {
+	params := url.Values{}
+	params.Add("limit", fmt.Sprintf("%d", limit))
+	params.Add("offset", fmt.Sprintf("%d", offset))
+
+	for k, v := range args {
+		params[k] = v
+	}
+
+	res, err := a.get(ctx, a.alarmsURL, "", params)
+	if err != nil {
+		return AlarmResult{}, err
+	}
+
+	var alarms []Alarm
+	err = json.Unmarshal(res.Data, &alarms)
+	if err != nil {
+		return AlarmResult{}, err
+	}
+
+	return AlarmResult{
+		Alarms:       alarms,
+		TotalRecords: int(res.Meta.TotalRecords),
+		Offset:       int(*res.Meta.Offset),
+		Limit:        int(*res.Meta.Limit),
+		Count:        len(alarms),
+	}, nil
 }

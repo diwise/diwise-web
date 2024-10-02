@@ -62,7 +62,7 @@ templ FilterStatistics(l10n locale.Localizer, model ThingDetailsViewModel) {
 		<div class="">
 			<input
 				name="timeAt"
-				type="date"
+				type="datetime-local"
 				id="timeAt"
 				hx-trigger="change, load"
 				hx-include="#sensorMeasurementTypes,#endTimeAt"
@@ -74,7 +74,7 @@ templ FilterStatistics(l10n locale.Localizer, model ThingDetailsViewModel) {
 			-
 			<input
 				name="endTimeAt"
-				type="date"
+				type="datetime-local"
 				id="endTimeAt"
 				hx-trigger="change"
 				hx-include="#sensorMeasurementTypes,#timeAt"
@@ -244,7 +244,12 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 
 	<div class="w-full px-8">
 		<div class="flex items-center w-full justify-between">
-			if model.Thing.ThingID == "" {
+			if model.Thing.Name != "" {
+				<div class="flex items-center gap-6 align-middle">
+					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.Name }</h1>
+				</div>
+			}
+			else if model.Thing.ThingID == "" {
 				<div class="flex items-center align-middle">
 					<h1 class="py-3">&nbsp;</h1>
 				</div>
@@ -333,7 +338,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 							<div class="flex flex-col gap-2">
 								<div class="flex items-center gap-2 flex-wrap">
 									for _, tag := range model.Thing.Tags {
-										<div class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+										<div class="px-2 py-1 rounded-full text-sm border-gray-30 dark:border-white-30 border-2 dark:text-secondary ">
 											{ tag }
 										</div>
 									}
@@ -365,7 +370,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 								<div class="font-bold">{ l10n.Get("longitude") }</div>
 								<div class="">{ fmt.Sprintf("%f", model.Thing.Longitude) }</div>
 							</div>
-							@Map("small", false, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+							@Map("small", false, false, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
 						</div>
 					</div>
 				</div>
@@ -418,7 +423,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("name") }</div>
-									<div class="">
 										<input
 											type="text"
 											name="name"
@@ -426,7 +430,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 											placeholder=""
 											value={ model.Thing.Name }
 										/>
-									</div>
 								</div>
 								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
@@ -450,7 +453,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 											list="filter-options"
 											name="relatedDevice"
 											placeholder={ l10n.Get("picksensor") }
-											class="text-sm p-2 rounded-xl w-full block focus:outline-none"
+											class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
 											value={ model.RelatedDevice }
 											id="sensorInput"
 										/>
@@ -459,7 +462,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 												<option value={ sensor.DeviceID }>{ fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder) }</option>
 											}
 										</datalist>
-										<div class="pointer-events-none absolute bg-white rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
+										<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
 											<svg class="w-[18px] h-[18px] dark:fill-white">
 												@templ.Raw(iconSVG("chevron-down"))
 											</svg>
@@ -475,7 +478,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 										<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
 											<div id="selectedTagContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full">
 												for _, tag := range model.Thing.Tags {
-													<div class="flex items-center p-2 rounded-full gap-1 tagItem border-gray-30 dark:border-white-30 border stroke-primary-dark dark:stroke-white">
+													<div class="flex items-center p-2 rounded-full gap-1 tagItem border-gray-30 dark:border-white-30 dark:text-secondary border stroke-primary-dark dark:stroke-white">
 														<span>{ tag }</span>
 														<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x removeTagIcon cursor-pointer">
 															<line x1="18" y1="6" x2="6" y2="18"></line>
@@ -492,7 +495,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 												list="tag-options"
 												name="tags"
 												placeholder={ l10n.Get("addtag") }
-												class="text-sm p-2 rounded-xl w-full block focus:outline-none"
+												class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
 												id="tagInput"
 											/>
 											<datalist id="tag-options">
@@ -500,7 +503,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 													<option value={ t }>{ t }</option>
 												}
 											</datalist>
-											<div class="pointer-events-none absolute bg-white rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
+											<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
 												<svg class="w-[18px] h-[18px] dark:fill-white">
 													@templ.Raw(iconSVG("chevron-down"))
 												</svg>
@@ -541,19 +544,35 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("latitude") }</div>
-									<input type="number" name="latitude" value={ fmt.Sprintf("%f", model.Thing.Latitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Latitud"/>
+									<input type="number" 
+											name="latitude" 
+											id="latitude"
+											min="-90" 
+											max="90" 
+											step="0.000001"
+											value={ fmt.Sprintf("%f", model.Thing.Latitude) } 
+											class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
+											placeholder="Latitud"/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("longitude") }</div>
-									<input type="number" name="longitude" value={ fmt.Sprintf("%f", model.Thing.Longitude) } class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Longitud"/>
+									<input type="number" 
+											name="longitude" 
+											id="longitude"
+											min="-180" 
+											max="180" 
+											step="0.000001"
+											value={ fmt.Sprintf("%f", model.Thing.Longitude) } 
+											class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
+											placeholder="Longitud"/>
 								</div>
 							</div>
-							@Map("medium", false, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+							@Map("medium", false, true, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="h-px border-t border-gray-30 w-full"></div>
+			<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
 			<div class="flex items-center justify-end py-6">
 				//@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"))
 				<div class="flex items-center gap-4">
