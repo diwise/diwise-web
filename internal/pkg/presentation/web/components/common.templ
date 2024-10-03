@@ -120,28 +120,64 @@ templ ProgressBar(cssClass, text string, value int) {
 }
 
 templ CheckboxOption(name, value, text string, l10n locale.Localizer, attrs templ.Attributes) {
-	<label class="flex justify-between items-center gap-3 dark:text-primary-dark">
+	<label class="flex items-center gap-3 dark:text-primary-dark cursor-pointer">
+		
+		<input
+			type="checkbox"
+			name={ name }
+			value={ value }
+			data-text={ l10n.Get(value) }
+			class="filter sr-only peer form-checkbox"
+			hx-trigger="change"
+			hx-include=".filter"
+			{ attrs... }
+		/>
+		<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center hover:bg-secondary-outline-hover hover:border-black">
+			<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M20 6 9 17l-5-5"></path></svg>
+		</div>
 		if text != "" {
 			{ l10n.Get(text) }
 		} else {
 			{ l10n.Get(value) }
 		}
-		<input
-			type="checkbox"
-			name={ name }
-			value={ value }
-			class="filter sr-only peer form-checkbox cursor-pointer"
-			hx-trigger="change"
-			hx-include=".filter"
-			{ attrs... }
-		/>
-		<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-			<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M20 6 9 17l-5-5"></path></svg>
-		</div>
 	</label>
 }
 
 templ CheckboxList(header string) {
+	<div class="relative inline-block group">
+		<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg">{ header } <svg class="w-[18px] h-[18px] dark:fill-white"><path fill-rule="evenodd" d="M3.97 6.22a.75.75 0 0 1 1.06 0L9 10.19l3.97-3.97a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path></svg></button>
+		<div class="hidden absolute bg-gray-100 min-w-max rounded-md shadow-lg z-10 p-4 group-hover:block">
+			{ children... }
+		</div>
+	</div>
+}
+
+templ RadioOption(name, value, text string, l10n locale.Localizer, attrs templ.Attributes) {
+	<label class="flex items-center gap-3 dark:text-primary-dark cursor-pointer">
+		<input
+			type="radio"
+			name={ name }
+			value={ value }
+			data-text={ l10n.Get(value) }
+			class="filter sr-only peer"
+			hx-trigger="change"
+			hx-include=".filter"
+			{ attrs... }
+		/>
+		<div class="w-[20px] h-[20px] bg-white rounded-full border border-gray-400 relative 
+					peer-checked:before:bg-primary-dark before:content-[''] before:w-[12px] before:h-[12px] 
+					before:rounded-full before:bg-transparent before:absolute before:top-[50%] before:left-[50%] before:transform 
+					before:-translate-x-1/2 before:-translate-y-1/2 hover:before:bg-secondary-outline-hover hover:border-black">
+		</div>
+		if text != "" {
+			{ l10n.Get(text) }
+		} else {
+			{ l10n.Get(value) }
+		}
+	</label>
+}
+
+templ RadioList(header string) {
 	<div class="relative inline-block group">
 		<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg">{ header } <svg class="w-[18px] h-[18px] dark:fill-white"><path fill-rule="evenodd" d="M3.97 6.22a.75.75 0 0 1 1.06 0L9 10.19l3.97-3.97a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path></svg></button>
 		<div class="hidden absolute bg-gray-100 min-w-max rounded-md shadow-lg z-10 p-4 group-hover:block">

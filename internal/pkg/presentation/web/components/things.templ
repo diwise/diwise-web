@@ -53,7 +53,7 @@ type MeasurementViewModel struct {
 }
 
 templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
-	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="things-view">
+	<div class="flex flex-col items-start gap-4 flex-[1_0_0] py-8 w-full" id="things-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
 			<div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
@@ -71,29 +71,122 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 }
 
 templ ThingsFilter(l10n locale.Localizer, model ThingsListViewModel) {
-	<div class="w-full h-12 justify-between items-center inline-flex">
-		<div class="inline-flex justify-start items-center gap-[34px] dark:text-white">
-			<div class="flex items-center flex-[1_0_0] gap-6">
-				@CheckboxList(l10n.Get("type")) {
-					for _, t := range model.Types {
-						@CheckboxOption("type", t, "", l10n, templ.Attributes{
-							"hx-get":    string(templ.SafeURL("/components/things/list")),
-							"hx-target": "#tableOrMap",
-						})
+	<div class="flex w-full flex-col gap-4">
+		<div class="flex h-12 justify-between items-center">
+			<div class="flex items-center dark:text-white">
+				<div class="flex items-center gap-6">
+					@CheckboxList(l10n.Get("type")) {
+						for _, t := range model.Types {
+							@CheckboxOption("type", t, "", l10n, templ.Attributes{
+								"hx-get":    string(templ.SafeURL("/components/things/list")),
+								"hx-target": "#tableOrMap",
+								"hx-swap":   "outerHTML",
+								"hx-include": "[name=type]:checked",
+								"onchange":  "updateSelectedFilters()",
+								"data-text": l10n.Get(t),
+							})
+						}
 					}
-				}
-				@CheckboxList(l10n.Get("tags")) {
-					for _, t := range model.Tags {
-						@CheckboxOption("tags", t, "", l10n, templ.Attributes{
-							"hx-get":    string(templ.SafeURL("/components/things/list")),
-							"hx-target": "#tableOrMap",
-						})
+					@CheckboxList(l10n.Get("tags")) {
+						for _, t := range model.Tags {
+							@CheckboxOption("tags", t, "", l10n, templ.Attributes{
+								"hx-get":    string(templ.SafeURL("/components/things/list")),
+								"hx-target": "#tableOrMap",
+								"hx-swap":   "outerHTML",
+								"hx-include": "[name=tags]:checked",
+								"onchange":  "updateSelectedFilters()",
+								"value": t,
+							})
+						}
 					}
-				}
+				</div>
 			</div>
+			@TableOrMap(l10n, "/components/things/list")
 		</div>
-		@TableOrMap(l10n, "/components/things/list")
+		
+		@SelectedFilters(l10n)
+		
 	</div>
+}
+
+templ SelectedFilters(l10n locale.Localizer) {
+	<div class="flex flex-start items-center gap-2 self-stretch">
+		<div class="font-bold dark:text-white p-2">
+			{ l10n.Get("selectedfilters") }
+		</div>
+		<div id="selectedFilters" class="flex items-center gap-2 self-stretch text-sm dark:text-white">
+			
+		</div>
+	</div>
+
+	<script>
+		function updateSelectedFilters() {
+			const selectedFiltersContainer = document.getElementById('selectedFilters');
+			selectedFiltersContainer.innerHTML = '';
+
+			const selectedTypes = Array.from(document.querySelectorAll('input[name="type"]:checked')).map(cb => ({
+				name: "type",
+				value: cb.value,
+				text: cb.getAttribute('data-text'),
+			}));
+
+			const selectedTags = Array.from(document.querySelectorAll('input[name="tags"]:checked')).map(cb => ({
+				name: "tags",
+				value: cb.value,
+				text: cb.value,
+			}));
+
+			const selectedStatus = Array.from(document.querySelectorAll('input[name="active"]:checked')).map(cb => ({
+				name: "active",
+				value: cb.value,
+				text: cb.value === "true" ? "Aktiv" : "Inaktiv",
+			}));
+
+			const selectedOnline = Array.from(document.querySelectorAll('input[name="online"]:checked')).map(cb => ({
+				name: "online",
+				value: cb.value,
+				text: cb.value === "true" ? "Online" : "Offline",
+			}));
+
+			const selectedFilters = [...selectedTypes, ...selectedTags, ...selectedStatus, ...selectedOnline];
+
+			const svgIcon = `
+				<svg class="h-4 w-4 fill-none stroke-primary-dark dark:stroke-white stroke-2 cursor-pointer" viewBox="0 0 24 24">
+					<path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+				</svg>`;
+
+			selectedFilters.forEach(filter => {
+				const filterDiv = document.createElement('div');
+				filterDiv.className = "flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border";
+
+				const filterText = document.createTextNode(filter.text);
+				filterDiv.appendChild(filterText);
+
+				const removeIcon = document.createElement('span');
+				removeIcon.innerHTML = svgIcon;
+				removeIcon.addEventListener('click', function() {
+					const checkbox = document.querySelector(`input[name="${filter.name}"][value="${filter.value}"]`);
+					if (checkbox) {
+						checkbox.checked = false;
+						checkbox.dispatchEvent(new Event('change')); 
+					}
+				});
+
+				filterDiv.appendChild(removeIcon);
+				selectedFiltersContainer.appendChild(filterDiv);
+			});
+
+			if (selectedFilters.length === 0) {
+				const noFilterDiv = document.createElement('div');
+				noFilterDiv.className = "flex items-center p-2 justify-center gap-1 rounded-full italic";
+				noFilterDiv.textContent = "Inga filter valda";
+				selectedFiltersContainer.appendChild(noFilterDiv);
+			}
+		}
+
+		document.addEventListener("DOMContentLoaded", updateSelectedFilters);
+		document.body.addEventListener('htmx:afterOnLoad', updateSelectedFilters);
+	</script>
 }
 
 templ ThingsTableComponent(l10n locale.Localizer, model ThingsListViewModel) {
