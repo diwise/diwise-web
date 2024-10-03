@@ -104,19 +104,21 @@ templ ThingsFilter(l10n locale.Localizer, model ThingsListViewModel) {
 			@TableOrMap(l10n, "/components/things/list")
 		</div>
 		
-		@SelectedFilters(l10n)
+		@SelectedFilters(l10n, "/components/things/list")
 		
 	</div>
 }
 
-templ SelectedFilters(l10n locale.Localizer) {
+templ SelectedFilters(l10n locale.Localizer, hxget string) {
 	<div class="flex flex-start items-center gap-2 self-stretch">
 		<div class="font-bold dark:text-white p-2">
 			{ l10n.Get("selectedfilters") }
 		</div>
-		<div id="selectedFilters" class="flex items-center gap-2 self-stretch text-sm dark:text-white">
-			
-		</div>
+		<form id="filterForm" hx-get={hxget} hx-target="#tableOrMap" hx-swap="outerHTML">
+			<div id="selectedFilters" class="flex items-center gap-2 self-stretch text-sm dark:text-white">
+				
+			</div>
+		</form>
 	</div>
 
 	<script>
@@ -175,6 +177,23 @@ templ SelectedFilters(l10n locale.Localizer) {
 				filterDiv.appendChild(removeIcon);
 				selectedFiltersContainer.appendChild(filterDiv);
 			});
+
+			if (selectedFilters.length > 0) {
+				const clearAllDiv = document.createElement('div');
+				clearAllDiv.className = "flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border cursor-pointer";
+				clearAllDiv.textContent = "Rensa alla";
+
+				clearAllDiv.addEventListener('click', function() {
+					const allCheckedCheckboxes = document.querySelectorAll('input:checked');
+					allCheckedCheckboxes.forEach(cb => {
+						cb.checked = false;
+					});
+
+					document.getElementById('filterForm').dispatchEvent(new Event('submit', {cancelable: true}));
+				});
+
+				selectedFiltersContainer.appendChild(clearAllDiv);
+			}
 
 			if (selectedFilters.length === 0) {
 				const noFilterDiv = document.createElement('div');
