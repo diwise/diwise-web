@@ -157,7 +157,7 @@ templ SelectedFilters(l10n locale.Localizer) {
 
 			selectedFilters.forEach(filter => {
 				const filterDiv = document.createElement('div');
-				filterDiv.className = "flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border";
+				filterDiv.className = "flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border capitalize";
 
 				const filterText = document.createTextNode(filter.text);
 				filterDiv.appendChild(filterText);

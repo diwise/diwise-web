@@ -69,7 +69,7 @@ templ SensorsFilter(l10n locale.Localizer, model SensorListViewModel) {
 								"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 								"hx-target": "#tableOrMap",
 								"hx-swap":   "outerHTML",
-								"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",  // Inkludera alla valda filter
+								"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
 								"onchange":  "updateSelectedFilters()",
 								"data-text": l10n.Get(t),
 								"value": t,
@@ -81,31 +81,30 @@ templ SensorsFilter(l10n locale.Localizer, model SensorListViewModel) {
 							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 							"hx-target": "#tableOrMap",
 							"hx-swap":   "outerHTML",
-							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",  // Inkludera alla valda filter
+							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
 							"onchange":  "updateSelectedFilters()",
 						})
 						@RadioOption("active", "false", l10n.Get("inactive"), l10n, templ.Attributes{
 							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 							"hx-target": "#tableOrMap",
 							"hx-swap":   "outerHTML",
-							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",  // Inkludera alla valda filter
+							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
 							"onchange":  "updateSelectedFilters()",
 						})
 					}
-
 					@RadioList(l10n.Get("Online")) {
 						@RadioOption("online", "true", l10n.Get("online"), l10n, templ.Attributes{
 							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 							"hx-target": "#tableOrMap",
 							"hx-swap":   "outerHTML",
-							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",  // Inkludera alla valda filter
+							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
 							"onchange":  "updateSelectedFilters()",
 						})
 						@RadioOption("online", "false", l10n.Get("offline"), l10n, templ.Attributes{
 							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 							"hx-target": "#tableOrMap",
 							"hx-swap":   "outerHTML",
-							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",  // Inkludera alla valda filter
+							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
 							"onchange":  "updateSelectedFilters()",
 						})
 					}
@@ -213,7 +212,7 @@ templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
 		} else {
 			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-tertiary-surface dark:bg-primary-surface-white"><span class="text-sm font-bold font-sans leading-none text-primary-dark dark:text-white">{ l10n.Get("inactive") }</span></span></td>
 		}
-		<td class="px-6 py-3">{ sensor.Type }</td>
+		<td class="px-6 py-3 capitalize">{ sensor.Type }</td>
 		<td class="px-6 py-3">
 			if sensor.HasAlerts {
 				<span class="font-bold">{ sensor.DevEUI }</span>

@@ -120,7 +120,7 @@ templ ProgressBar(cssClass, text string, value int) {
 }
 
 templ CheckboxOption(name, value, text string, l10n locale.Localizer, attrs templ.Attributes) {
-	<label class="flex items-center gap-3 dark:text-primary-dark cursor-pointer">
+	<label class="flex items-center gap-3 dark:text-primary-dark cursor-pointer capitalize">
 		
 		<input
 			type="checkbox"
