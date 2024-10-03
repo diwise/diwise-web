@@ -25,6 +25,7 @@ type SensorViewModel struct {
 	LastSeen     time.Time
 	HasAlerts    bool
 	Type         string
+	Online		 bool
 }
 
 type StatisticsViewModel struct {
@@ -206,6 +207,15 @@ templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
 		hx-trigger="click"
 		hx-disinherit="hx-target hx-push-url"
 	>
+		if sensor.Online {
+			<td class="px-6 py-3 flex justify-center items-center">
+				<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+					<circle cx="6" cy="6" r="6" fill="#00733B"/>
+				</svg>
+			</td>
+		} else {
+			<td class="px-6 py-3"></td>
+		}
 		<td class="px-6 py-3"><span class="font-bold">{ sensor.Name }</span></td>
 		if sensor.Active {
 			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">{ l10n.Get("active") }</span></span></td>
@@ -241,6 +251,7 @@ templ SensorsTable(l10n locale.Localizer, model SensorListViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
+				<th class="px-2 py-3 max-w-[20px] text-center">{ l10n.Get("online") }</th>
 				<th class="px-6 py-3">{ l10n.Get("name") }</th>
 				<th class="px-6 py-3">{ l10n.Get("status") }</th>
 				<th class="px-6 py-3">{ l10n.Get("type") }</th>
@@ -256,7 +267,7 @@ templ SensorsTable(l10n locale.Localizer, model SensorListViewModel) {
 		</tbody>
 		<tfoot>
 			<tr>
-				<td colspan="6">
+				<td colspan="7">
 					@Paging(l10n, model.Pageing)
 				</td>
 			</tr>
