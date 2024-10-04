@@ -344,6 +344,10 @@ func (a *App) GetStatistics(ctx context.Context) Statistics {
 		if err != nil {
 			ch <- 0
 		}
+		if res.Meta == nil {
+			ch <- 0
+		}
+
 		ch <- int(res.Meta.TotalRecords)
 	}
 
