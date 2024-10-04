@@ -149,7 +149,7 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n locale.Bundl
 				v := r.Form.Get(k)
 
 				if v == "" {
-					fields[k] = ""
+					continue
 				}
 
 				switch k {
