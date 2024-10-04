@@ -142,8 +142,10 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	r.HandleFunc("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /admin/token", func(w http.ResponseWriter, r *http.Request) {
 		log := logging.GetFromContext(r.Context())
-		log.Debug("current token", slog.String("token", authz.Token(r.Context())))
-		http.Redirect(w, r, "/", http.StatusFound)		
+		token := authz.Token(r.Context())
+		log.Debug("current token", slog.String("token", token))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(token))
 	})
 
 	// Handle requests for leaflet images /assets/<leafletcss-sha>/images/<image>.png
