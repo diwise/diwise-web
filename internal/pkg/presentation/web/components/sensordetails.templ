@@ -35,7 +35,7 @@ type DeviceProfile struct {
 }
 
 templ SensorDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
-	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="sensor-view">
+	<div class="flex flex-col items-start gap-14 flex-[1_0_0] w-full" id="sensor-view">
 		@SensorDetails(l10n, asset, sensor)
 	</div>
 }
@@ -49,7 +49,7 @@ templ statusActive(active bool, l10n locale.Localizer) {
 }
 
 templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
-	<div class="w-full px-8">
+	<div class="w-full">
 		<div class="flex items-center w-full justify-between">
 			if sensor.Name == "" {
 				<div class="flex items-center align-middle">
@@ -203,7 +203,7 @@ func RenderMeasurementGraph(l10n locale.Localizer, model SensorDetailsViewModel)
 }
 
 templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
-	<div class="w-full px-8">
+	<div class="w-full">
 		<div class="flex items-center justify-between w-full">
 			<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { sensor.Name }</h1>
 		</div>

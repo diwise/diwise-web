@@ -53,8 +53,8 @@ type MeasurementViewModel struct {
 }
 
 templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
-	<div class="flex flex-col items-start gap-4 flex-[1_0_0] py-8 w-full" id="things-view">
-		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
+	<div class="flex flex-col items-start gap-4 flex-[1_0_0] w-full" id="things-view">
+		<div class="flex flex-col items-start gap-6 self-stretch w-full">
 			<div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
 				<div class="flex items-center text-white dark:text-dark-primary font-bold">
@@ -63,7 +63,7 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 			</div>
 		</div>
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-		<div class="flex px-8 flex-col items-start self-stretch gap-10">
+		<div class="flex flex-col items-start self-stretch gap-10">
 			@ThingsFilter(l10n, model)
 			@DataList(l10n, ThingsTable(l10n, model), ThingsMap(l10n, model), model.MapView)
 		</div>

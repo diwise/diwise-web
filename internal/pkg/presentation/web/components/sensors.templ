@@ -46,13 +46,13 @@ templ Statistics(l10n locale.Localizer, model StatisticsViewModel) {
 }
 
 templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
-	<div class="flex flex-col items-start gap-6 flex-[1_0_0] py-8 w-full" id="sensor-view">
-		<div class="flex flex-col items-start gap-6 self-stretch w-full px-8">
+	<div class="flex flex-col items-start gap-6 flex-[1_0_0] w-full" id="sensor-view">
+		<div class="flex flex-col items-start gap-6 self-stretch w-full">
 			<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
 			@Statistics(l10n, model.Statistics)
 		</div>
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-		<div class="flex px-8 flex-col items-start self-stretch gap-10">
+		<div class="flex flex-col items-start self-stretch gap-10">
 			@SensorsFilter(l10n, model)
 			@DataList(l10n, SensorsTable(l10n, model), SensorMap(l10n, model), model.MapView)
 		</div>

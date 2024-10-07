@@ -8,10 +8,25 @@ import (
 )
 
 templ OverviewCards(l10n locale.Localizer, asset assets.AssetLoaderFunc, stats StatisticsViewModel) {
-	@OverviewCard(l10n.Get("numberofsensors"), "/sensors", stats.Total, SVG("rss", Size(32)), asset)
-	@OverviewCard(l10n.Get("activesensors"), "/sensors?active=true", stats.Active, SVG("rss", Size(32), OKStyle()), asset)
-	@OverviewCard(l10n.Get("inactivesensors"), "/sensors?active=false", stats.Inactive, SVG("rss", Size(32), AlertStyle()), asset)
-	@OverviewCard(l10n.Get("unknownsensors"), "/sensors?type=unknown", stats.Unknown, SVG("rss", Size(32), WarningStyle()), asset)
+	<div class="flex flex-col gap-6 w-full">
+		<div class="flex items-start content-start gap-6 self-stretch flex-wrap w-full">
+			<div class="flex-1">
+				@OverviewCard(l10n.Get("numberofsensors"), "/sensors", stats.Total, SVG("rss", Size(32)), asset)
+			</div>
+			<div class="flex-1">
+				@OverviewCard(l10n.Get("activesensors"), "/sensors?active=true", stats.Active, SVG("rss", Size(32), OKStyle()), asset)
+			</div>
+		</div>
+		
+		<div class="flex items-start content-start gap-6 self-stretch flex-wrap w-full">
+			<div class="flex-1">
+				@OverviewCard(l10n.Get("inactivesensors"), "/sensors?active=false", stats.Inactive, SVG("rss", Size(32), AlertStyle()), asset)
+			</div>
+			<div class="flex-1">
+				@OverviewCard(l10n.Get("unknownsensors"), "/sensors?type=unknown", stats.Unknown, SVG("rss", Size(32), WarningStyle()), asset)
+			</div>
+		</div>
+	</div>
 }
 
 type HomeViewModel struct {
@@ -32,39 +47,46 @@ type AlarmViewModel struct {
 }
 
 templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeViewModel) {
-	<div class="p-8">
-		<div class="grid grid-cols-4 gap-8">
-			<div class="col-span-2">
-				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("overview") }</h1>
-				<div hx-get="/components/home/statistics" hx-trigger="load, every 1m" class="grid grid-cols-2 gap-10">
+	<div class="flex flex-col items-start self-stretch gap-14">
+		<div class="flex items-start self-stretch gap-14">
+			<div class="flex flex-col flex-[1_0_0] justify-center items-start gap-6">
+				<div class="flex items-center gap-3 self-stretch">
+					@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("overview") }</h1>
+					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+				</div>
+				<div hx-get="/components/home/statistics" hx-trigger="load, every 1m" class="flex w-full">
 					@OverviewCards(l10n, asset, StatisticsViewModel{})
 				</div>
 			</div>
-			<div class="col-span-2">
-				<div class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">
-					<h2>{ l10n.Get("measurementperday") }</h2>
+			<div class="border-l border-gray-30 dark:border-white-30 h-auto self-stretch"></div>
+			<div class="flex flex-col flex-[1_0_0] items-start gap-6">
+				<div class="flex items-center gap-3 self-stretch">
+					@SVG("chartline", Size(32), NoFill(), Box(20, 20), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					<h2 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose whitespace-nowrap">{ l10n.Get("measurementperday") }</h2>
+					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 				</div>
-				<div class="p-8 bg-white dark:bg-gray-800 rounded-[15px] shadow justify-start items-start gap-4">
+				<div class="w-full p-6 dark:bg-gray-800 rounded-2xl shadow">
 					<canvas id="usage-chart"></canvas>
 					<div hx-get="/components/home/usage" hx-trigger="load, every 60m" style="display:none;"></div>
 				</div>
 			</div>
-			<div class="col-span-4">
-				<div class="col-span-12 justify-start items-center gap-4">
-					<div class="flex gap-4 items-center">
-						<div class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("Information") }</div>
-					</div>
-				</div>
-				<div id="tableview">
-					@AlarmsTable(l10n, viewModel)
-				</div>
+		</div>
+		<div class="flex flex-col items-start self-stretch gap-6">
+			<div class="flex items-center gap-3 self-stretch">
+				@SVG("alert-triangle", Size(24))
+				<h2 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose whitespace-nowrap">{ l10n.Get("information") }</h2>
+				<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+			</div>
+			<div id="tableview" class="w-full">
+				@AlarmsTable(l10n, viewModel)
 			</div>
 		</div>
 	</div>
 }
 
 templ AlarmsTable(l10n locale.Localizer, viewModel HomeViewModel) {
-	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+	<table class="w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
 				<th class="px-6 py-3">{ l10n.Get("Sensor ID") }</th>

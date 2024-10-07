@@ -278,27 +278,26 @@ templ Badge(count string) {
 }
 
 templ OverviewCard(title, url string, count int, icon templ.Component, asset assets.AssetLoaderFunc) {
-	<div class="flex flex-col justify-start items-start pl-6 pr-2 pt-2.5 pb-2 bg-white dark:bg-gray-800 rounded-2xl shadow gap-2 inline-flex hover:cursor-pointer"
+	<div class="flex items-center flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow gap-2 hover:cursor-pointer"
 			hx-get={ url }
 			hx-target="#body"
 			hx-replace-url="true" >
-		<div class="flex flex-col justify-center items-start gap-4">
-			@icon
-			<div class="text-neutral-800 dark:text-neutral-200 text-[32px] font-bold font-heading leading-10">
-				if count > 0 {
-					{ fmt.Sprintf("%d", count) }
-				} else {
-					{ "-" }
-				}
+		<div class="flex flex-1 p-6 items-end justify-between">
+			<div class="flex flex-col justify-center items-start gap-4">
+				@icon
+				<div class="text-neutral-800 dark:text-neutral-200 text-[32px] font-bold font-heading leading-10">
+					if count > 0 {
+						{ fmt.Sprintf("%d", count) }
+					} else {
+						{ "-" }
+					}
+				</div>
+				<div class="text-zinc-700 dark:text-zinc-200 text-lg whitespace-nowrap">
+					{ title }
+				</div>
 			</div>
-		</div>
-		
-		<div class="flex items-center w-full justify-between">
-			<div class="text-zinc-700 dark:text-zinc-200 text-lg font-normal font-sans leading-relaxed">
-				{ title }
-			</div>
-			<div class="w-6 h-6 flex items-center justify-center">
-				@SVG("arrow-right", Size(24), Box(24, 24))
+			<div class="w-6 h-6 flex ml-auto items-center justify-center bg-primary-surface dark:bg-white rounded-full">
+				@SVG("arrow-right", Size(16), Box(24, 24), StrokeColor("white", "black"), FillColor("white", "black"))
 			</div>
 		</div>
 	</div>
@@ -325,7 +324,7 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 	<body id="body" onload={ onPageLoad() }>
 		<div id="reloader" hx-get={ reloaderEndpoint(version) } hx-trigger={ reloaderFrequency(version) }></div>
 		<div class="flex w-full items-start bg-white dark:bg-content-background">
-			<div class="flex flex-col px-3 py-8 justify-between items-start shrink-0 self-stretch h-full fixed w-64 border-r border-gray-30 dark:border-white dark:border-opacity-30">
+			<div class="flex flex-col px-3 py-8 justify-between items-start shrink-0 self-stretch h-screen w-64 sticky top-0 border-r border-gray-30 dark:border-white dark:border-opacity-30">
 				<div class="flex flex-col items-start self-stretch gap-14">
 					@SVG("diwiselogo", Box(135, 51), Size(51), FillColor("primary-dark", "white"))
 					<div class="flex flex-col items-start self-stretch gap-6">
@@ -346,7 +345,7 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 						*/
 					</div>
 				</div>
-				<div class="flex flex-col items-start justify-end self-stretch gap-10">
+				<div class="flex flex-col flex-1 items-start justify-end self-stretch gap-10">
 					//@SectionDivider("Konto")
 					//@MenuSegment("Inställningar", "/settings", SVG("settings-outline"), asset, isCurrent(ctx, "settings"))
 					<div class="font-bold">
@@ -355,7 +354,7 @@ templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 					@DarkModeToggle(false, asset)
 				</div>
 			</div>
-			<div class="flex-1 ml-64 w-full col-span-10 gap-8 h-full" id="main-content">
+			<div class="flex flex-col flex-1 items-start py-8 px-10 gap-20" id="main-content">
 				@mainContent
 			</div>
 		</div>
