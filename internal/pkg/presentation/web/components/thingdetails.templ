@@ -69,7 +69,7 @@ templ FilterStatistics(l10n locale.Localizer, model ThingDetailsViewModel) {
 				hx-target="#measurementCharts"
 				hx-get={ fmt.Sprintf("/components/things/measurements/%s", strings.ToLower(model.Thing.Type)) }
 				hx-params="*"
-				class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
+				class="border border-input-surface dark:border-white-50 rounded-xl py-2 px-3 dark:bg-input-surface-dark"
 			/>
 			-
 			<input
@@ -81,7 +81,7 @@ templ FilterStatistics(l10n locale.Localizer, model ThingDetailsViewModel) {
 				hx-target="#measurementCharts"
 				hx-get={ fmt.Sprintf("/components/things/measurements/%s", strings.ToLower(model.Thing.Type)) }
 				hx-params="*"
-				class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
+				class="border border-input-surface dark:border-white-50 rounded-xl py-2 px-3 dark:bg-input-surface-dark"
 			/>
 		</div>
 	</div>
