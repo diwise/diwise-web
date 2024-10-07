@@ -274,7 +274,7 @@ func TagCell(l10n locale.Localizer, thing ThingViewModel) templ.Component {
 templ TagComponent(l10n locale.Localizer, sortedTags []string) {
 	for i, tag := range sortedTags {
 		if i < 3 {
-			<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+			<span class="px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
 				{ tag }
 			</span>
 		}
@@ -285,7 +285,7 @@ templ TagComponent(l10n locale.Localizer, sortedTags []string) {
 			<div class="absolute hidden z-10 flex flex-col group-hover:block bg-background-100 dark:bg-gray-800 shadow-lg rounded-lg p-2 right-0">
 				for i, tag := range sortedTags {
 					if i >= 3 {
-						<div class="flex self-stretch dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mt-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+						<div class="flex self-stretch dark:bg-gray-800 px-2 py-1 mt-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
 							{ tag }
 						</div>
 					}
