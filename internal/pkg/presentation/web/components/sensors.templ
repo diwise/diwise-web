@@ -208,19 +208,15 @@ templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
 		hx-disinherit="hx-target hx-push-url"
 	>
 		if sensor.Online {
-			<td class="px-6 py-3 flex items-center gap-2">
-				<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-					<circle cx="6" cy="6" r="6" fill="#00733B"/>
-				</svg>
+			<td class="px-6 py-3 flex items-center gap-2 dark:fill-primary-surface-green-accent">
+				@SVG("circle", FillColor("green-700", "primary-surface-green-accent"), Box(12, 12), Size(16))
 				<span>
 					{ l10n.Get("online") }
 				</span>
 			</td>
 		} else {
-			<td class="px-6 py-3 flex items-center gap-2">
-				<svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-					<circle cx="6" cy="6" r="6" fill="#D62E2E"/>
-				</svg>
+			<td class="px-6 py-3 flex items-center gap-2 fill-red-600">
+				@SVG("circle", FillColor("#D62E2E", "err-prim-surf"), Box(12, 12), Size(16))
 				<span>
 					{ l10n.Get("offline") }
 				</span>
