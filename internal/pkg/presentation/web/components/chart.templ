@@ -171,21 +171,65 @@ templ Chart(id, className string, cfg ChartConfiguration) {
 	<div id="chart-data" data-chart-id={ templ.JSONString(id) } data-chart-cfg={ templ.JSONString(cfg) } style="display:none;"></div>
 	@chartHandle.Once() {
 		<script>
-		(() => {			
-			const c = document.getElementById('chart-data');
-			const chartID = JSON.parse(c.getAttribute('data-chart-id'));	
-        	const cfg = JSON.parse(c.getAttribute('data-chart-cfg'));			
-								
-			try {
-				var existing_chart = Chart.getChart(chartID)
-				existing_chart.destroy();				
-			} catch(e) {				
+			(() => {			
+				const c = document.getElementById('chart-data');
+				const chartID = JSON.parse(c.getAttribute('data-chart-id'));	
+				const cfg = JSON.parse(c.getAttribute('data-chart-cfg'));			
+									
+				try {
+					var existing_chart = Chart.getChart(chartID);
+					existing_chart.destroy();				
+				} catch(e) {				
+				}
+
+				const ctx = document.getElementById(chartID);
+				window.myChart = new Chart(ctx, cfg);
+
+				const isDarkMode = localStorage.theme === 'dark' || 
+					(!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+				updateChartForTheme(isDarkMode);
+			})();
+
+			function updateChartForTheme(isDarkMode) {
+				
+				if (!window.myChart) {
+					return;
+				}
+				
+				const chartColors = isDarkMode ? {
+					backgroundColor: 'rgba(255, 255, 255, 255)',  // Dark mode bakgrundsfärg
+					borderColor: 'rgba(255, 255, 255, 255)',       // Dark mode kantfärg
+					pointBackgroundColor: 'rgba(255, 255, 255, 1)', // Dark mode point-färg (vit)
+					pointBorderColor: 'rgba(255, 255, 255, 1)',
+					ticksColor: 'rgba(255, 255, 255, 1)',
+					gridColor: 'rgba(255, 255, 255, 0.3)',
+				} : {
+					backgroundColor: 'rgba(31, 31, 37, 1)',  // Light mode bakgrundsfärg
+					borderColor: 'rgba(31, 31, 37, 1)',        // Light mode kantfärg
+					pointBackgroundColor: 'rgba(0, 0, 0, 1)',
+					pointBorderColor: 'rgba(31, 31, 37, 1)',
+					ticksColor: 'rgba(31, 31, 37, 1)',
+					gridColor: 'rgba(229, 229, 229, 1)',
+				};
+
+				// Kontrollera om myChart är initierad och uppdatera färgerna
+				if (window.myChart) {
+					const datasets = window.myChart.data.datasets[0];
+					datasets.backgroundColor = chartColors.backgroundColor;
+					datasets.borderColor = chartColors.borderColor;
+					datasets.pointBackgroundColor = chartColors.pointBackgroundColor;
+					datasets.pointBorderColor = chartColors.pointBorderColor;
+					
+					window.myChart.options.scales.x.ticks.color = chartColors.ticksColor;
+					window.myChart.options.scales.y.ticks.color = chartColors.ticksColor;
+
+					window.myChart.options.scales.x.grid.color = chartColors.gridColor;
+					window.myChart.options.scales.y.grid.color = chartColors.gridColor;
+					
+					window.myChart.update();
+				}
 			}
-
-			const ctx = document.getElementById(chartID);
-
-			new Chart(ctx, cfg);
-		})()
-	</script>
+		</script>
 	}
 }

@@ -253,13 +253,16 @@ script onPageLoad() {
 }
 
 script toggleDarkMode() {
-    if (localStorage.theme === 'light') {
-        document.body.classList.add('dark')
-        localStorage.theme = 'dark'
-    } else {
-        document.body.classList.remove('dark')
-        localStorage.theme = 'light'
-    }
+	if (localStorage.theme === 'light') {
+		document.body.classList.add('dark')
+		localStorage.theme = 'dark'
+	} else {
+		document.body.classList.remove('dark')
+		localStorage.theme = 'light'
+	}
+
+	const isDarkMode = document.body.classList.contains('dark');
+	updateChartForTheme(isDarkMode);
 }
 
 templ DarkModeToggle(isOn bool, asset assets.AssetLoaderFunc) {

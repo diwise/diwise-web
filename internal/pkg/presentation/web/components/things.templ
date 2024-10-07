@@ -124,6 +124,11 @@ templ SelectedFilters(l10n locale.Localizer, hxget string) {
 	<script>
 		function updateSelectedFilters() {
 			const selectedFiltersContainer = document.getElementById('selectedFilters');
+			
+			if (!selectedFiltersContainer) {
+				return;
+			}
+			
 			selectedFiltersContainer.innerHTML = '';
 
 			const selectedTypes = Array.from(document.querySelectorAll('input[name="type"]:checked')).map(cb => ({
