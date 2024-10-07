@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -139,6 +140,13 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	r.HandleFunc("GET /components/things/measurements/{type}/current", RequireHX(things.NewCurrentValueComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	// admin
 	r.HandleFunc("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /admin/token", func(w http.ResponseWriter, r *http.Request) {
+		log := logging.GetFromContext(r.Context())
+		token := authz.Token(r.Context())
+		log.Debug("current token", slog.String("token", token))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(token))
+	})
 
 	// Handle requests for leaflet images /assets/<leafletcss-sha>/images/<image>.png
 	leafletSHA := assetLoader.Load("/css/leaflet.css").SHA256()

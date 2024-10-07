@@ -295,6 +295,9 @@ func toViewModel(sensor application.Sensor) components.SensorViewModel {
 	if sensor.DeviceProfile != nil {
 		s.Type = sensor.DeviceProfile.Name
 	}
+	if sensor.DeviceState != nil {
+		s.Online = sensor.DeviceState.Online
+	}
 
 	return s
 }
