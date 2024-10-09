@@ -195,10 +195,10 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     iconUrl = isDarkMode ? '/assets/fffe78b7b16e41765bad95685cbbbcb529b6ceb2e7e6ee4b5086b57b9b451768/wastecontainerblack.svg' : '/assets/5d00f7f613cd020b3a46427c3854f9f2b3b42f35a2de051b4f5187df4984cbdd/wastecontainer.svg';
                     break;
                 case 'lifebuoy':
-                    iconUrl = '/assets/70586d0ec04481509c957c9c53e29e8dff01ccdff43490521c6748cef7301dea/lifebuoy.svg';
+                    iconUrl = isDarkMode ? '/assets/0f3ec38666b68391f3ce390dd4ff4f815109488e727f9c1328ec8180dc155d76/lifebuoyblack.svg' : '/assets/d10dc3c02604380dc75e7b122c2784a2b8c4a525ffd4deee8e714ff0abe97cc8/lifebuoy.svg';
                     break;
                 case 'thermometer':
-                    iconUrl = '/assets/f1fb89b6ac04649840b18d82bd99c07e0bd15dabb4e1a571d5268f89e7b90c33/thermometer.svg';
+                    iconUrl = isDarkMode ? '/assets/f7d100ec98e4fa52cc4d7799ee0e9bd12ed22b45512d6ab4c1b7bde97de9b5c4/thermometerblack.svg' : '/assets/aec35d334f322aea4da1b6b70a627083d1e67f9acb58c11c8ad30dcf317a55c7/thermometer.svg';
                     break;
                 case 'sewer':
                 case 'sewagepumpingstation':
@@ -208,6 +208,9 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     break;
                 case 'passage':
                     iconUrl = isDarkMode ? '/assets/f44acacb4b3153a86ca0464fb739a7d5fd82b132314f30cd838636cbad441a7e/doorblack.svg' : '/assets/3c104c608445896f17b034513f9a4403d6042e40e0e5c64cee35e3d9a0aa0585/door.svg';
+                    break;
+                case 'watermeter':
+                    iconUrl = isDarkMode ? '/assets/7250c2773bc61f99b83007e41e70869d9515b667366a698191a5ebbf195012c0/waterblack.svg' : '/assets/73d3408def41c7812964cf9ef7ecf3ceb35439f3f16c99f9c42037c00c1b30a1/water.svg';
                     break;
                 default:
                     iconUrl = isDarkMode ? '/assets/ea4fbf040ffc101dcc425140ef38ba0f840c63af0f7b5a1d3d5f3868a8c6c5fb/sensorblack.svg' : '/assets/34ed2a96f7750c911539c45ae445b9b3cf95264ac9eb7f194718b86215aadb6b/sensor.svg';
