@@ -71,6 +71,7 @@ type Sensor struct {
 	DeviceState   *DeviceState   `json:"deviceState,omitempty"`
 	Alarms        []string       `json:"alarms,omitempty"`
 }
+
 func (s Sensor) ObservedAt() time.Time {
 	if s.DeviceState != nil {
 		return s.DeviceState.ObservedAt
@@ -78,15 +79,10 @@ func (s Sensor) ObservedAt() time.Time {
 	return time.Time{}
 }
 
-
 type Alarm struct {
-	ID          string    `json:"id"`
-	AlarmType   string    `json:"alarmType"`
-	Description string    `json:"description,omitempty"`
-	ObservedAt  time.Time `json:"observedAt"`
-	RefID       string    `json:"refID"`
-	Severity    int       `json:"severity"`
-	Tenant      string    `json:"tenant"`
+	DeviceID   string    `json:"deviceID"`
+	ObservedAt time.Time `json:"observedAt"`
+	Types      []string  `json:"types"`
 }
 
 type SensorResult struct {

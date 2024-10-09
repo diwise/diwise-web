@@ -17,7 +17,6 @@ templ OverviewCards(l10n locale.Localizer, asset assets.AssetLoaderFunc, stats S
 				@OverviewCard(l10n.Get("activesensors"), "/sensors?active=true", stats.Active, SVG("rss", Size(32), OKStyle()), asset)
 			</div>
 		</div>
-		
 		<div class="flex items-start content-start gap-6 self-stretch flex-wrap w-full">
 			<div class="flex-1">
 				@OverviewCard(l10n.Get("inactivesensors"), "/sensors?active=false", stats.Inactive, SVG("rss", Size(32), AlertStyle()), asset)
@@ -37,13 +36,9 @@ type HomeViewModel struct {
 }
 
 type AlarmViewModel struct {
-	ID          string    `json:"id"`
-	AlarmType   string    `json:"alarmType"`
-	Description string    `json:"description,omitempty"`
-	ObservedAt  time.Time `json:"observedAt"`
-	RefID       string    `json:"refID"`
-	Severity    int       `json:"severity"`
-	Tenant      string    `json:"tenant"`
+	DeviceID   string    `json:"deviceID"`
+	ObservedAt time.Time `json:"observedAt"`
+	Types      []string  `json:"types"`
 }
 
 templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeViewModel) {
@@ -90,7 +85,6 @@ templ AlarmsTable(l10n locale.Localizer, viewModel HomeViewModel) {
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
 				<th class="px-6 py-3">{ l10n.Get("Sensor ID") }</th>
-				<th class="px-6 py-3">{ l10n.Get("type") }</th>
 				<th class="px-6 py-3 min-w-[200px]">{ l10n.Get("description") }</th>
 				<th class="px-6 py-3">{ l10n.Get("lastseen") }</th>
 			</tr>
@@ -112,9 +106,14 @@ templ AlarmsTable(l10n locale.Localizer, viewModel HomeViewModel) {
 
 templ AlarmRow(l10n locale.Localizer, alarm AlarmViewModel) {
 	<tr class="border-b border-divider-gray border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer">
-		<td class="px-6 py-3"><a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", alarm.RefID)) }><span class="font-bold">{ alarm.RefID }</span></a></td>
-		<td class="px-6 py-3">{ l10n.Get(alarm.AlarmType) }</td>
-		<td class="px-6 py-3 ">{ l10n.Get(alarm.Description) }</td>
+		<td class="px-6 py-3"><a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", alarm.DeviceID)) }><span class="font-bold">{ alarm.DeviceID }</span></a></td>
+		<td class="px-6 py-3">
+			for _, t := range alarm.Types {
+				<span class="px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+					{ t }
+				</span>
+			}
+		</td>
 		<td class="px-6 py-3 ">{ alarm.ObservedAt.Format("2006-01-02, 15:04") }</td>
 	</tr>
 }

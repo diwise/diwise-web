@@ -51,13 +51,9 @@ func NewHomePage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoa
 		result, _ := app.GetAlarms(ctx, offset, limit, args)
 		for _, a := range result.Alarms {
 			model.Alarms = append(model.Alarms, components.AlarmViewModel{
-				ID:          a.ID,
-				AlarmType:   a.AlarmType,
-				Description: a.Description,
-				ObservedAt:  a.ObservedAt,
-				RefID:       a.RefID,
-				Severity:    a.Severity,
-				Tenant:      a.Tenant,
+				DeviceID:   a.DeviceID,
+				ObservedAt: a.ObservedAt,
+				Types:      a.Types,
 			})
 		}
 
@@ -101,13 +97,9 @@ func NewAlarmsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		result, _ := app.GetAlarms(ctx, offset, limit, args)
 		for _, a := range result.Alarms {
 			model.Alarms = append(model.Alarms, components.AlarmViewModel{
-				ID:          a.ID,
-				AlarmType:   a.AlarmType,
-				Description: a.Description,
-				ObservedAt:  a.ObservedAt,
-				RefID:       a.RefID,
-				Severity:    a.Severity,
-				Tenant:      a.Tenant,
+				DeviceID:   a.DeviceID,
+				ObservedAt: a.ObservedAt,
+				Types:      a.Types,
 			})
 		}
 

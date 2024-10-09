@@ -418,6 +418,7 @@ func (a *App) GetAlarms(ctx context.Context, offset, limit int, args map[string]
 	params := url.Values{}
 	params.Add("limit", fmt.Sprintf("%d", limit))
 	params.Add("offset", fmt.Sprintf("%d", offset))
+	params.Add("info", "true")
 
 	for k, v := range args {
 		params[k] = v
