@@ -80,7 +80,34 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             class="w-full z-0 h-[60vh]"
         }></div>
 	<script>
+        var map, lightModeTileLayer, darkModeTileLayer;
+        
     (() => {
+        function updateMapForTheme(isDarkMode) {
+            if (!map) {
+                return;
+            }
+
+            if (isDarkMode) {
+                if (map.hasLayer(lightModeTileLayer)) {
+                    map.removeLayer(lightModeTileLayer);
+                }
+                darkModeTileLayer.addTo(map);
+            } else {
+                if (map.hasLayer(darkModeTileLayer)) {
+                    map.removeLayer(darkModeTileLayer);
+                }
+                lightModeTileLayer.addTo(map);
+            }
+        }
+
+        lightModeTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+        });
+
+        darkModeTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+        });
 
         function createMarker(latlng, icon, editMode = false, onDragCallback = null, zIndexOffset = 0) {
             const marker = L.marker(latlng, {
@@ -135,10 +162,17 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 
         var map = L.map('map').setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            //attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        }).addTo(map);
+        const isDarkMode = document.body.classList.contains('dark');
+        if (isDarkMode) {
+            darkModeTileLayer.addTo(map);
+        } else {
+            lightModeTileLayer.addTo(map);
+        }
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            const isDarkMode = e.matches;
+            updateMapForTheme(isDarkMode);
+        });
 
         function createIcon(iconUrl, iconSize = [40, 40], iconAnchor = [12, 41], popupAnchor = [1, -34], shadowSize = [41, 41]) {
             return L.icon({
@@ -152,7 +186,8 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 
         var drainIcon = createIcon('/assets/4b6f555f94417954a8a1d3eace3803fed8bed1a57821134a6f75079d85b4989b/drain.svg');
         var sensorIcon = createIcon('/assets/092df4bb8f2c8826dd2f1b5c79a16a145d421f40d28c4656a6205cd4816766ac/sensor.svg');
-        var wastecontainerIcon = createIcon('/assets/5d00f7f613cd020b3a46427c3854f9f2b3b42f35a2de051b4f5187df4984cbdd/wastecontainer.svg', [16, 16]);
+        var wastecontainerIcon = createIcon('/assets/5d00f7f613cd020b3a46427c3854f9f2b3b42f35a2de051b4f5187df4984cbdd/wastecontainer.svg');
+        var wastecontainerBlackIcon = createIcon('/assets/fffe78b7b16e41765bad95685cbbbcb529b6ceb2e7e6ee4b5086b57b9b451768/wastecontainerblack.svg')
         var trashcanIcon = createIcon('/assets/0b061153871049297688d0f2a639afb3df59daa5d0f4a1afe414bc1a63d6fca3/trashcan.svg');
         var lifebuoyIcon = createIcon('/assets/70586d0ec04481509c957c9c53e29e8dff01ccdff43490521c6748cef7301dea/lifebuoy.svg');
         var thermometerIcon = createIcon('/assets/f1fb89b6ac04649840b18d82bd99c07e0bd15dabb4e1a571d5268f89e7b90c33/thermometer.svg');
@@ -195,11 +230,11 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     function getColorByState(state) {
                         switch(state) {
                             case "red":
-                                return { colorClass: 'bg-red-600', tipColor: '#D62E2E' };
+                                return { colorClass: 'bg-red-600 dark:bg-err-prim-surf', tipColor: '#D62E2E', darktipColor: '#FBC1C1' };
                             case "orange":
-                                return { colorClass: 'bg-orange-600', tipColor: '#DB6900' };
+                                return { colorClass: 'bg-orange-600 dark:bg-primary-surface-orange-accent', tipColor: '#DB6900', darktipColor: '#FFA34D' };
                             default: // Standardfärg om state inte matchar något
-                                return { colorClass: 'bg-green-700', tipColor: '#00733B' };
+                                return { colorClass: 'bg-green-700 dark:bg-primary-surface-green-accent', tipColor: '#00733B', darktipColor: '#AAD4BF' };
                         }
                     }
                     
@@ -207,14 +242,24 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                         pointToLayer: function(feature, latlng) {
                             if (feature.properties.type.toLowerCase() === 'wastecontainer') {
                                 
-                                const { colorClass, tipColor } = getColorByState(feature.properties.state);
-                                const tipIcon = '<svg width="41" height="8" viewBox="0 0 41 8" fill="none" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_1768_10260)"><rect x="6.5" y="-8" width="20" height="20" transform="rotate(-45 6.5 -8)" fill="' + tipColor + '"/></g><defs><clipPath id="clip0_1768_10260"><rect width="40" height="8" fill="white" transform="translate(0.5)"/></clipPath></defs></svg>'
-
+                                const { colorClass, tipColor, darktipColor } = getColorByState(feature.properties.state);
+                                const thisTipColor = isDarkMode ? darktipColor : tipColor
+                                const tipIcon = '<svg width="41" height="8" viewBox="0 0 41 8" fill="none">' +
+                                                    '<g clip-path="url(#clip0_1768_10260)">'+ 
+                                                        '<rect x="6.5" y="-8" width="20" height="20" transform="rotate(-45 6.5 -8)" fill="' + thisTipColor + '"/>' +
+                                                    '</g>' +
+                                                    '<defs>' + 
+                                                        '<clipPath id="clip0_1768_10260">' +
+                                                            '<rect width="40" height="8" fill="white" transform="translate(0.5)"/>' +
+                                                        '</clipPath>' +
+                                                    '</defs>' +
+                                                '</svg>'
+                                const iconUrlColor = isDarkMode ? wastecontainerBlackIcon.options.iconUrl : wastecontainerIcon.options.iconUrl
                                 const divIcon = L.divIcon({
                                     className: '',
-                                    html: '<div class="flex flex-col items-center"><div class="flex flex-col items-center justify-center ' + colorClass + ' text-white p-2 rounded-lg shadow-md gap-2">' + 
+                                    html: '<div class="flex flex-col items-center"><div class="flex flex-col items-center justify-center ' + colorClass + ' text-white dark:text-primary-dark p-2 rounded-lg shadow-md gap-2">' + 
                                                 '<div class="flex flex-row items-center gap-2">' +
-                                                    '<img src="' + wastecontainerIcon.options.iconUrl + '" width="' + wastecontainerIcon.options.iconSize[0] + '" height="' + wastecontainerIcon.options.iconSize[1] + '">' +
+                                                    '<img src="' + iconUrlColor + '" width="' + wastecontainerIcon.options.iconSize[0] + '" height="' + wastecontainerIcon.options.iconSize[1] + '">' +
                                                         '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' +
                                                 '</div></div>' +
                                            '<div class="flex items-center">' + tipIcon + '</div></div>',

@@ -253,16 +253,23 @@ script onPageLoad() {
 }
 
 script toggleDarkMode() {
-	if (localStorage.theme === 'light') {
-		document.body.classList.add('dark')
-		localStorage.theme = 'dark'
-	} else {
-		document.body.classList.remove('dark')
-		localStorage.theme = 'light'
-	}
+    if (localStorage.theme === 'light') {
+        document.body.classList.add('dark');
+        localStorage.theme = 'dark';
+    } else {
+        document.body.classList.remove('dark');
+        localStorage.theme = 'light';
+    }
 
-	const isDarkMode = document.body.classList.contains('dark');
-	updateChartForTheme(isDarkMode);
+    const isDarkMode = document.body.classList.contains('dark');
+
+    if (typeof updateChartForTheme === 'function' && window.myChart) {
+        updateChartForTheme(isDarkMode);
+    }
+
+    if (typeof updateMapForTheme === 'function') {
+        updateMapForTheme(isDarkMode);  
+    }
 }
 
 templ DarkModeToggle(isOn bool, asset assets.AssetLoaderFunc) {
