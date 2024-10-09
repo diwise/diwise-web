@@ -185,43 +185,36 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
         }
 
         function getIconByTypeAndTheme(type, isDarkMode) {
-            let iconUrl, iconSize;
+            let iconUrl;
 
             switch (type) {
                 case 'sensor':
                     iconUrl = isDarkMode ? '/assets/ea4fbf040ffc101dcc425140ef38ba0f840c63af0f7b5a1d3d5f3868a8c6c5fb/sensorblack.svg' : '/assets/34ed2a96f7750c911539c45ae445b9b3cf95264ac9eb7f194718b86215aadb6b/sensor.svg';
-                    iconSize = [40, 40];
                     break;
                 case 'wastecontainer':
                     iconUrl = isDarkMode ? '/assets/fffe78b7b16e41765bad95685cbbbcb529b6ceb2e7e6ee4b5086b57b9b451768/wastecontainerblack.svg' : '/assets/5d00f7f613cd020b3a46427c3854f9f2b3b42f35a2de051b4f5187df4984cbdd/wastecontainer.svg';
-                    iconSize = [40, 40];
                     break;
                 case 'lifebuoy':
                     iconUrl = '/assets/70586d0ec04481509c957c9c53e29e8dff01ccdff43490521c6748cef7301dea/lifebuoy.svg';
-                    iconSize = [40, 40];
                     break;
                 case 'thermometer':
                     iconUrl = '/assets/f1fb89b6ac04649840b18d82bd99c07e0bd15dabb4e1a571d5268f89e7b90c33/thermometer.svg';
-                    iconSize = [40, 40];
                     break;
                 case 'sewer':
                 case 'sewagepumpingstation':
                 case 'combinedsewageoverflow':
                 case 'drain':
                     iconUrl = isDarkMode ? '/assets/894182e183a94ca34fd8014583fd81269bcb97a88dddfd3ca4c438df4542c41c/sewerblack.svg' : '/assets/b7c62f1202a77226a1a6ca1012eb9ea996f1924135cf82fdbc725f2bfacee904/sewer.svg';
-                    iconSize = [40, 40];
                     break;
                 case 'passage':
                     iconUrl = isDarkMode ? '/assets/f44acacb4b3153a86ca0464fb739a7d5fd82b132314f30cd838636cbad441a7e/doorblack.svg' : '/assets/3c104c608445896f17b034513f9a4403d6042e40e0e5c64cee35e3d9a0aa0585/door.svg';
-                    iconSize = [40, 40];
                     break;
                 default:
                     iconUrl = isDarkMode ? '/assets/ea4fbf040ffc101dcc425140ef38ba0f840c63af0f7b5a1d3d5f3868a8c6c5fb/sensorblack.svg' : '/assets/34ed2a96f7750c911539c45ae445b9b3cf95264ac9eb7f194718b86215aadb6b/sensor.svg';
-                    iconSize = [40, 40];
                     break;
             }
 
-            return { iconUrl, iconSize };
+            return { iconUrl };
         }
 
         var layers = {};
@@ -259,14 +252,14 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                             '</svg>';
 
                             // Hämta rätt ikon-URL och storlek beroende på typen och om det är mörkt eller ljust tema
-                            const { iconUrl, iconSize } = getIconByTypeAndTheme(type, isDarkMode);
+                            const { iconUrl } = getIconByTypeAndTheme(type, isDarkMode);
                             const fillingLevelHtml = feature.properties.fillinglevel ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' : '';
 
                             const divIcon = L.divIcon({
                                 className: '',
                                 html: '<div class="flex flex-col items-center"><div class="flex flex-col items-center justify-center ' + colorClass + ' text-white dark:text-primary-dark p-2 rounded-lg shadow-md gap-2">' + 
                                         '<div class="flex flex-row items-center gap-2">' +
-                                            '<img src="' + iconUrl + '" width="' + iconSize[0] + '" height="' + iconSize[1] + '">' +
+                                            '<img src="' + iconUrl + '">' +
                                             fillingLevelHtml +
                                         '</div></div>' +
                                     '<div class="flex items-center">' + tipIcon + '</div></div>',
