@@ -478,3 +478,42 @@ templ CheckboxDropdownList(id string, options []OptionViewModel, buttonText stri
 		</div>
 	</div>
 }
+
+templ graphTableButtons(l10n locale.Localizer, hxGet string) {
+	<div class="flex items-center self-stretch gap-6">
+		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
+			<div class="relative group">
+				<button
+					id="graphButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black stroke-white dark:bg-white dark:stroke-black hover:bg-tertiary-surface-hover"
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?graphview=true", hxGet))) }
+					hx-target="#graphOrTable"
+					hx-on="click: this.classList.add('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black'); this.classList.remove('stroke-black', 'dark:stroke-white'); 
+					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
+					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
+				>
+					<svg class="w-[18px] h-[18px]">
+						@SVG("chartline", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@Tooltip(l10n.Get("graph"))
+			</div>
+			<div class="relative group">
+				<button
+					id="tableButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer stroke-black dark:stroke-white dark:fill-white hover:bg-tertiary-surface-hover"
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?graphview=false", hxGet))) }
+					hx-target="#graphOrTable"
+					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'dark:stroke-black', 'stroke-white' ); this.classList.remove('dark:fill-white', 'dark:stroke-white'); 
+					document.getElementById('graphButton').classList.add('stroke-black', 'dark:stroke-white'); 
+					document.getElementById('graphButton').classList.remove('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');"
+				>
+					<svg class="w-[18px] h-[18px]">
+						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@Tooltip(l10n.Get("table"))
+			</div>
+		</div>
+	</div>
+}

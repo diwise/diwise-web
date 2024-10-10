@@ -152,6 +152,11 @@ func (a *App) GetThing(ctx context.Context, id string) (Thing, error) {
 	return thing, nil
 }
 
+func (a *App) NewThing(ctx context.Context, id string, fields map[string]any) error {
+
+	return nil
+}
+
 func (a *App) GetValidSensors(ctx context.Context, types []string) ([]SensorIdentifier, error) {
 	params := url.Values{
 		"urn": types,

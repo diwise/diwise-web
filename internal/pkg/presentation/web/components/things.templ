@@ -58,7 +58,7 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 			<div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
 				<div class="flex items-center text-white dark:text-dark-primary font-bold">
-					//<button class="flex justify-center items-center gap-2 px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover rounded-xl cursor-pointer" hx-get="/components/things" hx-trigger="click">{ l10n.Get("addthing") }</button>
+					@Button(Primary, l10n.Get("addthing"), "", Target("#things-view"), HxUrl("get", "/components/things/details?mode=new"))
 				</div>
 			</div>
 		</div>

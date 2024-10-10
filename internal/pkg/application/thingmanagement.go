@@ -6,6 +6,7 @@ import (
 )
 
 type ThingManagement interface {
+	NewThing(ctx context.Context, id string, fields map[string]any) error
 	GetThing(ctx context.Context, id string) (Thing, error)
 	GetThings(ctx context.Context, offset, limit int, parmas map[string][]string) (ThingResult, error)
 	UpdateThing(ctx context.Context, thingID string, fields map[string]any) error
