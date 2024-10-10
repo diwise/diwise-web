@@ -304,6 +304,57 @@ other = "Distance"
 [3331-5700]
 other = "Cumulated energy consumption"
 
+[oma-lwm2m-ext-3]
+other = "Device"
+
+[oma-lwm2m-ext-3200]
+other = "Digital input"
+
+[oma-lwm2m-ext-3301]
+other = "Illuminance"
+
+[oma-lwm2m-ext-3302]
+other = "Presence"
+
+[oma-lwm2m-ext-3303]
+other = "Temperature"
+
+[oma-lwm2m-ext-3304]
+other = "Humidity"
+
+[oma-lwm2m-ext-3323]
+other = "Pressure"
+
+[oma-lwm2m-ext-3327]
+other = "Conductivity"
+
+[oma-lwm2m-ext-3328]
+other = "Power"
+
+[oma-lwm2m-ext-3330]
+other = "Distance"
+
+[oma-lwm2m-ext-3331]
+other = "Energy consumption"
+
+[oma-lwm2m-ext-3350]
+other = "Timing"
+
+[oma-lwm2m-ext-3411]
+other = "Battery"
+
+[oma-lwm2m-ext-3424]
+other = "Water meter"
+
+[oma-lwm2m-ext-3428]
+other = "Air quality"
+
+[oma-lwm2m-ext-3434]
+other = "People counter"
+
+[oma-lwm2m-ext-3435]
+other = "Filling level"
+
 [CombinedSewageOverflow]
 other = "Combined sewage overflow"
 

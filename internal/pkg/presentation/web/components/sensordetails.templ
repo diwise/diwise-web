@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"time"
+	"sort"
 )
 
 type SensorDetailsViewModel struct {
@@ -524,15 +525,22 @@ func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLo
 	profile := sensorViewModel.DeviceProfiles[i]
 
 	for _, t := range profile.Types {
+		parts := strings.Split(t, ":")
+		text := strings.Join(parts[1:], "-")
+		
 		viewModel = append(viewModel, OptionViewModel{
 			Value: t,
-			Text:  t,
+			Text:  l10n.Get(text),
 			Name:  id + "-option[]",
 			Selected: slices.ContainsFunc(sensorViewModel.Types, func(s string) bool {
 				return s == t
 			}),
 		})
 	}
+
+	sort.Slice(viewModel, func(i int, j int) bool {
+		return viewModel[i].Text < viewModel[j].Text
+	})
 
 	return CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
 }

@@ -304,6 +304,57 @@ other = "Distans"
 [3331-5700]
 other = "Total energiförbrukning"
 
+[oma-lwm2m-ext-3]
+other = "Sensor"
+
+[oma-lwm2m-ext-3200]
+other = "Digital ingång"
+
+[oma-lwm2m-ext-3301]
+other = "Belysningsstyrka"
+
+[oma-lwm2m-ext-3302]
+other = "Närvaro"
+
+[oma-lwm2m-ext-3303]
+other = "Temperatur"
+
+[oma-lwm2m-ext-3304]
+other = "Luftfuktighet"
+
+[oma-lwm2m-ext-3323]
+other = "Tryck"
+
+[oma-lwm2m-ext-3327]
+other = "Ledningsförmåga"
+
+[oma-lwm2m-ext-3328]
+other = "Effekt"
+
+[oma-lwm2m-ext-3330]
+other = "Distans"
+
+[oma-lwm2m-ext-3331]
+other = "Energiförbrukning"
+
+[oma-lwm2m-ext-3350]
+other = "Tidtagning"
+
+[oma-lwm2m-ext-3411]
+other = "Batteri"
+
+[oma-lwm2m-ext-3424]
+other = "Vattenmätning"
+
+[oma-lwm2m-ext-3428]
+other = "Luftkvalitet"
+
+[oma-lwm2m-ext-3434]
+other = "Personräknare"
+
+[oma-lwm2m-ext-3435]
+other = "Fyllnadsnivå"
+
 [CombinedSewageOverflow]
 other = "Bräddavlopp"
 
