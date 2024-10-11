@@ -112,7 +112,19 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
 	// home
-	r.HandleFunc("GET /", home.NewHomePage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /", func() http.HandlerFunc {
+		// GET / catches ALL routes that no other handler matches, so we need to make sure that
+		// we only serve the homepage when the path actually IS / (or /home as handled below).
+		next := home.NewHomePage(ctx, l10n, assetLoader.Load, app)
+		return func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != "/" {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+
+			next(w, r)
+		}
+	}())
 	r.HandleFunc("GET /home", home.NewHomePage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /components/home/statistics", RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /components/home/usage", RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
