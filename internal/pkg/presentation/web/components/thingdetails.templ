@@ -5,6 +5,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"strings"
+	"sort"
 )
 
 type ThingDetailsViewModel struct {
@@ -23,6 +24,14 @@ type ValidSensorViewModel struct {
 	SensorID string
 	DeviceID string
 	Decoder  string
+}
+
+type NewThingViewModel struct {
+	ThingType		[]string
+	ValidSensors 	[]ValidSensorViewModel
+	Organisations	[]string
+	Tags			[]string
+	Thing			ThingViewModel		
 }
 
 templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
@@ -120,133 +129,132 @@ templ StatisticsData(l10n locale.Localizer, graphComponent, tableComponent templ
 templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
 	<script>
 		document.addEventListener('htmx:afterSwap', function(evt) {
-			function checkTagsLoaded() {
-				var tagItems = document.querySelectorAll('.tagItem');
-				if (tagItems.length > 0) {
-					initializeTags(); 
-					document.getElementById('addTagButton').addEventListener('click', function() {
-						var selectedValue = document.getElementById('tagInput').value;
-						if (selectedValue) { 
-							updateSelectedTag(selectedValue); 
-							document.getElementById('tagInput').value = ""; 
+			// Funktion för att ladda både taggar och sensorer
+			function checkItemsLoaded() {
+				initializeItems('.tagItem', 'tagInput', 'addTagButton', 'selectedTags', 'tag-options', 'selectedTagContainer', "tagItem", "removeTagIcon");
+				initializeItems('.sensorItem', 'sensorInput', 'addSensorButton', 'selectedSensors', 'sensor-options', 'selectedSensorContainer', "sensorItem", "removeSensorIcon");
+			}
+
+			function initializeItems(itemType, inputId, buttonId, hiddenInputId, datalistId, containerId, itemClass, iconClass) {
+				var items = document.querySelectorAll(itemType);
+				var hiddenInput = document.getElementById(hiddenInputId);
+				var currentItems = hiddenInput ? hiddenInput.value.split(',') : [];
+
+				items.forEach(function(itemElement) {
+					var itemText = itemElement.querySelector('span').innerText;
+					addRemoveItemListener(itemElement, itemText, currentItems, hiddenInputId, datalistId);
+					removeItemFromDatalist(itemText, datalistId);
+				});
+
+				// Kontrollera om knappen finns innan du lägger till event listenern
+				var buttonElement = document.getElementById(buttonId);
+				if (buttonElement) {
+					buttonElement.addEventListener('click', function() {
+						var selectedValue = document.getElementById(inputId).value;
+						if (selectedValue) {
+							updateSelectedItem(selectedValue, containerId, hiddenInputId, datalistId, itemClass, iconClass);
+							document.getElementById(inputId).value = "";
 						}
 					});
 				} 
-				if (document.getElementById('addTagButton') != undefined) {
-					document.getElementById('addTagButton').addEventListener('click', function() {
-						var selectedValue = document.getElementById('tagInput').value;
-						if (selectedValue) { 
-							updateSelectedTag(selectedValue); 
-							document.getElementById('tagInput').value = ""; 
+			}
+
+			function removeItemFromDatalist(item, datalistId) {
+				const datalist = document.getElementById(datalistId);
+				const option = datalist.querySelector(`option[value="${item}"]`);
+				if (option) {
+					option.remove();
+				}
+			}
+
+			function addItemToDatalist(item, datalistId) {
+				const datalist = document.getElementById(datalistId);
+				if (datalist.querySelector(`option[value="${item}"]`)) {
+					return;
+				}
+
+				const option = document.createElement('option');
+				option.value = item;
+				option.textContent = item;
+
+				const options = Array.from(datalist.children);
+				let inserted = false;
+				for (let i = 0; i < options.length; i++) {
+					if (options[i].value.localeCompare(item) > 0) {
+						datalist.insertBefore(option, options[i]);
+						inserted = true;
+						break;
+					}
+				}
+
+				if (!inserted) {
+					datalist.appendChild(option);
+				}
+			}
+
+			// Funktion för att skapa elementet med en stängningsikon
+			function createElement(item, className, iconClass) {
+				return `
+					<div class="flex items-center p-2 rounded-full gap-1 ${className} border-gray-30 dark:border-white-30 border stroke-primary-dark dark:stroke-white">
+						<span>${item}</span>
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x ${iconClass} cursor-pointer">
+							<line x1="18" y1="6" x2="6" y2="18"></line>
+							<line x1="6" y1="6" x2="18" y2="18"></line>
+						</svg>
+					</div>
+				`;
+			}
+
+			function updateHiddenInput(items, hiddenInputId) {
+				var hiddenInput = document.getElementById(hiddenInputId);
+				hiddenInput.value = items.join(',');
+			}
+
+			// Lägg till lyssnare för item och hantera borttagning
+			function addRemoveItemListener(itemElement, itemText, currentItems, hiddenInputId, datalistId) {
+				const removeIcon = itemElement.querySelector('.feather-x');
+				if (removeIcon) {
+					removeIcon.addEventListener('click', function() {
+						itemElement.remove();
+						addItemToDatalist(itemText, datalistId);
+						var index = currentItems.indexOf(itemText);
+						if (index > -1) {
+							currentItems.splice(index, 1);
 						}
+						updateHiddenInput(currentItems, hiddenInputId);
 					});
 				}
 			}
-			checkTagsLoaded();
-		});
 
-		// Funktion för att uppdatera datalistan genom att ta bort en tagg
-		function removeTagFromDatalist(tag) {
-			const datalist = document.getElementById('tag-options');
-			const option = datalist.querySelector(`option[value="${tag}"]`);
-			if (option) {
-				option.remove();
-			}
-		}
+			// Uppdatera valt item
+			function updateSelectedItem(item, containerId, hiddenInputId, datalistId, itemClass, iconClass) {
+				if (item) {
+					var itemElement = document.createElement('div');
+					itemElement.innerHTML = createElement(item, itemClass, iconClass).trim();
+					itemElement = itemElement.firstChild;
 
-		// Funktion för att lägga tillbaka en tagg till datalistan
-		function addTagToDatalist(tag) {
-			const datalist = document.getElementById('tag-options');
-			if (datalist.querySelector(`option[value="${tag}"]`)) {
-				return; 
-			}
-			const option = document.createElement('option');
-			option.value = tag;
-			option.textContent = tag;
-			const options = Array.from(datalist.children);
-			let inserted = false;
-			for (let i = 0; i < options.length; i++) {
-				if (options[i].value.localeCompare(tag) > 0) {
-					datalist.insertBefore(option, options[i]);
-					inserted = true;
-					break;
+					document.getElementById(containerId).appendChild(itemElement);
+
+					var hiddenInput = document.getElementById(hiddenInputId);
+					var currentItems = hiddenInput.value ? hiddenInput.value.split(',') : [];
+					currentItems.push(item);
+					updateHiddenInput(currentItems, hiddenInputId);
+
+					addRemoveItemListener(itemElement, item, currentItems, hiddenInputId, datalistId);
+					removeItemFromDatalist(item, datalistId);
 				}
 			}
-			if (!inserted) {
-				datalist.appendChild(option);
-			}
-		}
 
-		// Funktion för att skapa en ny tag med en stängningsikon
-		function createTagElement(tag) {
-			return `
-				<div class="flex items-center p-2 rounded-full gap-1 tagItem border-gray-30 dark:border-white-30 border stroke-primary-dark dark:stroke-white">
-					<span>${tag}</span>
-					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x removeTagIcon cursor-pointer">
-						<line x1="18" y1="6" x2="6" y2="18"></line>
-						<line x1="6" y1="6" x2="18" y2="18"></line>
-					</svg>
-				</div>
-			`;
-		}
-
-		// Funktion för att uppdatera hidden input med aktuella taggar
-		function updateHiddenInput(tags) {
-			var hiddenInput = document.getElementById('selectedTags');
-			hiddenInput.value = tags.join(',');
-		}
-
-		// Funktion för att lägga till händelselyssnare på en tag och hantera borttagning
-		function addRemoveTagListener(tagElement, tagText, currentTags) {
-			const removeIcon = tagElement.querySelector('.removeTagIcon');
-			if (removeIcon) {
-				removeIcon.addEventListener('click', function() {
-					tagElement.remove(); 
-					addTagToDatalist(tagText);
-					var index = currentTags.indexOf(tagText);
-					if (index > -1) {
-						currentTags.splice(index, 1);
-					}
-					updateHiddenInput(currentTags);
-				});
-			} 
-		}
-
-		// Funktion för att hantera både server-renderade och dynamiskt tillagda taggar
-		function initializeTags() {
-			var hiddenInput = document.getElementById('selectedTags');
-			var currentTags = hiddenInput.value ? hiddenInput.value.split(',') : [];
-			var tagItems = document.querySelectorAll('.tagItem');
-			tagItems.forEach(function(tagElement) {
-				var tagText = tagElement.querySelector('span').innerText;
-				addRemoveTagListener(tagElement, tagText, currentTags);
-				removeTagFromDatalist(tagText);
-			});
-		}
-
-		// Funktion för att lägga till ny tagg i container och uppdatera hidden input
-		function updateSelectedTag(tag) {
-			if (tag) {
-				var tagElement = document.createElement('div');
-				tagElement.innerHTML = createTagElement(tag).trim();
-				tagElement = tagElement.firstChild;
-				
-				document.getElementById('selectedTagContainer').appendChild(tagElement);
-				var hiddenInput = document.getElementById('selectedTags');
-				var currentTags = hiddenInput.value ? hiddenInput.value.split(',') : [];
-				currentTags.push(tag);
-				updateHiddenInput(currentTags);
-				addRemoveTagListener(tagElement, tag, currentTags);
-				removeTagFromDatalist(tag);
-			}
-		}
+			// Initiera när sidan är klar
+			checkItemsLoaded();
+		});
 	</script>
 
 	<div class="w-full">
 		<div class="flex items-center w-full justify-between">
 			if model.Thing.Name != "" {
 				<div class="flex items-center gap-6 align-middle">
-					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.Name }</h1>
+					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.Name }</h1>
 				</div>
 			}
 			else if model.Thing.ThingID == "" {
@@ -255,7 +263,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 				</div>
 			} else {
 				<div class="flex items-center gap-6 align-middle">
-					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ThingID }</h1>
+					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ThingID }</h1>
 				</div>
 			}
 			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", model.Thing.ThingID))))
@@ -388,7 +396,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 				</div>
 			} else {
 				<div class="flex items-center gap-6 align-middle">
-					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { model.Thing.ThingID }</h1>
+					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { model.Thing.ThingID }</h1>
 				</div>
 			}
 		</div>
@@ -441,35 +449,88 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 									</div>
 								</div>
 							</div>
-							<div class="flex flex-start self-stretch">
-								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-									if len(model.Related) == 0 {
-										<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
-									} 
-									<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-										<input type="hidden" name="currentDevice" value={ model.RelatedDevice }/>
-										<input
-											list="filter-options"
-											name="relatedDevice"
-											placeholder={ l10n.Get("picksensor") }
-											class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
-											value={ model.RelatedDevice }
-											id="sensorInput"
-										/>
-										<datalist id="filter-options">
-											for _, sensor := range model.ValidSensors {
-												<option value={ sensor.DeviceID }>{ fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder) }</option>
-											}
-										</datalist>
-										<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
-											<svg class="w-[18px] h-[18px] dark:fill-white">
-												@templ.Raw(iconSVG("chevron-down"))
-											</svg>
+							
+							if model.Thing.Type != "sandstorage" {
+								//Koppla 1 sensor
+								<div class="flex flex-start self-stretch">
+									<div class="flex flex-col gap-2 flex-1">
+										<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
+										if len(model.Related) == 0 {
+											<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
+										} 
+										<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
+											<input type="hidden" name="currentDevice" value={ model.RelatedDevice }/>
+											<input
+												list="sensor-options"
+												name="relatedDevice"
+												placeholder={ l10n.Get("picksensor") }
+												class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
+												value={ model.RelatedDevice }
+												id="sensorInput"
+											/>
+											<datalist id="sensor-options">
+												for _, sensor := range model.ValidSensors {
+													<option value={ sensor.DeviceID }>{ fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder) }</option>
+												}
+											</datalist>
+											<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
+												<svg class="w-[18px] h-[18px] dark:fill-white">
+													@templ.Raw(iconSVG("chevron-down"))
+												</svg>
+											</div>
 										</div>
 									</div>
 								</div>
-							</div>
+							} else {
+								//Koppla flera sensorer
+								<div class="flex flex-start self-stretch">
+									<div class="flex flex-col gap-6 flex-1">
+										<div class="flex flex-col gap-2 flex-1">
+											<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
+											<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
+												<div id="selectedSensorContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full">
+													/*for _, sensor := range model.RelatedDevice {
+														<div class="flex items-center p-2 rounded-full gap-1 sensorItem border-gray-30 dark:border-white-30 dark:text-secondary border stroke-primary-dark dark:stroke-white">
+															<span>{ sensor }</span>
+															<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x removeTagIcon cursor-pointer">
+																<line x1="18" y1="6" x2="6" y2="18"></line>
+																<line x1="6" y1="6" x2="18" y2="18"></line>
+															</svg>
+														</div>
+													}*/
+												</div>
+											</div>
+										</div>	
+										<div class="flex flex-start self-stretch gap-3">
+											<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
+												<input
+													list="sensor-options"
+													name="relatedDevice"
+													placeholder={ l10n.Get("picksensor") }
+													class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
+													id="sensorInput"
+												/>
+												<datalist id="sensor-options">
+													for _, sensor := range model.ValidSensors {
+														<option value={ sensor.DeviceID }>{ fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder) }</option>
+													}
+												</datalist>
+												<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
+													<svg class="w-[18px] h-[18px] dark:fill-white">
+														@templ.Raw(iconSVG("chevron-down"))
+													</svg>
+												</div>
+											</div>
+											<div id="addSensorButton" class="flex gap-2 rounded-xl whitespace-nowrap cursor-pointer font-bold px-4 py-2 bg-tertiary-surface rounded-xl hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-white-30 text-primary-dark dark:text-white">
+												{ l10n.Get("add") }
+											</div>
+										</div>
+
+										<!-- Ett hidden input för alla sensorer separerade med kommatecken, förifylld från backend -->
+										<input type="hidden" id="selectedSensors" name="currentDevice" value={ model.RelatedDevice }/>
+									</div>
+								</div>
+							}
 							//Lägg till taggar
 							<div class="flex flex-start self-stretch">
 								<div class="flex flex-col gap-6 flex-1">
@@ -582,205 +643,84 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 			</div>
 		</form>
 	</div>
-	@NewThing(l10n, asset, model)
 }
 
-templ NewThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
-	<div class="w-full">
-		<div class="flex items-center w-full justify-between">
-			<div class="flex items-center gap-6 align-middle">
-				<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("addthing") }</h1>
+templ NewThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, model NewThingViewModel) {
+	<div id="modal" class="fixed inset-0 bg-gray-30 z-50 flex items-start justify-center">
+		<div class="bg-white rounded-lg shadow-xl w-full max-w-xl p-6 mt-8">
+			<div class="w-full">
+				<div class="flex items-center w-full justify-between">
+					<div class="flex items-center gap-6 align-middle">
+						<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("addthing") }</h1>
+					</div>
+				</div>
+				<form action="/components/things/details" method="post">
+					//<input type="hidden" name="id" value={ model.Thing.ThingID }/>
+					<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
+						<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+							//Status och uppgifter
+							<div class="flex flex-col items-start self-stretch">
+								<div class="flex items-center gap-3 self-stretch">
+									//Rubrik uppgifter
+									@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+									<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
+									<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+								</div>
+								<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+									//Uppgifter
+									<div class="flex flex-start gap-10 self-stretch">
+										<div class="flex flex-col gap-2 flex-1">
+											<div class="font-bold">{ l10n.Get("thingtype") }</div>
+											<div class="border border-input-surface rounded-xl">
+												<label for="type" class="hidden block text-sm font-medium text-gray-700">
+													{ l10n.Get("pickOption") }
+												</label>
+												@TypeSelect(l10n, asset, "type", "", model.ThingType)
+											</div>
+										</div>
+									</div>
+									<div class="flex flex-start gap-10 self-stretch">
+										<div class="flex flex-col gap-2 flex-1">
+											<div class="font-bold">{ l10n.Get("name") }</div>
+												<input
+													type="text"
+													name="name"
+													class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
+													placeholder=""
+												/>
+										</div>
+										<div class="flex flex-col gap-2 flex-1">
+											<div class="font-bold">{ l10n.Get("organisation") }</div>
+											<div class="border border-input-surface rounded-xl">
+												<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
+													{ l10n.Get("pickOption") }
+												</label>
+												@OrganisationSelect(l10n, asset, "organisation", "", model.Organisations)
+											</div>
+										</div>
+									</div>
+									<div class="flex flex-start gap-10 self-stretch">
+										<div class="flex flex-col gap-2 flex-[1_0_0]">
+											<div class="font-bold">{ l10n.Get("description") }</div>
+											<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" placeholder={ l10n.Get("description") }>
+												
+											</textarea>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
+					<div class="flex items-center justify-end pt-6">
+						<div class="flex items-center gap-4">
+							@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"))
+							@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
+						</div>
+					</div>
+				</form>
 			</div>
 		</div>
-		<form action="/components/things/details" method="post">
-			<input type="hidden" name="id" value={ model.Thing.ThingID }/>
-			<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
-				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
-					//Status och uppgifter
-					<div class="flex flex-col items-start self-stretch">
-						<div class="flex items-center gap-3 self-stretch">
-							//Rubrik uppgifter
-							@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-							<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
-							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-						</div>
-						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
-							//Uppgifter
-							<div class="flex flex-start gap-10 self-stretch">
-								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("id") }</div>
-									<div class="break-all">
-										Genererat ID här
-									</div>
-								</div>
-								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("thingtype") }</div>
-									<div class="">
-										{ l10n.Get(model.Thing.Type) }
-									</div>
-								</div>
-							</div>
-							<div class="flex flex-start gap-10 self-stretch">
-								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("name") }</div>
-										<input
-											type="text"
-											name="name"
-											class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-											placeholder=""
-											value={ model.Thing.Name }
-										/>
-								</div>
-								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("organisation") }</div>
-									<div class="border border-input-surface rounded-xl">
-										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
-											{ l10n.Get("pickOption") }
-										</label>
-										@OrganisationSelect(l10n, asset, "organisation", model.Thing.Tenant, model.Organisations)
-									</div>
-								</div>
-							</div>
-							<div class="flex flex-start self-stretch">
-								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-									if len(model.Related) == 0 {
-										<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
-									} 
-									<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-										<input type="hidden" name="currentDevice" value={ model.RelatedDevice }/>
-										<input
-											list="filter-options"
-											name="relatedDevice"
-											placeholder={ l10n.Get("picksensor") }
-											class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
-											value={ model.RelatedDevice }
-											id="sensorInput"
-										/>
-										<datalist id="filter-options">
-											for _, sensor := range model.ValidSensors {
-												<option value={ sensor.DeviceID }>{ fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder) }</option>
-											}
-										</datalist>
-										<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
-											<svg class="w-[18px] h-[18px] dark:fill-white">
-												@templ.Raw(iconSVG("chevron-down"))
-											</svg>
-										</div>
-									</div>
-								</div>
-							</div>
-							//Lägg till taggar
-							<div class="flex flex-start self-stretch">
-								<div class="flex flex-col gap-6 flex-1">
-									<div class="flex flex-col gap-2 flex-1">
-										<div class="font-bold">{ l10n.Get("tags") }</div>
-										<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
-											<div id="selectedTagContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full">
-												for _, tag := range model.Thing.Tags {
-													<div class="flex items-center p-2 rounded-full gap-1 tagItem border-gray-30 dark:border-white-30 dark:text-secondary border stroke-primary-dark dark:stroke-white">
-														<span>{ tag }</span>
-														<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x removeTagIcon cursor-pointer">
-															<line x1="18" y1="6" x2="6" y2="18"></line>
-															<line x1="6" y1="6" x2="18" y2="18"></line>
-														</svg>
-													</div>
-												}
-											</div>
-										</div>
-									</div>	
-									<div class="flex flex-start self-stretch gap-3">
-										<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-											<input
-												list="tag-options"
-												name="tags"
-												placeholder={ l10n.Get("addtag") }
-												class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
-												id="tagInput"
-											/>
-											<datalist id="tag-options">
-												for _, t := range model.Tags {
-													<option value={ t }>{ t }</option>
-												}
-											</datalist>
-											<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
-												<svg class="w-[18px] h-[18px] dark:fill-white">
-													@templ.Raw(iconSVG("chevron-down"))
-												</svg>
-											</div>
-										</div>
-										<div id="addTagButton" class="flex gap-2 rounded-xl whitespace-nowrap cursor-pointer font-bold px-4 py-2 bg-tertiary-surface rounded-xl hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-white-30 text-primary-dark dark:text-white">
-											{ l10n.Get("add") }
-										</div>
-									</div>
-
-									<!-- Ett hidden input för alla taggar separerade med kommatecken, förifylld från backend -->
-									<input type="hidden" id="selectedTags" name="selectedTags" value={ strings.Join(model.Thing.Tags, ",") }>
-								</div>
-							</div>
-							<div class="flex flex-start gap-10 self-stretch">
-								<div class="flex flex-col gap-2 flex-[1_0_0]">
-									<div class="font-bold">{ l10n.Get("description") }</div>
-									<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" placeholder={ l10n.Get("description") }>
-										{ model.Thing.Description }
-									</textarea>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="border-l border-gray-30 dark:border-white-30 h-auto"></div> //Vertikal gray-30 mellan uppgifter och position
-				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
-					<div class="flex flex-col items-start self-stretch">
-						//Karta
-						<div class="flex items-center gap-3 self-stretch">
-							//Position rubrik
-							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-							<h2 class="font-heading text-xl font-bold">{ l10n.Get("location") }</h2>
-							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-						</div>
-						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
-							//Position
-							<div class="flex flex-start gap-10 self-stretch">
-								<div class="flex flex-col gap-2 flex-[1_0_0]">
-									<div class="font-bold">{ l10n.Get("latitude") }</div>
-									<input type="number" 
-											name="latitude" 
-											id="latitude"
-											min="-90" 
-											max="90" 
-											step="0.000001"
-											value={ fmt.Sprintf("%f", model.Thing.Latitude) } 
-											class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
-											placeholder="Latitud"/>
-								</div>
-								<div class="flex flex-col gap-2 flex-[1_0_0]">
-									<div class="font-bold">{ l10n.Get("longitude") }</div>
-									<input type="number" 
-											name="longitude" 
-											id="longitude"
-											min="-180" 
-											max="180" 
-											step="0.000001"
-											value={ fmt.Sprintf("%f", model.Thing.Longitude) } 
-											class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
-											placeholder="Longitud"/>
-								</div>
-							</div>
-							@Map("medium", false, true, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
-			<div class="flex items-center justify-end py-6">
-				//@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"))
-				<div class="flex items-center gap-4">
-					@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"))
-					@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
-				</div>
-			</div>
-		</form>
 	</div>
 }
 
@@ -795,13 +735,17 @@ func TypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selecte
 		},
 	}
 
-	for _, org := range types {
+	for _, t := range types {
 		viewModel = append(viewModel, OptionViewModel{
-			Value:    org,
-			Text:     org,
-			Selected: org == selected,
+			Value:    t,
+			Text:     l10n.Get(t),
+			Selected: t == selected,
 		})
 	}
+
+	sort.Slice(viewModel, func(i, j int) bool {
+		return viewModel[i].Text < viewModel[j].Text
+	})
 
 	return Select(id, false, "", "", viewModel)
 }

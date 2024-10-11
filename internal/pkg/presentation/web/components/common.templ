@@ -193,7 +193,7 @@ templ Tooltip(tooltiptext string) {
 		<svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full">
 			@SVG("tip", Box(41, 8), FillColor("black", "white"))
 		</svg>
-		<div class="bg-primary-surface text-white dark:bg-white dark:text-black rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
+		<div class="bg-primary-surface text-white dark:bg-white dark:text-primary-dark rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
 			{ tooltiptext }
 		</div>
 	</div>
@@ -286,6 +286,28 @@ func Target(target string) func(*buttonCfg) {
 	}
 }
 
+func (cfg *buttonCfg) Trigger() templ.Attributes {
+	return cfg.name
+}
+
+func Trigger(trigger string) func(*buttonCfg) {
+	attrs := templ.Attributes{"hx-trigger": trigger}
+	return func(cfg *buttonCfg) {
+		cfg.name = attrs
+	}
+}
+
+func (cfg *buttonCfg) Swap() templ.Attributes {
+	return cfg.name
+}
+
+func Swap(swap string) func(*buttonCfg) {
+	attrs := templ.Attributes{"hx-swap": swap}
+	return func(cfg *buttonCfg) {
+		cfg.name = attrs
+	}
+}
+
 func (cfg *buttonCfg) Classes() string {
 	classNames := make([]string, 0, 6)
 
@@ -363,6 +385,8 @@ templ Button(style ButtonStyle, title, icon string, config ...func(*buttonCfg)) 
 		{ newButtonCfg(config...).BtnType()... }
 		{ newButtonCfg(config...).HxUrl()... }
 		{ newButtonCfg(config...).Target()... }
+		{ newButtonCfg(config...).Trigger()... }
+		{ newButtonCfg(config...).Swap()... }
 	>
 		if icon != "" {
 			<div class="w-[20px] h-[20px]">
@@ -437,7 +461,7 @@ templ SelectMultipleInputs(id string, multiple bool, hxGet, hxTarget, hxInclude 
 
 templ OptionCheckbox(option OptionViewModel) {
 	<label for={ option.Value } class="flex items-center justify-between w-full cursor-pointer mb-2 gap-3 pr-2">
-		<span class="ml-2 text-gray-700 dark:text-black">{ option.Text }</span>
+		<span class="ml-2 text-gray-700 dark:text-primary-dark">{ option.Text }</span>
 		<div class="flex items-center">
 			<input
 				type="checkbox"

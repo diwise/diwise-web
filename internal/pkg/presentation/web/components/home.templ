@@ -47,7 +47,7 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 			<div class="flex flex-col flex-[1_0_0] justify-center items-start gap-6">
 				<div class="flex items-center gap-3 self-stretch">
 					@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("overview") }</h1>
+					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("overview") }</h1>
 					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 				</div>
 				<div hx-get="/components/home/statistics" hx-trigger="load, every 1m" class="flex w-full">
@@ -58,7 +58,7 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 			<div class="flex flex-col flex-[1_0_0] items-start gap-6">
 				<div class="flex items-center gap-3 self-stretch">
 					@SVG("chartline", Size(32), NoFill(), Box(20, 20), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					<h2 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose whitespace-nowrap">{ l10n.Get("measurementperday") }</h2>
+					<h2 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose whitespace-nowrap">{ l10n.Get("measurementperday") }</h2>
 					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 				</div>
 				<div class="w-full p-6 dark:bg-gray-800 rounded-2xl shadow">
@@ -70,7 +70,7 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 		<div class="flex flex-col items-start self-stretch gap-6">
 			<div class="flex items-center gap-3 self-stretch">
 				@SVG("alert-triangle", Size(24))
-				<h2 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose whitespace-nowrap">{ l10n.Get("information") }</h2>
+				<h2 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose whitespace-nowrap">{ l10n.Get("information") }</h2>
 				<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 			</div>
 			<div id="tableview" class="w-full">

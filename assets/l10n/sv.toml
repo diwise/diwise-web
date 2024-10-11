@@ -184,6 +184,9 @@ other = "Välj sensor"
 [rowsPerPage]
 other = "Rader per sida"
 
+[sandstorage]
+other = "Sandficka"
+
 [save]
 other = "Spara"
 

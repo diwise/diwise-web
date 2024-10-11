@@ -59,7 +59,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 				</div>
 			} else {
 				<div class="flex items-center gap-6 align-middle">
-					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
+					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
 					@statusActive(sensor.Active, l10n)
 				</div>
 			}
@@ -206,7 +206,7 @@ func RenderMeasurementGraph(l10n locale.Localizer, model SensorDetailsViewModel)
 templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
 	<div class="w-full">
 		<div class="flex items-center justify-between w-full">
-			<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { sensor.Name }</h1>
+			<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { sensor.Name }</h1>
 		</div>
 		<form action="/components/sensors/details" method="post">
 			<input type="hidden" name="id" value={ sensor.DeviceID }/>

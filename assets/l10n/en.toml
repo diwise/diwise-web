@@ -184,6 +184,9 @@ other = "Pick sensor"
 [rowsPerPage]
 other = "Rows per page"
 
+[sandstorage]
+other = "Sand storage"
+
 [save]
 other = "Save"
 

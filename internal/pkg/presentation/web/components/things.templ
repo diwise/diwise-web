@@ -57,8 +57,8 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 		<div class="flex flex-col items-start gap-6 self-stretch w-full">
 			<div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
-				<div class="flex items-center text-white dark:text-dark-primary font-bold">
-					@Button(Primary, l10n.Get("addthing"), "", Target("#things-view"), HxUrl("get", "/components/things/details?mode=new"))
+				<div class="flex items-center text-white dark:text-primary-dark font-bold">
+					@Button(Primary, l10n.Get("addthing"), "", Target("#modalContainer"), HxUrl("get", "/components/things/new"), Trigger("click"), Swap("outerHTML"))
 				</div>
 			</div>
 		</div>

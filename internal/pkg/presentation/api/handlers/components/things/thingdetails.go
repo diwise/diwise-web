@@ -169,13 +169,33 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 }
 
 func NewThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-	//Get list of thing types
-	//Get list of sensors
-	//Get list of tenants
-	//Get list of tags
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+		ctx := helpers.Decorate(r.Context(),
+			components.CurrentComponent, "things",
+		)
 
+		newThingViewModel := components.NewThingViewModel{
+			ThingType:     []string{"wastecontainer", "sandstorage", "passage", "combinedsewageoverflow"},
+			Organisations: app.GetTenants(ctx),
+		}
+		newThingViewModel.Tags, _ = app.GetTags(ctx)
+
+		component := components.NewThing(localizer, assets, newThingViewModel)
+
+		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+
+		err := component.Render(ctx, w)
+		if err != nil {
+			http.Error(w, "could not render new thing page", http.StatusInternalServerError)
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+	return http.HandlerFunc(fn)
 }
 
 func SaveNewThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
