@@ -341,11 +341,9 @@ func (a *App) GetStatistics(ctx context.Context) Statistics {
 		}
 
 		res, err := a.get(ctx, a.deviceManagementURL, "", params)
-		if err != nil {
+		if err != nil || res.Meta == nil {
 			ch <- 0
-		}
-		if res.Meta == nil {
-			ch <- 0
+			return
 		}
 
 		ch <- int(res.Meta.TotalRecords)
