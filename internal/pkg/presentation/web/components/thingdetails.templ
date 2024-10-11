@@ -316,6 +316,12 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 								</div>
 							}
 						</div>
+						if strings.ToLower(model.Thing.Type) == "wastecontainer" {
+							@WasteContainerProperties(l10n, model)
+						}
+						if strings.ToLower(model.Thing.Type) == "sandstorage" {
+							@SandStorageProperties(l10n, model)
+						}
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
 							if model.Thing.Description == "" {
@@ -452,7 +458,9 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 							if strings.ToLower(model.Thing.Type) == "wastecontainer" {
 								@EditWasteContainer(l10n, model)
 							}
-							
+							if strings.ToLower(model.Thing.Type) == "sandstorage" {
+								@EditSandStorage(l10n, model)
+							}
 							if model.Thing.Type != "sandstorage" {
 								//Koppla 1 sensor
 								<div class="flex flex-start self-stretch">
@@ -484,56 +492,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 										</div>
 									</div>
 								</div>
-							} else {
-								//Koppla flera sensorer
-								<div class="flex flex-start self-stretch">
-									<div class="flex flex-col gap-6 flex-1">
-										<div class="flex flex-col gap-2 flex-1">
-											<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-											<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
-												<div id="selectedSensorContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full">
-													/*for _, sensor := range model.RelatedDevice {
-														<div class="flex items-center p-2 rounded-full gap-1 sensorItem border-gray-30 dark:border-white-30 dark:text-secondary border stroke-primary-dark dark:stroke-white">
-															<span>{ sensor }</span>
-															<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x removeTagIcon cursor-pointer">
-																<line x1="18" y1="6" x2="6" y2="18"></line>
-																<line x1="6" y1="6" x2="18" y2="18"></line>
-															</svg>
-														</div>
-													}*/
-												</div>
-											</div>
-										</div>	
-										<div class="flex flex-start self-stretch gap-3">
-											<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-												<input
-													list="sensor-options"
-													name="relatedDevice"
-													placeholder={ l10n.Get("picksensor") }
-													class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
-													id="sensorInput"
-												/>
-												<datalist id="sensor-options">
-													for _, sensor := range model.ValidSensors {
-														<option value={ sensor.DeviceID }>{ fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder) }</option>
-													}
-												</datalist>
-												<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
-													<svg class="w-[18px] h-[18px] dark:fill-white">
-														@templ.Raw(iconSVG("chevron-down"))
-													</svg>
-												</div>
-											</div>
-											<div id="addSensorButton" class="flex gap-2 rounded-xl whitespace-nowrap cursor-pointer font-bold px-4 py-2 bg-tertiary-surface rounded-xl hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-white-30 text-primary-dark dark:text-white">
-												{ l10n.Get("add") }
-											</div>
-										</div>
-
-										<!-- Ett hidden input för alla sensorer separerade med kommatecken, förifylld från backend -->
-										<input type="hidden" id="selectedSensors" name="currentDevice" value={ model.RelatedDevice }/>
-									</div>
-								</div>
-							}
+							} 
 							//Lägg till taggar
 							<div class="flex flex-start self-stretch">
 								<div class="flex flex-col gap-6 flex-1">

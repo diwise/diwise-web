@@ -82,6 +82,17 @@ templ StatisticsWasteContainerTableRow(l10n locale.Localizer, thing MeasurementV
 	</tr>
 }
 
+templ WasteContainerProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
+	<div class="">
+		<div class="">Behållaren har en höjd på
+			<span>222</span> mm</div>
+		<div>
+			med en max fyllnadshöjd på 
+			<span>200</span> mm.
+		</div>
+	</div>
+}
+
 templ EditWasteContainer(l10n locale.Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-start gap-10 self-stretch">
 		<div class="flex flex-col gap-2 flex-1">
