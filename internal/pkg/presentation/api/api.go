@@ -92,6 +92,10 @@ func RequireHX(next http.Handler) http.HandlerFunc {
 func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange, app *application.App, assetPath string) (Api, error) {
 	version := helpers.GetVersion(ctx)
 
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
+
 	mux.HandleFunc("GET /version/{v}", func(w http.ResponseWriter, r *http.Request) {
 		if helpers.IsHxRequest(r) {
 			if r.PathValue("v") != version {
