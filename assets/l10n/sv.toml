@@ -118,6 +118,12 @@ other = "Inaktiva"
 [map]
 other = "Karta"
 
+[maxheight]
+other = "Behållarens höjd"
+
+[maxlevel]
+other = "Max fyllnadshöjd"
+
 [measurementperday]
 other = "Antal mätvärden per dag"
 

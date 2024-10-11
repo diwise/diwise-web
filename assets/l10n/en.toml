@@ -118,6 +118,12 @@ other = "Inactive"
 [map]
 other = "Map"
 
+[maxheight]
+other = "Container height"
+
+[maxlevel]
+other = "Max filling height"
+
 [measurementperday]
 other = "Measurements per day"
 

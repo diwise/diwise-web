@@ -449,6 +449,9 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 									</div>
 								</div>
 							</div>
+							if strings.ToLower(model.Thing.Type) == "wastecontainer" {
+								@EditWasteContainer(l10n, model)
+							}
 							
 							if model.Thing.Type != "sandstorage" {
 								//Koppla 1 sensor
