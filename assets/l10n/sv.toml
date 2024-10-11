@@ -22,6 +22,9 @@ other = "Larm"
 [all]
 other = "Alla"
 
+[angle]
+other = "Vinkel"
+
 [area]
 other = "Område"
 
@@ -42,6 +45,9 @@ other = "Välj taggar"
 
 [currentlevel]
 other = "Aktuell nivå"
+
+[degrees]
+other = "grader"
 
 [delete]
 other = "Radera"
@@ -138,6 +144,9 @@ other = "Mätvärden"
 
 [missing]
 other = "Saknas"
+
+[mm]
+other = "mm"
 
 [more]
 other = "till"

@@ -22,6 +22,9 @@ other = "Alerts"
 [all]
 other = "All"
 
+[angle]
+other = "Angle"
+
 [area]
 other = "Area"
 
@@ -42,6 +45,9 @@ other = "Choose tags"
 
 [currentlevel]
 other = "Current level"
+
+[degrees]
+other = "degrees"
 
 [delete]
 other = "Delete"
@@ -139,11 +145,14 @@ other = "Measurement values"
 [missing]
 other = "Missing"
 
-[moreinformation]
-other = "More information"
+[mm]
+other = "mm"
 
 [more]
 other = "more"
+
+[moreinformation]
+other = "More information"
 
 [name]
 other = "Name"
