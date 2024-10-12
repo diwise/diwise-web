@@ -62,6 +62,10 @@ func logger(ctx context.Context, next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		wmw := &writerMiddleware{rw: w}
 		start := time.Now()
+
+		ctx := logging.NewContextWithLogger(r.Context(), log)
+		r = r.WithContext(ctx)
+
 		next.ServeHTTP(wmw, r)
 		duration := time.Since(start)
 
