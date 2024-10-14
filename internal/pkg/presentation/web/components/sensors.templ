@@ -229,7 +229,7 @@ templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
 			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-tertiary-surface dark:bg-primary-surface-white"><span class="text-sm font-bold font-sans leading-none text-primary-dark dark:text-white">{ l10n.Get("inactive") }</span></span></td>
 		}
 		<td class="px-6 py-3 capitalize">{ sensor.Type }</td>
-		<td class="px-6 py-3">
+		<td class="px-6 py-3 break-all">
 			if sensor.HasAlerts {
 				<span class="font-bold">{ sensor.DevEUI }</span>
 			} else {
