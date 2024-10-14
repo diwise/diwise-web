@@ -58,8 +58,13 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 			<div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
 				<div class="flex items-center text-white dark:text-primary-dark font-bold">
-					@Button(Primary, l10n.Get("addthing"), "", Target("#modalContainer"), HxUrl("get", "/components/things/new"), Trigger("click"), Swap("outerHTML"))
+					@Button(Primary, l10n.Get("addthing"), "", 
+							Target("#modalContainer"), 
+							HxUrl("get", "/components/things/new"), 
+							Trigger("click"), 
+							Swap("innerHTML"))
 				</div>
+				<div id="modalContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center" />
 			</div>
 		</div>
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
@@ -67,6 +72,11 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 			@ThingsFilter(l10n, model)
 			@DataList(l10n, ThingsTable(l10n, model), ThingsMap(l10n, model), model.MapView)
 		</div>
+		<script>
+			document.getElementById('modalContainer').addEventListener('htmx:afterSwap', function() {
+				document.getElementById('modalContainer').classList.remove('hidden');
+			});
+		</script>
 	</div>
 }
 

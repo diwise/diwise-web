@@ -676,7 +676,10 @@ templ NewThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, model NewThi
 					<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
 					<div class="flex items-center justify-end pt-6">
 						<div class="flex items-center gap-4">
-							@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"))
+							@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"), 
+									HxUrl("get", "javascript:void(0)"), 
+									HxUrl("on", "click: this.closest('#modalContainer').classList.add('hidden')"),
+									BtnType("button"))
 							@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
 						</div>
 					</div>

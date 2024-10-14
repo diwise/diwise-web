@@ -217,7 +217,9 @@ type buttonCfg struct {
 	method  templ.Attributes
 	name    templ.Attributes
 	style   string
+	swap	templ.Attributes
 	target  templ.Attributes
+	trigger	templ.Attributes
 }
 
 type ButtonStyle string
@@ -276,35 +278,35 @@ func HxUrl(method, url string) func(*buttonCfg) {
 }
 
 func (cfg *buttonCfg) Target() templ.Attributes {
-	return cfg.name
+	return cfg.target
 }
 
 func Target(target string) func(*buttonCfg) {
 	attrs := templ.Attributes{"hx-target": target}
 	return func(cfg *buttonCfg) {
-		cfg.name = attrs
+		cfg.target = attrs
 	}
 }
 
 func (cfg *buttonCfg) Trigger() templ.Attributes {
-	return cfg.name
+	return cfg.trigger
 }
 
 func Trigger(trigger string) func(*buttonCfg) {
 	attrs := templ.Attributes{"hx-trigger": trigger}
 	return func(cfg *buttonCfg) {
-		cfg.name = attrs
+		cfg.trigger = attrs
 	}
 }
 
 func (cfg *buttonCfg) Swap() templ.Attributes {
-	return cfg.name
+	return cfg.swap
 }
 
 func Swap(swap string) func(*buttonCfg) {
 	attrs := templ.Attributes{"hx-swap": swap}
 	return func(cfg *buttonCfg) {
-		cfg.name = attrs
+		cfg.swap = attrs
 	}
 }
 
