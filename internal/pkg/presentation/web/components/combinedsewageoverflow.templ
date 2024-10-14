@@ -72,6 +72,10 @@ templ StatisticsCombinedSewageOverflowTableRow(l10n locale.Localizer, thing Meas
 	</tr>
 }
 
+templ EditCombinedSewageOverflow(l10n locale.Localizer, model ThingDetailsViewModel) {
+	@ConnectOneSensor(l10n, model)
+}
+
 func combinedSewageOverflow(l10n locale.Localizer, measurements []MeasurementViewModel) string {
 	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
 		return strings.HasSuffix(m.ID, "3200/5500") // Digital input/Digital Input State

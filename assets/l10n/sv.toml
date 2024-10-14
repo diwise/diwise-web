@@ -163,6 +163,9 @@ other = "Namn"
 [no]
 other = "Nej"
 
+[noData]
+other = "-"
+
 [notloggedin]
 other = "Du behöver logga in"
 
@@ -402,6 +405,3 @@ other = "Soptunna"
 
 [wastecontainer]
 other = "Soptunna"
-
-[noData]
-other = "-"

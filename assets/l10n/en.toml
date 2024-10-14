@@ -163,6 +163,9 @@ other = "Name"
 [no]
 other = "No"
 
+[noData]
+other = "-"
+
 [notloggedin]
 other = "Please log in"
 
@@ -402,6 +405,3 @@ other = "Waste container"
 
 [wastecontainer]
 other = "Waste container"
-
-[noData]
-other = "-"

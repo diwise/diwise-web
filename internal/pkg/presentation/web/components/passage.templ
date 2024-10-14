@@ -120,3 +120,7 @@ templ StatisticsPassageTableRow(l10n locale.Localizer, thing MeasurementViewMode
 		<td class="px-6 py-3">Antal passager</td>
 	</tr>
 }
+
+templ EditPassage(l10n locale.Localizer, model ThingDetailsViewModel) {
+	@ConnectOneSensor(l10n, model)
+}
