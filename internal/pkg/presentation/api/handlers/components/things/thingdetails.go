@@ -177,7 +177,7 @@ func NewThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets as
 		)
 
 		newThingViewModel := components.NewThingViewModel{
-			ThingType:     []string{"wastecontainer", "sandstorage", "passage", "combinedsewageoverflow"},
+			ThingType:     []string{"wastecontainer", "sandstorage", "passage", "combinedsewageoverflow", "room"},
 			Organisations: app.GetTenants(ctx),
 		}
 		newThingViewModel.Tags, _ = app.GetTags(ctx)

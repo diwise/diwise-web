@@ -185,7 +185,7 @@ func (a *App) GetValidSensors(ctx context.Context, types []string) ([]SensorIden
 }
 func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string][]string) (ThingResult, error) {
 	params := url.Values{
-		"type":         []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation", "passage"},
+		"type":         []string{"combinedsewageoverflow", "wastecontainer", "sewer", "sewagepumpingstation", "passage", "room"},
 		"measurements": []string{"true"},
 	}
 	params.Add("limit", fmt.Sprintf("%d", limit))

@@ -46,6 +46,9 @@ other = "Choose tags"
 [currentlevel]
 other = "Current level"
 
+[currenttemperature]
+other = "Current temperature"
+
 [degrees]
 other = "degrees"
 
@@ -195,6 +198,9 @@ other = "Pick an option"
 
 [picksensor]
 other = "Pick sensor"
+
+[room]
+other = "Room"
 
 [rowsPerPage]
 other = "Rows per page"

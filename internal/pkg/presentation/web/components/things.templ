@@ -313,12 +313,16 @@ func ThingStatusCell(l10n locale.Localizer, thing ThingViewModel) templ.Componen
 		return CombinedSewageOverflowCell(l10n, thing)
 	case "wastecontainer":
 		return WasteContainerCell(l10n, thing)
+	case "sandstorage":
+		return SandStorageCell(l10n, thing)
 	case "sewer":
 		return SewerCell(l10n, thing)
 	case "sewagepumpingstation":
 		return SewagePumpingstationCell(l10n, thing)
 	case "passage":
 		return PassageCell(thing)
+	case "room":
+		return TemperatureCell(thing)
 	default:
 		return templ.NopComponent
 	}
@@ -397,6 +401,33 @@ func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component
 	return ProgressBar(colourClass, text, value)
 }
 
+//TODO: Uppdatera till korrekt data
+func SandStorageCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
+	v, ok := t.FillingLevel()
+	if !ok {
+		return Text(l10n.Get("noData"))
+	}
+
+	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
+		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
+	})
+
+	value := int(v)
+	text := fmt.Sprintf("%d%s", value, t.Measurements[i].Unit)
+	
+	colourClass := ""
+	switch {
+	case value >= 70:
+		colourClass = "bg-green-700 dark:bg-primary-surface-green-accent"
+	case value <= 40:
+		colourClass = "bg-red-600 dark:bg-err-prim-surf"
+	default:
+		colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent"
+	}
+
+	return ProgressBar(colourClass, text, value)
+}
+
 templ PassageCell(t ThingViewModel) {
 	<div hx-disinherit="*">
 		<div
@@ -404,6 +435,17 @@ templ PassageCell(t ThingViewModel) {
 			hx-get={ fmt.Sprintf("/components/things/measurements/%s/current?sensorMeasurementTypes=%s", t.Type, peopleCounterSensor(t.Measurements)) }
 			hx-trigger="load"
 		>0 st</div>
+	</div>
+}
+
+//TODO: Uppdatera till korrekt data
+templ TemperatureCell(t ThingViewModel) {
+	<div hx-disinherit="*">
+		<div
+			class=""
+			hx-get={ fmt.Sprintf("/components/things/measurements/%s/current?sensorMeasurementTypes=%s", t.Type, peopleCounterSensor(t.Measurements)) }
+			hx-trigger="load"
+		>0 °C</div>
 	</div>
 }
 

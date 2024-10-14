@@ -46,6 +46,9 @@ other = "Välj taggar"
 [currentlevel]
 other = "Aktuell nivå"
 
+[currenttemperature]
+other = "Nuvarande temperatur"
+
 [degrees]
 other = "grader"
 
@@ -195,6 +198,9 @@ other = "Välj ett alternativ"
 
 [picksensor]
 other = "Välj sensor"
+
+[room]
+other = "Rum"
 
 [rowsPerPage]
 other = "Rader per sida"
