@@ -125,7 +125,8 @@ func NewAlarmsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 func NewOverviewCardsHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Cache-Control", "max-age=30")
+		w.Header().Add("Vary", "Accept-Language")
 		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
@@ -149,7 +150,7 @@ func NewOverviewCardsHandler(ctx context.Context, l10n locale.Bundle, assets ass
 func NewUsageHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "max-age=3600")
+		w.Header().Add("Cache-Control", "max-age=600")
 		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
