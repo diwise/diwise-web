@@ -154,6 +154,19 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             });
         }
 
+        function generateTipIcon(tipColor) {
+            return `<svg width="41" height="8" viewBox="0 0 41 8" fill="none">
+                        <g clip-path="url(#clip0)">
+                            <rect x="6.5" y="-8" width="20" height="20" transform="rotate(-45 6.5 -8)" fill="${tipColor}"/>
+                        </g>
+                        <defs>
+                            <clipPath id="clip0">
+                                <rect width="40" height="8" fill="white" transform="translate(0.5)"/>
+                            </clipPath>
+                        </defs>
+                    </svg>`;
+        }
+
         const m = document.getElementById('map');
         const mapData = JSON.parse(m.getAttribute('data-map'));
         const geodata = JSON.parse(m.getAttribute('data-features'));
@@ -173,17 +186,49 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             const isDarkMode = e.matches;
             updateMapForTheme(isDarkMode);
         });
-        
-        function createIcon(iconUrl, iconSize = [40, 40], iconAnchor = [12, 41], popupAnchor = [1, -34], shadowSize = [41, 41]) {
-            return L.icon({
-                iconUrl: iconUrl,
-                iconSize: iconSize,
-                iconAnchor: iconAnchor,
-                popupAnchor: popupAnchor,
-                shadowSize: shadowSize
-            });
-        }
 
+        //Start polygon
+        var polygonCoordinates = [
+            [62.363857, 17.508050],  
+            [62.363792, 17.509044],  
+            [62.363405, 17.510456],  
+            [62.362676, 17.508488],
+            [62.363183, 17.508726],
+            [62.363857, 17.508050]   // Tillbaka till första punkten för att sluta polygonen
+        ];
+
+        var polygon = L.polygon(polygonCoordinates, {
+            color: '#DB6900',  // Färg på polygonens kantlinje
+            fillColor: '#DB6900',  // Fyllningsfärg
+            fillOpacity: 0.5    
+        }).addTo(map);
+
+        var center = polygon.getBounds().getCenter();  
+
+        const iconType = 'beach';
+        const { iconUrl } = getIconByTypeAndTheme(iconType, isDarkMode);
+
+        const tipColor = isDarkMode ? '#FFFFFF' : '#1F1F25';
+        const tipIcon = generateTipIcon(tipColor)
+
+        const beachIcon = L.divIcon({
+            className: '',
+            html: '<div class="flex flex-col items-center"><div class="flex flex-col items-center justify-center bg-primary-dark dark:bg-white text-white dark:text-primary-dark p-2 rounded-lg shadow-md gap-2">' + 
+                    '<div class="flex flex-row items-center gap-2">' +
+                        '<img src="' + iconUrl + '">' +
+                    '</div></div>' +
+                '<div class="flex items-center">' + tipIcon + '</div></div>',
+            iconSize: [60, 44],
+            iconAnchor: [30, 40],
+            popupAnchor: [0, -50], 
+            shadowSize: [41, 41]
+        });
+
+        var marker = L.marker(center, { icon: beachIcon }).addTo(map);
+        
+        polygon.bindPopup("Det här är en polygon!");
+        marker.bindPopup("Popup för strand");
+        
         function getIconByTypeAndTheme(type, isDarkMode) {
             let iconUrl;
 
@@ -198,6 +243,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     iconUrl = isDarkMode ? '/assets/0f3ec38666b68391f3ce390dd4ff4f815109488e727f9c1328ec8180dc155d76/lifebuoyblack.svg' : '/assets/d10dc3c02604380dc75e7b122c2784a2b8c4a525ffd4deee8e714ff0abe97cc8/lifebuoy.svg';
                     break;
                 case 'room':
+                case 'beach':
                     iconUrl = isDarkMode ? '/assets/f7d100ec98e4fa52cc4d7799ee0e9bd12ed22b45512d6ab4c1b7bde97de9b5c4/thermometerblack.svg' : '/assets/aec35d334f322aea4da1b6b70a627083d1e67f9acb58c11c8ad30dcf317a55c7/thermometer.svg';
                     break;
                 case 'sewer':
@@ -243,16 +289,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                             const type = feature.properties.type.toLowerCase();
                             const { colorClass, lightipColor, darktipColor } = getColorByState(feature.properties.state);
                             const tipColor = isDarkMode ? darktipColor : lightipColor;
-                            const tipIcon = '<svg width="41" height="8" viewBox="0 0 41 8" fill="none">' +
-                                                '<g clip-path="url(#clip0_1768_10260)">'+ 
-                                                    '<rect x="6.5" y="-8" width="20" height="20" transform="rotate(-45 6.5 -8)" fill="' + tipColor + '"/>' +
-                                                '</g>' +
-                                                '<defs>' + 
-                                                    '<clipPath id="clip0_1768_10260">' +
-                                                        '<rect width="40" height="8" fill="white" transform="translate(0.5)"/>' +
-                                                    '</clipPath>' +
-                                                '</defs>' +
-                                            '</svg>';
+                            const tipIcon = generateTipIcon(tipColor)
 
                             // Hämta rätt ikon-URL och storlek beroende på typen och om det är mörkt eller ljust tema
                             const { iconUrl } = getIconByTypeAndTheme(type, isDarkMode);
