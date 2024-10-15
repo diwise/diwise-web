@@ -32,7 +32,7 @@ templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewMode
 						&nbsp;						
 					</div>
 					<div class="">
-						@graphTableButtons(l10n, fmt.Sprintf("/things/%s", model.Thing.ThingID))
+						@graphTableButtons(l10n, fmt.Sprintf(fmt.Sprintf("/components/things/measurements/%s", model.Thing.Type)))
 					</div>
 				</div>*/
 			</div>
