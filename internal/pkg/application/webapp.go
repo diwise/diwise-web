@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/diwise/service-chassis/pkg/infrastructure/env"
 )
@@ -18,7 +17,6 @@ type App struct {
 	adminURL            string
 	measurementURL      string
 	alarmsURL           string
-	cache               *Cache
 }
 
 func New(ctx context.Context) (*App, error) {
@@ -28,16 +26,12 @@ func New(ctx context.Context) (*App, error) {
 	thingManagementURL := env.GetVariableOrDefault(ctx, "THINGS_URL", "https://test.diwise.io/api/v0/things")
 	measurementURL := env.GetVariableOrDefault(ctx, "MEASUREMENTS_URL", "https://test.diwise.io/api/v0/measurements")
 
-	c := NewCache()
-	c.Cleanup(60 * time.Second)
-
 	return &App{
 		deviceManagementURL: deviceManagementURL,
 		thingManagementURL:  thingManagementURL,
 		adminURL:            adminURL,
 		alarmsURL:           alarmsURL,
 		measurementURL:      measurementURL,
-		cache:               c,
 	}, nil
 }
 
@@ -308,11 +302,6 @@ func (a *App) GetTenants(ctx context.Context) []string {
 }
 
 func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
-	key := "/admin/deviceprofiles"
-	if d, ok := a.cache.Get(key); ok {
-		return d.([]DeviceProfile)
-	}
-
 	res, err := a.get(ctx, a.adminURL, "deviceprofiles", url.Values{})
 	if err != nil {
 		return []DeviceProfile{}
@@ -324,17 +313,10 @@ func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
 		return []DeviceProfile{}
 	}
 
-	a.cache.Set(key, deviceProfiles, 600*time.Second)
-
 	return deviceProfiles
 }
 
 func (a *App) GetStatistics(ctx context.Context) Statistics {
-	key := "/admin/statistics"
-	if s, ok := a.cache.Get(key); ok {
-		return s.(Statistics)
-	}
-
 	s := Statistics{}
 
 	count := func(key, value string, ch chan int) {
@@ -371,8 +353,6 @@ func (a *App) GetStatistics(ctx context.Context) Statistics {
 	s.Active = <-active
 	s.Inactive = <-inactive
 	s.Unknown = <-unknown
-
-	a.cache.Set(key, s, 600*time.Second)
 
 	return s
 }

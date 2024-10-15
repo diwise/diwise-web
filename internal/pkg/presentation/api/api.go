@@ -62,6 +62,10 @@ func logger(ctx context.Context, next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		wmw := &writerMiddleware{rw: w}
 		start := time.Now()
+
+		ctx := logging.NewContextWithLogger(r.Context(), log)
+		r = r.WithContext(ctx)
+
 		next.ServeHTTP(wmw, r)
 		duration := time.Since(start)
 
@@ -91,6 +95,10 @@ func RequireHX(next http.Handler) http.HandlerFunc {
 
 func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange, app *application.App, assetPath string) (Api, error) {
 	version := helpers.GetVersion(ctx)
+
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	})
 
 	mux.HandleFunc("GET /version/{v}", func(w http.ResponseWriter, r *http.Request) {
 		if helpers.IsHxRequest(r) {
