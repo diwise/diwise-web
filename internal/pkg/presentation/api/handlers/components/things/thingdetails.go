@@ -203,6 +203,30 @@ func SaveNewThingComponentHandler(ctx context.Context, l10n locale.Bundle, asset
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 }
 
+func DeleteThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		ctx := helpers.Decorate(r.Context(),
+			components.CurrentComponent, "things",
+		)
+
+		component := components.DeleteThing(localizer, assets)
+
+		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+
+		err := component.Render(ctx, w)
+		if err != nil {
+			http.Error(w, "could not render delete thing", http.StatusInternalServerError)
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+	return http.HandlerFunc(fn)
+}
+
 func NewSaveThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 

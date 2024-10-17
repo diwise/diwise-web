@@ -55,6 +55,12 @@ other = "grader"
 [delete]
 other = "Radera"
 
+[deletethingconfirm]
+other = "Vill du radera saken?"
+
+[deletethinginformation]
+other = "Saken och dess data kommer tas bort."
+
 [description]
 other = "Beskrivning"
 

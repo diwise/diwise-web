@@ -55,6 +55,12 @@ other = "degrees"
 [delete]
 other = "Delete"
 
+[deletethingconfirm]
+other = "Do you want to delete the thing?"
+
+[deletethinginformation]
+other = "The thing and data related to the thing will be removed."
+
 [description]
 other = "Description"
 
