@@ -226,8 +226,36 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 
         var marker = L.marker(center, { icon: beachIcon }).addTo(map);
         
-        polygon.bindPopup("Det här är en polygon!");
-        marker.bindPopup("Popup för strand");
+        var popupPolygon = '<div class="flex flex-col items-start gap-6 py-3 text-base">' +
+                                '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
+                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                        '<div class="flex items-center gap-2">' +
+                                            '<div class="font-bold">ID</div>' +
+                                            '<div class="">12345</div>' +
+                                        '</div>' +
+                                        '<div class="flex items-center gap-2">' +
+                                            '<div class="font-bold">Temperatur</div>' +
+                                            '<div class="text-italic">18 °C</div>' +
+                                        '</div>' +
+                                        '<div class="flex items-start gap-2">' +
+                                            '<div class="font-bold">Position</div>' +
+                                            '<div class="">Lat o long</div>' +
+                                        '</div>' +
+                                        '<div class="flex items-start gap-2">' +
+                                            '<div class="">Taglist</div>' +
+                                        '</div>' +
+                                    '</div>' +
+                                    '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>' +					
+                                    '<a href="/" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' +
+                                        'Mer information' + 
+                                        '<div class="w-[20px] h-[20px]">' +
+                                            '<svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg>' +
+                                        '</div>' +
+                                    '</a>' +
+                                '</div>';
+
+        //polygon.bindPopup("Det här är en polygon!");
+        marker.bindPopup(popupPolygon);
         
         function getIconByTypeAndTheme(type, isDarkMode) {
             let iconUrl;

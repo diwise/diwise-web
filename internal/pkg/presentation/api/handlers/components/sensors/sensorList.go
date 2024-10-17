@@ -66,7 +66,7 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
-			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor)
+			tvm.BatteryLevel = getBatteryLevel(ctx, app, sensor)
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
@@ -136,7 +136,7 @@ func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asse
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
-			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor)
+			tvm.BatteryLevel = getBatteryLevel(ctx, app, sensor)
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
@@ -206,7 +206,7 @@ func NewSensorsDataList(ctx context.Context, l10n locale.Bundle, assets assets.A
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
-			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor)
+			tvm.BatteryLevel = getBatteryLevel(ctx, app, sensor)
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
@@ -256,7 +256,7 @@ func getStatistics(ctx context.Context, app application.DeviceManagement) compon
 	return stats
 }
 
-func getBatterLevel(ctx context.Context, app application.DeviceManagement, sensor application.Sensor) int {
+func getBatteryLevel(ctx context.Context, app application.DeviceManagement, sensor application.Sensor) int {
 	if sensor.DeviceStatus != nil {
 		if sensor.DeviceStatus.BatteryLevel != 0 {
 			return sensor.DeviceStatus.BatteryLevel
