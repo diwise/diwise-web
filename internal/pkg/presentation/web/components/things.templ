@@ -109,6 +109,34 @@ templ ThingsFilter(l10n locale.Localizer, model ThingsListViewModel) {
 							})
 						}
 					}
+					<div id="fillinglevelFilter" class="hidden">
+						@CheckboxList(l10n.Get("fillinglevel")) {
+							@CheckboxOption("fillinglevel", "Grön", "", l10n, templ.Attributes{
+								"hx-get":    string(templ.SafeURL("/components/things/list?fillinglevel=green")),
+								"hx-target": "#tableOrMap",
+								"hx-swap":   "outerHTML",
+								"hx-include": "[name=fillinglevel]:checked",
+								"onchange":  "updateSelectedFilters()",
+								"value": "Grön",
+							})
+							@CheckboxOption("fillinglevel", "Orange", "", l10n, templ.Attributes{
+								"hx-get":    string(templ.SafeURL("/components/things/list?fillinglevel=orange")),
+								"hx-target": "#tableOrMap",
+								"hx-swap":   "outerHTML",
+								"hx-include": "[name=fillinglevel]:checked",
+								"onchange":  "updateSelectedFilters()",
+								"value": "Orange",
+							})
+							@CheckboxOption("fillinglevel", "Röd", "", l10n, templ.Attributes{
+								"hx-get":    string(templ.SafeURL("/components/things/list?fillinglevel=red")),
+								"hx-target": "#tableOrMap",
+								"hx-swap":   "outerHTML",
+								"hx-include": "[name=fillinglevel]:checked",
+								"onchange":  "updateSelectedFilters()",
+								"value": "Röd",
+							})
+						}
+					</div>
 				</div>
 			</div>
 			@TableOrMap(l10n, "/components/things/list")
@@ -153,6 +181,16 @@ templ SelectedFilters(l10n locale.Localizer, hxget string) {
 				text: cb.value,
 			}));
 
+			let selectedFillingLevel = [];
+			const fillingLevelFilter = document.querySelectorAll('input[name="fillinglevel"]:checked');
+			if (fillingLevelFilter.length > 0) {
+				selectedFillingLevel = Array.from(fillingLevelFilter).map(cb => ({
+					name: "fillinglevel",
+					value: cb.value,
+					text: cb.value,
+				}));
+			}
+
 			const selectedStatus = Array.from(document.querySelectorAll('input[name="active"]:checked')).map(cb => ({
 				name: "active",
 				value: cb.value,
@@ -165,8 +203,8 @@ templ SelectedFilters(l10n locale.Localizer, hxget string) {
 				text: cb.value === "true" ? "Online" : "Offline",
 			}));
 
-			const selectedFilters = [...selectedTypes, ...selectedTags, ...selectedStatus, ...selectedOnline];
-
+			const selectedFilters = [...selectedTypes, ...selectedTags, ...selectedFillingLevel, ...selectedStatus, ...selectedOnline];
+			
 			const svgIcon = `
 				<svg class="h-4 w-4 fill-none stroke-primary-dark dark:stroke-white stroke-2 cursor-pointer" viewBox="0 0 24 24">
 					<path d="M18 6 6 18"/><path d="m6 6 12 12"/>
@@ -205,6 +243,11 @@ templ SelectedFilters(l10n locale.Localizer, hxget string) {
 					});
 
 					document.getElementById('filterForm').dispatchEvent(new Event('submit', {cancelable: true}));
+
+					const fillinglevelFilter = document.getElementById('fillinglevelFilter');
+					if (fillinglevelFilter) {
+						fillinglevelFilter.classList.add('hidden');
+					}
 				});
 
 				selectedFiltersContainer.appendChild(clearAllDiv);
@@ -220,6 +263,34 @@ templ SelectedFilters(l10n locale.Localizer, hxget string) {
 
 		document.addEventListener("DOMContentLoaded", updateSelectedFilters);
 		document.body.addEventListener('htmx:afterOnLoad', updateSelectedFilters);
+
+		function toggleFillinglevelVisibility() {
+			const typeCheckboxes = document.querySelectorAll('input[name="type"]');
+			let isWastecontainerSelected = false;
+
+			typeCheckboxes.forEach(checkbox => {
+				if (checkbox.checked && checkbox.value === "wastecontainer") {
+					isWastecontainerSelected = true;
+				}
+			});
+
+			const fillinglevelFilter = document.getElementById('fillinglevelFilter');
+			if (isWastecontainerSelected) {
+				fillinglevelFilter.classList.remove('hidden');
+			} else {
+				fillinglevelFilter.classList.add('hidden');
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', function () {
+			const typeCheckboxes = document.querySelectorAll('input[name="type"]');
+			typeCheckboxes.forEach(checkbox => {
+				checkbox.addEventListener('change', toggleFillinglevelVisibility);
+			});
+			
+			toggleFillinglevelVisibility();
+		});
+
 	</script>
 }
 

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
@@ -41,6 +42,8 @@ func NewThingsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 			limit = 1000
 		}
 
+		fillinglevel := args.Get("fillinglevel")
+
 		helpers.SanitizeParams(args, "page", "limit", "offset")
 
 		tags := make(chan []string)
@@ -66,6 +69,10 @@ func NewThingsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 		if err != nil {
 			http.Error(w, "could not fetch things", http.StatusInternalServerError)
 			return
+		}
+
+		if fillinglevel != "" {
+			result.Things = FilterThingsByFillingLevel(fillinglevel, result.Things)
 		}
 
 		pageIndex_, _ := strconv.Atoi(pageIndex)
@@ -109,6 +116,44 @@ func do[T any](fn func() T, ch chan T) {
 	ch <- fn()
 }
 
+func FilterThingsByFillingLevel(level string, things []application.Thing) []application.Thing {
+	var filtered []application.Thing
+	for _, thing := range things {
+		fillingLevel, ok := getFillingLevel(thing)
+		if !ok {
+			continue
+		}
+
+		switch level {
+		case "green":
+			if fillingLevel >= 0 && fillingLevel <= 30 {
+				filtered = append(filtered, thing)
+			}
+		case "orange":
+			if fillingLevel >= 31 && fillingLevel <= 50 {
+				filtered = append(filtered, thing)
+			}
+		case "red":
+			if fillingLevel >= 51 {
+				filtered = append(filtered, thing)
+			}
+		}
+	}
+	return filtered
+}
+
+func getFillingLevel(thing application.Thing) (float64, bool) {
+	for _, m := range thing.Measurements {
+		if strings.HasSuffix(m.ID, "3435/2") {
+			if m.Value != nil {
+				return *m.Value, true
+			}
+			return 0, false
+		}
+	}
+	return 0, false
+}
+
 func NewThingsDataList(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
@@ -132,12 +177,18 @@ func NewThingsDataList(ctx context.Context, l10n locale.Bundle, assets assets.As
 			limit = 1000
 		}
 
+		fillinglevel := args.Get("fillinglevel")
+
 		helpers.SanitizeParams(args, "page", "limit", "offset")
 
 		result, err := app.GetThings(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
 			return
+		}
+
+		if fillinglevel != "" {
+			result.Things = FilterThingsByFillingLevel(fillinglevel, result.Things)
 		}
 
 		pageIndex_, _ := strconv.Atoi(pageIndex)
@@ -205,6 +256,12 @@ func NewThingsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		if err != nil {
 			http.Error(w, "could not fetch things", http.StatusInternalServerError)
 			return
+		}
+
+		fillinglevel := args.Get("fillinglevel")
+
+		if fillinglevel != "" {
+			result.Things = FilterThingsByFillingLevel(fillinglevel, result.Things)
 		}
 
 		pageIndex_, _ := strconv.Atoi(pageIndex)
