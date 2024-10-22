@@ -74,7 +74,7 @@ templ FilterStatistics(l10n locale.Localizer, model ThingDetailsViewModel) {
 				type="datetime-local"
 				id="timeAt"
 				hx-trigger="change, load"
-				hx-include="#sensorMeasurementTypes,#endTimeAt"
+				hx-include="#sensorMeasurementTypes,#endTimeAt,#tableButton,#graphButton"
 				hx-target="#measurementCharts"
 				hx-get={ fmt.Sprintf("/components/things/measurements/%s", strings.ToLower(model.Thing.Type)) }
 				hx-params="*"
@@ -86,12 +86,20 @@ templ FilterStatistics(l10n locale.Localizer, model ThingDetailsViewModel) {
 				type="datetime-local"
 				id="endTimeAt"
 				hx-trigger="change"
-				hx-include="#sensorMeasurementTypes,#timeAt"
+				hx-include="#sensorMeasurementTypes,#timeAt,#tableButton,#graphButton"
 				hx-target="#measurementCharts"
 				hx-get={ fmt.Sprintf("/components/things/measurements/%s", strings.ToLower(model.Thing.Type)) }
 				hx-params="*"
 				class="border border-input-surface dark:border-white-50 rounded-xl py-2 px-3 dark:bg-input-surface-dark"
 			/>
+		</div>
+	</div>
+	<div class="flex flex-col items-start gap-2">
+		<div class="text-primary-dark font-bold">
+			&nbsp;
+		</div>
+		<div class="">
+			@graphTableButtons(l10n)
 		</div>
 	</div>
 }

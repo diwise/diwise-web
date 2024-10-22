@@ -14,7 +14,7 @@ templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewMode
 				<div
 					class="text-3xl font-bold"
 					hx-get={ fmt.Sprintf("/components/things/measurements/%s/current", model.Thing.Type) }
-					hx-include="#sensorMeasurementTypes"
+					hx-include="#sensorMeasurementTypes,#tableButton,#graphButton"
 					hx-trigger="every 60s"
 				>
 					if v,ok := model.Thing.FillingLevel(); ok {
@@ -27,17 +27,33 @@ templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewMode
 			</div>
 			<div class="flex items-center gap-6">
 				@FilterStatistics(l10n, model)
-				/*<div class="flex flex-col items-start gap-2">
-					<div class="text-primary-dark font-bold">
-						&nbsp;						
-					</div>
-					<div class="">
-						@graphTableButtons(l10n, fmt.Sprintf(fmt.Sprintf("/components/things/measurements/%s", model.Thing.Type)))
-					</div>
-				</div>*/
 			</div>
 		</div>
-		@StatisticsData(l10n, RenderStatisticsGraph(l10n, model), StatisticsWasteContainerTable(l10n, model), model.TableView)
+		<div id="statisticsGraph" class="w-full">
+			@RenderStatisticsGraph(l10n, model)
+		</div>
+		<div id="statisticsTable" class="w-full">
+			@StatisticsWasteContainerTable(l10n, model)
+		</div>
+
+		<script>
+			function showGraph() {
+				document.getElementById('statisticsGraph').style.display = 'block';
+				document.getElementById('statisticsTable').style.display = 'none';
+			}
+
+			function showTable() {
+				document.getElementById('statisticsTable').style.display = 'block';
+				document.getElementById('statisticsGraph').style.display = 'none';
+			}
+
+			document.addEventListener('DOMContentLoaded', function () {
+				showGraph();
+			});
+		</script>
+	
+		
+		//@StatisticsData(l10n, RenderStatisticsGraph(l10n, model), StatisticsWasteContainerTable(l10n, model.Measurements), model.TableView)
 	</div>
 }
 
@@ -60,7 +76,6 @@ templ StatisticsWasteContainerTable(l10n locale.Localizer, model ThingDetailsVie
 			</tr>
 		</thead>
 		<tbody>
-			//TODO: Här ska mätningar listas
 			for _, measurement := range model.Measurements {
 				@StatisticsWasteContainerTableRow(l10n, measurement)
 			}
@@ -75,10 +90,16 @@ templ StatisticsWasteContainerTable(l10n locale.Localizer, model ThingDetailsVie
 	</table>
 }
 
-templ StatisticsWasteContainerTableRow(l10n locale.Localizer, thing MeasurementViewModel) {
+templ StatisticsWasteContainerTableRow(l10n locale.Localizer, measurement MeasurementViewModel) {
 	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
-		<td class="px-6 py-3">00:00</td>
-		<td class="px-6 py-3">20%</td>
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+                { fmt.Sprintf("%0.f%%", *measurement.Value) }
+            } else {
+                { l10n.Get("noData") }
+            }
+		</td>
 	</tr>
 }
 
