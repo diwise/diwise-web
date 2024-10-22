@@ -2,12 +2,13 @@ package things
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
-	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
@@ -42,37 +43,15 @@ func NewThingsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 			limit = 1000
 		}
 
-		fillinglevel := args.Get("fillinglevel")
-
 		helpers.SanitizeParams(args, "page", "limit", "offset")
 
-		tags := make(chan []string)
-		types := make(chan []string)
-
-		go do(func() []string {
-			t, err := app.GetTags(ctx)
-			if err != nil {
-				return []string{}
-			}
-			return t
-		}, tags)
-
-		go do(func() []string {
-			t, err := app.GetTypes(ctx)
-			if err != nil {
-				return []string{}
-			}
-			return t
-		}, types)
+		tags, _ := app.GetTags(ctx)
+		types, _ := app.GetTypes(ctx)
 
 		result, err := app.GetThings(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch things", http.StatusInternalServerError)
 			return
-		}
-
-		if fillinglevel != "" {
-			result.Things = FilterThingsByFillingLevel(fillinglevel, result.Things)
 		}
 
 		pageIndex_, _ := strconv.Atoi(pageIndex)
@@ -81,8 +60,8 @@ func NewThingsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 		model := components.ThingsListViewModel{
 			Things:  make([]components.ThingViewModel, 0),
 			Pageing: getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
-			Tags:    <-tags,
-			Types:   <-types,
+			Tags:    tags,
+			Types:   types,
 			MapView: mapview,
 		}
 
@@ -112,48 +91,6 @@ func NewThingsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetL
 	return http.HandlerFunc(fn)
 }
 
-func do[T any](fn func() T, ch chan T) {
-	ch <- fn()
-}
-
-func FilterThingsByFillingLevel(level string, things []application.Thing) []application.Thing {
-	var filtered []application.Thing
-	for _, thing := range things {
-		fillingLevel, ok := getFillingLevel(thing)
-		if !ok {
-			continue
-		}
-
-		switch level {
-		case "green":
-			if fillingLevel >= 0 && fillingLevel <= 30 {
-				filtered = append(filtered, thing)
-			}
-		case "orange":
-			if fillingLevel >= 31 && fillingLevel <= 50 {
-				filtered = append(filtered, thing)
-			}
-		case "red":
-			if fillingLevel >= 51 {
-				filtered = append(filtered, thing)
-			}
-		}
-	}
-	return filtered
-}
-
-func getFillingLevel(thing application.Thing) (float64, bool) {
-	for _, m := range thing.Measurements {
-		if strings.HasSuffix(m.ID, "3435/2") {
-			if m.Value != nil {
-				return *m.Value, true
-			}
-			return 0, false
-		}
-	}
-	return 0, false
-}
-
 func NewThingsDataList(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/html")
@@ -177,18 +114,12 @@ func NewThingsDataList(ctx context.Context, l10n locale.Bundle, assets assets.As
 			limit = 1000
 		}
 
-		fillinglevel := args.Get("fillinglevel")
-
 		helpers.SanitizeParams(args, "page", "limit", "offset")
 
 		result, err := app.GetThings(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
 			return
-		}
-
-		if fillinglevel != "" {
-			result.Things = FilterThingsByFillingLevel(fillinglevel, result.Things)
 		}
 
 		pageIndex_, _ := strconv.Atoi(pageIndex)
@@ -258,12 +189,6 @@ func NewThingsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 			return
 		}
 
-		fillinglevel := args.Get("fillinglevel")
-
-		if fillinglevel != "" {
-			result.Things = FilterThingsByFillingLevel(fillinglevel, result.Things)
-		}
-
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 
@@ -300,32 +225,70 @@ func NewThingsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 
 func toViewModel(thing application.Thing) components.ThingViewModel {
 	tvm := components.ThingViewModel{
-		ThingID:      thing.ThingID,
 		ID:           thing.ID,
 		Type:         thing.Type,
+		SubType:      thing.SubType,
 		Name:         thing.Name,
 		Description:  thing.Description,
 		Latitude:     thing.Location.Latitude,
 		Longitude:    thing.Location.Longitude,
 		Tenant:       thing.Tenant,
 		Tags:         thing.Tags,
+		ObservedAt:   thing.ObservedAt,
 		Measurements: make([]components.MeasurementViewModel, 0),
+		Properties:   make(map[string]any),
+		RefDevice:    make([]string, 0),
 	}
 
-	for _, m := range thing.Measurements {
+	for _, rd := range thing.RefDevices {
+		tvm.RefDevice = append(tvm.RefDevice, rd.DeviceID)
+	}
+
+	for _, m := range thing.Values {
+		vs := ""
+		if m.StringValue != nil {
+			vs = *m.StringValue
+		}
 		mvm := components.MeasurementViewModel{
 			ID:          m.ID,
 			Timestamp:   m.Timestamp,
 			Urn:         m.Urn,
 			BoolValue:   m.BoolValue,
-			StringValue: m.StringValue,
+			StringValue: vs,
 			Unit:        m.Unit,
 			Value:       m.Value,
 		}
 		tvm.Measurements = append(tvm.Measurements, mvm)
 	}
 
+	for k, v := range toMap(thing) {
+		if !slices.Contains([]string{
+			"id",
+			"type",
+			"subType",
+			"name",
+			"description",
+			"location",
+			"refDevices",
+			"tags",
+			"tenant",
+			"observedAt",
+			"values",
+		}, k) {
+			if v != nil {
+				tvm.Properties[k] = v
+			}
+		}
+	}
+
 	return tvm
+}
+
+func toMap(v any) map[string]any {
+	b, _ := json.Marshal(v)
+	m := map[string]any{}
+	_ = json.Unmarshal(b, &m)
+	return m
 }
 
 func getPaging(pageIndex, pageLast, pageSize, offset int, pages []int64, args url.Values) components.PagingViewModel {

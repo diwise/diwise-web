@@ -17,7 +17,7 @@ templ StatisticsSandStorage(l10n locale.Localizer, model ThingDetailsViewModel) 
 					hx-include="#sensorMeasurementTypes"
 					hx-trigger="every 60s"
 				>
-					if v,ok := model.Thing.FillingLevel(); ok {
+					if v,ok := model.Thing.Properties["percent"]; ok {
 						{ fmt.Sprintf("%0.f%%", v) }
 					} else {
 						{ l10n.Get("noData") }
@@ -84,17 +84,18 @@ templ StatisticsSandStorageTableRow(l10n locale.Localizer, thing MeasurementView
 
 templ SandStorageProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
 	<div class="">
-		<div class="">Behållaren har en höjd på
+		<div class="">
+			Behållaren har en höjd på
 			<span>222</span> mm
-        </div>
+		</div>
 		<div>
 			med en max fyllnadshöjd på 
 			<span>200</span> mm.
 		</div>
-        <div>
-            Vinkeln är
-            <span>38</span> grader.
-        </div>
+		<div>
+			Vinkeln är
+			<span>38</span> grader.
+		</div>
 	</div>
 }
 
@@ -102,49 +103,49 @@ templ EditSandStorage(l10n locale.Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-start gap-10 self-stretch">
 		<div class="flex flex-col gap-2 flex-1">
 			<div class="font-bold">{ l10n.Get("maxheight") }</div>
-				<div class="flex items-center">
-					<input
-						type="number"
-						name="maxheight"
-						class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-						placeholder=""
-						value={ model.Thing.Name }
-					/>
-					<span class="ml-2">{ l10n.Get("mm") }</span>
-				</div>
+			<div class="flex items-center">
+				<input
+					type="number"
+					name="maxheight"
+					class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
+					placeholder=""
+					value={ model.Thing.Name }
+				/>
+				<span class="ml-2">{ l10n.Get("mm") }</span>
+			</div>
 		</div>
 		<div class="flex flex-col gap-2 flex-1">
 			<div class="font-bold">{ l10n.Get("maxlevel") }</div>
-				<div class="flex items-center">
-					<input
-						type="number"
-						name="maxlevel"
-						class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-						placeholder=""
-						value={ model.Thing.Name }
-					/>
-					<span class="ml-2">{ l10n.Get("mm") }</span>
-				</div>
+			<div class="flex items-center">
+				<input
+					type="number"
+					name="maxlevel"
+					class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
+					placeholder=""
+					value={ model.Thing.Name }
+				/>
+				<span class="ml-2">{ l10n.Get("mm") }</span>
+			</div>
 		</div>
 	</div>
-    <div class="w-full flex flex-start gap-10 self-stretch">
+	<div class="w-full flex flex-start gap-10 self-stretch">
 		<div class="w-full flex flex-col gap-2 flex-1">
 			<div class="font-bold">{ l10n.Get("angle") }</div>
-				<div class="flex items-center w-1/2">
-					<input
-						type="number"
-						name="angle"
-                        min="0"
-                        max="90"
-                        step="1"
-						class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-						placeholder=""
-						value={ model.Thing.Name }
-					/>
-					<span class="ml-2">{ l10n.Get("degrees") }</span>
-				</div>
+			<div class="flex items-center w-1/2">
+				<input
+					type="number"
+					name="angle"
+					min="0"
+					max="90"
+					step="1"
+					class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
+					placeholder=""
+					value={ model.Thing.Name }
+				/>
+				<span class="ml-2">{ l10n.Get("degrees") }</span>
+			</div>
 		</div>
 	</div>
-    //Koppla flera sensorer
+	//Koppla flera sensorer
 	@ConnectMultipleSensors(l10n, model)
 }

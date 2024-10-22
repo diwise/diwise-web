@@ -121,7 +121,6 @@ templ ProgressBar(cssClass, text string, value int) {
 
 templ CheckboxOption(name, value, text string, l10n locale.Localizer, attrs templ.Attributes) {
 	<label class="flex items-center gap-3 dark:text-primary-dark cursor-pointer capitalize">
-		
 		<input
 			type="checkbox"
 			name={ name }
@@ -164,11 +163,12 @@ templ RadioOption(name, value, text string, l10n locale.Localizer, attrs templ.A
 			hx-include=".filter"
 			{ attrs... }
 		/>
-		<div class="w-[20px] h-[20px] bg-white rounded-full border border-gray-400 relative 
+		<div
+			class="w-[20px] h-[20px] bg-white rounded-full border border-gray-400 relative 
 					peer-checked:before:bg-primary-dark before:content-[''] before:w-[12px] before:h-[12px] 
 					before:rounded-full before:bg-transparent before:absolute before:top-[50%] before:left-[50%] before:transform 
-					before:-translate-x-1/2 before:-translate-y-1/2 hover:before:bg-secondary-outline-hover hover:border-black">
-		</div>
+					before:-translate-x-1/2 before:-translate-y-1/2 hover:before:bg-secondary-outline-hover hover:border-black"
+		></div>
 		if text != "" {
 			{ l10n.Get(text) }
 		} else {
@@ -217,9 +217,9 @@ type buttonCfg struct {
 	method  templ.Attributes
 	name    templ.Attributes
 	style   string
-	swap	templ.Attributes
+	swap    templ.Attributes
 	target  templ.Attributes
-	trigger	templ.Attributes
+	trigger templ.Attributes
 }
 
 type ButtonStyle string
@@ -233,7 +233,11 @@ const (
 )
 
 templ Div(id string, contents ...templ.Component) {
-	<div id={ id }>
+	<div
+		if id != "" {
+			id={ id }
+		}
+	>
 		for _,c := range contents {
 			@c
 		}

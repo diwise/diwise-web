@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"strings"
 	"sort"
+	"strings"
 )
 
 type ThingDetailsViewModel struct {
 	Thing         ThingViewModel
-	Related       []ThingViewModel
 	Measurements  []MeasurementViewModel
 	Organisations []string
 	Tenant        string
@@ -27,11 +26,11 @@ type ValidSensorViewModel struct {
 }
 
 type NewThingViewModel struct {
-	ThingType		[]string
-	ValidSensors 	[]ValidSensorViewModel
-	Organisations	[]string
-	Tags			[]string
-	Thing			ThingViewModel		
+	ThingType     []string
+	ValidSensors  []ValidSensorViewModel
+	Organisations []string
+	Tags          []string
+	Thing         ThingViewModel
 }
 
 templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
@@ -249,24 +248,22 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 			checkItemsLoaded();
 		});
 	</script>
-
 	<div class="w-full">
 		<div class="flex items-center w-full justify-between">
 			if model.Thing.Name != "" {
 				<div class="flex items-center gap-6 align-middle">
 					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.Name }</h1>
 				</div>
-			}
-			else if model.Thing.ThingID == "" {
+			} else if model.Thing.ID == "" {
 				<div class="flex items-center align-middle">
 					<h1 class="py-3">&nbsp;</h1>
 				</div>
 			} else {
 				<div class="flex items-center gap-6 align-middle">
-					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ThingID }</h1>
+					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ID }</h1>
 				</div>
 			}
-			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", model.Thing.ThingID))))
+			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", model.Thing.ID))))
 		</div>
 		<div class="flex flex-col items-start gap-10">
 			//Statistikdel
@@ -277,9 +274,9 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 					<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("statistics") }</h2>
 					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 				</div>
-				if strings.ToLower(model.Thing.Type) == "wastecontainer" {
+				if strings.ToLower(model.Thing.Type) == "container" {
 					@StatisticsWasteContainer(l10n, model)
-				} else if strings.ToLower(model.Thing.Type) == "combinedsewageoverflow" {
+				} else if strings.ToLower(model.Thing.Type) == "sewer" {
 					@StatisticsCombinedSewageOverflow(l10n, model)
 				} else if strings.ToLower(model.Thing.Type) == "passage" {
 					@StatisticsPassage(l10n, model)
@@ -300,7 +297,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 					<div class="flex flex-col items-start self-stretch gap-6 px-9 text-secondary-dark dark:text-secondary">
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("id") }</div>
-							<div class="">{ model.Thing.ThingID }</div>
+							<div class="">{ model.Thing.ID }</div>
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("type") }</div>
@@ -316,11 +313,13 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 								</div>
 							}
 						</div>
-						if strings.ToLower(model.Thing.Type) == "wastecontainer" {
-							@WasteContainerProperties(l10n, model)
-						}
-						if strings.ToLower(model.Thing.Type) == "sandstorage" {
-							@SandStorageProperties(l10n, model)
+						if strings.ToLower(model.Thing.Type) == "container" {
+							if strings.ToLower(model.Thing.SubType) == "wastecontainer" {
+								@WasteContainerProperties(l10n, model)
+							}
+							if strings.ToLower(model.Thing.SubType) == "sandstorage" {
+								@SandStorageProperties(l10n, model)
+							}
 						}
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
@@ -334,12 +333,12 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-							if len(model.Related) == 0 {
+							if len(model.Thing.RefDevice) == 0 {
 								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
 							} else {
-								for _, r := range model.Related {
+								for _, r := range model.Thing.RefDevice {
 									<div class="underline text-primary-surface-blue dark:text-primary-surface-blue-dark">
-										<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", r.ID)) }>{ r.ThingID }</a>
+										<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", r)) }>{ r }</a>
 									</div>
 								}
 							}
@@ -396,18 +395,18 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
 	<div class="w-full">
 		<div class="flex items-center w-full justify-between">
-			if model.Thing.ThingID == "" {
+			if model.Thing.ID == "" {
 				<div class="flex items-center align-middle">
 					<h1 class="py-3">&nbsp;</h1>
 				</div>
 			} else {
 				<div class="flex items-center gap-6 align-middle">
-					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { model.Thing.ThingID }</h1>
+					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { model.Thing.ID }</h1>
 				</div>
 			}
 		</div>
 		<form action="/components/things/details" method="post">
-			<input type="hidden" name="id" value={ model.Thing.ThingID }/>
+			<input type="hidden" name="id" value={ model.Thing.ID }/>
 			<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					//Status och uppgifter
@@ -424,7 +423,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("id") }</div>
 									<div class="break-all">
-										{ model.Thing.ThingID }
+										{ model.Thing.ID }
 									</div>
 								</div>
 								<div class="flex flex-col gap-2 flex-1">
@@ -437,13 +436,13 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("name") }</div>
-										<input
-											type="text"
-											name="name"
-											class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-											placeholder=""
-											value={ model.Thing.Name }
-										/>
+									<input
+										type="text"
+										name="name"
+										class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
+										placeholder=""
+										value={ model.Thing.Name }
+									/>
 								</div>
 								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
@@ -488,7 +487,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 												}
 											</div>
 										</div>
-									</div>	
+									</div>
 									<div class="flex flex-start self-stretch gap-3">
 										<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
 											<input
@@ -513,9 +512,8 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 											{ l10n.Get("add") }
 										</div>
 									</div>
-
 									<!-- Ett hidden input för alla taggar separerade med kommatecken, förifylld från backend -->
-									<input type="hidden" id="selectedTags" name="selectedTags" value={ strings.Join(model.Thing.Tags, ",") }>
+									<input type="hidden" id="selectedTags" name="selectedTags" value={ strings.Join(model.Thing.Tags, ",") }/>
 								</div>
 							</div>
 							<div class="flex flex-start gap-10 self-stretch">
@@ -544,27 +542,31 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("latitude") }</div>
-									<input type="number" 
-											name="latitude" 
-											id="latitude"
-											min="-90" 
-											max="90" 
-											step="0.000001"
-											value={ fmt.Sprintf("%f", model.Thing.Latitude) } 
-											class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
-											placeholder="Latitud"/>
+									<input
+										type="number"
+										name="latitude"
+										id="latitude"
+										min="-90"
+										max="90"
+										step="0.000001"
+										value={ fmt.Sprintf("%f", model.Thing.Latitude) }
+										class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2"
+										placeholder="Latitud"
+									/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("longitude") }</div>
-									<input type="number" 
-											name="longitude" 
-											id="longitude"
-											min="-180" 
-											max="180" 
-											step="0.000001"
-											value={ fmt.Sprintf("%f", model.Thing.Longitude) } 
-											class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
-											placeholder="Longitud"/>
+									<input
+										type="number"
+										name="longitude"
+										id="longitude"
+										min="-180"
+										max="180"
+										step="0.000001"
+										value={ fmt.Sprintf("%f", model.Thing.Longitude) }
+										class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2"
+										placeholder="Longitud"
+									/>
 								</div>
 							</div>
 							@Map("medium", false, true, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
@@ -574,7 +576,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 			</div>
 			<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
 			<div class="flex items-center justify-between py-6">
-				@Button(Error, l10n.Get("delete"), "trashcan", 
+				@Button(Error, l10n.Get("delete"), "trashcan",
 					Target("#modalDeleteThingContainer"),
 					HxUrl("get", "/components/things/delete"),
 					Trigger("click"),
@@ -583,7 +585,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 					@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"))
 					@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
 				</div>
-				<div id="modalDeleteThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center" />
+				<div id="modalDeleteThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
 				<script>
 					document.getElementById('modalDeleteThingContainer').addEventListener('htmx:afterSwap', function() {
 						document.getElementById('modalDeleteThingContainer').classList.remove('hidden');
@@ -591,7 +593,6 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 				</script>
 			</div>
 		</form>
-		
 	</div>
 }
 
@@ -606,15 +607,15 @@ templ DeleteThing(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
 				</div>
 				<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
 					<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
-						{ l10n.Get("deletethinginformation")}
+						{ l10n.Get("deletethinginformation") }
 					</div>
 				</div>
 				<div class="flex items-center justify-end pt-6">
 					<div class="flex items-center gap-4">
-						@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"), 
-								HxUrl("get", "javascript:void(0)"), 
-								HxUrl("on", "click: this.closest('#modalDeleteThingContainer').classList.add('hidden')"),
-								BtnType("button"))
+						@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"),
+							HxUrl("get", "javascript:void(0)"),
+							HxUrl("on", "click: this.closest('#modalDeleteThingContainer').classList.add('hidden')"),
+							BtnType("button"))
 						//TODO: Vad ska hända när man klickar delete?
 						//@Button(Error, l10n.Get("delete"), "trashcan", Name("Delete"))
 					</div>
@@ -628,9 +629,9 @@ templ ConnectOneSensor(l10n locale.Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-start self-stretch">
 		<div class="flex flex-col gap-2 flex-1">
 			<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-			if len(model.Related) == 0 {
+			if len(model.Thing.RefDevice) == 0 {
 				<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
-			} 
+			}
 			<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
 				<input type="hidden" name="currentDevice" value={ model.RelatedDevice }/>
 				<input
@@ -674,7 +675,7 @@ templ ConnectMultipleSensors(l10n locale.Localizer, model ThingDetailsViewModel)
 						}*/
 					</div>
 				</div>
-			</div>	
+			</div>
 			<div class="flex flex-start self-stretch gap-3">
 				<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
 					<input
@@ -699,7 +700,6 @@ templ ConnectMultipleSensors(l10n locale.Localizer, model ThingDetailsViewModel)
 					{ l10n.Get("add") }
 				</div>
 			</div>
-
 			<!-- Ett hidden input för alla sensorer separerade med kommatecken, förifylld från backend -->
 			<input type="hidden" id="selectedSensors" name="currentDevice" value={ model.RelatedDevice }/>
 		</div>
@@ -743,12 +743,12 @@ templ NewThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, model NewThi
 									<div class="flex flex-start gap-10 self-stretch">
 										<div class="flex flex-col gap-2 flex-1">
 											<div class="font-bold">{ l10n.Get("name") }</div>
-												<input
-													type="text"
-													name="name"
-													class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-													placeholder=""
-												/>
+											<input
+												type="text"
+												name="name"
+												class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
+												placeholder=""
+											/>
 										</div>
 										<div class="flex flex-col gap-2 flex-1">
 											<div class="font-bold">{ l10n.Get("organisation") }</div>
@@ -763,9 +763,7 @@ templ NewThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, model NewThi
 									<div class="flex flex-start gap-10 self-stretch">
 										<div class="flex flex-col gap-2 flex-[1_0_0]">
 											<div class="font-bold">{ l10n.Get("description") }</div>
-											<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" placeholder={ l10n.Get("description") }>
-												
-											</textarea>
+											<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" placeholder={ l10n.Get("description") }></textarea>
 										</div>
 									</div>
 								</div>
@@ -775,10 +773,10 @@ templ NewThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, model NewThi
 					<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
 					<div class="flex items-center justify-end pt-6">
 						<div class="flex items-center gap-4">
-							@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"), 
-									HxUrl("get", "javascript:void(0)"), 
-									HxUrl("on", "click: this.closest('#modalCreateThingContainer').classList.add('hidden')"),
-									BtnType("button"))
+							@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"),
+								HxUrl("get", "javascript:void(0)"),
+								HxUrl("on", "click: this.closest('#modalCreateThingContainer').classList.add('hidden')"),
+								BtnType("button"))
 							@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
 						</div>
 					</div>

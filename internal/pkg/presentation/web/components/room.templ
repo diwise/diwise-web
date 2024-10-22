@@ -17,7 +17,7 @@ templ StatisticsRoom(l10n locale.Localizer, model ThingDetailsViewModel) {
 					hx-include="#sensorMeasurementTypes"
 					hx-trigger="every 60s"
 				>
-					if v,ok := model.Thing.FillingLevel(); ok {
+					if v,ok := model.Thing.Properties["temperature"]; ok {
 						{ fmt.Sprintf("%0.f%%", v) }
 					} else {
 						{ l10n.Get("noData") }
@@ -83,8 +83,7 @@ templ StatisticsRoomTableRow(l10n locale.Localizer, thing MeasurementViewModel) 
 
 templ RoomProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
 	//TODO: Behöver vi några särskilda rumsegenskaper?
-    
-    /*<div class="">
+	/*<div class="">
 		<div class="">Behållaren har en höjd på
 			<span>222</span> mm</div>
 		<div>

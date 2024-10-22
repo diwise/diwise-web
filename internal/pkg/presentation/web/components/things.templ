@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"slices"
-	"strings"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -18,28 +18,19 @@ type ThingsListViewModel struct {
 }
 
 type ThingViewModel struct {
-	ThingID      string
 	ID           string
 	Type         string
+	SubType      string
 	Name         string
 	Description  string
 	Latitude     float64
 	Longitude    float64
+	RefDevice    []string
 	Tenant       string
 	Tags         []string
 	Measurements []MeasurementViewModel
-}
-
-func (t ThingViewModel) FillingLevel() (float64, bool) {
-	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
-	})
-
-	if i == -1 || t.Measurements[i].Value == nil {
-		return 0.0, false
-	}
-
-	return *t.Measurements[i].Value, true
+	ObservedAt   time.Time
+	Properties   map[string]any
 }
 
 type MeasurementViewModel struct {
@@ -58,13 +49,13 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 			<div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
 				<div class="flex items-center text-white dark:text-primary-dark font-bold">
-					@Button(Primary, l10n.Get("addthing"), "", 
-							Target("#modalCreateThingContainer"), 
-							HxUrl("get", "/components/things/new"), 
-							Trigger("click"), 
-							Swap("innerHTML"))
+					@Button(Primary, l10n.Get("addthing"), "",
+						Target("#modalCreateThingContainer"),
+						HxUrl("get", "/components/things/new"),
+						Trigger("click"),
+						Swap("innerHTML"))
 				</div>
-				<div id="modalCreateThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center" />
+				<div id="modalCreateThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
 			</div>
 		</div>
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
@@ -88,52 +79,52 @@ templ ThingsFilter(l10n locale.Localizer, model ThingsListViewModel) {
 					@CheckboxList(l10n.Get("type")) {
 						for _, t := range model.Types {
 							@CheckboxOption("type", t, "", l10n, templ.Attributes{
-								"hx-get":    string(templ.SafeURL("/components/things/list")),
-								"hx-target": "#tableOrMap",
-								"hx-swap":   "outerHTML",
+								"hx-get":     string(templ.SafeURL("/components/things/list")),
+								"hx-target":  "#tableOrMap",
+								"hx-swap":    "outerHTML",
 								"hx-include": "[name=type]:checked",
-								"onchange":  "updateSelectedFilters()",
-								"data-text": l10n.Get(t),
+								"onchange":   "updateSelectedFilters()",
+								"data-text":  l10n.Get(t),
 							})
 						}
 					}
 					@CheckboxList(l10n.Get("tags")) {
 						for _, t := range model.Tags {
 							@CheckboxOption("tags", t, "", l10n, templ.Attributes{
-								"hx-get":    string(templ.SafeURL("/components/things/list")),
-								"hx-target": "#tableOrMap",
-								"hx-swap":   "outerHTML",
+								"hx-get":     string(templ.SafeURL("/components/things/list")),
+								"hx-target":  "#tableOrMap",
+								"hx-swap":    "outerHTML",
 								"hx-include": "[name=tags]:checked",
-								"onchange":  "updateSelectedFilters()",
-								"value": t,
+								"onchange":   "updateSelectedFilters()",
+								"value":      t,
 							})
 						}
 					}
 					<div id="fillinglevelFilter" class="hidden">
 						@CheckboxList(l10n.Get("fillinglevel")) {
 							@CheckboxOption("fillinglevel", "Grön", "", l10n, templ.Attributes{
-								"hx-get":    string(templ.SafeURL("/components/things/list?fillinglevel=green")),
-								"hx-target": "#tableOrMap",
-								"hx-swap":   "outerHTML",
+								"hx-get":     string(templ.SafeURL("/components/things/list?fillinglevel=green")),
+								"hx-target":  "#tableOrMap",
+								"hx-swap":    "outerHTML",
 								"hx-include": "[name=fillinglevel]:checked",
-								"onchange":  "updateSelectedFilters()",
-								"value": "Grön",
+								"onchange":   "updateSelectedFilters()",
+								"value":      "Grön",
 							})
 							@CheckboxOption("fillinglevel", "Orange", "", l10n, templ.Attributes{
-								"hx-get":    string(templ.SafeURL("/components/things/list?fillinglevel=orange")),
-								"hx-target": "#tableOrMap",
-								"hx-swap":   "outerHTML",
+								"hx-get":     string(templ.SafeURL("/components/things/list?fillinglevel=orange")),
+								"hx-target":  "#tableOrMap",
+								"hx-swap":    "outerHTML",
 								"hx-include": "[name=fillinglevel]:checked",
-								"onchange":  "updateSelectedFilters()",
-								"value": "Orange",
+								"onchange":   "updateSelectedFilters()",
+								"value":      "Orange",
 							})
 							@CheckboxOption("fillinglevel", "Röd", "", l10n, templ.Attributes{
-								"hx-get":    string(templ.SafeURL("/components/things/list?fillinglevel=red")),
-								"hx-target": "#tableOrMap",
-								"hx-swap":   "outerHTML",
+								"hx-get":     string(templ.SafeURL("/components/things/list?fillinglevel=red")),
+								"hx-target":  "#tableOrMap",
+								"hx-swap":    "outerHTML",
 								"hx-include": "[name=fillinglevel]:checked",
-								"onchange":  "updateSelectedFilters()",
-								"value": "Röd",
+								"onchange":   "updateSelectedFilters()",
+								"value":      "Röd",
 							})
 						}
 					</div>
@@ -141,9 +132,7 @@ templ ThingsFilter(l10n locale.Localizer, model ThingsListViewModel) {
 			</div>
 			@TableOrMap(l10n, "/components/things/list")
 		</div>
-		
 		@SelectedFilters(l10n, "/components/things/list")
-		
 	</div>
 }
 
@@ -152,13 +141,10 @@ templ SelectedFilters(l10n locale.Localizer, hxget string) {
 		<div class="font-bold dark:text-white p-2">
 			{ l10n.Get("selectedfilters") }
 		</div>
-		<form id="filterForm" hx-get={hxget} hx-target="#tableOrMap" hx-swap="outerHTML">
-			<div id="selectedFilters" class="flex items-center gap-2 self-stretch text-sm dark:text-white">
-				
-			</div>
+		<form id="filterForm" hx-get={ hxget } hx-target="#tableOrMap" hx-swap="outerHTML">
+			<div id="selectedFilters" class="flex items-center gap-2 self-stretch text-sm dark:text-white"></div>
 		</form>
 	</div>
-
 	<script>
 		function updateSelectedFilters() {
 			const selectedFiltersContainer = document.getElementById('selectedFilters');
@@ -322,9 +308,9 @@ templ ThingsTableComponent(l10n locale.Localizer, model ThingsListViewModel) {
 templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 	<tr
 		class="border-b border-divider-gray border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
-		hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/things/details?id=%s", thing.ThingID))) }
+		hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/things/details?id=%s", thing.ID))) }
 		hx-target="#things-view"
-		hx-push-url={ string(templ.SafeURL(fmt.Sprintf("/things/%s", thing.ThingID))) }
+		hx-push-url={ string(templ.SafeURL(fmt.Sprintf("/things/%s", thing.ID))) }
 		hx-trigger="click"
 	>
 		<td class="px-6 py-3">
@@ -336,7 +322,13 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 				}
 			</span>
 		</td>
-		<td class="px-6 py-3">{ l10n.Get(thing.Type) }</td>
+		<td class="px-6 py-3">
+			if thing.SubType != "" {
+				{ l10n.Get(thing.SubType) }
+			} else {
+				{ l10n.Get(thing.Type) }
+			}
+		</td>
 		<td class="px-6 py-3 ">
 			@ThingStatusCell(l10n, thing)
 		</td>
@@ -353,7 +345,7 @@ func TagCell(l10n locale.Localizer, thing ThingViewModel) templ.Component {
 	sortedTags := make([]string, len(thing.Tags))
 	copy(sortedTags, thing.Tags)
 	sort.Strings(sortedTags)
-	
+
 	return TagComponent(l10n, sortedTags)
 }
 
@@ -389,85 +381,115 @@ func ThingsTable(l10n locale.Localizer, model ThingsListViewModel) templ.Compone
 }
 
 func ThingStatusCell(l10n locale.Localizer, thing ThingViewModel) templ.Component {
+
 	switch strings.ToLower(thing.Type) {
-	case "combinedsewageoverflow":
-		return CombinedSewageOverflowCell(l10n, thing)
+	case "beach":
+		return TemperatureCell(thing)
+	case "pointofinterest":
+		return TemperatureCell(thing)
+	case "building":
+		return BuildingCell(l10n, thing)
+	case "container":
+		return WasteContainerCell(l10n, thing)
 	case "wastecontainer":
 		return WasteContainerCell(l10n, thing)
-	case "sandstorage":
-		return SandStorageCell(l10n, thing)
-	case "sewer":
-		return SewerCell(l10n, thing)
-	case "sewagepumpingstation":
-		return SewagePumpingstationCell(l10n, thing)
+	case "lifebuoy":
+		return LifebuoyCell(l10n, thing)
 	case "passage":
 		return PassageCell(thing)
+	case "pumpingstation":
+		return SewagePumpingstationCell(l10n, thing)
 	case "room":
 		return TemperatureCell(thing)
+	case "sewer":
+		return SewerCell(l10n, thing)
+	case "watermeter":
+		return WaterMeterCell(l10n, thing)
 	default:
 		return templ.NopComponent
 	}
 }
 
-func CombinedSewageOverflowCell(l10n locale.Localizer, thing ThingViewModel) templ.Component {
-	i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3350/5850") // Stopwatch/OnOff
-	})
-
-	if i == -1 {
-		return templ.NopComponent
-	}
-
-	state := l10n.Get("Ok")
-	if *thing.Measurements[i].BoolValue {
-		state = l10n.Get("overflow")
-	}
-
-	return Text(state)
+templ BuildingCell(l10n locale.Localizer, t ThingViewModel) {
+	<div>
+		{ fmt.Sprintf("%0.f kWh / %0.f kW", t.Properties["energy"], t.Properties["power"]) }
+	</div>
 }
 
-func SewagePumpingstationCell(l10n locale.Localizer, thing ThingViewModel) templ.Component {
-	i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3200/5500") // Digital Input/Digital Input State
-	})
-
-	if i == -1 || thing.Measurements[i].BoolValue == nil {
-		return templ.NopComponent
+func LifebuoyCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
+	vb, ok := t.Properties["presence"]
+	if !ok {
+		return Text(l10n.Get("noData"))
 	}
-
-	state := "Ok"
-	if *thing.Measurements[i].BoolValue {
-		state = l10n.Get("Pumpar")
+	b, ok := vb.(bool)
+	if !ok {
+		return Text(l10n.Get("noData"))
 	}
-
-	return Text(state)
+	if b {
+		return Text(l10n.Get("present"))
+	} else {
+		return Text(l10n.Get("notPresent"))
+	}
 }
 
-func SewerCell(l10n locale.Localizer, thing ThingViewModel) templ.Component {
-	i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3330/5700") // Distance/Sensor value
-	})
+templ WaterMeterCell(l10n locale.Localizer, t ThingViewModel) {
+	<div>
+		{ fmt.Sprintf("%0.f m3", t.Properties["cumulativeVolume"]) }
+	</div>
+}
 
-	if i == -1 || thing.Measurements[i].Value == nil {
-		return templ.NopComponent
+func SewerCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
+	overflowObserved, okOverflow := t.Properties["overflowObserved"]
+	currentLevel, okLevel := t.Properties["currentLevel"]
+	percent, okPercent := t.Properties["percent"]
+
+	var components []templ.Component
+
+	if okOverflow {
+		if vb, ok := overflowObserved.(bool); ok {
+			components = append(components, Text(fmt.Sprintf("Overflow: %t", vb)))
+		}
 	}
 
-	return Text(fmt.Sprintf("%.2f%s", *thing.Measurements[i].Value, thing.Measurements[i].Unit))
+	if okLevel {
+		if v, ok := currentLevel.(float64); ok {
+			if okPercent {
+				if p, ok := percent.(float64); ok {
+					components = append(components, Text(fmt.Sprintf("Level: %0.fm (%0.f%%)", v, p)))
+				}
+			} else {
+				components = append(components, Text(fmt.Sprintf("Level: %0.fm", v)))
+			}
+		}
+	}
+
+	return Div("", components...)
+}
+
+func SewagePumpingstationCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
+	vb, ok := t.Properties["pumpingObserved"]
+	if !ok {
+		return Text(l10n.Get("noData"))
+	}
+	b, ok := vb.(bool)
+	if !ok {
+		return Text(l10n.Get("noData"))
+	}
+	if b {
+		return Text(l10n.Get("pumpingObserved"))
+	} else {
+		return Text(l10n.Get("off"))
+	}
 }
 
 func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
-	v, ok := t.FillingLevel()
+	v, ok := t.Properties["percent"]
 	if !ok {
 		return Text(l10n.Get("noData"))
 	}
 
-	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
-	})
-
-	value := int(v)
-	text := fmt.Sprintf("%d%s", value, t.Measurements[i].Unit)
-	//text := fmt.Sprintf("%d%s (%s)", value, t.Measurements[i].Unit, t.Measurements[i].Timestamp.Format("2006-01-02 15:04:05"))
+	value := v.(float64)
+	text := fmt.Sprintf("%0.f%%", value)
 
 	colourClass := ""
 	switch {
@@ -479,54 +501,41 @@ func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component
 		colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent"
 	}
 
-	return ProgressBar(colourClass, text, value)
+	return ProgressBar(colourClass, text, int(value))
 }
 
-//TODO: Uppdatera till korrekt data
+// TODO: Uppdatera till korrekt data
 func SandStorageCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
-	v, ok := t.FillingLevel()
+	v, ok := t.Properties["percent"]
 	if !ok {
 		return Text(l10n.Get("noData"))
 	}
 
-	i := slices.IndexFunc(t.Measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
-	})
+	value := v.(float64)
+	text := fmt.Sprintf("%0.f%%", value)
 
-	value := int(v)
-	text := fmt.Sprintf("%d%s", value, t.Measurements[i].Unit)
-	
 	colourClass := ""
 	switch {
-	case value >= 70:
-		colourClass = "bg-green-700 dark:bg-primary-surface-green-accent"
-	case value <= 40:
+	case value >= 51:
 		colourClass = "bg-red-600 dark:bg-err-prim-surf"
+	case value <= 30:
+		colourClass = "bg-green-700 dark:bg-primary-surface-green-accent"
 	default:
 		colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent"
 	}
 
-	return ProgressBar(colourClass, text, value)
+	return ProgressBar(colourClass, text, int(value))
 }
 
 templ PassageCell(t ThingViewModel) {
-	<div hx-disinherit="*">
-		<div
-			class=""
-			hx-get={ fmt.Sprintf("/components/things/measurements/%s/current?sensorMeasurementTypes=%s", t.Type, peopleCounterSensor(t.Measurements)) }
-			hx-trigger="load"
-		>0 st</div>
+	<div>
+		{ fmt.Sprintf("%0.f st", t.Properties["passagesToday"]) }
 	</div>
 }
 
-//TODO: Uppdatera till korrekt data
 templ TemperatureCell(t ThingViewModel) {
-	<div hx-disinherit="*">
-		<div
-			class=""
-			hx-get={ fmt.Sprintf("/components/things/measurements/%s/current?sensorMeasurementTypes=%s", t.Type, peopleCounterSensor(t.Measurements)) }
-			hx-trigger="load"
-		>0 °C</div>
+	<div>
+		{ fmt.Sprintf("%0.1f °C", t.Properties["temperature"]) }
 	</div>
 }
 
@@ -557,21 +566,21 @@ func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureC
 		}
 
 		if strings.ToLower(thing.Type) == "wastecontainer" {
-			fl, ok := thing.FillingLevel()
+			fl, ok := thing.Properties["percent"].(*float64)
 			if ok {
 				var state string
-				if fl >= 51 {
+				if *fl >= 51 {
 					state = "red"
-				} else if fl > 31 {
+				} else if *fl > 31 {
 					state = "orange"
 				} else {
 					state = "green"
 				}
 				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
-				feature.AddProperty("state", state) 
+				feature.AddProperty("state", state)
 			} else {
 				feature.AddProperty("fillinglevel", "") // Eller 0 om det inte finns data
-				feature.AddProperty("state", "black") 
+				feature.AddProperty("state", "black")
 			}
 		}
 
@@ -596,7 +605,7 @@ func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureC
 
 		feature.AddProperty("latitude", thing.Latitude)
 		feature.AddProperty("longitude", thing.Longitude)
-		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ThingID))
+		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ID))
 
 		//Språkstöd
 		feature.AddProperty("text_fillinglevel", l10n.Get("fillinglevel"))

@@ -44,18 +44,6 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 
 		thingDetailsViewModel.Measurements = thingDetailsViewModel.Thing.Measurements
 
-		for _, r := range thing.Related {
-			if strings.ToLower(r.Type) != "device" {
-				continue
-			}
-
-			thingDetailsViewModel.Related = append(thingDetailsViewModel.Related, components.ThingViewModel{
-				ThingID: fmt.Sprintf("urn:diwise:%s:%s", r.Type, r.ID),
-				ID:      r.ID,
-				Type:    r.Type,
-			})
-		}
-
 		thingDetails := components.ThingDetailsPage(localizer, assets, thingDetailsViewModel)
 		page := components.StartPage(version, localizer, assets, thingDetails)
 
@@ -101,23 +89,6 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		}
 
 		thingDetailsViewModel.Measurements = thingDetailsViewModel.Thing.Measurements
-
-		for _, r := range thing.Related {
-			//TODO: should it be possible to add other types of related things?
-			if strings.ToLower(r.Type) != "device" {
-				continue
-			}
-
-			thingDetailsViewModel.Related = append(thingDetailsViewModel.Related, components.ThingViewModel{
-				ThingID: fmt.Sprintf("urn:diwise:%s:%s", r.Type, r.ID),
-				ID:      r.ID,
-				Type:    r.Type,
-			})
-		}
-
-		if len(thingDetailsViewModel.Related) > 0 {
-			thingDetailsViewModel.RelatedDevice = thingDetailsViewModel.Related[0].ID
-		}
 
 		if mode == "edit" {
 			urn := []string{}
@@ -278,7 +249,7 @@ func connectSensor(ctx context.Context, thingID string, fields map[string]any, a
 		return nil
 	}
 
-	err := app.ConnectSensor(ctx, thingID, currentID, newID)
+	err := app.ConnectSensor(ctx, thingID, []string{})
 
 	delete(fields, "currentDevice")
 	delete(fields, "relatedDevice")

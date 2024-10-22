@@ -140,10 +140,10 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 	return &impl, nil
 }
 
-func (a *App) patch(ctx context.Context, baseUrl, sensorID string, body []byte) error {
+func (a *App) patch(ctx context.Context, baseUrl, id string, body []byte) error {
 	log := logging.GetFromContext(ctx)
 
-	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseUrl, sensorID), "/"))
+	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseUrl, id), "/"))
 	if err != nil {
 		return err
 	}
