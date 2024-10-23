@@ -22,6 +22,7 @@ import (
 
 const serviceName string = "diwise-web"
 
+var devmode bool
 var webAssetPath string
 
 func main() {
@@ -41,6 +42,7 @@ func main() {
 	webAssetPath = env.GetVariableOrDefault(ctx, "DIWISEWEB_ASSET_PATH", "/opt/diwise/assets")
 
 	// ... but allow an override using a command line argument
+	flag.BoolVar(&devmode, "devmode", false, "enable devmode with fake backend data")
 	flag.StringVar(&webAssetPath, "web-assets", webAssetPath, "path to web assets folder")
 	flag.Parse()
 
@@ -75,12 +77,22 @@ func main() {
 
 	pte.InstallHandlers(mux)
 
+	if devmode {
+		os.Setenv("DEV_MGMT_URL", appRoot+"/devmode/devices")
+		os.Setenv("THINGS_URL", appRoot+"/devmode/things")
+		os.Setenv("MEASUREMENTS_URL", appRoot+"/devmode/measurements")
+	}
+
 	webapi, _, err := initialize(ctx, mux, pte, webAssetPath)
 	if err != nil {
 		fatal(ctx, "failed to initialize service", err)
 	}
 
-	webServer := &http.Server{Addr: ":" + apiPort, Handler: webapi.Router()}
+	if devmode {
+		mux = api.InstallDevmodeHandlers(ctx, webapi.Router())
+	}
+
+	webServer := &http.Server{Addr: ":" + apiPort, Handler: mux}
 
 	logger.Info("starting to listen for incoming connections", "port", apiPort)
 
