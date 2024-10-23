@@ -208,6 +208,9 @@ other = "Pick an option"
 [picksensor]
 other = "Pick sensor"
 
+[pointoftime]
+other = "Time"
+
 [room]
 other = "Room"
 
@@ -228,6 +231,9 @@ other = "Selected filters:"
 
 [sensorconnected]
 other = "Connected sensor"
+
+[sensorID]
+other = "Sensor ID"
 
 [sensormissing]
 other = "Sensor missing"
