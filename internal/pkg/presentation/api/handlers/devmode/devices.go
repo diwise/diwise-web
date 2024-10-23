@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
-	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
 var testDevices = []testDevice{
@@ -58,32 +58,41 @@ var emptyResponse = newResponseFromJsons(0, []string{})
 
 func NewDevicesHandler(ctx context.Context) http.HandlerFunc {
 
-	ndrf := newDeviceResponseFromFilter
-	responses := map[string]application.ApiResponse{
-		"/devices":                             ndrf(allDevices, noLimit),
-		"/devices?limit=1":                     ndrf(allDevices, limitOne),
-		"/devices?active=true&limit=1":         ndrf(isActive(true), limitOne),
-		"/devices?active=false&limit=1":        ndrf(isActive(false), limitOne),
-		"/devices?limit=1&online=true":         ndrf(isOnline(true), limitOne),
-		"/devices?limit=1&profilename=unknown": ndrf(unknown, limitOne),
-		"/devices?limit=15&offset=0":           ndrf(allDevices, 15),
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		w.Header()["Content-Type"] = []string{"application/json"}
 		w.WriteHeader(http.StatusOK)
 
-		// why is mapview sent to the api?
-		theURL := strings.ReplaceAll(r.URL.String(), "&mapview=false", "")
-
-		if response, ok := responses[theURL]; ok {
-			json.NewEncoder(w).Encode(&response)
-		} else {
-			logging.GetFromContext(ctx).Error("DEVMODE DATA MISSING FOR PATH", "url", r.URL.String())
-			json.NewEncoder(w).Encode(&emptyResponse)
+		var lim int64 = 10000
+		if r.FormValue("limit") != "" {
+			lim, _ = strconv.ParseInt(r.FormValue("limit"), 10, 64)
 		}
+
+		response := newDeviceResponseFromFilters(int(lim), newFiltersFromRequest(r)...)
+		json.NewEncoder(w).Encode(&response)
 	}
+}
+
+func newFiltersFromRequest(r *http.Request) []func(*testDevice) bool {
+	filters := make([]func(*testDevice) bool, 0, 10)
+
+	if r.FormValue("active") != "" {
+		filters = append(filters, isActive(r.FormValue("active") == "true"))
+	}
+
+	if r.FormValue("online") != "" {
+		filters = append(filters, isOnline(r.FormValue("online") == "true"))
+	}
+
+	if r.FormValue("type") != "" {
+		filters = append(filters, isType(r.FormValue("type")))
+	}
+
+	if len(filters) == 0 {
+		filters = append(filters, allDevices)
+	}
+
+	return filters
 }
 
 func isActive(status bool) func(*testDevice) bool {
@@ -94,19 +103,30 @@ func isOnline(status bool) func(*testDevice) bool {
 	return func(d *testDevice) bool { return status == d.online }
 }
 
+func isType(theType string) func(*testDevice) bool {
+	return func(d *testDevice) bool { return strings.EqualFold(d.profilename, theType) }
+}
+
 func allDevices(d *testDevice) bool { return true }
-func unknown(d *testDevice) bool    { return strings.EqualFold(d.profilename, "unknown") }
 
 func deviceJson(active, online bool, sID, dID, tenant, name, profilename string) string {
 	return fmt.Sprintf(deviceJsonFormat, active, sID, dID, tenant, name, profilename, online)
 }
 
-func newDeviceResponseFromFilter(include func(d *testDevice) bool, limit int) application.ApiResponse {
+func newDeviceResponseFromFilters(limit int, filters ...func(d *testDevice) bool) application.ApiResponse {
 	var totalCount int
 	jsons := make([]string, 0, len(testDevices))
 
 	for _, conf := range testDevices {
-		if include(&conf) {
+		include := true
+		for _, match := range filters {
+			if !match(&conf) {
+				include = false
+				break
+			}
+		}
+
+		if include {
 			totalCount++
 			if totalCount <= limit {
 				jsons = append(
@@ -151,9 +171,6 @@ const inactv bool = false
 
 const online_ bool = true
 const offline bool = false
-
-const limitOne int = 1
-const noLimit int = 10000
 
 type testDevice struct {
 	active      bool
