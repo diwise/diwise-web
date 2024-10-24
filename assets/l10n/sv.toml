@@ -208,6 +208,9 @@ other = "Välj ett alternativ"
 [picksensor]
 other = "Välj sensor"
 
+[pointoftime]
+other = "Tidpunkt"
+
 [room]
 other = "Rum"
 
@@ -228,6 +231,9 @@ other = "Valda filter:"
 
 [sensorconnected]
 other = "Kopplad sensor"
+
+[sensorID]
+other = "Sensor ID"
 
 [sensormissing]
 other = "Sensor saknas"

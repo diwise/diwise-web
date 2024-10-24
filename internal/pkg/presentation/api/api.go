@@ -33,7 +33,8 @@ type impl struct {
 }
 
 type writerMiddleware struct {
-	rw http.ResponseWriter
+	rw      http.ResponseWriter
+	nocache bool
 
 	contentLength int
 	statusCode    int
@@ -44,6 +45,10 @@ func (w *writerMiddleware) Header() http.Header {
 }
 
 func (w *writerMiddleware) Write(data []byte) (int, error) {
+	if w.nocache && w.contentLength == 0 {
+		w.rw.Header()["Cache-Control"] = []string{"no-store"}
+	}
+
 	count, err := w.rw.Write(data)
 	if err == nil {
 		w.contentLength += count
@@ -52,6 +57,10 @@ func (w *writerMiddleware) Write(data []byte) (int, error) {
 }
 
 func (w *writerMiddleware) WriteHeader(statusCode int) {
+	if w.nocache {
+		w.rw.Header()["Cache-Control"] = []string{"no-store"}
+	}
+
 	w.statusCode = statusCode
 	w.rw.WriteHeader(statusCode)
 }
