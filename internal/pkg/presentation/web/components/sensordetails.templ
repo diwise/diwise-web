@@ -5,9 +5,9 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"slices"
+	"sort"
 	"strings"
 	"time"
-	"sort"
 )
 
 type SensorDetailsViewModel struct {
@@ -24,7 +24,7 @@ type SensorDetailsViewModel struct {
 	Organisations     []string
 	DeviceProfiles    []DeviceProfile
 	MeasurementTypes  []string
-	Measurements	  []MeasurementViewModel
+	Measurements      []MeasurementViewModel
 	ObservedAt        time.Time
 }
 
@@ -192,14 +192,15 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 }
 
 func RenderMeasurementGraph(l10n locale.Localizer, model SensorDetailsViewModel) templ.Component {
-	startDate := "2024-01-01"
-	endDate := "2024-12-31"
+
+	startDate := time.Now().Add(-24 * time.Hour)
+	endDate := time.Now()
 
 	if len(model.Measurements) > 0 {
-		startDate = model.Measurements[0].Timestamp.Format("2006-01-02 15:04")
-		endDate = model.Measurements[0].Timestamp.Format("2006-01-02 15:04")
+		startDate = model.Measurements[0].Timestamp.Add(-24 * time.Hour)
+		endDate = model.Measurements[0].Timestamp
 	}
-	
+
 	return Graph(l10n, startDate, endDate)
 }
 
@@ -307,27 +308,31 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("latitude") }</div>
-									<input type="number" 
-											name="latitude"
-											id="latitude" 
-											min="-90" 
-											max="90" 
-											step="0.000001"
-											value={ fmt.Sprintf("%f", sensor.Latitude) } 
-											class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
-											placeholder="Latitud"/>
+									<input
+										type="number"
+										name="latitude"
+										id="latitude"
+										min="-90"
+										max="90"
+										step="0.000001"
+										value={ fmt.Sprintf("%f", sensor.Latitude) }
+										class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2"
+										placeholder="Latitud"
+									/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("longitude") }</div>
-									<input type="number" 
-											name="longitude" 
-											id="longitude"
-											min="-180" 
-											max="180" 
-											step="0.000001"
-											value={ fmt.Sprintf("%f", sensor.Longitude) } 
-											class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
-											placeholder="Longitud"/>
+									<input
+										type="number"
+										name="longitude"
+										id="longitude"
+										min="-180"
+										max="180"
+										step="0.000001"
+										value={ fmt.Sprintf("%f", sensor.Longitude) }
+										class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2"
+										placeholder="Longitud"
+									/>
 								</div>
 							</div>
 							@Map("medium", false, true, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
@@ -527,7 +532,7 @@ func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLo
 	for _, t := range profile.Types {
 		parts := strings.Split(t, ":")
 		text := strings.Join(parts[1:], "-")
-		
+
 		viewModel = append(viewModel, OptionViewModel{
 			Value: t,
 			Text:  l10n.Get(text),

@@ -7,7 +7,6 @@ import (
 	"math"
 	"net/http"
 	"net/url"
-	"slices"
 	"strconv"
 
 	"github.com/a-h/templ"
@@ -244,40 +243,34 @@ func toViewModel(thing application.Thing) components.ThingViewModel {
 		tvm.RefDevice = append(tvm.RefDevice, rd.DeviceID)
 	}
 
-	for _, m := range thing.Values {
-		vs := ""
-		if m.StringValue != nil {
-			vs = *m.StringValue
-		}
-		mvm := components.MeasurementViewModel{
-			ID:          m.ID,
-			Timestamp:   m.Timestamp,
-			Urn:         m.Urn,
-			BoolValue:   m.BoolValue,
-			StringValue: vs,
-			Unit:        m.Unit,
-			Value:       m.Value,
-		}
-		tvm.Measurements = append(tvm.Measurements, mvm)
+	if len(tvm.RefDevice) == 0 {
+		tvm.RefDevice = append(tvm.RefDevice, "")
 	}
 
-	for k, v := range toMap(thing) {
-		if !slices.Contains([]string{
-			"id",
-			"type",
-			"subType",
-			"name",
-			"description",
-			"location",
-			"refDevices",
-			"tags",
-			"tenant",
-			"observedAt",
-			"values",
-		}, k) {
-			if v != nil {
-				tvm.Properties[k] = v
+	if len(thing.Values) > 0 {
+		for _, m := range thing.Values[0] {
+			vs := ""
+			if m.StringValue != nil {
+				vs = *m.StringValue
 			}
+
+			mvm := components.MeasurementViewModel{
+				ID:          m.ID,
+				Timestamp:   m.Timestamp,
+				Urn:         m.Urn,
+				BoolValue:   m.BoolValue,
+				StringValue: vs,
+				Unit:        m.Unit,
+				Value:       m.Value,
+			}
+
+			tvm.Measurements = append(tvm.Measurements, mvm)
+		}
+	}
+
+	for k, v := range toMap(thing.TypeValues) {
+		if v != nil {
+			tvm.Properties[k] = v
 		}
 	}
 

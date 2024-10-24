@@ -161,8 +161,7 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	r.HandleFunc("GET /components/sensors/list", RequireHX(sensors.NewSensorsDataList(ctx, l10n, assetLoader.Load, app)))
 	//measurements
 	r.HandleFunc("GET /components/measurements", RequireHX(sensors.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/things/measurements/{type}", RequireHX(things.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/things/measurements/{type}/current", RequireHX(things.NewCurrentValueComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /components/things/measurements/{id}", RequireHX(things.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))	
 	// admin
 	r.HandleFunc("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /admin/token", func(w http.ResponseWriter, r *http.Request) {

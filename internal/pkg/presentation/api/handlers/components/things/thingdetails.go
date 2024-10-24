@@ -32,7 +32,7 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 			components.CurrentComponent, "things",
 		)
 
-		thing, err := app.GetThing(ctx, id)
+		thing, err := app.GetThing(ctx, id, r.URL.Query())
 		if err != nil {
 			http.Error(w, "could not compose view model", http.StatusInternalServerError)
 			return
@@ -40,9 +40,7 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 
 		thingDetailsViewModel := components.ThingDetailsViewModel{
 			Thing: toViewModel(thing),
-		}
-
-		thingDetailsViewModel.Measurements = thingDetailsViewModel.Thing.Measurements
+		}		
 
 		thingDetails := components.ThingDetailsPage(localizer, assets, thingDetailsViewModel)
 		page := components.StartPage(version, localizer, assets, thingDetails)
@@ -78,7 +76,7 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 			components.CurrentComponent, "things",
 		)
 
-		thing, err := app.GetThing(ctx, id)
+		thing, err := app.GetThing(ctx, id, r.URL.Query())
 		if err != nil {
 			http.Error(w, "could not compose view model", http.StatusInternalServerError)
 			return
@@ -86,9 +84,7 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 
 		thingDetailsViewModel := components.ThingDetailsViewModel{
 			Thing: toViewModel(thing),
-		}
-
-		thingDetailsViewModel.Measurements = thingDetailsViewModel.Thing.Measurements
+		}		
 
 		if mode == "edit" {
 			urn := []string{}

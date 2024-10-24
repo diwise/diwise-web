@@ -10,13 +10,11 @@ import (
 
 type ThingDetailsViewModel struct {
 	Thing         ThingViewModel
-	Measurements  []MeasurementViewModel
 	Organisations []string
 	Tenant        string
 	TableView     bool
 	ValidSensors  []ValidSensorViewModel
 	Tags          []string
-	RelatedDevice string
 }
 
 type ValidSensorViewModel struct {
@@ -39,101 +37,309 @@ templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 	</div>
 }
 
-templ FilterStatistics(l10n locale.Localizer, model ThingDetailsViewModel) {
-	/*
-	<div class="flex flex-col items-start gap-2">
-		
-		<div class="font-bold">
-			{ l10n.Get("measurementtype") }
+templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
+	@afterSwap()
+	<div class="w-full">
+		// Header, name + edit button
+		<div class="flex items-center w-full justify-between">
+			if model.Thing.Name != "" {
+				<div class="flex items-center gap-6 align-middle">
+					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.Name }</h1>
+				</div>
+			} else if model.Thing.ID == "" {
+				<div class="flex items-center align-middle">
+					<h1 class="py-3">&nbsp;</h1>
+				</div>
+			} else {
+				<div class="flex items-center gap-6 align-middle">
+					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ID }</h1>
+				</div>
+			}
+			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", model.Thing.ID))))
 		</div>
-		<div class="relative min-w-48 border border-input-surface rounded-xl px-3 py-2 dark:border dark:border-white-50">
-			//TODO: Ersätt med en riktig Select() när data finns.
-		
-			<select class="appearance-none min-w-48 dark:bg-input-surface-dark dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white">
-				<option value="Fyllnadsnivå">{ l10n.Get("fillinglevel") }</option>
-				<option value="Temperatur">{ l10n.Get("temperature") }</option>
-			</select>
-			
-			<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-				<svg class="w-[18px] h-[18px] dark:fill-white">
-					@templ.Raw(iconSVG("chevron-down"))
-				</svg>
+		// Contents
+		<div class="flex flex-col items-start gap-10">
+			// Stats, chart or table
+			<div class="flex flex-col items-start self-stretch pt-6">
+				// Header for stats
+				<div class="flex items-center gap-3 self-stretch">
+					@SVG("chartline", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("statistics") }</h2>
+					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+				</div>
+				@ThingStatistics(l10n, asset, model)
+			</div>
+			//Uppgifter och position
+			<div class="flex items-start self-stretch py-6 gap-10">
+				//Uppgifter och larm
+				<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
+					//Uppgifter
+					<div class="flex items-center gap-3 self-stretch">
+						//Rubrik
+						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("details") }</h2>
+						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+					</div>
+					//Innehåll Uppgifter
+					<div class="flex flex-col items-start self-stretch gap-6 px-9 text-secondary-dark dark:text-secondary">
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("id") }</div>
+							<div class="">{ model.Thing.ID }</div>
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("type") }</div>
+							<div class="">{ l10n.Get(model.Thing.Type) }</div>
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("name") }</div>
+							if model.Thing.Name == "" {
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
+							} else {
+								<div class="">
+									{ l10n.Get(model.Thing.Name) }
+								</div>
+							}
+						</div>
+						if strings.ToLower(model.Thing.Type) == "container" {
+							if strings.ToLower(model.Thing.SubType) == "wastecontainer" {
+								@WasteContainerProperties(l10n, model)
+							}
+							if strings.ToLower(model.Thing.SubType) == "sandstorage" {
+								@SandStorageProperties(l10n, model)
+							}
+						}
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("description") }</div>
+							if model.Thing.Description == "" {
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
+							} else {
+								<div class="">
+									{ l10n.Get(model.Thing.Description) }
+								</div>
+							}
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
+							if len(model.Thing.RefDevice) == 0 {
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
+							} else {
+								for _, r := range model.Thing.RefDevice {
+									<div class="underline text-primary-surface-blue dark:text-primary-surface-blue-dark">
+										<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", r)) }>{ r }</a>
+									</div>
+								}
+							}
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("organisation") }</div>
+							<div class="">{ model.Thing.Tenant }</div>
+						</div>
+						<div class="flex items-center gap-2">
+							<div class="flex flex-col gap-2">
+								<div class="flex items-center gap-2 flex-wrap">
+									for _, tag := range model.Thing.Tags {
+										<div class="px-2 py-1 rounded-full text-sm border-gray-30 dark:border-white-30 border-2 dark:text-secondary ">
+											{ tag }
+										</div>
+									}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				//@AlarmList(l10n)
+				//Vertikal gray-30 mellan uppgifter och position
+				<div class="flex flex-col items-start self-stretch gap-2 border-l border-gray-30 dark:border-white-30 h-auto"></div>
+				//Position
+				<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
+					<div class="flex flex-col items-start self-stretch">
+						//Karta
+						<div class="flex items-center gap-3 self-stretch">
+							//Position rubrik
+							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("location") }</h2>
+							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+						</div>
+						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
+							//
+							<div class="flex flex-start gap-2">
+								<div class="font-bold">{ l10n.Get("latitude") }</div>
+								<div class="">{ fmt.Sprintf("%f", model.Thing.Latitude) }</div>
+							</div>
+							<div class="flex flex-start gap-2">
+								<div class="font-bold">{ l10n.Get("longitude") }</div>
+								<div class="">{ fmt.Sprintf("%f", model.Thing.Longitude) }</div>
+							</div>
+							@Map("small", false, false, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
-		
 	</div>
-	*/
-	<div class="flex flex-col items-start gap-2">
-		<div class="font-bold">
-			{ l10n.Get("timeinterval") }
-		</div>
-		<div class="">
-			<input
-				name="timeAt"
-				type="datetime-local"
-				id="timeAt"
-				hx-trigger="change, load"
-				hx-include="#sensorMeasurementTypes,#endTimeAt,#tableButton,#graphButton"
-				hx-target="#measurementCharts"
-				hx-get={ fmt.Sprintf("/components/things/measurements/%s", strings.ToLower(model.Thing.Type)) }
-				hx-params="*"
-				class="border border-input-surface dark:border-white-50 rounded-xl py-2 px-3 dark:bg-input-surface-dark"
-			/>
-			-
-			<input
-				name="endTimeAt"
-				type="datetime-local"
-				id="endTimeAt"
-				hx-trigger="change"
-				hx-include="#sensorMeasurementTypes,#timeAt,#tableButton,#graphButton"
-				hx-target="#measurementCharts"
-				hx-get={ fmt.Sprintf("/components/things/measurements/%s", strings.ToLower(model.Thing.Type)) }
-				hx-params="*"
-				class="border border-input-surface dark:border-white-50 rounded-xl py-2 px-3 dark:bg-input-surface-dark"
-			/>
-		</div>
-	</div>
-	<div class="flex flex-col items-start gap-2">
-		<div class="text-primary-dark font-bold">
-			&nbsp;
-		</div>
-		<div class="">
-			@graphTableButtons(l10n)
+}
+
+templ NewThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, model NewThingViewModel) {
+	<div id="modalCreateThing" class="fixed inset-0 bg-gray-30 z-50 flex items-start justify-center">
+		<div class="bg-white rounded-lg shadow-xl w-full max-w-xl p-6 mt-8">
+			<div class="w-full">
+				<div class="flex items-center w-full justify-between">
+					<div class="flex items-center gap-6 align-middle">
+						<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("addthing") }</h1>
+					</div>
+				</div>
+				<form action="/components/things/details" method="post">
+					//<input type="hidden" name="id" value={ model.Thing.ThingID }/>
+					<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
+						<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+							//Status och uppgifter
+							<div class="flex flex-col items-start self-stretch">
+								<div class="flex items-center gap-3 self-stretch">
+									//Rubrik uppgifter
+									@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+									<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
+									<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+								</div>
+								<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+									//Uppgifter
+									<div class="flex flex-start gap-10 self-stretch">
+										<div class="flex flex-col gap-2 flex-1">
+											<div class="font-bold">{ l10n.Get("thingtype") }</div>
+											<div class="border border-input-surface rounded-xl">
+												<label for="type" class="hidden block text-sm font-medium text-gray-700">
+													{ l10n.Get("pickOption") }
+												</label>
+												@TypeSelect(l10n, asset, "type", "", model.ThingType)
+											</div>
+										</div>
+									</div>
+									<div class="flex flex-start gap-10 self-stretch">
+										<div class="flex flex-col gap-2 flex-1">
+											<div class="font-bold">{ l10n.Get("name") }</div>
+											<input
+												type="text"
+												name="name"
+												class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
+												placeholder=""
+											/>
+										</div>
+										<div class="flex flex-col gap-2 flex-1">
+											<div class="font-bold">{ l10n.Get("organisation") }</div>
+											<div class="border border-input-surface rounded-xl">
+												<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
+													{ l10n.Get("pickOption") }
+												</label>
+												@OrganisationSelect(l10n, asset, "organisation", "", model.Organisations)
+											</div>
+										</div>
+									</div>
+									<div class="flex flex-start gap-10 self-stretch">
+										<div class="flex flex-col gap-2 flex-[1_0_0]">
+											<div class="font-bold">{ l10n.Get("description") }</div>
+											<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" placeholder={ l10n.Get("description") }></textarea>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
+					<div class="flex items-center justify-end pt-6">
+						<div class="flex items-center gap-4">
+							@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"),
+								HxUrl("get", "javascript:void(0)"),
+								HxUrl("on", "click: this.closest('#modalCreateThingContainer').classList.add('hidden')"),
+								BtnType("button"))
+							@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
+						</div>
+					</div>
+				</form>
+			</div>
 		</div>
 	</div>
 }
 
-templ StatisticsData(l10n locale.Localizer, graphComponent, tableComponent templ.Component, tableView bool) {
-	<div id="graphOrTable" class="w-full flex flex-col gap-6 items-start inline-flex">
-		<input
-			type="hidden"
-			id="tableview"
-			name="tableview"
-			class="filter"
-			if tableView {
-				value="true"
-			} else {
-				value="false"
-			}
-		/>
-		<div
-			if tableView {
-				id="tableview"
-			} else {
-				id="graphview"
-			}
-			class="w-full"
-		>
-			if tableView {
-				@tableComponent
-			} else {
-				@graphComponent
-			}
+templ DeleteThing(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
+	<div id="modalDeleteThing" class="fixed inset-0 bg-gray-30 z-50 flex items-center justify-center">
+		<div class="bg-white rounded-lg shadow-xl w-full max-w-xl p-6">
+			<div class="w-full">
+				<div class="flex items-center w-full justify-between">
+					<div class="flex items-center gap-6 align-middle">
+						<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("deletethingconfirm") }</h1>
+					</div>
+				</div>
+				<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
+					<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+						{ l10n.Get("deletethinginformation") }
+					</div>
+				</div>
+				<div class="flex items-center justify-end pt-6">
+					<div class="flex items-center gap-4">
+						@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"),
+							HxUrl("get", "javascript:void(0)"),
+							HxUrl("on", "click: this.closest('#modalDeleteThingContainer').classList.add('hidden')"),
+							BtnType("button"))
+						//TODO: Vad ska hända när man klickar delete?
+						//@Button(Error, l10n.Get("delete"), "trashcan", Name("Delete"))
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 }
 
-templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
+templ WasteContainerProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
+	<div class="">
+		<div class="">
+			Behållaren har en höjd på
+			<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
+		</div>
+		<div>
+			med en max fyllnadshöjd på 
+			<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+		</div>
+	</div>
+}
+
+templ RoomProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
+	//TODO: Behöver vi några särskilda rumsegenskaper?
+	/*<div class="">
+		<div class="">Behållaren har en höjd på
+			<span>222</span> mm</div>
+		<div>
+			med en max fyllnadshöjd på 
+			<span>200</span> mm.
+		</div>
+	</div>*/
+}
+
+func TypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, types []string) templ.Component {
+	viewModel := []OptionViewModel{
+		{
+			Value:    "",
+			Text:     l10n.Get("choose"),
+			Selected: true,
+			Hidden:   true,
+			Disabled: true,
+		},
+	}
+
+	for _, t := range types {
+		viewModel = append(viewModel, OptionViewModel{
+			Value:    t,
+			Text:     l10n.Get(t),
+			Selected: t == selected,
+		})
+	}
+
+	sort.Slice(viewModel, func(i, j int) bool {
+		return viewModel[i].Text < viewModel[j].Text
+	})
+
+	return Select(id, false, "", "", viewModel)
+}
+
+templ afterSwap() {
 	<script>
 		document.addEventListener('htmx:afterSwap', function(evt) {
 			// Funktion för att ladda både taggar och sensorer
@@ -255,567 +461,5 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 			// Initiera när sidan är klar
 			checkItemsLoaded();
 		});
-	</script>
-	<div class="w-full">
-		<div class="flex items-center w-full justify-between">
-			if model.Thing.Name != "" {
-				<div class="flex items-center gap-6 align-middle">
-					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.Name }</h1>
-				</div>
-			} else if model.Thing.ID == "" {
-				<div class="flex items-center align-middle">
-					<h1 class="py-3">&nbsp;</h1>
-				</div>
-			} else {
-				<div class="flex items-center gap-6 align-middle">
-					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ID }</h1>
-				</div>
-			}
-			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", model.Thing.ID))))
-		</div>
-		<div class="flex flex-col items-start gap-10">
-			//Statistikdel
-			<div class="flex flex-col items-start self-stretch pt-6">
-				//Rubrik Statistik
-				<div class="flex items-center gap-3 self-stretch">
-					@SVG("chartline", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-					<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("statistics") }</h2>
-					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-				</div>
-				if strings.ToLower(model.Thing.Type) == "container" {
-					@StatisticsWasteContainer(l10n, model)
-				} else if strings.ToLower(model.Thing.Type) == "sewer" {
-					@StatisticsCombinedSewageOverflow(l10n, model)
-				} else if strings.ToLower(model.Thing.Type) == "passage" {
-					@StatisticsPassage(l10n, model)
-				}
-			</div>
-			//Uppgifter och position
-			<div class="flex items-start self-stretch py-6 gap-10">
-				//Uppgifter och larm
-				<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
-					//Uppgifter
-					<div class="flex items-center gap-3 self-stretch">
-						//Rubrik
-						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("details") }</h2>
-						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-					</div>
-					//Innehåll Uppgifter
-					<div class="flex flex-col items-start self-stretch gap-6 px-9 text-secondary-dark dark:text-secondary">
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("id") }</div>
-							<div class="">{ model.Thing.ID }</div>
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("type") }</div>
-							<div class="">{ l10n.Get(model.Thing.Type) }</div>
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("name") }</div>
-							if model.Thing.Name == "" {
-								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
-							} else {
-								<div class="">
-									{ l10n.Get(model.Thing.Name) }
-								</div>
-							}
-						</div>
-						if strings.ToLower(model.Thing.Type) == "container" {
-							if strings.ToLower(model.Thing.SubType) == "wastecontainer" {
-								@WasteContainerProperties(l10n, model)
-							}
-							if strings.ToLower(model.Thing.SubType) == "sandstorage" {
-								@SandStorageProperties(l10n, model)
-							}
-						}
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("description") }</div>
-							if model.Thing.Description == "" {
-								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
-							} else {
-								<div class="">
-									{ l10n.Get(model.Thing.Description) }
-								</div>
-							}
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-							if len(model.Thing.RefDevice) == 0 {
-								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
-							} else {
-								for _, r := range model.Thing.RefDevice {
-									<div class="underline text-primary-surface-blue dark:text-primary-surface-blue-dark">
-										<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", r)) }>{ r }</a>
-									</div>
-								}
-							}
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("organisation") }</div>
-							<div class="">{ model.Thing.Tenant }</div>
-						</div>
-						<div class="flex items-center gap-2">
-							<div class="flex flex-col gap-2">
-								<div class="flex items-center gap-2 flex-wrap">
-									for _, tag := range model.Thing.Tags {
-										<div class="px-2 py-1 rounded-full text-sm border-gray-30 dark:border-white-30 border-2 dark:text-secondary ">
-											{ tag }
-										</div>
-									}
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				//@AlarmList(l10n)
-				//Vertikal gray-30 mellan uppgifter och position
-				<div class="flex flex-col items-start self-stretch gap-2 border-l border-gray-30 dark:border-white-30 h-auto"></div>
-				//Position
-				<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
-					<div class="flex flex-col items-start self-stretch">
-						//Karta
-						<div class="flex items-center gap-3 self-stretch">
-							//Position rubrik
-							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-							<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("location") }</h2>
-							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-						</div>
-						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
-							//
-							<div class="flex flex-start gap-2">
-								<div class="font-bold">{ l10n.Get("latitude") }</div>
-								<div class="">{ fmt.Sprintf("%f", model.Thing.Latitude) }</div>
-							</div>
-							<div class="flex flex-start gap-2">
-								<div class="font-bold">{ l10n.Get("longitude") }</div>
-								<div class="">{ fmt.Sprintf("%f", model.Thing.Longitude) }</div>
-							</div>
-							@Map("small", false, false, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-}
-
-templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
-	<div class="w-full">
-		<div class="flex items-center w-full justify-between">
-			if model.Thing.ID == "" {
-				<div class="flex items-center align-middle">
-					<h1 class="py-3">&nbsp;</h1>
-				</div>
-			} else {
-				<div class="flex items-center gap-6 align-middle">
-					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { model.Thing.ID }</h1>
-				</div>
-			}
-		</div>
-		<form action="/components/things/details" method="post">
-			<input type="hidden" name="id" value={ model.Thing.ID }/>
-			<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
-				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
-					//Status och uppgifter
-					<div class="flex flex-col items-start self-stretch">
-						<div class="flex items-center gap-3 self-stretch">
-							//Rubrik uppgifter
-							@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-							<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
-							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-						</div>
-						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
-							//Uppgifter
-							<div class="flex flex-start gap-10 self-stretch">
-								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("id") }</div>
-									<div class="break-all">
-										{ model.Thing.ID }
-									</div>
-								</div>
-								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("thingtype") }</div>
-									<div class="">
-										{ l10n.Get(model.Thing.Type) }
-									</div>
-								</div>
-							</div>
-							<div class="flex flex-start gap-10 self-stretch">
-								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("name") }</div>
-									<input
-										type="text"
-										name="name"
-										class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-										placeholder=""
-										value={ model.Thing.Name }
-									/>
-								</div>
-								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("organisation") }</div>
-									<div class="border border-input-surface rounded-xl">
-										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
-											{ l10n.Get("pickOption") }
-										</label>
-										@OrganisationSelect(l10n, asset, "organisation", model.Thing.Tenant, model.Organisations)
-									</div>
-								</div>
-							</div>
-							if strings.ToLower(model.Thing.Type) == "wastecontainer" {
-								@EditWasteContainer(l10n, model)
-							}
-							if strings.ToLower(model.Thing.Type) == "sandstorage" {
-								@EditSandStorage(l10n, model)
-							}
-							if strings.ToLower(model.Thing.Type) == "room" {
-								@EditRoom(l10n, model)
-							}
-							if strings.ToLower(model.Thing.Type) == "passage" {
-								@EditPassage(l10n, model)
-							}
-							if strings.ToLower(model.Thing.Type) == "combinedsewageoverflow" {
-								@EditCombinedSewageOverflow(l10n, model)
-							}
-							//Lägg till taggar
-							<div class="flex flex-start self-stretch">
-								<div class="flex flex-col gap-6 flex-1">
-									<div class="flex flex-col gap-2 flex-1">
-										<div class="font-bold">{ l10n.Get("tags") }</div>
-										<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
-											<div id="selectedTagContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full">
-												for _, tag := range model.Thing.Tags {
-													<div class="flex items-center p-2 rounded-full gap-1 tagItem border-gray-30 dark:border-white-30 dark:text-secondary border stroke-primary-dark dark:stroke-white">
-														<span>{ tag }</span>
-														<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x removeTagIcon cursor-pointer">
-															<line x1="18" y1="6" x2="6" y2="18"></line>
-															<line x1="6" y1="6" x2="18" y2="18"></line>
-														</svg>
-													</div>
-												}
-											</div>
-										</div>
-									</div>
-									<div class="flex flex-start self-stretch gap-3">
-										<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-											<input
-												list="tag-options"
-												name="tags"
-												placeholder={ l10n.Get("addtag") }
-												class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
-												id="tagInput"
-											/>
-											<datalist id="tag-options">
-												for _, t := range model.Tags {
-													<option value={ t }>{ t }</option>
-												}
-											</datalist>
-											<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
-												<svg class="w-[18px] h-[18px] dark:fill-white">
-													@templ.Raw(iconSVG("chevron-down"))
-												</svg>
-											</div>
-										</div>
-										<div id="addTagButton" class="flex gap-2 rounded-xl whitespace-nowrap cursor-pointer font-bold px-4 py-2 bg-tertiary-surface rounded-xl hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-white-30 text-primary-dark dark:text-white">
-											{ l10n.Get("add") }
-										</div>
-									</div>
-									<!-- Ett hidden input för alla taggar separerade med kommatecken, förifylld från backend -->
-									<input type="hidden" id="selectedTags" name="selectedTags" value={ strings.Join(model.Thing.Tags, ",") }/>
-								</div>
-							</div>
-							<div class="flex flex-start gap-10 self-stretch">
-								<div class="flex flex-col gap-2 flex-[1_0_0]">
-									<div class="font-bold">{ l10n.Get("description") }</div>
-									<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" placeholder={ l10n.Get("description") }>
-										{ model.Thing.Description }
-									</textarea>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="border-l border-gray-30 dark:border-white-30 h-auto"></div> //Vertikal gray-30 mellan uppgifter och position
-				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
-					<div class="flex flex-col items-start self-stretch">
-						//Karta
-						<div class="flex items-center gap-3 self-stretch">
-							//Position rubrik
-							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-							<h2 class="font-heading text-xl font-bold">{ l10n.Get("location") }</h2>
-							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-						</div>
-						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
-							//Position
-							<div class="flex flex-start gap-10 self-stretch">
-								<div class="flex flex-col gap-2 flex-[1_0_0]">
-									<div class="font-bold">{ l10n.Get("latitude") }</div>
-									<input
-										type="number"
-										name="latitude"
-										id="latitude"
-										min="-90"
-										max="90"
-										step="0.000001"
-										value={ fmt.Sprintf("%f", model.Thing.Latitude) }
-										class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2"
-										placeholder="Latitud"
-									/>
-								</div>
-								<div class="flex flex-col gap-2 flex-[1_0_0]">
-									<div class="font-bold">{ l10n.Get("longitude") }</div>
-									<input
-										type="number"
-										name="longitude"
-										id="longitude"
-										min="-180"
-										max="180"
-										step="0.000001"
-										value={ fmt.Sprintf("%f", model.Thing.Longitude) }
-										class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2"
-										placeholder="Longitud"
-									/>
-								</div>
-							</div>
-							@Map("medium", false, true, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
-			<div class="flex items-center justify-between py-6">
-				@Button(Error, l10n.Get("delete"), "trashcan",
-					Target("#modalDeleteThingContainer"),
-					HxUrl("get", "/components/things/delete"),
-					Trigger("click"),
-					Swap("innerHTML"))
-				<div class="flex items-center gap-4">
-					@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"))
-					@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
-				</div>
-				<div id="modalDeleteThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
-				<script>
-					document.getElementById('modalDeleteThingContainer').addEventListener('htmx:afterSwap', function() {
-						document.getElementById('modalDeleteThingContainer').classList.remove('hidden');
-					});
-				</script>
-			</div>
-		</form>
-	</div>
-}
-
-templ DeleteThing(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
-	<div id="modalDeleteThing" class="fixed inset-0 bg-gray-30 z-50 flex items-center justify-center">
-		<div class="bg-white rounded-lg shadow-xl w-full max-w-xl p-6">
-			<div class="w-full">
-				<div class="flex items-center w-full justify-between">
-					<div class="flex items-center gap-6 align-middle">
-						<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("deletethingconfirm") }</h1>
-					</div>
-				</div>
-				<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
-					<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
-						{ l10n.Get("deletethinginformation") }
-					</div>
-				</div>
-				<div class="flex items-center justify-end pt-6">
-					<div class="flex items-center gap-4">
-						@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"),
-							HxUrl("get", "javascript:void(0)"),
-							HxUrl("on", "click: this.closest('#modalDeleteThingContainer').classList.add('hidden')"),
-							BtnType("button"))
-						//TODO: Vad ska hända när man klickar delete?
-						//@Button(Error, l10n.Get("delete"), "trashcan", Name("Delete"))
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-}
-
-templ ConnectOneSensor(l10n locale.Localizer, model ThingDetailsViewModel) {
-	<div class="flex flex-start self-stretch">
-		<div class="flex flex-col gap-2 flex-1">
-			<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-			if len(model.Thing.RefDevice) == 0 {
-				<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
-			}
-			<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-				<input type="hidden" name="currentDevice" value={ model.RelatedDevice }/>
-				<input
-					list="sensor-options"
-					name="relatedDevice"
-					placeholder={ l10n.Get("picksensor") }
-					class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
-					value={ model.RelatedDevice }
-					id="sensorInput"
-				/>
-				<datalist id="sensor-options">
-					for _, sensor := range model.ValidSensors {
-						<option value={ sensor.DeviceID }>{ fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder) }</option>
-					}
-				</datalist>
-				<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
-					<svg class="w-[18px] h-[18px] dark:fill-white">
-						@templ.Raw(iconSVG("chevron-down"))
-					</svg>
-				</div>
-			</div>
-		</div>
-	</div>
-}
-
-templ ConnectMultipleSensors(l10n locale.Localizer, model ThingDetailsViewModel) {
-	<div class="flex flex-start self-stretch">
-		<div class="flex flex-col gap-6 flex-1">
-			<div class="flex flex-col gap-2 flex-1">
-				<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-				<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
-					<div id="selectedSensorContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full">
-						/*for _, sensor := range model.RelatedDevice {
-							<div class="flex items-center p-2 rounded-full gap-1 sensorItem border-gray-30 dark:border-white-30 dark:text-secondary border stroke-primary-dark dark:stroke-white">
-								<span>{ sensor }</span>
-								<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x removeTagIcon cursor-pointer">
-									<line x1="18" y1="6" x2="6" y2="18"></line>
-									<line x1="6" y1="6" x2="18" y2="18"></line>
-								</svg>
-							</div>
-						}*/
-					</div>
-				</div>
-			</div>
-			<div class="flex flex-start self-stretch gap-3">
-				<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-					<input
-						list="sensor-options"
-						name="relatedDevice"
-						placeholder={ l10n.Get("picksensor") }
-						class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
-						id="sensorInput"
-					/>
-					<datalist id="sensor-options">
-						for _, sensor := range model.ValidSensors {
-							<option value={ sensor.DeviceID }>{ fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder) }</option>
-						}
-					</datalist>
-					<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
-						<svg class="w-[18px] h-[18px] dark:fill-white">
-							@templ.Raw(iconSVG("chevron-down"))
-						</svg>
-					</div>
-				</div>
-				<div id="addSensorButton" class="flex gap-2 rounded-xl whitespace-nowrap cursor-pointer font-bold px-4 py-2 bg-tertiary-surface rounded-xl hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-white-30 text-primary-dark dark:text-white">
-					{ l10n.Get("add") }
-				</div>
-			</div>
-			<!-- Ett hidden input för alla sensorer separerade med kommatecken, förifylld från backend -->
-			<input type="hidden" id="selectedSensors" name="currentDevice" value={ model.RelatedDevice }/>
-		</div>
-	</div>
-}
-
-templ NewThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, model NewThingViewModel) {
-	<div id="modalCreateThing" class="fixed inset-0 bg-gray-30 z-50 flex items-start justify-center">
-		<div class="bg-white rounded-lg shadow-xl w-full max-w-xl p-6 mt-8">
-			<div class="w-full">
-				<div class="flex items-center w-full justify-between">
-					<div class="flex items-center gap-6 align-middle">
-						<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("addthing") }</h1>
-					</div>
-				</div>
-				<form action="/components/things/details" method="post">
-					//<input type="hidden" name="id" value={ model.Thing.ThingID }/>
-					<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
-						<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
-							//Status och uppgifter
-							<div class="flex flex-col items-start self-stretch">
-								<div class="flex items-center gap-3 self-stretch">
-									//Rubrik uppgifter
-									@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-									<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
-									<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-								</div>
-								<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
-									//Uppgifter
-									<div class="flex flex-start gap-10 self-stretch">
-										<div class="flex flex-col gap-2 flex-1">
-											<div class="font-bold">{ l10n.Get("thingtype") }</div>
-											<div class="border border-input-surface rounded-xl">
-												<label for="type" class="hidden block text-sm font-medium text-gray-700">
-													{ l10n.Get("pickOption") }
-												</label>
-												@TypeSelect(l10n, asset, "type", "", model.ThingType)
-											</div>
-										</div>
-									</div>
-									<div class="flex flex-start gap-10 self-stretch">
-										<div class="flex flex-col gap-2 flex-1">
-											<div class="font-bold">{ l10n.Get("name") }</div>
-											<input
-												type="text"
-												name="name"
-												class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-												placeholder=""
-											/>
-										</div>
-										<div class="flex flex-col gap-2 flex-1">
-											<div class="font-bold">{ l10n.Get("organisation") }</div>
-											<div class="border border-input-surface rounded-xl">
-												<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
-													{ l10n.Get("pickOption") }
-												</label>
-												@OrganisationSelect(l10n, asset, "organisation", "", model.Organisations)
-											</div>
-										</div>
-									</div>
-									<div class="flex flex-start gap-10 self-stretch">
-										<div class="flex flex-col gap-2 flex-[1_0_0]">
-											<div class="font-bold">{ l10n.Get("description") }</div>
-											<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" placeholder={ l10n.Get("description") }></textarea>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
-					<div class="flex items-center justify-end pt-6">
-						<div class="flex items-center gap-4">
-							@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"),
-								HxUrl("get", "javascript:void(0)"),
-								HxUrl("on", "click: this.closest('#modalCreateThingContainer').classList.add('hidden')"),
-								BtnType("button"))
-							@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
-						</div>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
-}
-
-func TypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, types []string) templ.Component {
-	viewModel := []OptionViewModel{
-		{
-			Value:    "",
-			Text:     l10n.Get("choose"),
-			Selected: true,
-			Hidden:   true,
-			Disabled: true,
-		},
-	}
-
-	for _, t := range types {
-		viewModel = append(viewModel, OptionViewModel{
-			Value:    t,
-			Text:     l10n.Get(t),
-			Selected: t == selected,
-		})
-	}
-
-	sort.Slice(viewModel, func(i, j int) bool {
-		return viewModel[i].Text < viewModel[j].Text
-	})
-
-	return Select(id, false, "", "", viewModel)
+		</script>
 }

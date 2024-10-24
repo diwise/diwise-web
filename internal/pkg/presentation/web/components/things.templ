@@ -33,6 +33,33 @@ type ThingViewModel struct {
 	Properties   map[string]any
 }
 
+func (t ThingViewModel) GetBoolOrDefault(key string, defaultValue bool) bool {
+	if v, ok := t.Properties[key]; ok {
+		if b, ok := v.(bool); ok {
+			return b
+		}
+	}
+	return defaultValue
+}
+
+func (t ThingViewModel) GetFloatOrDefault(key string, defaultValue float64) float64 {
+	if v, ok := t.Properties[key]; ok {
+		if f, ok := v.(float64); ok {
+			return f
+		}
+	}
+	return defaultValue
+}
+
+func (t ThingViewModel) GetStringOrDefault(key string, defaultValue string) string {
+	if v, ok := t.Properties[key]; ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+	}
+	return defaultValue
+}
+
 type MeasurementViewModel struct {
 	ID          string    `json:"id"`
 	Timestamp   time.Time `json:"timestamp"`
@@ -308,7 +335,7 @@ templ ThingsTableComponent(l10n locale.Localizer, model ThingsListViewModel) {
 templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 	<tr
 		class="border-b border-divider-gray border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
-		hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/things/details?id=%s", thing.ID))) }
+		hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/things/details?id=%s&type=%s&subType=%s", thing.ID, thing.Type, thing.SubType))) }
 		hx-target="#things-view"
 		hx-push-url={ string(templ.SafeURL(fmt.Sprintf("/things/%s", thing.ID))) }
 		hx-trigger="click"
@@ -384,15 +411,18 @@ func ThingStatusCell(l10n locale.Localizer, thing ThingViewModel) templ.Componen
 
 	switch strings.ToLower(thing.Type) {
 	case "beach":
-		return TemperatureCell(thing)
+		fallthrough
 	case "pointofinterest":
 		return TemperatureCell(thing)
+		
 	case "building":
 		return BuildingCell(l10n, thing)
+	
+	case "wastecontainer":
+		fallthrough
 	case "container":
 		return WasteContainerCell(l10n, thing)
-	case "wastecontainer":
-		return WasteContainerCell(l10n, thing)
+
 	case "lifebuoy":
 		return LifebuoyCell(l10n, thing)
 	case "passage":
@@ -576,7 +606,7 @@ func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureC
 				} else {
 					state = "green"
 				}
-				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
+				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", *fl))
 				feature.AddProperty("state", state)
 			} else {
 				feature.AddProperty("fillinglevel", "") // Eller 0 om det inte finns data
@@ -620,52 +650,4 @@ func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureC
 	}
 
 	return NewFeatureCollection(features)
-}
-
-func peopleCounterSensor(measurements []MeasurementViewModel) string {
-	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3200/5500") // People counter/Actual number of persons
-	})
-
-	if i == -1 {
-		return ""
-	}
-
-	return measurements[i].ID
-}
-
-func fillingLevelSensor(model ThingDetailsViewModel) string {
-	i := slices.IndexFunc(model.Measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
-	})
-
-	if i == -1 {
-		return fmt.Sprintf("%s/3435/2", model.RelatedDevice)
-	}
-
-	return model.Measurements[i].ID
-}
-
-func fillingLevel(measurements []MeasurementViewModel) float64 {
-	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3435/2") // Filling level/Actual filling percentage
-	})
-
-	if i == -1 || measurements[i].Value == nil {
-		return 0
-	}
-
-	return *measurements[i].Value
-}
-
-func digitalInputSensor(measurements []MeasurementViewModel) string {
-	i := slices.IndexFunc(measurements, func(m MeasurementViewModel) bool {
-		return strings.HasSuffix(m.ID, "3200/5500") // Digital input/Digital Input State
-	})
-
-	if i == -1 {
-		return ""
-	}
-
-	return measurements[i].ID
 }

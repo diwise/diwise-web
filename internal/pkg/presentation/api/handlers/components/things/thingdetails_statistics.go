@@ -2,8 +2,8 @@ package things
 
 import (
 	"context"
-	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -15,7 +15,7 @@ import (
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
-func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -26,60 +26,100 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 
 		//localizer := l10n.For(r.Header.Get("Accept-Language"))
 		ctx := logging.NewContextWithLogger(r.Context(), log)
-		thingType := r.PathValue("type")
-		if thingType == "" {
-			http.Error(w, "no type found in url", http.StatusBadRequest)
+
+		id := r.PathValue("id")
+		thingType := strings.ToLower(r.URL.Query().Get("type"))
+		if id == "" || thingType == "" {
+			http.Error(w, "no id found in url", http.StatusBadRequest)
 			return
 		}
-
-		measurementID := r.URL.Query().Get("sensorMeasurementTypes")
 
 		today := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC)
 		timeAt := getTime(r, "timeAt", today)
 		endOfDay := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 23, 59, 59, 0, time.UTC)
 		endTimeAt := getTime(r, "endTimeAt", endOfDay)
 
-		params := []application.InputParam{}
+		q := url.Values{}
+
+		q.Add("timerel", "between")
+		q.Add("timeat", timeAt.Format(time.RFC3339))
+		q.Add("endTimeAt", endTimeAt.Format(time.RFC3339))
+		q.Add("options", "groupByRef")
 
 		switch thingType {
+		case "beach":
+			fallthrough
+		case "pointofinterest":
+			q.Add("n", "3303/5700") //Temperature
+		case "building":
+			q.Add("n", "3331/5700") // Energy
 		case "wastecontainer":
-			params = append(params,
-				application.WithLastN(true),
-				application.WithReverse(true),
-				application.WithTimeRel("between", timeAt, endTimeAt),
-				application.WithLimit(1000))
-
+			fallthrough
+		case "container":
+			q.Add("n", "3435/2") //FillingLevel/Percentage
+		case "lifebuoy":
+			q.Add("n", "3302/5500") //Presence/State
+			q.Add("timeunit", "hour")
+			q.Add("vb", "false")
+			q.Del("options")
 		case "passage":
-			params = append(params,
-				application.WithTimeUnit("hour"),
-				application.WithAggrMethods("rate"),
-				application.WithBoolValue(true),
-				application.WithTimeRel("between", timeAt, endTimeAt),
-				application.WithLimit(100))
-		default:
-			params = append(params,
-				application.WithLastN(true),
-				application.WithReverse(true),
-				application.WithTimeRel("between", timeAt, endTimeAt))
+			q.Add("n", "10351/50") //Door/State
+			q.Add("timeunit", "hour")
+			q.Add("vb", "true")
+			q.Del("options")
+		case "pumpingstation":
+			q.Add("n", "3350/50") //Stopwatch/OnOff
+			q.Add("timeunit", "hour")
+			q.Add("vb", "true")
+			q.Del("options")
+		case "room":
+			q.Add("n", "3303/5700") //Temperature
+		case "sewer":
+			q.Add("n", "3435/2") //FillingLevel/Percentage
+		case "watermeter":
+			q.Add("n", "3424/1") //WaterMeter/CumulativeVolume
 		}
 
-		measurements, err := app.GetMeasurementData(ctx, measurementID, params...)
+		thing, err := app.GetThing(ctx, id, q)
 		if err != nil {
-			http.Error(w, "could not fetch measurement data", http.StatusBadRequest)
+			http.Error(w, "could not fetch thing", http.StatusInternalServerError)
 			return
 		}
 
-		dataset := toDataset(measurements.Values)
+		datasets := []components.ChartDataset{}
+
+		for _, values := range thing.Values {
+			datasets = append(datasets, toDataset("", values))
+		}
 
 		var component templ.Component
+		keepRatio := false
 
 		switch thingType {
-		case "passage":
-			component = components.PassagesChart([]components.ChartDataset{dataset})
+		case "beach":
+			fallthrough
+		case "pointofinterest":
+			component = components.MeasurementChart(datasets, keepRatio)
+		case "building":
+			component = components.MeasurementChart(datasets, keepRatio)
 		case "wastecontainer":
-			component = components.WastecontainerChart([]components.ChartDataset{dataset})
+			fallthrough
+		case "container":
+			component = components.WastecontainerChart(datasets)
+		case "lifebuoy":
+			component = components.MeasurementChart(datasets, keepRatio)
+		case "passage":
+			component = components.PassagesChart(datasets)
+		case "pumpingstation":
+			component = components.MeasurementChart(datasets, keepRatio)
+		case "room":
+			component = components.RoomChart(datasets)
+		case "sewer":
+			component = components.MeasurementChart(datasets, keepRatio)
+		case "watermeter":
+			component = components.MeasurementChart(datasets, keepRatio)
 		default:
-			component = components.MeasurementChart([]components.ChartDataset{dataset}, false)
+			component = components.MeasurementChart(datasets, keepRatio)
 		}
 
 		component.Render(ctx, w)
@@ -88,86 +128,10 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 	return http.HandlerFunc(fn)
 }
 
-func NewCurrentValueComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
-	log := logging.GetFromContext(ctx)
-
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "max-age=60")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
-		w.WriteHeader(http.StatusOK)
-
-		localizer := l10n.For(r.Header.Get("Accept-Language"))
-		ctx := logging.NewContextWithLogger(r.Context(), log)
-		thingType := strings.ToLower(r.PathValue("type"))
-		if thingType == "" {
-			http.Error(w, "no type found in url", http.StatusBadRequest)
-			return
-		}
-
-		measurementID := r.URL.Query().Get("sensorMeasurementTypes")
-
-		today := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC)
-		timeAt := getTime(r, "timeAt", today)
-		endTimeAt := getTime(r, "endTimeAt", time.Now().UTC())
-
-		params := []application.InputParam{}
-
-		switch thingType {
-		case "wastecontainer":
-			params = append(params,
-				application.WithLastN(true),
-				application.WithReverse(true),
-				application.WithTimeRel("between", timeAt, endTimeAt))
-		case "passage":
-			params = append(params,
-				application.WithTimeUnit("day"),
-				application.WithAggrMethods("rate"),
-				application.WithBoolValue(true),
-				application.WithTimeRel("between", timeAt, endTimeAt))
-		default:
-			params = append(params,
-				application.WithLastN(true),
-				application.WithReverse(true),
-				application.WithTimeRel("between", timeAt, endTimeAt))
-		}
-
-		measurements, err := app.GetMeasurementData(ctx, measurementID, params...)
-		if err != nil {
-			http.Error(w, "could not fetch measurement data", http.StatusBadRequest)
-			return
-		}
-
-		var component templ.Component
-
-		switch thingType {
-		case "wastecontainer":
-			if len(measurements.Values) == 0 {
-				component = components.Text(localizer.Get("noData"))
-			} else {
-				last := measurements.Values[len(measurements.Values)-1]
-				component = components.Text(fmt.Sprintf("%0.f%%", *last.Value))
-			}
-		case "passage":
-			if len(measurements.Values) == 0 {
-				component = components.Text(localizer.Get("noData"))
-			} else {
-				last := measurements.Values[len(measurements.Values)-1]
-				component = components.Text(fmt.Sprintf("%d st", last.Count))
-			}
-		default:
-
-		}
-
-		component.Render(ctx, w)
-	}
-
-	return http.HandlerFunc(fn)
-}
-
-func toDataset(measurements []application.MeasurementValue) components.ChartDataset {
-	dataset := components.NewChartDataset("")
+func toDataset(label string, measurements []application.Measurement) components.ChartDataset {
+	dataset := components.NewChartDataset(label)
 	previousValue := 0
+
 	for _, v := range measurements {
 		if dataset.Label == "" {
 			dataset.Label = v.Unit
@@ -177,8 +141,8 @@ func toDataset(measurements []application.MeasurementValue) components.ChartData
 			dataset.Add(v.Timestamp.Format(time.DateTime), *v.Value)
 		}
 
-		if v.Value == nil && v.Count > 0 {
-			dataset.Add(v.Timestamp.Format(time.DateTime), float64(v.Count))
+		if v.Value == nil && v.Count != nil && *v.Count > 0 {
+			dataset.Add(v.Timestamp.Format(time.DateTime), float64(*v.Count))
 		}
 
 		if v.Value == nil && v.BoolValue != nil {
