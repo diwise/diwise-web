@@ -42,11 +42,11 @@ func NewThingHandler(ctx context.Context) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 
 		id := r.PathValue("id")
-        options := r.URL.Query().Get("options")
+		options := r.URL.Query().Get("options")
 
-        if options == "groupByRef" {
-            id += "/groupByRef"
-        }
+		if options == "groupByRef" {
+			id += "/groupByRef"
+		}
 
 		response := application.ApiResponse{}
 		err := json.Unmarshal([]byte(thingsStorage[id]), &response)
@@ -69,7 +69,7 @@ func NewThingsTagsHandler(ctx context.Context) http.HandlerFunc {
 
 		w.Header()["Content-Type"] = []string{"application/json"}
 		w.WriteHeader(http.StatusOK)
-		
+
 		response := application.ApiResponse{}
 		err := json.Unmarshal([]byte(thingsTagsJsonFormat), &response)
 		if err != nil {
@@ -91,7 +91,7 @@ func NewThingsTypesHandler(ctx context.Context) http.HandlerFunc {
 
 		w.Header()["Content-Type"] = []string{"application/json"}
 		w.WriteHeader(http.StatusOK)
-		
+
 		response := application.ApiResponse{}
 		err := json.Unmarshal([]byte(thingsTypesJsonFormat), &response)
 		if err != nil {
@@ -104,11 +104,11 @@ func NewThingsTypesHandler(ctx context.Context) http.HandlerFunc {
 	}
 }
 
-
-
 var thingsStorage = map[string]string{
-	"17662c5d-27d2-4b43-8547-66df60ee6ba3": wasteContainerJsonFormat,
-    "17662c5d-27d2-4b43-8547-66df60ee6ba3/groupByRef": wasteContainerStatsJsonFormat,
+	"17662c5d-27d2-4b43-8547-66df60ee6ba3":            wasteContainerJsonFormat,
+	"17662c5d-27d2-4b43-8547-66df60ee6ba3/groupByRef": wasteContainerStatsJsonFormat,
+	"f47ac10b-58cc-4372-a567-0e02b2c3d479":            sandStorageJsonFormat,
+	"f47ac10b-58cc-4372-a567-0e02b2c3d479/groupByRef": sandStorageStatsJsonFormat,
 }
 
 var wasteContainerJsonFormat = `
@@ -278,6 +278,302 @@ var wasteContainerStatsJsonFormat = `
                     "unit": "%",
                     "timestamp": "2024-10-24T12:15:00Z",
                     "ref": "milesight:54/3330/5700"
+                }
+            ]
+        }
+    }
+}
+`
+
+var sandStorageJsonFormat = `
+{
+    "meta": {
+        "totalRecords": 44
+    },
+    "data": {
+        "currentLevel": 0.27,
+        "description": "",
+        "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        "location": {
+            "latitude": 62.425242,
+            "longitude": 17.417382
+        },
+        "maxd": 0.94,
+        "maxl": 0.76,
+        "name": "Sandficka - Alnö",
+        "observedAt": "2024-10-24T13:40:07Z",
+        "percent": 35.526315789473685,
+        "refDevices": [
+            {
+                "deviceID": "milesight:193"
+            },
+            {
+                "deviceID": "milesight:194"
+            },
+            {
+                "deviceID": "milesight:195"
+            }
+        ],
+        "subType": "Sandstorage",
+        "tags": [
+            "Sandficka",
+            "Alnö"
+        ],
+        "tenant": "default",
+        "type": "Container",
+        "validURN": [
+            "urn:oma:lwm2m:ext:3330"
+        ],
+        "values": [
+            {
+                "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/3",
+                "urn": "urn:oma:lwm2m:ext:3435",
+                "v": 0.12,
+                "unit": "m",
+                "timestamp": "2024-10-24T08:48:02Z",
+                "ref": "milesight:194/3330/5700"
+            },
+            {
+                "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                "urn": "urn:oma:lwm2m:ext:3435",
+                "v": 15.789473684210526,
+                "unit": "%",
+                "timestamp": "2024-10-24T08:48:02Z",
+                "ref": "milesight:194/3330/5700"
+            }
+        ]
+    }
+}
+`
+
+var sandStorageStatsJsonFormat = `
+{
+    "meta": {
+        "totalRecords": 23
+    },
+    "data": {
+        "currentLevel": 0.33,
+        "description": "",
+        "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+        "location": {
+            "latitude": 62.425242,
+            "longitude": 17.417382
+        },
+        "maxd": 0.94,
+        "maxl": 0.76,
+        "name": "Sandficka - Alnö",
+        "observedAt": "2024-10-24T13:42:42Z",
+        "percent": 43.421052631578945,
+        "refDevices": [
+            {
+                "deviceID": "milesight:193"
+            },
+            {
+                "deviceID": "milesight:194"
+            },
+            {
+                "deviceID": "milesight:195"
+            }
+        ],
+        "subType": "Sandstorage",
+        "tags": [
+            "Sandficka",
+            "Alnö"
+        ],
+        "tenant": "default",
+        "type": "Container",
+        "validURN": [
+            "urn:oma:lwm2m:ext:3330"
+        ],
+        "values": {
+            "milesight:193/3330/5700": [
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 38.1578947368421,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T12:12:44Z",
+                    "ref": "milesight:193/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 51.31578947368421,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T12:42:42Z",
+                    "ref": "milesight:193/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 60.526315789473685,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T13:42:42Z",
+                    "ref": "milesight:193/3330/5700"
+                }
+            ],
+            "milesight:194/3330/5700": [
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 15.789473684210526,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T08:48:02Z",
+                    "ref": "milesight:194/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 14.473684210526315,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T09:18:01Z",
+                    "ref": "milesight:194/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 14.473684210526315,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T09:48:03Z",
+                    "ref": "milesight:194/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 15.789473684210526,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T10:18:07Z",
+                    "ref": "milesight:194/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 14.473684210526315,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T10:48:05Z",
+                    "ref": "milesight:194/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 22.36842105263158,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T11:18:05Z",
+                    "ref": "milesight:194/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 19.736842105263158,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T11:48:07Z",
+                    "ref": "milesight:194/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 21.05263157894737,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T12:18:07Z",
+                    "ref": "milesight:194/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 35.526315789473685,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T12:48:08Z",
+                    "ref": "milesight:194/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 35.526315789473685,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T13:18:11Z",
+                    "ref": "milesight:194/3330/5700"
+                }
+            ],
+            "milesight:195/3330/5700": [
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 35.526315789473685,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T09:10:00Z",
+                    "ref": "milesight:195/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 22.36842105263158,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T09:40:01Z",
+                    "ref": "milesight:195/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 21.05263157894737,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T10:10:01Z",
+                    "ref": "milesight:195/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 21.05263157894737,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T10:40:03Z",
+                    "ref": "milesight:195/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 21.05263157894737,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T11:10:03Z",
+                    "ref": "milesight:195/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 21.05263157894737,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T11:40:03Z",
+                    "ref": "milesight:195/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 25,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T12:10:05Z",
+                    "ref": "milesight:195/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 27.63157894736842,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T12:40:06Z",
+                    "ref": "milesight:195/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 25,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T13:10:04Z",
+                    "ref": "milesight:195/3330/5700"
+                },
+                {
+                    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 27.63157894736842,
+                    "unit": "%",
+                    "timestamp": "2024-10-24T13:40:07Z",
+                    "ref": "milesight:195/3330/5700"
                 }
             ]
         }
