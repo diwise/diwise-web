@@ -101,20 +101,7 @@ func (a *App) GetTags(ctx context.Context) ([]string, error) {
 	return tags, nil
 }
 
-func (a *App) GetTypes(ctx context.Context) ([]string, error) {
-	res, err := a.get(ctx, a.thingManagementURL, "types", url.Values{})
-	if err != nil {
-		return []string{}, err
-	}
 
-	var tags []string
-	err = json.Unmarshal(res.Data, &tags)
-	if err != nil {
-		return []string{}, err
-	}
-
-	return tags, nil
-}
 
 func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
 	res, err := a.get(ctx, a.adminURL, "deviceprofiles", url.Values{})

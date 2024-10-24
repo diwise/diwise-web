@@ -20,8 +20,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 				</div>
 			}
 		</div>
-		<form action="/components/things/details" method="post">
-			<input type="hidden" name="id" value={ model.Thing.ID }/>
+		<form action={ templ.SafeURL(fmt.Sprintf("/components/things/%s", model.Thing.ID)) } method="post">
 			<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					//Status och uppgifter
@@ -69,21 +68,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 									</div>
 								</div>
 							</div>
-							if strings.ToLower(model.Thing.Type) == "wastecontainer" {
-								@EditWasteContainer(l10n, model)
-							}
-							if strings.ToLower(model.Thing.Type) == "sandstorage" {
-								@EditSandStorage(l10n, model)
-							}
-							if strings.ToLower(model.Thing.Type) == "room" {
-								@EditRoom(l10n, model)
-							}
-							if strings.ToLower(model.Thing.Type) == "passage" {
-								@EditPassage(l10n, model)
-							}
-							if strings.ToLower(model.Thing.Type) == "combinedsewageoverflow" {
-								@EditCombinedSewageOverflow(l10n, model)
-							}
+							@editThingDetailType(l10n, model)
 							//Lägg till taggar
 							<div class="flex flex-start self-stretch">
 								<div class="flex flex-col gap-6 flex-1">
@@ -290,6 +275,43 @@ templ ConnectMultipleSensors(l10n locale.Localizer, model ThingDetailsViewModel)
 			<input type="hidden" id="selectedSensors" name="currentDevice" value=""/>
 		</div>
 	</div>
+}
+
+func editThingDetailType(l10n locale.Localizer, model ThingDetailsViewModel) templ.Component {
+	thingType := strings.ToLower(model.Thing.Type)
+	subType := strings.ToLower(model.Thing.SubType)
+
+	if subType != "" {
+		thingType = subType
+	}
+
+	switch thingType {
+	case "beach":
+		fallthrough
+	case "pointofinterest":
+		return templ.NopComponent
+	case "building":
+		return templ.NopComponent
+	case "wastecontainer":
+		return EditWasteContainer(l10n, model)
+	case "sandstorage":
+		return EditSandStorage(l10n, model)
+	case "container":
+		return EditWasteContainer(l10n, model)
+	case "lifebuoy":
+		return templ.NopComponent
+	case "passage":
+		return EditPassage(l10n, model)
+	case "pumpingstation":
+		return templ.NopComponent
+	case "room":
+		return EditRoom(l10n, model)
+	case "sewer":
+		return EditCombinedSewageOverflow(l10n, model)
+	case "watermeter":
+	}
+
+	return templ.NopComponent
 }
 
 templ EditCombinedSewageOverflow(l10n locale.Localizer, model ThingDetailsViewModel) {

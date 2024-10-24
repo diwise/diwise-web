@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
@@ -22,27 +23,11 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
-			return
-		}
-
-		ctx := helpers.Decorate(r.Context(),
-			components.CurrentComponent, "things",
-		)
-
-		thing, err := app.GetThing(ctx, id, r.URL.Query())
+		thingDetails, err := newThingDetails(r, localizer, assets, app)
 		if err != nil {
-			http.Error(w, "could not compose view model", http.StatusInternalServerError)
-			return
+			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
 		}
 
-		thingDetailsViewModel := components.ThingDetailsViewModel{
-			Thing: toViewModel(thing),
-		}		
-
-		thingDetails := components.ThingDetailsPage(localizer, assets, thingDetailsViewModel)
 		page := components.StartPage(version, localizer, assets, thingDetails)
 
 		w.Header().Add("Content-Type", "text/html")
@@ -52,6 +37,7 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 		err = page.Render(ctx, w)
 		if err != nil {
 			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
+			return
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -64,61 +50,11 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		id := r.URL.Query().Get("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
-			return
-		}
-
-		mode := r.URL.Query().Get("mode")
-
-		ctx := helpers.Decorate(r.Context(),
-			components.CurrentComponent, "things",
-		)
-
-		thing, err := app.GetThing(ctx, id, r.URL.Query())
+		thingDetails, err := newThingDetails(r, localizer, assets, app)
 		if err != nil {
-			http.Error(w, "could not compose view model", http.StatusInternalServerError)
+			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
 			return
 		}
-
-		thingDetailsViewModel := components.ThingDetailsViewModel{
-			Thing: toViewModel(thing),
-		}		
-
-		if mode == "edit" {
-			urn := []string{}
-			switch thing.Type {
-			case "combinedsewageoverflow":
-				urn = append(urn, "urn:oma:lwm2m:ext:3200")
-			case "wastecontainer":
-				urn = append(urn, "urn:oma:lwm2m:ext:3300", "urn:oma:lwm2m:ext:3435")
-			case "sewer":
-				urn = append(urn, "urn:oma:lwm2m:ext:3200")
-			case "sewagepumpingstation":
-				urn = append(urn, "urn:oma:lwm2m:ext:3200")
-			case "passage":
-				urn = append(urn, "urn:oma:lwm2m:ext:3200", "urn:oma:lwm2m:ext:3434")
-			}
-
-			validSensors, _ := app.GetValidSensors(ctx, urn)
-			for _, s := range validSensors {
-				thingDetailsViewModel.ValidSensors = append(thingDetailsViewModel.ValidSensors, components.ValidSensorViewModel{
-					SensorID: s.SensorID,
-					DeviceID: s.DeviceID,
-					Decoder:  s.Decoder,
-				})
-			}
-
-			thingDetailsViewModel.Organisations = app.GetTenants(ctx)
-			thingDetailsViewModel.Tags, _ = app.GetTags(ctx)
-
-			component := components.EditThingDetails(localizer, assets, thingDetailsViewModel)
-			component.Render(ctx, w)
-			return
-		}
-
-		thingDetails := components.ThingDetails(localizer, assets, thingDetailsViewModel)
 
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Cache-Control", "no-cache")
@@ -135,6 +71,46 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 	return http.HandlerFunc(fn)
 }
 
+func newThingDetails(r *http.Request, localizer locale.Localizer, assets assets.AssetLoaderFunc, app application.ThingManagement) (templ.Component, error) {
+	id := r.PathValue("id")
+	if id == "" {
+		return nil, fmt.Errorf("no id found in url")
+	}
+
+	editMode := r.URL.Query().Get("mode") == "edit"
+
+	ctx := helpers.Decorate(r.Context(),
+		components.CurrentComponent, "things",
+	)
+	thing, err := app.GetThing(ctx, id, r.URL.Query())
+	if err != nil {
+		return nil, fmt.Errorf("could not compose view model")
+	}
+
+	thingDetailsViewModel := components.ThingDetailsViewModel{
+		Thing: toViewModel(thing),
+	}
+
+	if editMode {
+		validSensors, _ := app.GetValidSensors(ctx, thing.ValidURNs)
+		for _, s := range validSensors {
+			thingDetailsViewModel.ValidSensors = append(thingDetailsViewModel.ValidSensors, components.ValidSensorViewModel{
+				SensorID: s.SensorID,
+				DeviceID: s.DeviceID,
+				Decoder:  s.Decoder,
+			})
+		}
+
+		thingDetailsViewModel.Organisations = app.GetTenants(ctx)
+		thingDetailsViewModel.Tags, _ = app.GetTags(ctx)
+
+		component := components.EditThingDetails(localizer, assets, thingDetailsViewModel)
+		return component, nil
+	}
+
+	return components.ThingDetails(localizer, assets, thingDetailsViewModel), nil
+}
+
 func NewThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
@@ -143,10 +119,13 @@ func NewThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets as
 			components.CurrentComponent, "things",
 		)
 
+		thingTypes, _ := app.GetTypes(ctx)
+
 		newThingViewModel := components.NewThingViewModel{
-			ThingType:     []string{"wastecontainer", "sandstorage", "passage", "combinedsewageoverflow", "room"},
+			ThingType:     thingTypes,
 			Organisations: app.GetTenants(ctx),
 		}
+
 		newThingViewModel.Tags, _ = app.GetTags(ctx)
 
 		component := components.NewThing(localizer, assets, newThingViewModel)
@@ -162,35 +141,7 @@ func NewThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets as
 
 		w.WriteHeader(http.StatusOK)
 	}
-	return http.HandlerFunc(fn)
-}
 
-func SaveNewThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-}
-
-func DeleteThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		localizer := l10n.For(r.Header.Get("Accept-Language"))
-
-		ctx := helpers.Decorate(r.Context(),
-			components.CurrentComponent, "things",
-		)
-
-		component := components.DeleteThing(localizer, assets)
-
-		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
-
-		err := component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, "could not render delete thing", http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-	}
 	return http.HandlerFunc(fn)
 }
 
@@ -228,6 +179,31 @@ func NewSaveThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle
 		}
 
 		http.Redirect(w, r, "/things/"+id, http.StatusFound)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func DeleteThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		ctx := helpers.Decorate(r.Context(),
+			components.CurrentComponent, "things",
+		)
+
+		component := components.DeleteThing(localizer, assets)
+
+		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+
+		err := component.Render(ctx, w)
+		if err != nil {
+			http.Error(w, "could not render delete thing", http.StatusInternalServerError)
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
 
 	return http.HandlerFunc(fn)

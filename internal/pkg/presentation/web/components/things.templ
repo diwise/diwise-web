@@ -335,7 +335,7 @@ templ ThingsTableComponent(l10n locale.Localizer, model ThingsListViewModel) {
 templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 	<tr
 		class="border-b border-divider-gray border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
-		hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/things/details?id=%s&type=%s&subType=%s", thing.ID, thing.Type, thing.SubType))) }
+		hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/things/%s?type=%s&subType=%s", thing.ID, thing.Type, thing.SubType))) }
 		hx-target="#things-view"
 		hx-push-url={ string(templ.SafeURL(fmt.Sprintf("/things/%s", thing.ID))) }
 		hx-trigger="click"
@@ -408,7 +408,6 @@ func ThingsTable(l10n locale.Localizer, model ThingsListViewModel) templ.Compone
 }
 
 func ThingStatusCell(l10n locale.Localizer, thing ThingViewModel) templ.Component {
-
 	switch strings.ToLower(thing.Type) {
 	case "beach":
 		fallthrough

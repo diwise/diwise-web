@@ -55,7 +55,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ID }</h1>
 				</div>
 			}
-			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/details?id=%s&mode=edit", model.Thing.ID))))
+			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/%s?mode=edit", model.Thing.ID))))
 		</div>
 		// Contents
 		<div class="flex flex-col items-start gap-10">
@@ -188,8 +188,7 @@ templ NewThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, model NewThi
 						<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("addthing") }</h1>
 					</div>
 				</div>
-				<form action="/components/things/details" method="post">
-					//<input type="hidden" name="id" value={ model.Thing.ThingID }/>
+				<form action={ templ.SafeURL(fmt.Sprintf("/components/things/%s", model.Thing.ID)) } method="post">					
 					<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
 						<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 							//Status och uppgifter

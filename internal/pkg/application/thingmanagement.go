@@ -31,6 +31,7 @@ type Thing struct {
 	Tags        []string  `json:"tags,omitempty"`
 	Tenant      string    `json:"tenant"`
 	ObservedAt  time.Time `json:"observedAt,omitempty"`
+	ValidURNs   []string  `json:"validURN,omitempty"`
 
 	Values     [][]Measurement `json:"-"`
 	TypeValues ThingTypeValues `json:"-"`
@@ -301,4 +302,19 @@ func (a *App) UpdateThing(ctx context.Context, thingID string, fields map[string
 
 	return a.patch(ctx, a.thingManagementURL, thingID, b)
 
+}
+
+func (a *App) GetTypes(ctx context.Context) ([]string, error) {
+	res, err := a.get(ctx, a.thingManagementURL, "types", url.Values{})
+	if err != nil {
+		return []string{}, err
+	}
+
+	var tags []string
+	err = json.Unmarshal(res.Data, &tags)
+	if err != nil {
+		return []string{}, err
+	}
+
+	return tags, nil
 }
