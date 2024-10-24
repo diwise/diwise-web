@@ -14,7 +14,6 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
-	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
 func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
@@ -109,79 +108,6 @@ func newThingDetails(r *http.Request, localizer locale.Localizer, assets assets.
 	}
 
 	return components.ThingDetails(localizer, assets, thingDetailsViewModel), nil
-}
-
-func NewThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		localizer := l10n.For(r.Header.Get("Accept-Language"))
-
-		ctx := helpers.Decorate(r.Context(),
-			components.CurrentComponent, "things",
-		)
-
-		thingTypes, _ := app.GetTypes(ctx)
-
-		newThingViewModel := components.NewThingViewModel{
-			ThingType:     thingTypes,
-			Organisations: app.GetTenants(ctx),
-		}
-
-		newThingViewModel.Tags, _ = app.GetTags(ctx)
-
-		component := components.NewThing(localizer, assets, newThingViewModel)
-
-		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
-
-		err := component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, "could not render new thing page", http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-	}
-
-	return http.HandlerFunc(fn)
-}
-
-func NewSaveThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
-	log := logging.GetFromContext(ctx)
-
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "", http.StatusBadRequest)
-			return
-		}
-
-		ctx := logging.NewContextWithLogger(r.Context(), log)
-
-		err := r.ParseForm()
-		if err != nil {
-			http.Error(w, "could not parse form data", http.StatusBadRequest)
-			return
-		}
-
-		id := r.Form.Get("id")
-
-		if r.Form.Has("save") {
-			fields := formToFields(r.Form)
-			err = connectSensor(ctx, id, fields, app)
-			if err != nil {
-				http.Error(w, "could not connect sensor", http.StatusInternalServerError)
-				return
-			}
-			err = app.UpdateThing(ctx, id, fields)
-			if err != nil {
-				http.Error(w, "could not update thing", http.StatusInternalServerError)
-				return
-			}
-		}
-
-		http.Redirect(w, r, "/things/"+id, http.StatusFound)
-	}
-
-	return http.HandlerFunc(fn)
 }
 
 func DeleteThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
