@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"slices"
+	"sort"
+	"strings"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
@@ -34,15 +36,22 @@ func NewMeasurementTypesComponentHandler(ctx context.Context, l10n locale.Bundle
 		options := []components.OptionViewModel{}
 
 		for _, t := range *profile.Types {
+			parts := strings.Split(t, ":")
+			text := strings.Join(parts[1:], "-")
+
 			options = append(options, components.OptionViewModel{
 				Value:    t,
-				Text:     localizer.Get(t),
+				Text:     localizer.Get(text),
 				Name:     "measurementType-option[]",
 				Selected: t == sensorType,
 			})
 		}
 
-		component := components.OptionCheckboxes(options)
+		sort.Slice(options, func(i int, j int) bool {
+			return options[i].Text < options[j].Text
+		})
+
+		component := components.CheckboxDropdownList("measurementType", options, localizer.Get("chooseMeasurementtype"))
 		component.Render(ctx, w)
 	}
 
