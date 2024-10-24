@@ -10,8 +10,8 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"slices"
 	"strings"
+	"time"
 
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
@@ -48,6 +48,15 @@ type ApiResponse struct {
 	Included []Resource      `json:"included,omitempty"`
 }
 
+var httpClient = http.Client{
+	Transport: otelhttp.NewTransport(&http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}),
+	Timeout: 10 * time.Second,
+}
+
 func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) (*ApiResponse, error) {
 	if strings.ContainsAny(path, "/") {
 		path = strings.TrimPrefix(path, "/")
@@ -58,63 +67,44 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 
 	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseUrl, path), "/"))
 	if err != nil {
-		log.Error("could not parse url", "err", err.Error())
-		return nil, err
+		return nil, fmt.Errorf("could not parse url: %s", err.Error())
 	}
 
 	u.RawQuery = params.Encode()
 	token := authz.Token(ctx)
 	urlToGet := u.String()
 
+	log = log.With("url", urlToGet)
+	log.Debug("GET")
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlToGet, nil)
 	if err != nil {
-		log.Error("failed to create http request", slog.String("url", urlToGet), "err", err.Error())
-		err = fmt.Errorf("failed to create http request: %w", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to create http request: %s", err.Error())
 	}
 
 	req.Header.Add("Authorization", "Bearer "+token)
 
-	transport := http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	}
-
-	client := http.Client{
-		Transport: otelhttp.NewTransport(&transport),
-	}
-
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
-		log.Error("http request failed", slog.String("url", urlToGet), "err", err.Error())
-		err = fmt.Errorf("failed to retrieve information: %w", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to send get request: %s", err.Error())
 	}
 	defer resp.Body.Close()
 
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %s", err.Error())
+	}
+
 	if resp.StatusCode == http.StatusUnauthorized {
-		log.Error("unauthorized", slog.String("url", urlToGet))
-		err = ErrUnauthorized
-		return nil, err
+		return nil, fmt.Errorf("request failed: %w", ErrUnauthorized)
 	}
 
 	if resp.StatusCode == http.StatusNotFound {
-		log.Error("not found", slog.String("url", urlToGet))
-		err = ErrNotFound
-		return nil, err
+		return nil, fmt.Errorf("request failed: %w", ErrNotFound)
 	}
 
 	if resp.StatusCode >= http.StatusBadRequest {
-		log.Error("request failed", slog.String("url", urlToGet), slog.Int("status_code", resp.StatusCode))
-		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
-		return nil, err
-	}
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		err = fmt.Errorf("failed to read response body: %w", err)
-		return nil, err
+		return nil, fmt.Errorf("request failed: %d", resp.StatusCode)
 	}
 
 	if string(respBody) == "[]" {
@@ -131,8 +121,7 @@ func (a *App) get(ctx context.Context, baseUrl, path string, params url.Values) 
 
 	err = json.Unmarshal(respBody, &impl)
 	if err != nil {
-		err = fmt.Errorf("failed to unmarshal response body: %w", err)
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal response body: %s", err.Error())
 	}
 
 	log.Debug("body", slog.Any("data", impl.Data))
@@ -148,42 +137,35 @@ func (a *App) patch(ctx context.Context, baseUrl, id string, body []byte) error 
 		return err
 	}
 
-	log.Debug("PATCH", slog.String("body", string(body)), slog.String("url", u.String()))
+	log = log.With("url", u.String())
+	log.Debug("PATCH", slog.String("body", string(body)))
 
 	token := authz.Token(ctx)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, u.String(), bytes.NewReader(body))
 	if err != nil {
-		err = fmt.Errorf("failed to create http request: %w", err)
-		return err
+		return fmt.Errorf("failed to create http request: %w", err)
 	}
 
 	req.Header.Add("Authorization", "Bearer "+token)
 
-	transport := http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	}
-
-	client := http.Client{
-		Transport: otelhttp.NewTransport(&transport),
-	}
-
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
-		err = fmt.Errorf("failed to patch: %w", err)
-		return err
+		return fmt.Errorf("failed to send patch request: %s", err.Error())
 	}
+	defer resp.Body.Close()
+	io.Copy(io.Discard, resp.Body)
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		err = fmt.Errorf("request failed, not authorized")
-		return err
+		return fmt.Errorf("request failed: %w", ErrUnauthorized)
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
-		return err
+	if resp.StatusCode == http.StatusNotFound {
+		return fmt.Errorf("request failed: %w", ErrNotFound)
+	}
+
+	if resp.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf("request failed: %d", resp.StatusCode)
 	}
 
 	return nil
@@ -197,42 +179,35 @@ func (a *App) post(ctx context.Context, baseUrl string, body []byte) error {
 		return err
 	}
 
-	log.Debug("POST", slog.String("body", string(body)), slog.String("url", u.String()))
+	log = log.With("url", u.String())
+	log.Debug("POST", slog.String("body", string(body)))
 
 	token := authz.Token(ctx)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), bytes.NewReader(body))
 	if err != nil {
-		err = fmt.Errorf("failed to create http request: %w", err)
-		return err
+		return fmt.Errorf("failed to create http request: %w", err)
 	}
 
 	req.Header.Add("Authorization", "Bearer "+token)
 
-	transport := http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	}
-
-	client := http.Client{
-		Transport: otelhttp.NewTransport(&transport),
-	}
-
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
-		err = fmt.Errorf("failed to post: %w", err)
-		return err
+		return fmt.Errorf("failed to send post request: %s", err.Error())
 	}
+	defer resp.Body.Close()
+	io.Copy(io.Discard, resp.Body)
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		err = fmt.Errorf("request failed, not authorized")
-		return err
+		return fmt.Errorf("request failed: %w", ErrUnauthorized)
 	}
 
-	if !slices.Contains([]int{http.StatusCreated, http.StatusOK}, resp.StatusCode) {
-		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
-		return err
+	if resp.StatusCode == http.StatusNotFound {
+		return fmt.Errorf("request failed: %w", ErrNotFound)
+	}
+
+	if resp.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf("request failed: %d", resp.StatusCode)
 	}
 
 	return nil
@@ -246,42 +221,35 @@ func (a *App) delete(ctx context.Context, baseUrl string) error {
 		return err
 	}
 
-	log.Debug("DELETE", slog.String("url", u.String()))
+	log = log.With("url", u.String())
+	log.Debug("DELETE")
 
 	token := authz.Token(ctx)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, u.String(), nil)
 	if err != nil {
-		err = fmt.Errorf("failed to create http request: %w", err)
-		return err
+		return fmt.Errorf("failed to create http request: %w", err)
 	}
 
 	req.Header.Add("Authorization", "Bearer "+token)
 
-	transport := http.Transport{
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: true,
-		},
-	}
-
-	client := http.Client{
-		Transport: otelhttp.NewTransport(&transport),
-	}
-
-	resp, err := client.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
-		err = fmt.Errorf("failed to delete: %w", err)
-		return err
+		return fmt.Errorf("failed to send delete request: %w", err)
 	}
+	defer resp.Body.Close()
+	io.Copy(io.Discard, resp.Body)
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		err = fmt.Errorf("request failed, not authorized")
-		return err
+		return fmt.Errorf("request failed: %w", ErrUnauthorized)
 	}
 
-	if !slices.Contains([]int{http.StatusNoContent, http.StatusOK}, resp.StatusCode) {
-		err = fmt.Errorf("request failed with status code %d", resp.StatusCode)
-		return err
+	if resp.StatusCode == http.StatusNotFound {
+		return fmt.Errorf("request failed: %w", ErrNotFound)
+	}
+
+	if resp.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf("request failed: %d", resp.StatusCode)
 	}
 
 	return nil
