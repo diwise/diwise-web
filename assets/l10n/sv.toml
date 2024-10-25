@@ -25,14 +25,26 @@ other = "Alla"
 [angle]
 other = "Vinkel"
 
+[angleis]
+other = "Vinkeln är"
+
 [area]
 other = "Område"
 
 [batterylevel]
 other = "Batterinivå"
 
+[Beach]
+other = "Strand"
+
+[Building]
+other = "Byggnad"
+
 [cancel]
 other = "Avbryt"
+
+[category]
+other = "Kategori"
 
 [choose]
 other = "Välj"
@@ -42,6 +54,12 @@ other = "Ange mättyp"
 
 [choosetags]
 other = "Välj taggar"
+
+[container]
+other = "Välj taggar"
+
+[containerheight]
+other = "Behållaren har en höjd på"
 
 [currentlevel]
 other = "Aktuell nivå"
@@ -112,6 +130,9 @@ other = "Latitud"
 [lifebuoy]
 other = "Livboj"
 
+[Lifebuoy]
+other = "Livboj"
+
 [location]
 other = "Position"
 
@@ -132,6 +153,9 @@ other = "Inaktiva"
 
 [map]
 other = "Karta"
+
+[maxfillingheight]
+other = "med en max fyllnadshöjd på"
 
 [maxheight]
 other = "Behållarens höjd"
@@ -175,6 +199,9 @@ other = "-"
 [notloggedin]
 other = "Du behöver logga in"
 
+[notPresent]
+other = "Saknas"
+
 [numberofpassages]
 other = "Antal passager"
 
@@ -202,6 +229,9 @@ other = "Bräddar just nu"
 [overview]
 other = "Översikt"
 
+[Passage]
+other = "Passage"
+
 [pickOption]
 other = "Välj ett alternativ"
 
@@ -211,13 +241,22 @@ other = "Välj sensor"
 [pointoftime]
 other = "Tidpunkt"
 
+[PumpingStation]
+other = "Pumpstation"
+
 [room]
+other = "Rum"
+
+[Room]
 other = "Rum"
 
 [rowsPerPage]
 other = "Rader per sida"
 
 [sandstorage]
+other = "Sandficka"
+
+[Sandstorage]
 other = "Sandficka"
 
 [save]
@@ -291,6 +330,9 @@ other = "Okänd"
 
 [unknownsensors]
 other = "Okända sensorer"
+
+[WaterMeter]
+other = "Vattenmätare"
 
 [yes]
 other = "Ja"

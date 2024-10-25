@@ -25,14 +25,26 @@ other = "All"
 [angle]
 other = "Angle"
 
+[angleis]
+other = "The angle is"
+
 [area]
 other = "Area"
 
 [batterylevel]
 other = "Battery level"
 
+[Beach]
+other = "Beach"
+
+[Building]
+other = "Building"
+
 [cancel]
 other = "Cancel"
+
+[category]
+other = "Category"
 
 [choose]
 other = "Choose"
@@ -42,6 +54,12 @@ other = "Pick measurement type"
 
 [choosetags]
 other = "Choose tags"
+
+[container]
+other = "Container"
+
+[containerheight]
+other = "The container has a height of"
 
 [currentlevel]
 other = "Current level"
@@ -109,6 +127,9 @@ other = "Latitude"
 [lifebuoy]
 other = "Lifebuoy"
 
+[Lifebuoy]
+other = "Lifebuoy"
+
 [list]
 other = "List"
 
@@ -132,6 +153,9 @@ other = "Inactive"
 
 [map]
 other = "Map"
+
+[maxfillingheight]
+other = "with a maximum filling height of"
 
 [maxheight]
 other = "Container height"
@@ -175,6 +199,9 @@ other = "-"
 [notloggedin]
 other = "Please log in"
 
+[notPresent]
+other = "Not present"
+
 [numberofpassages]
 other = "Number of passages"
 
@@ -202,6 +229,9 @@ other = "Overflow right now"
 [overview]
 other = "Overview"
 
+[Passage]
+other = "Passage"
+
 [pickOption]
 other = "Pick an option"
 
@@ -211,13 +241,22 @@ other = "Pick sensor"
 [pointoftime]
 other = "Time"
 
+[PumpingStation]
+other = "Pumping station"
+
 [room]
+other = "Room"
+
+[Room]
 other = "Room"
 
 [rowsPerPage]
 other = "Rows per page"
 
 [sandstorage]
+other = "Sand storage"
+
+[Sandstorage]
 other = "Sand storage"
 
 [save]
@@ -291,6 +330,9 @@ other = "Unknown"
 
 [unknownsensors]
 other = "Unknown sensors"
+
+[WaterMeter]
+other = "Water meter"
 
 [yes]
 other = "Yes"

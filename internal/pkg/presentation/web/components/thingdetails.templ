@@ -91,6 +91,10 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 							<div class="">{ l10n.Get(model.Thing.Type) }</div>
 						</div>
 						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("category") }</div>
+							<div class="">{ l10n.Get(model.Thing.SubType) }</div>
+						</div>
+						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("name") }</div>
 							if model.Thing.Name == "" {
 								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
@@ -213,12 +217,29 @@ templ DeleteThing(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
 templ WasteContainerProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
 	<div class="">
 		<div class="">
-			Behållaren har en höjd på
+			{ l10n.Get("containerheight") }
 			<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
 		</div>
 		<div>
-			med en max fyllnadshöjd på 
+			{ l10n.Get("maxfillingheight") }
 			<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+		</div>
+	</div>
+}
+
+templ SandStorageProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
+	<div class="">
+		<div class="">
+			{ l10n.Get("containerheight") }
+			<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
+		</div>
+		<div>
+			{ l10n.Get("maxfillingheight") } 
+			<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+		</div>
+		<div>
+			{ l10n.Get("angleis") }
+			<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("angle", 0)) }</span> { l10n.Get("degrees") }.
 		</div>
 	</div>
 }

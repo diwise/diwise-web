@@ -178,7 +178,7 @@ templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewMode
 	<div id="statisticsGraph" class="w-full">
 		@RenderStatisticsGraph(l10n, model)
 	</div>
-	<div id="statisticsTable" class="w-full">
+	<div id="statisticsTable" class="w-full hidden">
 		@StatisticsWasteContainerTable(l10n, model)
 	</div>
 	<script>
@@ -355,23 +355,6 @@ templ StatisticsSandStorageTableRow(l10n locale.Localizer, thing MeasurementView
 		<td class="px-6 py-3">00:00</td>
 		<td class="px-6 py-3">20%</td>
 	</tr>
-}
-
-templ SandStorageProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
-	<div class="">
-		<div class="">
-			Behållaren har en höjd på
-			<span>222</span> mm
-		</div>
-		<div>
-			med en max fyllnadshöjd på 
-			<span>200</span> mm.
-		</div>
-		<div>
-			Vinkeln är
-			<span>38</span> grader.
-		</div>
-	</div>
 }
 
 templ StatisticsRoom(l10n locale.Localizer, model ThingDetailsViewModel) {
