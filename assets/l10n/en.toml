@@ -283,6 +283,9 @@ other = "Sensors"
 [sensortype]
 other = "Type of sensor"
 
+[size]
+other = "Size"
+
 [starttime]
 other = "Start time"
 
