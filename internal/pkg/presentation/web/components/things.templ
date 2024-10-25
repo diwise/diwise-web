@@ -502,15 +502,18 @@ func ThingStatusCell(l10n locale.Localizer, thing ThingViewModel) templ.Componen
 		fallthrough
 	case "pointofinterest":
 		return TemperatureCell(thing)
-
 	case "building":
 		return BuildingCell(l10n, thing)
-
 	case "wastecontainer":
 		fallthrough
 	case "container":
-		return WasteContainerCell(l10n, thing)
-
+		switch strings.ToLower(thing.SubType) {
+			case "wastecontainer":
+				return WasteContainerCell(l10n, thing)
+			case "sandstorage":
+				return SandStorageCell(l10n, thing)
+		}
+		return templ.NopComponent
 	case "lifebuoy":
 		return LifebuoyCell(l10n, thing)
 	case "passage":
@@ -634,9 +637,9 @@ func SandStorageCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
 
 	colourClass := ""
 	switch {
-	case value >= 51:
+	case value <= 51:
 		colourClass = "bg-red-600 dark:bg-err-prim-surf"
-	case value <= 30:
+	case value >= 70:
 		colourClass = "bg-green-700 dark:bg-primary-surface-green-accent"
 	default:
 		colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent"
