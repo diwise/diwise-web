@@ -555,7 +555,7 @@ func LifebuoyCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
 
 templ WaterMeterCell(l10n locale.Localizer, t ThingViewModel) {
 	<div>
-		{ fmt.Sprintf("%0.f m3", t.Properties["cumulativeVolume"]) }
+		{ fmt.Sprintf("%0.f m³", t.Properties["cumulativeVolume"]) }
 	</div>
 }
 
