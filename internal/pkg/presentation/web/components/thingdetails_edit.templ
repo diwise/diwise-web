@@ -184,7 +184,9 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 					Swap("innerHTML"))
 				<div class="flex items-center gap-4">
 					@Button(Secondary, l10n.Get("cancel"), "close",
-						Name("cancel"))
+						Name("cancel"),
+						HxUrl("get", fmt.Sprintf("/components/things/%s", model.Thing.ID)),
+						Target("#things-view"))
 					@Button(Primary, l10n.Get("save"), "check",
 						Name("save"),
 						BtnType("submit"),
