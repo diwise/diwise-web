@@ -210,10 +210,10 @@ templ ConnectOneSensor(l10n locale.Localizer, model ThingDetailsViewModel) {
 				<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
 			}
 			<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-				<input type="hidden" name="currentDevice" value={ strings.Join(model.Thing.RefDevice, ",") }/>
+				//<input type="hidden" name="currentDevice" value={ model.Thing.RefDevice[0] }/>
 				<input
 					list="sensor-options"
-					name="relatedDevice"
+					name="currentDevice"
 					placeholder={ l10n.Get("picksensor") }
 					class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
 					value={ model.Thing.RefDevice[0] }
