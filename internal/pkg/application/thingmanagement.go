@@ -9,7 +9,7 @@ import (
 )
 
 type ThingManagement interface {
-	NewThing(ctx context.Context, id string, fields map[string]any) error
+	NewThing(ctx context.Context, t Thing) error
 	GetThing(ctx context.Context, id string, params map[string][]string) (Thing, error)
 	GetThings(ctx context.Context, offset, limit int, params map[string][]string) (ThingResult, error)
 	UpdateThing(ctx context.Context, thingID string, fields map[string]any) error
@@ -262,9 +262,13 @@ func (a *App) ConnectSensor(ctx context.Context, thingID string, refDevices []st
 	return nil
 }
 
-func (a *App) NewThing(ctx context.Context, id string, fields map[string]any) error {
+func (a *App) NewThing(ctx context.Context, t Thing) error {
+	b, err := json.Marshal(t)
+	if err != nil {
+		return err
+	}
 
-	return nil
+	return a.post(ctx, a.thingManagementURL, b)
 }
 
 func (a *App) GetValidSensors(ctx context.Context, types []string) ([]SensorIdentifier, error) {

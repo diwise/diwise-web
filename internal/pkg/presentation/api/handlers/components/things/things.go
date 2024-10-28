@@ -16,6 +16,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
+	"github.com/google/uuid"
 )
 
 func NewThingsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
@@ -142,26 +143,37 @@ func NewCreateThingComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			return
 		}
 
-		//TODO: generaate new ID for thing
-		//		get fields from form
+		id := uuid.NewString()
 
-		id := r.Form.Get("id")
-
-		if r.Form.Has("save") {
-			fields := formToFields(r.Form)
-			err = connectSensor(ctx, id, fields, app)
-			if err != nil {
-				http.Error(w, "could not connect sensor", http.StatusInternalServerError)
-				return
-			}
-			err = app.UpdateThing(ctx, id, fields)
-			if err != nil {
-				http.Error(w, "could not update thing", http.StatusInternalServerError)
-				return
-			}
+		if !r.Form.Has("save") {
+			http.Redirect(w, r, "/things", http.StatusTemporaryRedirect)
+			return
 		}
 
-		http.Redirect(w, r, "/things/"+id, http.StatusFound)
+		thingType := r.Form.Get("type")
+		thingName := r.Form.Get("name")
+		thingOrg := r.Form.Get("organisation")
+		thingDesc := r.Form.Get("description")
+		thingSubType := r.Form.Get("subtype")
+
+		err = app.NewThing(ctx, application.Thing{
+			ID:          id,
+			Type:        thingType,
+			SubType:     thingSubType,
+			Name:        thingName,
+			Description: thingDesc,
+			Location: application.Location{
+				Latitude:  0,
+				Longitude: 0,
+			},
+			Tenant: thingOrg,
+		})
+		if err != nil {
+			http.Error(w, "could create new thing", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/things/"+id, http.StatusSeeOther)
 	}
 
 	return http.HandlerFunc(fn)

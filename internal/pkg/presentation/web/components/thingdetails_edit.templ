@@ -20,7 +20,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 				</div>
 			}
 		</div>
-		<form action={ templ.SafeURL(fmt.Sprintf("/components/things/%s", model.Thing.ID)) } method="post">
+		<form>
 			<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					//Status och uppgifter
@@ -182,8 +182,13 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 					Trigger("click"),
 					Swap("innerHTML"))
 				<div class="flex items-center gap-4">
-					@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"))
-					@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
+					@Button(Secondary, l10n.Get("cancel"), "close",
+						Name("cancel"))
+					@Button(Primary, l10n.Get("save"), "check",
+						Name("save"),
+						BtnType("submit"),
+						Target("#things-view"),
+						HxUrl("post", fmt.Sprintf("/components/things/%s", model.Thing.ID)))
 				</div>
 				<div id="modalDeleteThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
 				<script>
@@ -204,7 +209,7 @@ templ ConnectOneSensor(l10n locale.Localizer, model ThingDetailsViewModel) {
 				<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
 			}
 			<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-				<input type="hidden" name="currentDevice" value={ model.Thing.RefDevice[0] }/>
+				<input type="hidden" name="currentDevice" value={ strings.Join(model.Thing.RefDevice, ",") }/>
 				<input
 					list="sensor-options"
 					name="relatedDevice"
@@ -272,7 +277,7 @@ templ ConnectMultipleSensors(l10n locale.Localizer, model ThingDetailsViewModel)
 				</div>
 			</div>
 			<!-- Ett hidden input för alla sensorer separerade med kommatecken, förifylld från backend -->
-			<input type="hidden" id="selectedSensors" name="currentDevice" value=""/>
+			<input type="hidden" id="selectedSensors" name="currentDevice" value={ strings.Join(model.Thing.RefDevice, ",") }/>
 		</div>
 	</div>
 }
@@ -334,12 +339,12 @@ templ EditSandStorage(l10n locale.Localizer, model ThingDetailsViewModel) {
 			<div class="flex items-center">
 				<input
 					type="number"
-					name="maxheight"
+					name="maxd"
 					class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
 					placeholder=""
-					value={ model.Thing.Name }
+					value={ model.Thing.GetFloatAsString("maxd", 0) }
 				/>
-				<span class="ml-2">{ l10n.Get("mm") }</span>
+				<span class="ml-2">{ l10n.Get("m") }</span>
 			</div>
 		</div>
 		<div class="flex flex-col gap-2 flex-1">
@@ -347,12 +352,12 @@ templ EditSandStorage(l10n locale.Localizer, model ThingDetailsViewModel) {
 			<div class="flex items-center">
 				<input
 					type="number"
-					name="maxlevel"
+					name="maxl"
 					class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
 					placeholder=""
-					value={ model.Thing.Name }
+					value={ model.Thing.GetFloatAsString("maxl", 0) }
 				/>
-				<span class="ml-2">{ l10n.Get("mm") }</span>
+				<span class="ml-2">{ l10n.Get("m") }</span>
 			</div>
 		</div>
 	</div>
@@ -368,7 +373,7 @@ templ EditSandStorage(l10n locale.Localizer, model ThingDetailsViewModel) {
 					step="1"
 					class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
 					placeholder=""
-					value={ model.Thing.Name }
+					value={ model.Thing.GetFloatAsString("angle", 0) }
 				/>
 				<span class="ml-2">{ l10n.Get("degrees") }</span>
 			</div>
@@ -385,12 +390,13 @@ templ EditWasteContainer(l10n locale.Localizer, model ThingDetailsViewModel) {
 			<div class="flex items-center">
 				<input
 					type="number"
-					name="maxheight"
+					name="maxd"
+					step="0.01"
 					class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
 					placeholder=""
-					value={ model.Thing.Name }
+					value={ model.Thing.GetFloatAsString("maxd", 0) }
 				/>
-				<span class="ml-2">{ l10n.Get("mm") }</span>
+				<span class="ml-2">{ l10n.Get("m") }</span>
 			</div>
 		</div>
 		<div class="flex flex-col gap-2 flex-1">
@@ -398,12 +404,13 @@ templ EditWasteContainer(l10n locale.Localizer, model ThingDetailsViewModel) {
 			<div class="flex items-center">
 				<input
 					type="number"
-					name="maxlevel"
+					name="maxl"
+					step="0.01"
 					class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
 					placeholder=""
-					value={ model.Thing.Name }
+					value={ model.Thing.GetFloatAsString("maxl", 0) }
 				/>
-				<span class="ml-2">{ l10n.Get("mm") }</span>
+				<span class="ml-2">{ l10n.Get("m") }</span>
 			</div>
 		</div>
 	</div>

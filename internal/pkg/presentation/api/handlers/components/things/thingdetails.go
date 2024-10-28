@@ -49,6 +49,28 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
+		ctx := r.Context()
+
+		if r.Method == http.MethodPost {
+			id := r.PathValue("id")
+			if id == "" {
+				http.Error(w, "no ID found in url", http.StatusBadRequest)
+				return
+			}
+			err := r.ParseForm()
+			if err != nil {
+				http.Error(w, "could not parse form", http.StatusBadRequest)
+				return
+			}
+
+			fields := formToFields(r.Form)
+			err = app.UpdateThing(ctx, id, fields)
+			if err != nil {
+				http.Error(w, "could not update thing", http.StatusBadRequest)
+				return
+			}
+		}
+
 		thingDetails, err := newThingDetails(r, localizer, assets, app)
 		if err != nil {
 			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
@@ -62,6 +84,7 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 		err = thingDetails.Render(ctx, w)
 		if err != nil {
 			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
+			return
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -135,26 +158,6 @@ func DeleteThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets
 	return http.HandlerFunc(fn)
 }
 
-func connectSensor(ctx context.Context, thingID string, fields map[string]any, app application.ThingManagement) error {
-	currentID, currentOk := fields["currentDevice"].(string)
-	newID, newOk := fields["relatedDevice"].(string)
-
-	if !currentOk || !newOk {
-		return fmt.Errorf("could not connect sensor, invalid ID")
-	}
-
-	if currentID == newID {
-		return nil
-	}
-
-	err := app.ConnectSensor(ctx, thingID, []string{})
-
-	delete(fields, "currentDevice")
-	delete(fields, "relatedDevice")
-
-	return err
-}
-
 func formToFields(form url.Values) map[string]any {
 	asFloat := func(s string) (float64, bool) {
 		if f, err := strconv.ParseFloat(s, 64); err == nil {
@@ -165,7 +168,6 @@ func formToFields(form url.Values) map[string]any {
 
 	fields := make(map[string]any)
 	fields["tags"] = []string{}
-	fields["currentDevice"] = ""
 
 	for k := range form {
 		v := form.Get(k)
@@ -204,9 +206,24 @@ func formToFields(form url.Values) map[string]any {
 		case "description":
 			fields["description"] = strings.TrimSpace(v)
 		case "currentDevice":
-			fields["currentDevice"] = strings.TrimSpace(v)
-		case "relatedDevice":
-			fields["relatedDevice"] = strings.TrimSpace(v)
+			refs := strings.Split(v, ",")
+			devices := []application.Device{}
+			for _, r := range refs {
+				devices = append(devices, application.Device{DeviceID: strings.TrimSpace(r)})
+			}
+			fields["refDevices"] = devices
+		case "maxl":
+			if f, ok := asFloat(v); ok {
+				fields["maxl"] = f
+			}
+		case "maxd":
+			if f, ok := asFloat(v); ok {
+				fields["maxd"] = f
+			}
+		case "angle":
+			if f, ok := asFloat(v); ok {
+				fields["angle"] = f
+			}
 		}
 	}
 
