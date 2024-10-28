@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
@@ -16,21 +17,8 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"github.com/diwise/service-chassis/pkg/infrastructure/net/http/authn"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
-
-type Api interface {
-	Router() *http.ServeMux
-}
-
-type impl struct {
-	webapp        *application.App
-	router        *http.ServeMux
-	tokenExchange authn.PhantomTokenExchange
-
-	version string
-}
 
 type writerMiddleware struct {
 	rw      http.ResponseWriter
@@ -45,6 +33,10 @@ func (w *writerMiddleware) Header() http.Header {
 }
 
 func (w *writerMiddleware) Write(data []byte) (int, error) {
+	if w.statusCode == 0 {
+		fmt.Println("write wo header!")
+	}
+
 	if w.nocache && w.contentLength == 0 {
 		w.rw.Header()["Cache-Control"] = []string{"no-store"}
 	}
@@ -57,6 +49,10 @@ func (w *writerMiddleware) Write(data []byte) (int, error) {
 }
 
 func (w *writerMiddleware) WriteHeader(statusCode int) {
+	if w.statusCode != 0 {
+		return
+	}
+
 	if w.nocache {
 		w.rw.Header()["Cache-Control"] = []string{"no-store"}
 	}
@@ -65,29 +61,29 @@ func (w *writerMiddleware) WriteHeader(statusCode int) {
 	w.rw.WriteHeader(statusCode)
 }
 
-func logger(ctx context.Context, next http.Handler) http.Handler {
+func Logger(ctx context.Context) func(http.Handler) http.Handler {
 	log := logging.GetFromContext(ctx)
 
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		wmw := &writerMiddleware{rw: w}
-		start := time.Now()
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			wmw := &writerMiddleware{rw: w}
+			start := time.Now()
 
-		ctx := logging.NewContextWithLogger(r.Context(), log)
-		r = r.WithContext(ctx)
+			ctx := logging.NewContextWithLogger(r.Context(), log)
+			r = r.WithContext(ctx)
 
-		next.ServeHTTP(wmw, r)
-		duration := time.Since(start)
+			next.ServeHTTP(wmw, r)
+			duration := time.Since(start)
 
-		if wmw.statusCode < http.StatusBadRequest {
-			log.Info("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
-		} else if wmw.statusCode < http.StatusInternalServerError {
-			log.Warn("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
-		} else {
-			log.Error("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
-		}
+			if wmw.statusCode < http.StatusBadRequest {
+				log.Info("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
+			} else if wmw.statusCode < http.StatusInternalServerError {
+				log.Warn("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
+			} else {
+				log.Error("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
+			}
+		})
 	}
-
-	return http.HandlerFunc(fn)
 }
 
 func RequireHX(next http.Handler) http.HandlerFunc {
@@ -102,26 +98,28 @@ func RequireHX(next http.Handler) http.HandlerFunc {
 	}
 }
 
-func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange, app *application.App, assetPath string) (Api, error) {
-	version := helpers.GetVersion(ctx)
-
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNoContent)
-	})
-
-	mux.HandleFunc("GET /version/{v}", func(w http.ResponseWriter, r *http.Request) {
-		if helpers.IsHxRequest(r) {
-			if r.PathValue("v") != version {
-				currentURL := r.Header.Get("HX-Current-URL")
-				if currentURL == "" {
-					currentURL = "/"
+func VersionReloader(version string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if helpers.IsHxRequest(r) && strings.HasPrefix(r.URL.Path, "/version") {
+				if strings.Compare(r.URL.Path, "/version/"+version) != 0 {
+					currentURL := r.Header.Get("HX-Current-URL")
+					if currentURL == "" {
+						currentURL = "/"
+					}
+					w.Header().Set("HX-Redirect", currentURL)
 				}
-				w.Header().Set("HX-Redirect", currentURL)
-			}
-		}
 
-		w.WriteHeader(http.StatusNoContent)
-	})
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func(http.Handler) http.Handler, app *application.App, assetPath string) error {
 
 	r := http.NewServeMux()
 
@@ -217,21 +215,16 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 		}
 	}())
 
-	mux.Handle(
-		"GET /", logger(ctx, pte.Middleware()(authz.Middleware()(r))),
-	)
-	mux.Handle(
-		"POST /", logger(ctx, pte.Middleware()(authz.Middleware()(r))),
-	)
+	var handler http.Handler = r
 
-	return &impl{
-		webapp:        app,
-		router:        mux,
-		tokenExchange: pte,
-		version:       version,
-	}, nil
-}
+	// wrap the mux with any passed in middleware handlers
+	mwcount := len(middleware)
+	for i := range mwcount {
+		handler = middleware[mwcount-1-i](handler)
+	}
 
-func (a *impl) Router() *http.ServeMux {
-	return a.router
+	mux.Handle("GET /", handler)
+	mux.Handle("POST /", handler)
+
+	return nil
 }

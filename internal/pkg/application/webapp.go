@@ -7,8 +7,6 @@ import (
 	"net/url"
 	"strings"
 	"time"
-
-	"github.com/diwise/service-chassis/pkg/infrastructure/env"
 )
 
 type App struct {
@@ -19,19 +17,13 @@ type App struct {
 	alarmsURL           string
 }
 
-func New(ctx context.Context) (*App, error) {
-	deviceManagementURL := env.GetVariableOrDefault(ctx, "DEV_MGMT_URL", "https://test.diwise.io/api/v0/devices")
-	adminURL := strings.Replace(deviceManagementURL, "devices", "admin", 1)
-	alarmsURL := strings.Replace(deviceManagementURL, "devices", "alarms", 1)
-	thingManagementURL := env.GetVariableOrDefault(ctx, "THINGS_URL", "https://test.diwise.io/api/v0/things")
-	measurementURL := env.GetVariableOrDefault(ctx, "MEASUREMENTS_URL", "https://test.diwise.io/api/v0/measurements")
-
+func New(ctx context.Context, devmgmt, things, admin, alarms, measurement string) (*App, error) {
 	return &App{
-		deviceManagementURL: deviceManagementURL,
-		thingManagementURL:  thingManagementURL,
-		adminURL:            adminURL,
-		alarmsURL:           alarmsURL,
-		measurementURL:      measurementURL,
+		deviceManagementURL: devmgmt,
+		thingManagementURL:  things,
+		adminURL:            admin,
+		alarmsURL:           alarms,
+		measurementURL:      measurement,
 	}, nil
 }
 
@@ -100,8 +92,6 @@ func (a *App) GetTags(ctx context.Context) ([]string, error) {
 
 	return tags, nil
 }
-
-
 
 func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
 	res, err := a.get(ctx, a.adminURL, "deviceprofiles", url.Values{})
