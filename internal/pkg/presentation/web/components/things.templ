@@ -140,6 +140,15 @@ templ NewThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, model NewThi
 												@TypeSelect(l10n, asset, "type", "", model.ThingType)
 											</div>
 										</div>
+										<div class="flex flex-col gap-2 flex-1">
+											<div class="font-bold">{ l10n.Get("category") }</div>
+											<div class="border border-input-surface rounded-xl">
+												<label for="type" class="hidden block text-sm font-medium text-gray-700">
+													{ l10n.Get("pickOption") }
+												</label>
+												@CategorySelect(l10n, asset, "category", "", model.ThingSubType)
+											</div>
+										</div>
 									</div>
 									<div class="flex flex-start gap-10 self-stretch">
 										<div class="flex flex-col gap-2 flex-1">
@@ -502,15 +511,18 @@ func ThingStatusCell(l10n locale.Localizer, thing ThingViewModel) templ.Componen
 		fallthrough
 	case "pointofinterest":
 		return TemperatureCell(thing)
-
 	case "building":
 		return BuildingCell(l10n, thing)
-
 	case "wastecontainer":
 		fallthrough
 	case "container":
-		return WasteContainerCell(l10n, thing)
-
+		switch strings.ToLower(thing.SubType) {
+			case "wastecontainer":
+				return WasteContainerCell(l10n, thing)
+			case "sandstorage":
+				return SandStorageCell(l10n, thing)
+		}
+		return templ.NopComponent
 	case "lifebuoy":
 		return LifebuoyCell(l10n, thing)
 	case "passage":
@@ -552,7 +564,7 @@ func LifebuoyCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
 
 templ WaterMeterCell(l10n locale.Localizer, t ThingViewModel) {
 	<div>
-		{ fmt.Sprintf("%0.f m3", t.Properties["cumulativeVolume"]) }
+		{ fmt.Sprintf("%0.f m³", t.Properties["cumulativeVolume"]) }
 	</div>
 }
 
@@ -634,9 +646,9 @@ func SandStorageCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
 
 	colourClass := ""
 	switch {
-	case value >= 51:
+	case value <= 51:
 		colourClass = "bg-red-600 dark:bg-err-prim-surf"
-	case value <= 30:
+	case value >= 70:
 		colourClass = "bg-green-700 dark:bg-primary-surface-green-accent"
 	default:
 		colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent"

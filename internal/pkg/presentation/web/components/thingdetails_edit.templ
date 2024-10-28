@@ -8,15 +8,16 @@ import (
 )
 
 templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
+	@afterSwap()
 	<div class="w-full">
 		<div class="flex items-center w-full justify-between">
-			if model.Thing.ID == "" {
+			if model.Thing.Name == "" {
 				<div class="flex items-center align-middle">
-					<h1 class="py-3">&nbsp;</h1>
+					<h1 class="py-3">{ model.Thing.ID }</h1>
 				</div>
 			} else {
 				<div class="flex items-center gap-6 align-middle">
-					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { model.Thing.ID }</h1>
+					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { model.Thing.Name }</h1>
 				</div>
 			}
 		</div>
@@ -35,15 +36,15 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 							//Uppgifter
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("id") }</div>
-									<div class="break-all">
-										{ model.Thing.ID }
-									</div>
-								</div>
-								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("thingtype") }</div>
 									<div class="">
 										{ l10n.Get(model.Thing.Type) }
+									</div>
+								</div>
+								<div class="flex flex-col gap-2 flex-1">
+									<div class="font-bold">{ l10n.Get("category") }</div>
+									<div class="">
+										{ l10n.Get(model.Thing.SubType) }
 									</div>
 								</div>
 							</div>

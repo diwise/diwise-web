@@ -25,6 +25,7 @@ type ValidSensorViewModel struct {
 
 type NewThingViewModel struct {
 	ThingType     []string
+	ThingSubType  []string
 	ValidSensors  []ValidSensorViewModel
 	Organisations []string
 	Tags          []string
@@ -82,13 +83,17 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 					</div>
 					//Innehåll Uppgifter
 					<div class="flex flex-col items-start self-stretch gap-6 px-9 text-secondary-dark dark:text-secondary">
-						<div class="flex flex-start gap-2">
+						/*<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("id") }</div>
 							<div class="">{ model.Thing.ID }</div>
+						</div>*/
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("thingtype") }</div>
+							<div class="">{ l10n.Get(model.Thing.Type) }</div>
 						</div>
 						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("type") }</div>
-							<div class="">{ l10n.Get(model.Thing.Type) }</div>
+							<div class="font-bold">{ l10n.Get("category") }</div>
+							<div class="">{ l10n.Get(model.Thing.SubType) }</div>
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("name") }</div>
@@ -119,7 +124,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 							}
 						</div>
 						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
+							<div class="font-bold text-nowrap">{ l10n.Get("sensorconnected") }</div>
 							if len(model.Thing.RefDevice) == 0 {
 								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
 							} else {
@@ -209,14 +214,38 @@ templ DeleteThing(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
 }
 
 templ WasteContainerProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
-	<div class="">
-		<div class="">
-			Behållaren har en höjd på
-			<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
+	<div class="flex flex-start gap-2">
+		<div class="font-bold">{ l10n.Get("size") }</div>
+		<div class="font-normal">
+			<div>
+				{ l10n.Get("containerheight") }
+				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
+			</div>
+			<div>
+				{ l10n.Get("maxfillingheight") }
+				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+			</div>
 		</div>
-		<div>
-			med en max fyllnadshöjd på 
-			<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+		
+	</div>
+}
+
+templ SandStorageProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
+	<div class="flex flex-start gap-2">
+		<div class="font-bold">{ l10n.Get("size") }</div>
+		<div class="font-normal">
+			<div>
+				{ l10n.Get("containerheight") }
+				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
+			</div>
+			<div>
+				{ l10n.Get("maxfillingheight") } 
+				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+			</div>
+			<div>
+				{ l10n.Get("angleis") }
+				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("angle", 0)) }</span> { l10n.Get("degrees") }.
+			</div>
 		</div>
 	</div>
 }
@@ -259,13 +288,41 @@ func TypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selecte
 	return Select(id, false, "", "", viewModel)
 }
 
+func CategorySelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, categories []string) templ.Component {
+	viewModel := []OptionViewModel{
+		{
+			Value:    "",
+			Text:     l10n.Get("choose"),
+			Selected: true,
+			Hidden:   true,
+			Disabled: true,
+		},
+	}
+
+	for _, c := range categories {
+		viewModel = append(viewModel, OptionViewModel{
+			Value:    c,
+			Text:     l10n.Get(c),
+			Selected: c == selected,
+		})
+	}
+
+	sort.Slice(viewModel, func(i, j int) bool {
+		return viewModel[i].Text < viewModel[j].Text
+	})
+
+	return Select(id, false, "", "", viewModel)
+}
+
+
+
 templ afterSwap() {
 	<script>
 		document.addEventListener('htmx:afterSwap', function(evt) {
 			// Funktion för att ladda både taggar och sensorer
 			function checkItemsLoaded() {
 				initializeItems('.tagItem', 'tagInput', 'addTagButton', 'selectedTags', 'tag-options', 'selectedTagContainer', "tagItem", "removeTagIcon");
-				initializeItems('.sensorItem', 'sensorInput', 'addSensorButton', 'selectedSensors', 'sensor-options', 'selectedSensorContainer', "sensorItem", "removeSensorIcon");
+				initializeItems('.sensorItem', 'sensorInput', 'addSensorButton', 'currentDevice', 'sensor-options', 'selectedSensorContainer', "sensorItem", "removeSensorIcon");
 			}
 
 			function initializeItems(itemType, inputId, buttonId, hiddenInputId, datalistId, containerId, itemClass, iconClass) {
