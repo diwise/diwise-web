@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -191,13 +192,12 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 			fmt.Sprintf("/assets/%s/images/{img}", leafletSHA), "/images/leaflet-{img}", http.StatusMovedPermanently,
 		),
 	)
-	
+
 	var handler http.Handler = r
 
 	// wrap the mux with any passed in middleware handlers
-	mwcount := len(middleware)
-	for i := range mwcount {
-		handler = middleware[mwcount-1-i](handler)
+	for _, mw := range slices.Backward(middleware) {
+		handler = mw(handler)
 	}
 
 	mux.Handle("GET /", handler)
