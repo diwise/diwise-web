@@ -191,10 +191,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 			fmt.Sprintf("/assets/%s/images/{img}", leafletSHA), "/images/leaflet-{img}", http.StatusMovedPermanently,
 		),
 	)
-	mux.Handle(
-		"DELETE /", logger(ctx, pte.Middleware()(authz.Middleware()(r))),
-	)
-
+	
 	var handler http.Handler = r
 
 	// wrap the mux with any passed in middleware handlers
@@ -205,6 +202,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 
 	mux.Handle("GET /", handler)
 	mux.Handle("POST /", handler)
+	mux.Handle("DELETE /", handler)
 
 	return nil
 }

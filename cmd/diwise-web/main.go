@@ -37,7 +37,6 @@ func DefaultFlags() FlagMap {
 }
 
 func main() {
-
 	ctx, flags := parseExternalConfig(context.Background(), DefaultFlags())
 
 	serviceVersion := buildinfo.SourceVersion()
@@ -46,7 +45,7 @@ func main() {
 	}
 
 	// Initialise the observability package
-	ctx, logger, cleanup := o11y.Init(ctx, serviceName, serviceVersion)
+	ctx, logger, cleanup := o11y.Init(ctx, serviceName, serviceVersion, "text")
 	defer cleanup()
 
 	ctx = helpers.WithVersion(ctx, serviceVersion)

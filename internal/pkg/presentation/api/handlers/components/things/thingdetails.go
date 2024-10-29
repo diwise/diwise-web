@@ -71,7 +71,7 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, ass
 			}
 
 			w.WriteHeader(http.StatusOK)
-			return 
+			return
 		}
 
 		if r.Method == http.MethodPost {
@@ -114,7 +114,7 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, ass
 	return http.HandlerFunc(fn)
 }
 
-func newThingDetails(r *http.Request, localizer locale.Localizer, assets assets.AssetLoaderFunc, app application.ThingManagement) (context.Context, templ.Component, error) {
+func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFunc, app application.ThingManagement) (context.Context, templ.Component, error) {
 	ctx := r.Context()
 
 	id := r.PathValue("id")
@@ -179,7 +179,7 @@ func DeleteThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets 
 			}
 		}
 
-		http.Redirect(w, r, "/things", http.StatusSeeOther)		
+		http.Redirect(w, r, "/things", http.StatusSeeOther)
 	}
 
 	return http.HandlerFunc(fn)
