@@ -1,11 +1,10 @@
 package components
 
 import (
-    "github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	. "github.com/diwise/frontend-toolkit"
 )
 
-templ NotLoggedIn(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
+templ NotLoggedIn(l10n Localizer, asset AssetLoaderFunc) {
     <div class="flex items-center justify-center min-h-screen bg-no-repeat bg-center bg-[url('/assets/790b004db41539410fb0ebe8f6d04cab4fc47cc7709b04b0a03353605edc100a/bg2048.webp')]">
         <div class="bg-background-100 rounded-xl flex items-stretch w-full max-w-xl"> 
             <div class="flex-1 flex justify-center items-center p-6">

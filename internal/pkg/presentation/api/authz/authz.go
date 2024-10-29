@@ -21,17 +21,14 @@ func NewContextFromAuthorizationHeader(ctx context.Context, r *http.Request) (co
 	return ctx, nil
 }
 
-func Middleware() func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			ctx, err := NewContextFromAuthorizationHeader(r.Context(), r)
-			if err == nil {
-				r = r.WithContext(ctx)
-			}
-			next.ServeHTTP(w, r)
+func Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx, err := NewContextFromAuthorizationHeader(r.Context(), r)
+		if err == nil {
+			r = r.WithContext(ctx)
 		}
-		return http.HandlerFunc(fn)
-	}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func IsLoggedIn(ctx context.Context) bool {

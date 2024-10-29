@@ -9,6 +9,20 @@ import (
 
 const DevModePrefix string = "/devmode"
 
+func NoCache(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wmw := &writerMiddleware{rw: w, nocache: true}
+		next.ServeHTTP(wmw, r)
+	})
+}
+
+func NoLogin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		r.Header.Set("Authorization", "Bearer devmode")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func InstallDevmodeHandlers(ctx context.Context, mux *http.ServeMux) *http.ServeMux {
 
 	devmux := http.NewServeMux()
@@ -24,17 +38,5 @@ func InstallDevmodeHandlers(ctx context.Context, mux *http.ServeMux) *http.Serve
 
 	mux.Handle("GET "+DevModePrefix+"/", http.StripPrefix(DevModePrefix, devmux))
 
-	nocache := http.NewServeMux()
-	nocache.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		wmw := &writerMiddleware{rw: w, nocache: true}
-		mux.ServeHTTP(wmw, r)
-	})
-
-	nologin := http.NewServeMux()
-	nologin.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		r.Header.Set("Authorization", "Bearer devmode")
-		nocache.ServeHTTP(w, r)
-	})
-
-	return nologin
+	return mux
 }

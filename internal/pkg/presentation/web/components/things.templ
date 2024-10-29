@@ -2,12 +2,12 @@ package components
 
 import (
 	"fmt"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"slices"
 	"sort"
 	"strings"
 	"time"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
 type ThingsListViewModel struct {
@@ -80,7 +80,7 @@ type MeasurementViewModel struct {
 	Value       *float64  `json:"v,omitempty"`
 }
 
-templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
+templ ThingsList(l10n Localizer, model ThingsListViewModel) {
 	<div class="flex flex-col items-start gap-4 flex-[1_0_0] w-full" id="things-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full">
 			<div class="flex items-center w-full justify-between">
@@ -108,7 +108,7 @@ templ ThingsList(l10n locale.Localizer, model ThingsListViewModel) {
 	</div>
 }
 
-templ NewThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, model NewThingViewModel) {
+templ NewThing(l10n Localizer, asset AssetLoaderFunc, model NewThingViewModel) {
 	<div id="modalCreateThing" class="fixed inset-0 bg-gray-30 z-50 flex items-start justify-center">
 		<div class="bg-white rounded-lg shadow-xl w-full max-w-xl p-6 mt-8">
 			<div class="w-full">
@@ -196,7 +196,7 @@ templ NewThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, model NewThi
 	</div>
 }
 
-templ ThingsFilter(l10n locale.Localizer, model ThingsListViewModel) {
+templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
 	<div class="flex w-full flex-col gap-4">
 		<div class="flex h-12 justify-between items-center">
 			<div class="flex items-center dark:text-white">
@@ -261,7 +261,7 @@ templ ThingsFilter(l10n locale.Localizer, model ThingsListViewModel) {
 	</div>
 }
 
-templ SelectedFilters(l10n locale.Localizer, hxget string) {
+templ SelectedFilters(l10n Localizer, hxget string) {
 	<div class="flex flex-start items-center gap-2 self-stretch">
 		<div class="font-bold dark:text-white p-2">
 			{ l10n.Get("selectedfilters") }
@@ -405,7 +405,7 @@ templ SelectedFilters(l10n locale.Localizer, hxget string) {
 	</script>
 }
 
-templ ThingsTableComponent(l10n locale.Localizer, model ThingsListViewModel) {
+templ ThingsTableComponent(l10n Localizer, model ThingsListViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-dark-primary dark:border-white">
 			<tr>
@@ -430,7 +430,7 @@ templ ThingsTableComponent(l10n locale.Localizer, model ThingsListViewModel) {
 	</table>
 }
 
-templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
+templ ThingRow(l10n Localizer, thing ThingViewModel) {
 	<tr
 		class="border-b border-divider-gray border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
 		hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/things/%s?type=%s&subType=%s", thing.ID, thing.Type, thing.SubType))) }
@@ -463,7 +463,7 @@ templ ThingRow(l10n locale.Localizer, thing ThingViewModel) {
 	</tr>
 }
 
-func TagCell(l10n locale.Localizer, thing ThingViewModel) templ.Component {
+func TagCell(l10n Localizer, thing ThingViewModel) templ.Component {
 	if len(thing.Tags) == 0 {
 		return templ.NopComponent
 	}
@@ -474,7 +474,7 @@ func TagCell(l10n locale.Localizer, thing ThingViewModel) templ.Component {
 	return TagComponent(l10n, sortedTags)
 }
 
-templ TagComponent(l10n locale.Localizer, sortedTags []string) {
+templ TagComponent(l10n Localizer, sortedTags []string) {
 	for i, tag := range sortedTags {
 		if i < 3 {
 			<span class="px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
@@ -498,14 +498,14 @@ templ TagComponent(l10n locale.Localizer, sortedTags []string) {
 	}
 }
 
-func ThingsTable(l10n locale.Localizer, model ThingsListViewModel) templ.Component {
+func ThingsTable(l10n Localizer, model ThingsListViewModel) templ.Component {
 	if model.MapView {
 		return templ.NopComponent
 	}
 	return ThingsTableComponent(l10n, model)
 }
 
-func ThingStatusCell(l10n locale.Localizer, thing ThingViewModel) templ.Component {
+func ThingStatusCell(l10n Localizer, thing ThingViewModel) templ.Component {
 	switch strings.ToLower(thing.Type) {
 	case "beach":
 		fallthrough
@@ -540,13 +540,13 @@ func ThingStatusCell(l10n locale.Localizer, thing ThingViewModel) templ.Componen
 	}
 }
 
-templ BuildingCell(l10n locale.Localizer, t ThingViewModel) {
+templ BuildingCell(l10n Localizer, t ThingViewModel) {
 	<div>
 		{ fmt.Sprintf("%0.f kWh / %0.f kW", t.Properties["energy"], t.Properties["power"]) }
 	</div>
 }
 
-func LifebuoyCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
+func LifebuoyCell(l10n Localizer, t ThingViewModel) templ.Component {
 	vb, ok := t.Properties["presence"]
 	if !ok {
 		return Text(l10n.Get("noData"))
@@ -562,13 +562,13 @@ func LifebuoyCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
 	}
 }
 
-templ WaterMeterCell(l10n locale.Localizer, t ThingViewModel) {
+templ WaterMeterCell(l10n Localizer, t ThingViewModel) {
 	<div>
 		{ fmt.Sprintf("%0.f m³", t.Properties["cumulativeVolume"]) }
 	</div>
 }
 
-func SewerCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
+func SewerCell(l10n Localizer, t ThingViewModel) templ.Component {
 	overflowObserved, okOverflow := t.Properties["overflowObserved"]
 	currentLevel, okLevel := t.Properties["currentLevel"]
 	percent, okPercent := t.Properties["percent"]
@@ -596,7 +596,7 @@ func SewerCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
 	return Div("", components...)
 }
 
-func SewagePumpingstationCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
+func SewagePumpingstationCell(l10n Localizer, t ThingViewModel) templ.Component {
 	vb, ok := t.Properties["pumpingObserved"]
 	if !ok {
 		return Text(l10n.Get("noData"))
@@ -612,7 +612,7 @@ func SewagePumpingstationCell(l10n locale.Localizer, t ThingViewModel) templ.Com
 	}
 }
 
-func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
+func WasteContainerCell(l10n Localizer, t ThingViewModel) templ.Component {
 	v, ok := t.Properties["percent"]
 	if !ok {
 		return Text(l10n.Get("noData"))
@@ -635,7 +635,7 @@ func WasteContainerCell(l10n locale.Localizer, t ThingViewModel) templ.Component
 }
 
 // TODO: Uppdatera till korrekt data
-func SandStorageCell(l10n locale.Localizer, t ThingViewModel) templ.Component {
+func SandStorageCell(l10n Localizer, t ThingViewModel) templ.Component {
 	v, ok := t.Properties["percent"]
 	if !ok {
 		return Text(l10n.Get("noData"))
@@ -669,7 +669,7 @@ templ TemperatureCell(t ThingViewModel) {
 	</div>
 }
 
-func ThingsMap(l10n locale.Localizer, model ThingsListViewModel) templ.Component {
+func ThingsMap(l10n Localizer, model ThingsListViewModel) templ.Component {
 	if !model.MapView {
 		return templ.NopComponent
 	}
@@ -678,7 +678,7 @@ func ThingsMap(l10n locale.Localizer, model ThingsListViewModel) templ.Component
 	return Map("large", true, false, mapData, thingsToMapFeature(l10n, model.Things))
 }
 
-func thingsToMapFeature(l10n locale.Localizer, things []ThingViewModel) FeatureCollection {
+func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollection {
 	features := make([]Feature, 0, len(things))
 
 	for _, thing := range things {

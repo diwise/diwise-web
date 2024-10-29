@@ -2,13 +2,13 @@ package components
 
 import (
 	"fmt"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"strings"
 	"time"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
-func ThingStatistics(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) templ.Component {
+func ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsViewModel) templ.Component {
 	thingType := strings.ToLower(model.Thing.Type)
 
 	switch thingType {
@@ -44,7 +44,7 @@ templ thingTypeStatistics(component templ.Component) {
 	</div>
 }
 
-templ StatisticsFilter(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsFilter(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-col items-start gap-2">
 		<div class="font-bold">
 			{ l10n.Get("timeinterval") }
@@ -85,7 +85,7 @@ templ StatisticsFilter(l10n locale.Localizer, model ThingDetailsViewModel) {
 	</div>
 }
 
-templ StatisticsData(l10n locale.Localizer, graphComponent, tableComponent templ.Component, tableView bool) {
+templ StatisticsData(l10n Localizer, graphComponent, tableComponent templ.Component, tableView bool) {
 	<div id="graphOrTable" class="w-full flex flex-col gap-6 items-start inline-flex">
 		<input
 			type="hidden"
@@ -115,7 +115,7 @@ templ StatisticsData(l10n locale.Localizer, graphComponent, tableComponent templ
 	</div>
 }
 
-func RenderStatisticsGraph(l10n locale.Localizer, model ThingDetailsViewModel) templ.Component {
+func RenderStatisticsGraph(l10n Localizer, model ThingDetailsViewModel) templ.Component {
 	startDate := time.Now().Add(-24 * time.Hour)
 	endDate := time.Now()
 
@@ -127,7 +127,7 @@ func RenderStatisticsGraph(l10n locale.Localizer, model ThingDetailsViewModel) t
 	return Graph(l10n, startDate, endDate)
 }
 
-templ Graph(l10n locale.Localizer, startDate, endDate time.Time) {
+templ Graph(l10n Localizer, startDate, endDate time.Time) {
 	<div
 		id="graphView"
 		class="w-full"
@@ -163,7 +163,7 @@ templ Graph(l10n locale.Localizer, startDate, endDate time.Time) {
 	</script>
 }
 
-templ StatisticsWasteContainer(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsWasteContainer(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex items-center w-full justify-between">
 		<div class="flex flex-col gap-2">
 			<div class="">{ l10n.Get("currentlevel") }</div>
@@ -208,7 +208,7 @@ func WastecontainerChart(datasets []ChartDataset) templ.Component {
 	return Chart("measurement-chart", "", cfg)
 }
 
-templ StatisticsWasteContainerTable(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsWasteContainerTable(l10n Localizer, model ThingDetailsViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
@@ -231,7 +231,7 @@ templ StatisticsWasteContainerTable(l10n locale.Localizer, model ThingDetailsVie
 	</table>
 }
 
-templ StatisticsWasteContainerTableRow(l10n locale.Localizer, measurement MeasurementViewModel) {
+templ StatisticsWasteContainerTableRow(l10n Localizer, measurement MeasurementViewModel) {
 	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
 		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
 		<td class="px-6 py-3">
@@ -244,7 +244,7 @@ templ StatisticsWasteContainerTableRow(l10n locale.Localizer, measurement Measur
 	</tr>
 }
 
-templ StatisticsSewer(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsSewer(l10n Localizer, model ThingDetailsViewModel) {
 	//Statistik
 	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
 		<div class="flex items-center w-full justify-between">
@@ -260,14 +260,14 @@ templ StatisticsSewer(l10n locale.Localizer, model ThingDetailsViewModel) {
 	</div>
 }
 
-templ StatisticsSewerContainerGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsSewerContainerGraph(l10n Localizer, model ThingDetailsViewModel) {
 	<div id="graphView" class="w-full">
 		<canvas id="measurement-chart"></canvas>
 		<div id="measurementCharts" style="display:none;"></div>
 	</div>
 }
 
-templ StatisticsSewerTable(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsSewerTable(l10n Localizer, model ThingDetailsViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
@@ -291,14 +291,14 @@ templ StatisticsSewerTable(l10n locale.Localizer, model ThingDetailsViewModel) {
 	</table>
 }
 
-templ StatisticsSewerTableRow(l10n locale.Localizer, thing MeasurementViewModel) {
+templ StatisticsSewerTableRow(l10n Localizer, thing MeasurementViewModel) {
 	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
 		<td class="px-6 py-3">00:00</td>
 		<td class="px-6 py-3">20%</td>
 	</tr>
 }
 
-templ StatisticsSandStorage(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsSandStorage(l10n Localizer, model ThingDetailsViewModel) {
 	//Statistik
 	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
 		<div class="flex items-center w-full justify-between">
@@ -326,7 +326,7 @@ func SandStorageChart(datasets []ChartDataset) templ.Component {
 	return Chart("measurement-chart", "", cfg)
 }
 
-templ StatisticsSandStorageTable(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsSandStorageTable(l10n Localizer, model ThingDetailsViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
@@ -350,14 +350,14 @@ templ StatisticsSandStorageTable(l10n locale.Localizer, model ThingDetailsViewMo
 	</table>
 }
 
-templ StatisticsSandStorageTableRow(l10n locale.Localizer, thing MeasurementViewModel) {
+templ StatisticsSandStorageTableRow(l10n Localizer, thing MeasurementViewModel) {
 	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
 		<td class="px-6 py-3">00:00</td>
 		<td class="px-6 py-3">20%</td>
 	</tr>
 }
 
-templ StatisticsRoom(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsRoom(l10n Localizer, model ThingDetailsViewModel) {
 	//Statistik
 	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
 		<div class="flex items-center w-full justify-between">
@@ -384,7 +384,7 @@ func RoomChart(datasets []ChartDataset) templ.Component {
 	return Chart("measurement-chart", "", cfg)
 }
 
-templ StatisticsRoomTable(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsRoomTable(l10n Localizer, model ThingDetailsViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
@@ -408,14 +408,14 @@ templ StatisticsRoomTable(l10n locale.Localizer, model ThingDetailsViewModel) {
 	</table>
 }
 
-templ StatisticsRoomTableRow(l10n locale.Localizer, thing MeasurementViewModel) {
+templ StatisticsRoomTableRow(l10n Localizer, thing MeasurementViewModel) {
 	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
 		<td class="px-6 py-3">00:00</td>
 		<td class="px-6 py-3">20 °C</td>
 	</tr>
 }
 
-templ StatisticsPassage(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsPassage(l10n Localizer, model ThingDetailsViewModel) {
 	//Statistik
 	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
 		<div class="flex items-center w-full justify-between">
@@ -464,7 +464,7 @@ func PassagesChart(datasets []ChartDataset) templ.Component {
 	return Chart("measurement-chart", "", cfg)
 }
 
-templ StatisticsPassageTable(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsPassageTable(l10n Localizer, model ThingDetailsViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
@@ -488,7 +488,7 @@ templ StatisticsPassageTable(l10n locale.Localizer, model ThingDetailsViewModel)
 	</table>
 }
 
-templ StatisticsPassageTableRow(l10n locale.Localizer, measurement MeasurementViewModel) {
+templ StatisticsPassageTableRow(l10n Localizer, measurement MeasurementViewModel) {
 	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
 		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
 		<td class="px-6 py-3">
@@ -501,7 +501,7 @@ templ StatisticsPassageTableRow(l10n locale.Localizer, measurement MeasurementVi
 	</tr>
 }
 
-templ StatisticsCombinedSewageOverflow(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsCombinedSewageOverflow(l10n Localizer, model ThingDetailsViewModel) {
 	//Statistik
 	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
 		<div class="flex items-center w-full justify-between">
@@ -538,14 +538,14 @@ templ StatisticsCombinedSewageOverflow(l10n locale.Localizer, model ThingDetails
 	</div>
 }
 
-templ StatisticsCombinedSewageOverflowGraph(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsCombinedSewageOverflowGraph(l10n Localizer, model ThingDetailsViewModel) {
 	<div id="graphView" class="w-full">
 		<canvas id="measurement-chart"></canvas>
 		<div id="measurementCharts" style="display:none;"></div>
 	</div>
 }
 
-templ StatisticsCombinedSewageOverflowTable(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ StatisticsCombinedSewageOverflowTable(l10n Localizer, model ThingDetailsViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
@@ -570,7 +570,7 @@ templ StatisticsCombinedSewageOverflowTable(l10n locale.Localizer, model ThingDe
 	</table>
 }
 
-templ StatisticsCombinedSewageOverflowTableRow(l10n locale.Localizer, thing MeasurementViewModel) {
+templ StatisticsCombinedSewageOverflowTableRow(l10n Localizer, thing MeasurementViewModel) {
 	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
 		<td class="px-6 py-3">00:00</td>
 		<td class="px-6 py-3">23:59</td>

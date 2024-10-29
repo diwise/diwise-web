@@ -2,11 +2,11 @@ package components
 
 import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
-templ StartPage(version string, localizer locale.Localizer, asset assets.AssetLoaderFunc, mainContent templ.Component) {
+templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, mainContent templ.Component) {
 	<!DOCTYPE html>
 	<html>
 		<head>

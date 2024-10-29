@@ -5,8 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	. "github.com/diwise/frontend-toolkit"
 )
 
 type ComponentName string
@@ -207,7 +206,7 @@ templ SVG(name string, config ...func(*svgCfg)) {
 	</svg>
 }
 
-templ MenuSegment(title, slug string, icon templ.Component, asset assets.AssetLoaderFunc, selected bool) {
+templ MenuSegment(title, slug string, icon templ.Component, asset AssetLoaderFunc, selected bool) {
 	<div
 		class={ "flex px-3 py-2.5 justify-start items-center gap-2.5 self-stretch cursor-pointer",
         templ.KV("rounded-xl", !selected),
@@ -272,7 +271,7 @@ script toggleDarkMode() {
     }
 }
 
-templ DarkModeToggle(isOn bool, asset assets.AssetLoaderFunc) {
+templ DarkModeToggle(isOn bool, asset AssetLoaderFunc) {
 	<div class="px-3.5 justify-start items-center gap-3 inline-flex">
 		@SVG("sun-medium", Size(24), Box(24, 24))
 		@Switch(isOn, toggleDarkMode())
@@ -288,7 +287,7 @@ templ Badge(count string) {
 	</div>
 }
 
-templ OverviewCard(title, url string, count int, icon templ.Component, asset assets.AssetLoaderFunc) {
+templ OverviewCard(title, url string, count int, icon templ.Component, asset AssetLoaderFunc) {
 	<div class="flex items-center flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow gap-2 hover:cursor-pointer"
 			hx-get={ url }
 			hx-target="#body"
@@ -331,7 +330,7 @@ func isCurrent(ctx context.Context, expect string) bool {
 	return name == expect
 }
 
-templ Body(version string, l10n locale.Localizer, asset assets.AssetLoaderFunc, mainContent templ.Component) {
+templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent templ.Component) {
 	<body id="body" onload={ onPageLoad() }>
 		<div id="reloader" hx-get={ reloaderEndpoint(version) } hx-trigger={ reloaderFrequency(version) }></div>
 		<div class="flex w-full items-start bg-white dark:bg-content-background">

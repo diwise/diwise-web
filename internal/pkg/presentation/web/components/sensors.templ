@@ -2,8 +2,9 @@ package components
 
 import (
 	"fmt"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"time"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
 type SensorListViewModel struct {
@@ -36,7 +37,7 @@ type StatisticsViewModel struct {
 	Unknown  int
 }
 
-templ Statistics(l10n locale.Localizer, model StatisticsViewModel) {
+templ Statistics(l10n Localizer, model StatisticsViewModel) {
 	<div class="flex items-start gap-10 dark:text-white">
 		<div class="flex items-start gap-2">{ l10n.Get("total") }<span class="font-bold">{ fmt.Sprintf("%d", model.Total) } </span></div>
 		<div class="flex items-start gap-2">{ l10n.Get("active") }<span class="font-bold">{ fmt.Sprintf("%d", model.Active) }</span></div>
@@ -45,7 +46,7 @@ templ Statistics(l10n locale.Localizer, model StatisticsViewModel) {
 	</div>
 }
 
-templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
+templ SensorsList(l10n Localizer, model SensorListViewModel) {
 	<div class="flex flex-col items-start gap-6 flex-[1_0_0] w-full" id="sensor-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full">
 			<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
@@ -59,7 +60,7 @@ templ SensorsList(l10n locale.Localizer, model SensorListViewModel) {
 	</div>
 }
 
-templ SensorsFilter(l10n locale.Localizer, model SensorListViewModel) {
+templ SensorsFilter(l10n Localizer, model SensorListViewModel) {
 	<div class="flex w-full flex-col gap-4">
 		<div class="flex h-12 justify-between items-center">
 			<div class="flex items-center dark:text-white">
@@ -117,7 +118,7 @@ templ SensorsFilter(l10n locale.Localizer, model SensorListViewModel) {
 	</div>
 }
 
-templ DataList(l10n locale.Localizer, tableComponent, mapComponent templ.Component, mapView bool) {
+templ DataList(l10n Localizer, tableComponent, mapComponent templ.Component, mapView bool) {
 	<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
 		<input
 			type="hidden"
@@ -147,7 +148,7 @@ templ DataList(l10n locale.Localizer, tableComponent, mapComponent templ.Compone
 	</div>
 }
 
-func sensorsToMapFeature(l10n locale.Localizer, model SensorListViewModel) FeatureCollection {
+func sensorsToMapFeature(l10n Localizer, model SensorListViewModel) FeatureCollection {
 	features := make([]Feature, 0, len(model.Sensors))
 
 	for _, sensor := range model.Sensors {
@@ -189,7 +190,7 @@ func sensorsToMapFeature(l10n locale.Localizer, model SensorListViewModel) Featu
 	return NewFeatureCollection(features)
 }
 
-func SensorMap(l10n locale.Localizer, model SensorListViewModel) templ.Component {
+func SensorMap(l10n Localizer, model SensorListViewModel) templ.Component {
 	if !model.MapView {
 		return templ.NopComponent
 	}
@@ -198,7 +199,7 @@ func SensorMap(l10n locale.Localizer, model SensorListViewModel) templ.Component
 	return Map("large", true, false, mapData, sensorsToMapFeature(l10n, model))
 }
 
-templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
+templ SensorRow(l10n Localizer, sensor SensorViewModel) {
 	<tr
 		class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
 		hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/sensors/details?id=%s", sensor.DeviceID))) }
@@ -253,7 +254,7 @@ templ SensorRow(l10n locale.Localizer, sensor SensorViewModel) {
 	</tr>
 }
 
-templ SensorsTable(l10n locale.Localizer, model SensorListViewModel) {
+templ SensorsTable(l10n Localizer, model SensorListViewModel) {
 	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
@@ -281,7 +282,7 @@ templ SensorsTable(l10n locale.Localizer, model SensorListViewModel) {
 	</table>
 }
 
-templ TableOrMap(l10n locale.Localizer, hxGet string) {
+templ TableOrMap(l10n Localizer, hxGet string) {
 	<div class="flex items-center ml-auto">
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
 			<div class="relative group">
