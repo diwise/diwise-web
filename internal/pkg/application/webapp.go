@@ -109,44 +109,38 @@ func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
 }
 
 func (a *App) GetStatistics(ctx context.Context) Statistics {
-	s := Statistics{}
 
-	count := func(key, value string, ch chan int) {
-		params := url.Values{}
-		params.Add("limit", "1")
+	count := func(key, value string) <-chan int {
+		ch := make(chan int)
 
-		if key != "" && value != "" {
-			params.Add(key, value)
-		}
+		go func() {
+			defer close(ch)
 
-		res, err := a.get(ctx, a.deviceManagementURL, "", params)
-		if err != nil || res.Meta == nil {
-			ch <- 0
-			return
-		}
+			params := url.Values{}
+			params.Add("limit", "1")
 
-		ch <- int(res.Meta.TotalRecords)
+			if key != "" && value != "" {
+				params.Add(key, value)
+			}
+
+			res, err := a.get(ctx, a.deviceManagementURL, "", params)
+			if err != nil || res.Meta == nil {
+				return
+			}
+
+			ch <- int(res.Meta.TotalRecords)
+		}()
+
+		return ch
 	}
 
-	total := make(chan int)
-	online := make(chan int)
-	active := make(chan int)
-	inactive := make(chan int)
-	unknown := make(chan int)
-
-	go count("", "", total)
-	go count("online", "true", online)
-	go count("active", "true", active)
-	go count("active", "false", inactive)
-	go count("profilename", "unknown", unknown)
-
-	s.Total = <-total
-	s.Online = <-online
-	s.Active = <-active
-	s.Inactive = <-inactive
-	s.Unknown = <-unknown
-
-	return s
+	return Statistics{
+		Total:    <-count("", ""),
+		Online:   <-count("online", "true"),
+		Active:   <-count("active", "true"),
+		Inactive: <-count("active", "false"),
+		Unknown:  <-count("profilename", "unknown"),
+	}
 }
 
 func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error) {
