@@ -1,11 +1,11 @@
 package components
 
 func NewChartConfiguration(chartType string, keepRatio bool, min, max, stepSize *uint) ChartConfiguration {
-	cfg := ChartConfiguration{}
-	cfg.Type = chartType
-	cfg.Data = NewChartData()
-	cfg.Options = NewChartOptions(keepRatio, min, max, stepSize)
-	return cfg
+	return ChartConfiguration{
+		Type: chartType,
+		Data: NewChartData(),
+		Options: NewChartOptions(keepRatio, min, max, stepSize),
+	}
 }
 
 type ChartConfiguration struct {
