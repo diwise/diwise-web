@@ -888,20 +888,65 @@ var thingsJsonFormat = `
 var thingsTypesJsonFormat = `
 {
     "meta": {
-        "totalRecords": 11
+        "totalRecords": 13
     },
     "data": [
-        "Beach",
-        "Building",
-        "Container",
-        "WasteContainer",
-        "Lifebuoy",
-        "Passage",
-        "PointOfInterest",
-        "PumpingStation",
-        "Room",
-        "Sewer",
-        "WaterMeter"
+        {
+            "type": "Building",
+            "name": "Building"
+        },
+        {
+            "type": "Container",
+            "name": "Container"
+        },
+        {
+            "type": "Container",
+            "subType": "WasteContainer",
+            "name": "Container:WasteContainer"
+        },
+        {
+            "type": "Container",
+            "subType": "Sandstorage",
+            "name": "Container:Sandstorage"
+        },
+        {
+            "type": "Lifebuoy",
+            "name": "Lifebuoy"
+        },
+        {
+            "type": "Passage",
+            "name": "Passage"
+        },
+        {
+            "type": "PointOfInterest",
+            "name": "PointOfInterest"
+        },
+        {
+            "type": "PointOfInterest",
+            "subType": "Beach",
+            "name": "PointOfInterest:Beach"
+        },
+        {
+            "type": "Pumpingstation",
+            "name": "Pumpingstation"
+        },
+        {
+            "type": "Room",
+            "name": "Room"
+        },
+        {
+            "type": "Sewer",
+            "name": "Sewer"
+        },
+        {
+            "type": "Sewer",
+            "subType": "CombinedSewerOverflow",
+            "name": "Sewer:CombinedSewerOverflow"
+        },
+        {
+            "type": "WaterMeter",
+            "name": "WaterMeter"
+        }
     ]
 }
 `

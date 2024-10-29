@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -13,6 +14,7 @@ type ThingManagement interface {
 	GetThing(ctx context.Context, id string, params map[string][]string) (Thing, error)
 	GetThings(ctx context.Context, offset, limit int, params map[string][]string) (ThingResult, error)
 	UpdateThing(ctx context.Context, thingID string, fields map[string]any) error
+	DeleteThing(ctx context.Context, thingID string) error
 	GetTenants(ctx context.Context) []string
 	GetTags(ctx context.Context) ([]string, error)
 	GetTypes(ctx context.Context) ([]string, error)
@@ -308,17 +310,37 @@ func (a *App) UpdateThing(ctx context.Context, thingID string, fields map[string
 
 }
 
+func (a *App) DeleteThing(ctx context.Context, thingID string) error {
+	u, err := url.Parse(fmt.Sprintf("%s/%s", strings.TrimSuffix(a.thingManagementURL, "/"), thingID))
+	if err != nil {
+		return err
+	}
+
+	return a.delete(ctx, u.String())
+}
+
 func (a *App) GetTypes(ctx context.Context) ([]string, error) {
 	res, err := a.get(ctx, a.thingManagementURL, "types", url.Values{})
 	if err != nil {
 		return []string{}, err
 	}
 
-	var tags []string
-	err = json.Unmarshal(res.Data, &tags)
+	var thingTypes = []struct {
+		Type    string `json:"type"`
+		SubType string `json:"subType,omitempty"`
+		Name    string `json:"name"`
+	}{}
+
+	err = json.Unmarshal(res.Data, &thingTypes)
 	if err != nil {
 		return []string{}, err
 	}
 
-	return tags, nil
+	var types []string
+
+	for _, t := range thingTypes {
+		types = append(types, t.Name)
+	}
+
+	return types, nil
 }

@@ -151,13 +151,13 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	r.HandleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("POST /things", things.NewCreateThingComponentHandler(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /things/{id}", things.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("DELETE /things/{id}", things.DeleteThingComponentHandler(ctx, l10n, assetLoader.Load, app))
+
 	//things - components
 	r.HandleFunc("GET /components/things", RequireHX(things.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("POST /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-
-	r.HandleFunc("GET /components/things/delete", things.DeleteThingComponentHandler(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("POST /components/things/delete", things.DeleteThingComponentHandler(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("DELETE /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 
 	r.HandleFunc("GET /components/tables/things", RequireHX(things.NewThingsTable(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /components/things/list", RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))
@@ -222,6 +222,9 @@ func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange
 	)
 	mux.Handle(
 		"POST /", logger(ctx, pte.Middleware()(authz.Middleware()(r))),
+	)
+	mux.Handle(
+		"DELETE /", logger(ctx, pte.Middleware()(authz.Middleware()(r))),
 	)
 
 	return &impl{

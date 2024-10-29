@@ -22,12 +22,13 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		thingDetails, err := newThingDetails(r, localizer, assets, app)
+		ctx, thingDetails, err := newThingDetails(r, localizer, assets, app)
 		if err != nil {
 			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
 		}
 
-		page := components.StartPage(version, localizer, assets, thingDetails)
+		thingDetailsPage := components.ThingDetailsPage(localizer, assets, thingDetails)
+		page := components.StartPage(version, localizer, assets, thingDetailsPage)
 
 		w.Header().Add("Content-Type", "text/html")
 		w.Header().Add("Cache-Control", "no-cache")
@@ -36,7 +37,6 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 		err = page.Render(ctx, w)
 		if err != nil {
 			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
-			return
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -49,9 +49,34 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		ctx := r.Context()
+		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Cache-Control", "no-cache")
+		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+
+		if r.Method == http.MethodDelete {
+			ctx := r.Context()
+
+			id := r.PathValue("id")
+			if id == "" {
+				http.Error(w, "no ID found in url", http.StatusBadRequest)
+				return
+			}
+
+			c := components.DeleteThing(localizer, assets, id)
+
+			err := c.Render(ctx, w)
+			if err != nil {
+				http.Error(w, "could not render delete thing", http.StatusInternalServerError)
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			return 
+		}
 
 		if r.Method == http.MethodPost {
+			ctx := r.Context()
+
 			id := r.PathValue("id")
 			if id == "" {
 				http.Error(w, "no ID found in url", http.StatusBadRequest)
@@ -71,15 +96,11 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 			}
 		}
 
-		thingDetails, err := newThingDetails(r, localizer, assets, app)
+		ctx, thingDetails, err := newThingDetails(r, localizer, assets, app)
 		if err != nil {
 			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
 			return
 		}
-
-		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		err = thingDetails.Render(ctx, w)
 		if err != nil {
@@ -93,25 +114,30 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 	return http.HandlerFunc(fn)
 }
 
-func newThingDetails(r *http.Request, localizer locale.Localizer, assets assets.AssetLoaderFunc, app application.ThingManagement) (templ.Component, error) {
+func newThingDetails(r *http.Request, localizer locale.Localizer, assets assets.AssetLoaderFunc, app application.ThingManagement) (context.Context, templ.Component, error) {
+	ctx := r.Context()
+
 	id := r.PathValue("id")
 	if id == "" {
-		return nil, fmt.Errorf("no id found in url")
+		return ctx, nil, fmt.Errorf("no id found in url")
 	}
 
 	editMode := r.URL.Query().Get("mode") == "edit"
 
-	ctx := helpers.Decorate(r.Context(),
+	ctx = helpers.Decorate(ctx,
 		components.CurrentComponent, "things",
 	)
+
 	thing, err := app.GetThing(ctx, id, r.URL.Query())
 	if err != nil {
-		return nil, fmt.Errorf("could not compose view model")
+		return ctx, nil, fmt.Errorf("could not compose view model")
 	}
 
 	thingDetailsViewModel := components.ThingDetailsViewModel{
 		Thing: toViewModel(thing),
 	}
+
+	thingDetailsViewModel.Tenant = thingDetailsViewModel.Thing.Tenant
 
 	if editMode {
 		validSensors, _ := app.GetValidSensors(ctx, thing.ValidURNs)
@@ -127,32 +153,33 @@ func newThingDetails(r *http.Request, localizer locale.Localizer, assets assets.
 		thingDetailsViewModel.Tags, _ = app.GetTags(ctx)
 
 		component := components.EditThingDetails(localizer, assets, thingDetailsViewModel)
-		return component, nil
+		return ctx, component, nil
 	}
 
-	return components.ThingDetails(localizer, assets, thingDetailsViewModel), nil
+	return ctx, components.ThingDetails(localizer, assets, thingDetailsViewModel), nil
 }
 
 func DeleteThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		localizer := l10n.For(r.Header.Get("Accept-Language"))
-
 		ctx := helpers.Decorate(r.Context(),
 			components.CurrentComponent, "things",
 		)
 
-		component := components.DeleteThing(localizer, assets)
-
-		w.Header().Add("Content-Type", "text/html")
-		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
-
-		err := component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, "could not render delete thing", http.StatusInternalServerError)
+		id := r.PathValue("id")
+		if id == "" {
+			http.Error(w, "no ID found in url", http.StatusBadRequest)
+			return
 		}
 
-		w.WriteHeader(http.StatusOK)
+		if r.URL.Query().Get("confirmed") == "true" {
+			err := app.DeleteThing(ctx, id)
+			if err != nil {
+				http.Error(w, "could not delete thing", http.StatusInternalServerError)
+				return
+			}
+		}
+
+		http.Redirect(w, r, "/things", http.StatusSeeOther)		
 	}
 
 	return http.HandlerFunc(fn)

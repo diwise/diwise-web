@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
@@ -151,10 +152,17 @@ func NewCreateThingComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 		}
 
 		thingType := r.Form.Get("type")
+		thingSubType := ""
+
 		thingName := r.Form.Get("name")
 		thingOrg := r.Form.Get("organisation")
 		thingDesc := r.Form.Get("description")
-		thingSubType := r.Form.Get("subtype")
+
+		if strings.Contains(thingType, ":") {
+			parts := strings.Split(thingType, ":")
+			thingType = parts[0]
+			thingSubType = parts[1]
+		}
 
 		err = app.NewThing(ctx, application.Thing{
 			ID:          id,
@@ -173,7 +181,7 @@ func NewCreateThingComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			return
 		}
 
-		http.Redirect(w, r, "/things/"+id, http.StatusSeeOther)
+		http.Redirect(w, r, fmt.Sprintf("/things/%s?mode=edit", id), http.StatusMovedPermanently)
 	}
 
 	return http.HandlerFunc(fn)

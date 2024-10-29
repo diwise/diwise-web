@@ -26,15 +26,14 @@ type ValidSensorViewModel struct {
 type NewThingViewModel struct {
 	ThingType     []string
 	ThingSubType  []string
-	ValidSensors  []ValidSensorViewModel
 	Organisations []string
 	Tags          []string
 	Thing         ThingViewModel
 }
 
-templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
+templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, thingDetails templ.Component) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] w-full" id="things-view">
-		@ThingDetails(l10n, asset, model)
+		@thingDetails
 	</div>
 }
 
@@ -184,7 +183,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 	</div>
 }
 
-templ DeleteThing(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
+templ DeleteThing(l10n locale.Localizer, asset assets.AssetLoaderFunc, thingID string) {
 	<div id="modalDeleteThing" class="fixed inset-0 bg-gray-30 z-50 flex items-center justify-center">
 		<div class="bg-white rounded-lg shadow-xl w-full max-w-xl p-6">
 			<div class="w-full">
@@ -201,11 +200,11 @@ templ DeleteThing(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
 				<div class="flex items-center justify-end pt-6">
 					<div class="flex items-center gap-4">
 						@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"),
-							HxUrl("get", "javascript:void(0)"),
 							HxUrl("on", "click: this.closest('#modalDeleteThingContainer').classList.add('hidden')"),
 							BtnType("button"))
-						//TODO: Vad ska hända när man klickar delete?
-						//@Button(Error, l10n.Get("delete"), "trashcan", Name("Delete"))
+						@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"),
+							HxUrl("delete", "/things/"+thingID+"?confirmed=true"),
+							Target("#body"))
 					</div>
 				</div>
 			</div>
@@ -226,7 +225,6 @@ templ WasteContainerProperties(l10n locale.Localizer, model ThingDetailsViewMode
 				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
 			</div>
 		</div>
-		
 	</div>
 }
 
@@ -239,7 +237,7 @@ templ SandStorageProperties(l10n locale.Localizer, model ThingDetailsViewModel) 
 				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
 			</div>
 			<div>
-				{ l10n.Get("maxfillingheight") } 
+				{ l10n.Get("maxfillingheight") }
 				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
 			</div>
 			<div>
@@ -313,8 +311,6 @@ func CategorySelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, sel
 
 	return Select(id, false, "", "", viewModel)
 }
-
-
 
 templ afterSwap() {
 	<script>
