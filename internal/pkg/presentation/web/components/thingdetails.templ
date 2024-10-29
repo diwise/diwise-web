@@ -2,10 +2,10 @@ package components
 
 import (
 	"fmt"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"sort"
 	"strings"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
 type ThingDetailsViewModel struct {
@@ -32,13 +32,13 @@ type NewThingViewModel struct {
 	Thing         ThingViewModel
 }
 
-templ ThingDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
+templ ThingDetailsPage(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] w-full" id="things-view">
 		@ThingDetails(l10n, asset, model)
 	</div>
 }
 
-templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
+templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsViewModel) {
 	@afterSwap()
 	<div class="w-full">
 		// Header, name + edit button
@@ -184,7 +184,7 @@ templ ThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model Th
 	</div>
 }
 
-templ DeleteThing(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
+templ DeleteThing(l10n Localizer, asset AssetLoaderFunc) {
 	<div id="modalDeleteThing" class="fixed inset-0 bg-gray-30 z-50 flex items-center justify-center">
 		<div class="bg-white rounded-lg shadow-xl w-full max-w-xl p-6">
 			<div class="w-full">
@@ -213,7 +213,7 @@ templ DeleteThing(l10n locale.Localizer, asset assets.AssetLoaderFunc) {
 	</div>
 }
 
-templ WasteContainerProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ WasteContainerProperties(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-start gap-2">
 		<div class="font-bold">{ l10n.Get("size") }</div>
 		<div class="font-normal">
@@ -230,7 +230,7 @@ templ WasteContainerProperties(l10n locale.Localizer, model ThingDetailsViewMode
 	</div>
 }
 
-templ SandStorageProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ SandStorageProperties(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-start gap-2">
 		<div class="font-bold">{ l10n.Get("size") }</div>
 		<div class="font-normal">
@@ -250,7 +250,7 @@ templ SandStorageProperties(l10n locale.Localizer, model ThingDetailsViewModel) 
 	</div>
 }
 
-templ RoomProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ RoomProperties(l10n Localizer, model ThingDetailsViewModel) {
 	//TODO: Behöver vi några särskilda rumsegenskaper?
 	/*<div class="">
 		<div class="">Behållaren har en höjd på
@@ -262,7 +262,7 @@ templ RoomProperties(l10n locale.Localizer, model ThingDetailsViewModel) {
 	</div>*/
 }
 
-func TypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, types []string) templ.Component {
+func TypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, types []string) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
@@ -288,7 +288,7 @@ func TypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selecte
 	return Select(id, false, "", "", viewModel)
 }
 
-func CategorySelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, categories []string) templ.Component {
+func CategorySelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, categories []string) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",

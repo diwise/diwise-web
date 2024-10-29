@@ -15,8 +15,9 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/sensors"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/things"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+
+	"github.com/diwise/frontend-toolkit/pkg/assets"
+	"github.com/diwise/frontend-toolkit/pkg/locale"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
@@ -123,7 +124,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 
 	r := http.NewServeMux()
 
-	assetLoader, _ := assets.NewLoader(ctx, assets.BasePath(assetPath))
+	assetLoader, _ := assets.NewLoader(ctx, assets.BasePath(assetPath), assets.Logger(logging.GetFromContext(ctx)))
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
 	// home
@@ -183,37 +184,13 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 
 	// Handle requests for leaflet images /assets/<leafletcss-sha>/images/<image>.png
 	leafletSHA := assetLoader.Load("/css/leaflet.css").SHA256()
-	r.HandleFunc(fmt.Sprintf("GET /assets/%s/images/{img}", leafletSHA), func(w http.ResponseWriter, r *http.Request) {
-		image := r.PathValue("img")
-		http.Redirect(w, r, assetLoader.Load("/images/leaflet-"+image).Path(), http.StatusMovedPermanently)
-	})
 
-	r.HandleFunc("GET /assets/{sha}/{filename}", func(w http.ResponseWriter, r *http.Request) {
-		sha := r.PathValue("sha")
-
-		a, err := assetLoader.LoadFromSha256(sha)
-		if err != nil {
-			if err == assets.ErrNotFound {
-				w.WriteHeader(http.StatusNotFound)
-			} else {
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-
-			return
-		}
-
-		w.Header().Set("Content-Type", a.ContentType())
-		w.Header().Set("Content-Length", fmt.Sprintf("%d", a.ContentLength()))
-		w.WriteHeader(http.StatusOK)
-		w.Write(a.Body())
-	})
-
-	r.HandleFunc("GET /favicon.ico", func() http.HandlerFunc {
-		faviconPath := assetLoader.Load("/icons/favicon.ico").Path()
-		return func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, faviconPath, http.StatusFound)
-		}
-	}())
+	assets.RegisterEndpoints(ctx, assetLoader, assets.WithMux(r),
+		assets.WithRedirect("/favicon.ico", "/icons/favicon.ico", http.StatusFound),
+		assets.WithRedirect(
+			fmt.Sprintf("/assets/%s/images/{img}", leafletSHA), "/images/leaflet-{img}", http.StatusMovedPermanently,
+		),
+	)
 
 	var handler http.Handler = r
 

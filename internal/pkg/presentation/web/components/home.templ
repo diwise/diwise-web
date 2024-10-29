@@ -2,12 +2,12 @@ package components
 
 import (
 	"fmt"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"time"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
-templ OverviewCards(l10n locale.Localizer, asset assets.AssetLoaderFunc, stats StatisticsViewModel) {
+templ OverviewCards(l10n Localizer, asset AssetLoaderFunc, stats StatisticsViewModel) {
 	<div class="flex flex-col gap-6 w-full">
 		<div class="flex items-start content-start gap-6 self-stretch flex-wrap w-full">
 			<div class="flex-1">
@@ -41,7 +41,7 @@ type AlarmViewModel struct {
 	Types      []string  `json:"types"`
 }
 
-templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeViewModel) {
+templ Home(l10n Localizer, asset AssetLoaderFunc, viewModel HomeViewModel) {
 	<div class="flex flex-col items-start self-stretch gap-14">
 		<div class="flex items-start self-stretch gap-14">
 			<div class="flex flex-col flex-[1_0_0] justify-center items-start gap-6">
@@ -80,7 +80,7 @@ templ Home(l10n locale.Localizer, asset assets.AssetLoaderFunc, viewModel HomeVi
 	</div>
 }
 
-templ AlarmsTable(l10n locale.Localizer, viewModel HomeViewModel) {
+templ AlarmsTable(l10n Localizer, viewModel HomeViewModel) {
 	<table class="w-full text-sm text-left dark:bg-content-background dark:text-white">
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
@@ -104,7 +104,7 @@ templ AlarmsTable(l10n locale.Localizer, viewModel HomeViewModel) {
 	</table>
 }
 
-templ AlarmRow(l10n locale.Localizer, alarm AlarmViewModel) {
+templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
 	<tr class="border-b border-divider-gray border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer">
 		<td class="px-6 py-3"><a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", alarm.DeviceID)) }><span class="font-bold">{ alarm.DeviceID }</span></a></td>
 		<td class="px-6 py-3">

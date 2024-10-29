@@ -2,12 +2,12 @@ package components
 
 import (
 	"fmt"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"strings"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
-templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, model ThingDetailsViewModel) {
+templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsViewModel) {
 	@afterSwap()
 	<div class="w-full">
 		<div class="flex items-center w-full justify-between">
@@ -204,7 +204,7 @@ templ EditThingDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, mode
 	</div>
 }
 
-templ ConnectOneSensor(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ ConnectOneSensor(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-start self-stretch">
 		<div class="flex flex-col gap-2 flex-1">
 			<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
@@ -236,7 +236,7 @@ templ ConnectOneSensor(l10n locale.Localizer, model ThingDetailsViewModel) {
 	</div>
 }
 
-templ ConnectMultipleSensors(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ ConnectMultipleSensors(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-start self-stretch">
 		<div class="flex flex-col gap-6 flex-1">
 			<div class="flex flex-col gap-2 flex-1">
@@ -285,7 +285,7 @@ templ ConnectMultipleSensors(l10n locale.Localizer, model ThingDetailsViewModel)
 	</div>
 }
 
-func editThingDetailType(l10n locale.Localizer, model ThingDetailsViewModel) templ.Component {
+func editThingDetailType(l10n Localizer, model ThingDetailsViewModel) templ.Component {
 	thingType := strings.ToLower(model.Thing.Type)
 	subType := strings.ToLower(model.Thing.SubType)
 
@@ -322,20 +322,20 @@ func editThingDetailType(l10n locale.Localizer, model ThingDetailsViewModel) tem
 	return templ.NopComponent
 }
 
-templ EditCombinedSewageOverflow(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ EditCombinedSewageOverflow(l10n Localizer, model ThingDetailsViewModel) {
 	@ConnectOneSensor(l10n, model)
 }
 
-templ EditPassage(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ EditPassage(l10n Localizer, model ThingDetailsViewModel) {
 	@ConnectOneSensor(l10n, model)
 }
 
-templ EditRoom(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ EditRoom(l10n Localizer, model ThingDetailsViewModel) {
 	//Koppla flera sensorer
 	@ConnectMultipleSensors(l10n, model)
 }
 
-templ EditSandStorage(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ EditSandStorage(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-start gap-10 self-stretch">
 		<div class="flex flex-col gap-2 flex-1">
 			<div class="font-bold">{ l10n.Get("maxheight") }</div>
@@ -386,7 +386,7 @@ templ EditSandStorage(l10n locale.Localizer, model ThingDetailsViewModel) {
 	@ConnectMultipleSensors(l10n, model)
 }
 
-templ EditWasteContainer(l10n locale.Localizer, model ThingDetailsViewModel) {
+templ EditWasteContainer(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-start gap-10 self-stretch">
 		<div class="flex flex-col gap-2 flex-1">
 			<div class="font-bold">{ l10n.Get("maxheight") }</div>

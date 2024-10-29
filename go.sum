@@ -12,6 +12,8 @@ github.com/coreos/go-oidc/v3 v3.11.0 h1:Ia3MxdwpSw702YW0xgfmP1GVCMA9aEFWu12XUZ3/
 github.com/coreos/go-oidc/v3 v3.11.0/go.mod h1:gE3LgjOgFoHi9a4ce4/tJczr0Ai2/BoDhf0r5lltWI0=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/diwise/frontend-toolkit v0.0.0-20241029115948-4e8c3503bd84 h1:6FnbSIwqESr021Gnx55QnFCjlsmlnNJeCxcuWgx8aGQ=
+github.com/diwise/frontend-toolkit v0.0.0-20241029115948-4e8c3503bd84/go.mod h1:nd306GOAcmfM81OETtzktv+rH9Pg2YgUJuxjYBIX0Mc=
 github.com/diwise/service-chassis v0.0.0-20241028072542-56eec60e5eba h1:q8eIGAJq6yxP5MAoGQbvSnPNAPMZONtA4h1MpMGbc3M=
 github.com/diwise/service-chassis v0.0.0-20241028072542-56eec60e5eba/go.mod h1:dsSYLlB4mK1/UhBYMnlsaTYp5aa85yxrRT6g6dULxuM=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=

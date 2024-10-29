@@ -11,12 +11,12 @@ import (
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -45,7 +45,7 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 	return http.HandlerFunc(fn)
 }
 
-func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
@@ -93,7 +93,7 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 	return http.HandlerFunc(fn)
 }
 
-func newThingDetails(r *http.Request, localizer locale.Localizer, assets assets.AssetLoaderFunc, app application.ThingManagement) (templ.Component, error) {
+func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFunc, app application.ThingManagement) (templ.Component, error) {
 	id := r.PathValue("id")
 	if id == "" {
 		return nil, fmt.Errorf("no id found in url")
@@ -133,7 +133,7 @@ func newThingDetails(r *http.Request, localizer locale.Localizer, assets assets.
 	return components.ThingDetails(localizer, assets, thingDetailsViewModel), nil
 }
 
-func DeleteThingComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func DeleteThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 

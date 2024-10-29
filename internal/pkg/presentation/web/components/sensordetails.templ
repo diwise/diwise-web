@@ -2,12 +2,12 @@ package components
 
 import (
 	"fmt"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"slices"
 	"sort"
 	"strings"
 	"time"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
 type SensorDetailsViewModel struct {
@@ -35,13 +35,13 @@ type DeviceProfile struct {
 	Types    []string `json:"types,omitempty"`
 }
 
-templ SensorDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
+templ SensorDetailsPage(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {
 	<div class="flex flex-col items-start gap-14 flex-[1_0_0] w-full" id="sensor-view">
 		@SensorDetails(l10n, asset, sensor)
 	</div>
 }
 
-templ statusActive(active bool, l10n locale.Localizer) {
+templ statusActive(active bool, l10n Localizer) {
 	if active {
 		@Label(l10n.Get("active"), active)
 	} else {
@@ -49,7 +49,7 @@ templ statusActive(active bool, l10n locale.Localizer) {
 	}
 }
 
-templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
+templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {
 	<div class="w-full">
 		<div class="flex items-center w-full justify-between">
 			if sensor.Name == "" {
@@ -191,7 +191,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 	</div>
 }
 
-func RenderMeasurementGraph(l10n locale.Localizer, model SensorDetailsViewModel) templ.Component {
+func RenderMeasurementGraph(l10n Localizer, model SensorDetailsViewModel) templ.Component {
 
 	startDate := time.Now().Add(-24 * time.Hour)
 	endDate := time.Now()
@@ -204,7 +204,7 @@ func RenderMeasurementGraph(l10n locale.Localizer, model SensorDetailsViewModel)
 	return Graph(l10n, startDate, endDate)
 }
 
-templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
+templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {
 	<div class="w-full">
 		<div class="flex items-center justify-between w-full">
 			<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { sensor.Name }</h1>
@@ -352,7 +352,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 	</div>
 }
 
-templ AlarmList(l10n locale.Localizer) {
+templ AlarmList(l10n Localizer) {
 	<div class="flex flex-col items-start self-stretch">
 		//Larm
 		<div class="flex items-center gap-3 self-stretch">
@@ -405,7 +405,7 @@ func sensorMapFeature(sensor SensorDetailsViewModel) FeatureCollection {
 	return NewFeatureCollection([]Feature{feature})
 }
 
-func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, target string, sensorViewModel SensorDetailsViewModel) templ.Component {
+func SensorMeasurementSelect(l10n Localizer, asset AssetLoaderFunc, id, target string, sensorViewModel SensorDetailsViewModel) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
@@ -438,7 +438,7 @@ func MeasurementChart(datasets []ChartDataset, keepRatio bool) templ.Component {
 	return Chart("measurement-chart", "", cfg)
 }
 
-func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
+func MeasurementTypeSelect(l10n Localizer, asset AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
@@ -472,7 +472,7 @@ func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 	return Select(id, true, "", "", viewModel)
 }
 
-func SensorTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, profiles []DeviceProfile) templ.Component {
+func SensorTypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, profiles []DeviceProfile) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
@@ -494,7 +494,7 @@ func SensorTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, s
 	return Select(id, false, "/components/admin/types", "#measurementType", viewModel)
 }
 
-func OrganisationSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, organisations []string) templ.Component {
+func OrganisationSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, organisations []string) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
@@ -516,7 +516,7 @@ func OrganisationSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id,
 	return Select(id, false, "", "", viewModel)
 }
 
-func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
+func MeasurementTypeCheckboxDropdown(l10n Localizer, asset AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
 	viewModel := []OptionViewModel{}
 
 	i := slices.IndexFunc(sensorViewModel.DeviceProfiles, func(p DeviceProfile) bool {

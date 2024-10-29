@@ -2,8 +2,9 @@ package components
 
 import (
 	"fmt"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"strings"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
 type SlotContents struct {
@@ -26,7 +27,7 @@ type PagingViewModel struct {
 	TargetID  string
 }
 
-templ Paging(l10n locale.Localizer, p PagingViewModel) {
+templ Paging(l10n Localizer, p PagingViewModel) {
 	<div id="paginering" class="flex items-center w-full h-[60px] px-4 py-3.5 rounded-b-2xl border-white border-opacity-30">
 		<div class="flex flex-1 h-8 justify-start items-center gap-2">
 			<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{ l10n.Get("rowsPerPage") }:</span>
@@ -119,7 +120,7 @@ templ ProgressBar(cssClass, text string, value int) {
 	</div>
 }
 
-templ CheckboxOption(name, value, text string, l10n locale.Localizer, attrs templ.Attributes) {
+templ CheckboxOption(name, value, text string, l10n Localizer, attrs templ.Attributes) {
 	<label class="flex items-center gap-3 dark:text-primary-dark cursor-pointer capitalize">
 		<input
 			type="checkbox"
@@ -151,7 +152,7 @@ templ CheckboxList(header string) {
 	</div>
 }
 
-templ RadioOption(name, value, text string, l10n locale.Localizer, attrs templ.Attributes) {
+templ RadioOption(name, value, text string, l10n Localizer, attrs templ.Attributes) {
 	<label class="flex items-center gap-3 dark:text-primary-dark cursor-pointer">
 		<input
 			type="radio"
@@ -510,7 +511,7 @@ templ CheckboxDropdownList(id string, options []OptionViewModel, buttonText stri
 	</div>
 }
 
-templ graphTableButtons(l10n locale.Localizer) {
+templ graphTableButtons(l10n Localizer) {
 	<div class="flex items-center self-stretch gap-6">
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
 			<div class="relative group">
