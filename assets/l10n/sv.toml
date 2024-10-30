@@ -247,6 +247,9 @@ other = "Intressepunkt"
 [pointoftime]
 other = "Tidpunkt"
 
+[Pumpingstation]
+other = "Pumpstation"
+
 [PumpingStation]
 other = "Pumpstation"
 
