@@ -215,14 +215,18 @@ templ WasteContainerProperties(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-start gap-2">
 		<div class="font-bold">{ l10n.Get("size") }</div>
 		<div class="font-normal">
-			<div>
-				{ l10n.Get("containerheight") }
-				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
-			</div>
-			<div>
-				{ l10n.Get("maxfillingheight") }
-				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
-			</div>
+			if model.Thing.GetFloatOrDefault("maxd", 0) != 0 {
+				<div>
+					{ l10n.Get("containerheight") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
+				</div>
+			}
+			if model.Thing.GetFloatOrDefault("maxl", 0) != 0 {
+				<div>
+					{ l10n.Get("maxfillingheight") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+				</div>
+			}
 		</div>
 	</div>
 }
@@ -231,18 +235,28 @@ templ SandStorageProperties(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-start gap-2">
 		<div class="font-bold">{ l10n.Get("size") }</div>
 		<div class="font-normal">
-			<div>
-				{ l10n.Get("containerheight") }
-				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
-			</div>
-			<div>
-				{ l10n.Get("maxfillingheight") }
-				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
-			</div>
-			<div>
-				{ l10n.Get("angleis") }
-				<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("angle", 0)) }</span> { l10n.Get("degrees") }.
-			</div>
+			if model.Thing.GetFloatOrDefault("maxd", 0) != 0 {
+				<div>
+					{ l10n.Get("containerheight") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
+				</div>
+			}
+			if model.Thing.GetFloatOrDefault("maxl", 0) != 0 {
+				<div>
+					{ l10n.Get("maxfillingheight") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+				</div>
+			}
+			if model.Thing.GetFloatOrDefault("angle", 0) != 0 {
+				<div>
+					{ l10n.Get("angleis") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("angle", 0)) }</span> { l10n.Get("degrees") }.
+				</div>
+			} else {
+				<div class="italic text-secondary-outline-hover dark:text-secondary">
+					{ l10n.Get("angleismissing") }
+				</div>
+			}
 		</div>
 	</div>
 }

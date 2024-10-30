@@ -28,6 +28,9 @@ other = "Angle"
 [angleis]
 other = "The angle is"
 
+[angleismissing]
+other = "Angle missing."
+
 [area]
 other = "Area"
 

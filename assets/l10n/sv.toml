@@ -28,6 +28,9 @@ other = "Vinkel"
 [angleis]
 other = "Vinkeln är"
 
+[angleismissing]
+other = "Vinkel saknas."
+
 [area]
 other = "Område"
 
