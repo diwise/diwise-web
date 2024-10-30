@@ -92,7 +92,7 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 				}
 
 				if !devModeEnabled {
-					cfg.pte, err = authn.NewPhantomTokenExchange(
+					svcCfg.pte, err = authn.NewPhantomTokenExchange(
 						authn.WithAppRoot(flags[appRoot]),
 						authn.WithClientCredentials(flags[oauth2ClientID], flags[oauth2ClientSecret]),
 						authn.WithLogger(logging.GetFromContext(ctx)),
