@@ -288,24 +288,20 @@ func TypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, type
 templ afterSwap() {
 	<script>
 		document.addEventListener('htmx:afterSwap', function(evt) {
-			// Funktion för att ladda både taggar och sensorer
 			function checkItemsLoaded() {
 				initializeItems('.tagItem', 'tagInput', 'addTagButton', 'selectedTags', 'tag-options', 'selectedTagContainer', "tagItem", "removeTagIcon");
-				initializeItems('.sensorItem', 'sensorInput', 'addSensorButton', 'currentDevice', 'sensor-options', 'selectedSensorContainer', "sensorItem", "removeSensorIcon");
+				initializeItems('.sensorItem', 'sensorInput', 'addSensorButton', 'selectedSensors', 'sensor-options', 'selectedSensorContainer', "sensorItem", "removeSensorIcon");
 			}
 
 			function initializeItems(itemType, inputId, buttonId, hiddenInputId, datalistId, containerId, itemClass, iconClass) {
 				var items = document.querySelectorAll(itemType);
 				var hiddenInput = document.getElementById(hiddenInputId);
 				var currentItems = hiddenInput ? hiddenInput.value.split(',') : [];
-
-				items.forEach(function(itemElement) {
-					var itemText = itemElement.querySelector('span').innerText;
-					addRemoveItemListener(itemElement, itemText, currentItems, hiddenInputId, datalistId);
-					removeItemFromDatalist(itemText, datalistId);
+				
+				currentItems.forEach(function(sensor) {
+					updateSelectedItem(sensor, containerId, hiddenInputId, datalistId, itemClass, iconClass);
 				});
 
-				// Kontrollera om knappen finns innan du lägger till event listenern
 				var buttonElement = document.getElementById(buttonId);
 				if (buttonElement) {
 					buttonElement.addEventListener('click', function() {
@@ -351,10 +347,9 @@ templ afterSwap() {
 				}
 			}
 
-			// Funktion för att skapa elementet med en stängningsikon
 			function createElement(item, className, iconClass) {
 				return `
-					<div class="flex items-center p-2 rounded-full gap-1 ${className} border-gray-30 dark:border-white-30 border stroke-primary-dark dark:stroke-white">
+					<div data-item="${item}" class="flex items-center p-2 rounded-full gap-1 ${className} border-gray-30 dark:border-white-30 border stroke-primary-dark dark:stroke-white">
 						<span>${item}</span>
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x ${iconClass} cursor-pointer">
 							<line x1="18" y1="6" x2="6" y2="18"></line>
@@ -369,7 +364,6 @@ templ afterSwap() {
 				hiddenInput.value = items.join(',');
 			}
 
-			// Lägg till lyssnare för item och hantera borttagning
 			function addRemoveItemListener(itemElement, itemText, currentItems, hiddenInputId, datalistId) {
 				const removeIcon = itemElement.querySelector('.feather-x');
 				if (removeIcon) {
@@ -385,9 +379,13 @@ templ afterSwap() {
 				}
 			}
 
-			// Uppdatera valt item
 			function updateSelectedItem(item, containerId, hiddenInputId, datalistId, itemClass, iconClass) {
 				if (item) {
+					const container = document.getElementById(containerId);
+					if (container.querySelector(`.${itemClass}[data-item="${item}"]`)) {
+						return;
+					}
+					
 					var itemElement = document.createElement('div');
 					itemElement.innerHTML = createElement(item, itemClass, iconClass).trim();
 					itemElement = itemElement.firstChild;
@@ -404,7 +402,6 @@ templ afterSwap() {
 				}
 			}
 
-			// Initiera när sidan är klar
 			checkItemsLoaded();
 		});
 		</script>
