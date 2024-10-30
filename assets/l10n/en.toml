@@ -34,6 +34,9 @@ other = "Area"
 [batterylevel]
 other = "Battery level"
 
+[PointOfInterest-Beach]
+other = "Beach"
+
 [Beach]
 other = "Beach"
 
@@ -238,10 +241,13 @@ other = "Pick an option"
 [picksensor]
 other = "Pick sensor"
 
+[PointOfInterest]
+other = "Point of interest"
+
 [pointoftime]
 other = "Time"
 
-[PumpingStation]
+[Pumpingstation]
 other = "Pumping station"
 
 [room]
@@ -252,6 +258,9 @@ other = "Room"
 
 [rowsPerPage]
 other = "Rows per page"
+
+[Container-Sandstorage]
+other = "Sand storage"
 
 [sandstorage]
 other = "Sand storage"
@@ -439,11 +448,14 @@ other = "People counter"
 [oma-lwm2m-ext-3435]
 other = "Filling level"
 
+[Sewer-CombinedSewerOverflow]
+other = "Combined sewer overflow"
+
 [CombinedSewageOverflow]
-other = "Combined sewage overflow"
+other = "Combined sewer overflow"
 
 [combinedsewageoverflow]
-other = "Combined sewage overflow"
+other = "Combined sewer overflow"
 
 [passage]
 other = "Passage"
@@ -456,6 +468,9 @@ other = "Sewer"
 
 [sewer]
 other = "Sewer"
+
+[Container-WasteContainer]
+other = "Waste container"
 
 [WasteContainer]
 other = "Waste container"

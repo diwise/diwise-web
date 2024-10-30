@@ -174,7 +174,7 @@ func NewCreateThingComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			Tenant: thingOrg,
 		})
 		if err != nil {
-			http.Error(w, "could create new thing", http.StatusInternalServerError)
+			http.Error(w, "could not create new thing", http.StatusInternalServerError)
 			return
 		}
 

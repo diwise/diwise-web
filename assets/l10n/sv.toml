@@ -34,6 +34,9 @@ other = "Område"
 [batterylevel]
 other = "Batterinivå"
 
+[PointOfInterest-Beach]
+other = "Strand"
+
 [Beach]
 other = "Strand"
 
@@ -238,10 +241,13 @@ other = "Välj ett alternativ"
 [picksensor]
 other = "Välj sensor"
 
+[PointOfInterest]
+other = "Intressepunkt"
+
 [pointoftime]
 other = "Tidpunkt"
 
-[PumpingStation]
+[Pumpingstation]
 other = "Pumpstation"
 
 [room]
@@ -252,6 +258,9 @@ other = "Rum"
 
 [rowsPerPage]
 other = "Rader per sida"
+
+[Container-Sandstorage]
+other = "Sandficka"
 
 [sandstorage]
 other = "Sandficka"
@@ -439,6 +448,9 @@ other = "Personräknare"
 [oma-lwm2m-ext-3435]
 other = "Fyllnadsnivå"
 
+[Sewer-CombinedSewerOverflow]
+other = "Bräddavlopp"
+
 [CombinedSewageOverflow]
 other = "Bräddavlopp"
 
@@ -456,6 +468,9 @@ other = "Avlopp"
 
 [sewer]
 other = "Avlopp"
+
+[Container-WasteContainer]
+other = "Soptunna"
 
 [WasteContainer]
 other = "Soptunna"

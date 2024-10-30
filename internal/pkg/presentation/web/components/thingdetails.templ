@@ -285,32 +285,6 @@ func TypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, type
 	return Select(id, false, "", "", viewModel)
 }
 
-func CategorySelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, categories []string) templ.Component {
-	viewModel := []OptionViewModel{
-		{
-			Value:    "",
-			Text:     l10n.Get("choose"),
-			Selected: true,
-			Hidden:   true,
-			Disabled: true,
-		},
-	}
-
-	for _, c := range categories {
-		viewModel = append(viewModel, OptionViewModel{
-			Value:    c,
-			Text:     l10n.Get(c),
-			Selected: c == selected,
-		})
-	}
-
-	sort.Slice(viewModel, func(i, j int) bool {
-		return viewModel[i].Text < viewModel[j].Text
-	})
-
-	return Select(id, false, "", "", viewModel)
-}
-
 templ afterSwap() {
 	<script>
 		document.addEventListener('htmx:afterSwap', function(evt) {

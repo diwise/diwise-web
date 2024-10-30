@@ -902,12 +902,12 @@ var thingsTypesJsonFormat = `
         {
             "type": "Container",
             "subType": "WasteContainer",
-            "name": "Container:WasteContainer"
+            "name": "Container-WasteContainer"
         },
         {
             "type": "Container",
             "subType": "Sandstorage",
-            "name": "Container:Sandstorage"
+            "name": "Container-Sandstorage"
         },
         {
             "type": "Lifebuoy",
@@ -924,7 +924,7 @@ var thingsTypesJsonFormat = `
         {
             "type": "PointOfInterest",
             "subType": "Beach",
-            "name": "PointOfInterest:Beach"
+            "name": "PointOfInterest-Beach"
         },
         {
             "type": "Pumpingstation",
@@ -941,7 +941,7 @@ var thingsTypesJsonFormat = `
         {
             "type": "Sewer",
             "subType": "CombinedSewerOverflow",
-            "name": "Sewer:CombinedSewerOverflow"
+            "name": "Sewer-CombinedSewerOverflow"
         },
         {
             "type": "WaterMeter",
