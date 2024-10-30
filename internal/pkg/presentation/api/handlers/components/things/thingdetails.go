@@ -30,9 +30,8 @@ func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoa
 		thingDetailsPage := components.ThingDetailsPage(localizer, assets, thingDetails)
 		page := components.StartPage(version, localizer, assets, thingDetailsPage)
 
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		err = page.Render(ctx, w)
 		if err != nil {
@@ -49,9 +48,8 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, ass
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		if r.Method == http.MethodDelete {
 			ctx := r.Context()

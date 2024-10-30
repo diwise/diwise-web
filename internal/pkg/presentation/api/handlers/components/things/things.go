@@ -23,9 +23,8 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		ctx = helpers.Decorate(
 			r.Context(),
@@ -111,9 +110,8 @@ func NewThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets Ass
 
 		component := components.NewThing(localizer, assets, newThingViewModel)
 
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		err := component.Render(ctx, w)
 		if err != nil {
@@ -188,9 +186,8 @@ func NewCreateThingComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 
 func NewThingsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		ctx = helpers.Decorate(
 			r.Context(),
@@ -262,9 +259,8 @@ func NewThingsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 
 func NewThingsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		ctx = helpers.Decorate(
 			r.Context(),

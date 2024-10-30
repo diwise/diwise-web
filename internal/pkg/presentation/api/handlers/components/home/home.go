@@ -20,9 +20,8 @@ func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc,
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
 		ctx = helpers.Decorate(
@@ -73,9 +72,8 @@ func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc,
 
 func NewAlarmsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
 		ctx = helpers.Decorate(
@@ -116,10 +114,9 @@ func NewAlarmsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 
 func NewOverviewCardsHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "max-age=30")
 		w.Header().Add("Vary", "Accept-Language")
-		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
@@ -141,9 +138,8 @@ func NewOverviewCardsHandler(ctx context.Context, l10n LocaleBundle, assets Asse
 
 func NewUsageHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "max-age=600")
-		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
 		//localizer := l10n.For(r.Header.Get("Accept-Language"))

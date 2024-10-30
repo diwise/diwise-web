@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	github.com/a-h/templ v0.2.778
-	github.com/diwise/frontend-toolkit v0.0.0-20241029132651-98ce18eaf966
+	github.com/diwise/frontend-toolkit v0.0.0-20241030061314-0c966245d145
 	github.com/diwise/service-chassis v0.0.0-20241029140839-0f982044ce69
 	github.com/google/uuid v1.6.0
 	github.com/matryer/is v1.4.1

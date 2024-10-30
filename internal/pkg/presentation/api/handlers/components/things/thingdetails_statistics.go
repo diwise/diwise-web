@@ -19,9 +19,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
-		//w.Header().Add("Cache-Control", "max-age=60")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 
 		//localizer := l10n.For(r.Header.Get("Accept-Language"))

@@ -38,9 +38,8 @@ func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 		sensorDetails := components.SensorDetailsPage(localizer, assets, *detailsViewModel)
 		page := components.StartPage(version, localizer, assets, sensorDetails)
 
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		err = page.Render(ctx, w)
 		if err != nil {
@@ -74,9 +73,8 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, as
 			return
 		}
 
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
 		if mode == "edit" {

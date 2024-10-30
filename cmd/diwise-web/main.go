@@ -8,11 +8,13 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
+	"github.com/diwise/frontend-toolkit/pkg/middleware"
 	"github.com/diwise/service-chassis/pkg/infrastructure/buildinfo"
 	"github.com/diwise/service-chassis/pkg/infrastructure/env"
 	"github.com/diwise/service-chassis/pkg/infrastructure/net/http/authn"
@@ -108,7 +110,7 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 				}
 
 				mux := http.NewServeMux()
-				middleware := append(
+				middlewares := append(
 					make([]func(http.Handler) http.Handler, 0, 5),
 					api.VersionReloader(helpers.GetVersion(ctx)),
 					api.Logger(ctx),
@@ -116,15 +118,18 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 
 				if devModeEnabled {
 					mux = api.InstallDevmodeHandlers(ctx, mux)
-					middleware = append(middleware, api.NoLogin, api.NoCache)
+					middlewares = append(middlewares, api.NoLogin, api.NoCache)
 				} else {
 					svcCfg.pte.InstallHandlers(mux)
-					middleware = append(middleware, svcCfg.pte.Middleware)
+					middlewares = append(middlewares,
+						svcCfg.pte.Middleware,
+						middleware.StrictTransportSecurity(24*time.Hour),
+					)
 				}
 
-				middleware = append(middleware, authz.Middleware)
+				middlewares = append(middlewares, authz.Middleware)
 
-				err = api.RegisterHandlers(ctx, mux, middleware, svcCfg.app, flags[webAssetPath])
+				err = api.RegisterHandlers(ctx, mux, middlewares, svcCfg.app, flags[webAssetPath])
 				if err != nil {
 					return fmt.Errorf("failed to create new api handler: %s", err.Error())
 				}

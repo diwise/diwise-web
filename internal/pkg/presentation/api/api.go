@@ -30,6 +30,17 @@ type writerMiddleware struct {
 	statusCode    int
 }
 
+func (w *writerMiddleware) disableCache() {
+	if w.nocache {
+		const CacheHeader string = "Cache-Control"
+		currentValue, exists := w.rw.Header()[CacheHeader]
+		// Only set no-store if the endpoint hasn't already set immutable
+		if !exists || !strings.Contains(currentValue[0], "immutable") {
+			w.rw.Header()[CacheHeader] = []string{"no-store"}
+		}
+	}
+}
+
 func (w *writerMiddleware) Header() http.Header {
 	return w.rw.Header()
 }
@@ -40,7 +51,7 @@ func (w *writerMiddleware) Write(data []byte) (int, error) {
 	}
 
 	if w.nocache && w.contentLength == 0 {
-		w.rw.Header()["Cache-Control"] = []string{"no-store"}
+		w.disableCache()
 	}
 
 	count, err := w.rw.Write(data)
@@ -56,7 +67,7 @@ func (w *writerMiddleware) WriteHeader(statusCode int) {
 	}
 
 	if w.nocache {
-		w.rw.Header()["Cache-Control"] = []string{"no-store"}
+		w.disableCache()
 	}
 
 	w.statusCode = statusCode
@@ -125,7 +136,9 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 
 	r := http.NewServeMux()
 
-	assetLoader, _ := assets.NewLoader(ctx, assets.BasePath(assetPath), assets.Logger(logging.GetFromContext(ctx)))
+	assetLoader, _ := assets.NewLoader(ctx,
+		assets.BasePath(assetPath), assets.Logger(logging.GetFromContext(ctx)),
+	)
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
 	// home
@@ -187,6 +200,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	leafletSHA := assetLoader.Load("/css/leaflet.css").SHA256()
 
 	assets.RegisterEndpoints(ctx, assetLoader, assets.WithMux(r),
+		assets.WithImmutableExpiry(48*time.Hour),
 		assets.WithRedirect("/favicon.ico", "/icons/favicon.ico", http.StatusFound),
 		assets.WithRedirect(
 			fmt.Sprintf("/assets/%s/images/{img}", leafletSHA), "/images/leaflet-{img}", http.StatusMovedPermanently,
