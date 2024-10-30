@@ -247,7 +247,7 @@ other = "Point of interest"
 [pointoftime]
 other = "Time"
 
-[Pumpingstation]
+[PumpingStation]
 other = "Pumping station"
 
 [room]

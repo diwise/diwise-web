@@ -499,17 +499,17 @@ func OrganisationSelect(l10n Localizer, asset AssetLoaderFunc, id, selected stri
 		{
 			Value:    "",
 			Text:     l10n.Get("choose"),
-			Selected: true,
+			Selected: selected == "",
 			Hidden:   true,
 			Disabled: true,
 		},
 	}
 
-	for _, org := range organisations {
+	for i, org := range organisations {
 		viewModel = append(viewModel, OptionViewModel{
 			Value:    org,
 			Text:     org,
-			Selected: org == selected,
+			Selected: org == selected || (selected == "" && i == 0),
 		})
 	}
 
