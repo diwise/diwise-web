@@ -136,6 +136,7 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 
 				handler.Handle("GET /", mux)
 				handler.Handle("POST /", mux)
+				handler.Handle("DELETE /", mux)
 
 				return nil
 			}),
