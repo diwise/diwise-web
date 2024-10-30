@@ -99,8 +99,8 @@ func Logger(ctx context.Context) func(http.Handler) http.Handler {
 	}
 }
 
-func RequireHX(next http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func RequireHX(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		isHxRequest := r.Header.Get("HX-Request")
 		if isHxRequest != "true" {
 			http.Error(w, "bad request", http.StatusBadRequest)
@@ -108,7 +108,7 @@ func RequireHX(next http.Handler) http.HandlerFunc {
 		}
 
 		next.ServeHTTP(w, r)
-	}
+	})
 }
 
 func VersionReloader(version string) func(http.Handler) http.Handler {
@@ -142,23 +142,23 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
 	// home
-	r.HandleFunc("GET /", func() http.HandlerFunc {
+	r.Handle("GET /", func() http.Handler {
 		// GET / catches ALL routes that no other handler matches, so we need to make sure that
 		// we only serve the homepage when the path actually IS / (or /home as handled below).
 		next := home.NewHomePage(ctx, l10n, assetLoader.Load, app)
-		return func(w http.ResponseWriter, r *http.Request) {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path != "/" {
 				w.WriteHeader(http.StatusNotFound)
 				return
 			}
 
 			next(w, r)
-		}
+		})
 	}())
 	r.HandleFunc("GET /home", home.NewHomePage(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /components/home/statistics", RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/home/usage", RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/tables/alarms", RequireHX(home.NewAlarmsTable(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/home/statistics", RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/home/usage", RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/tables/alarms", RequireHX(home.NewAlarmsTable(ctx, l10n, assetLoader.Load, app)))
 
 	// things
 	r.HandleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load, app))
@@ -167,34 +167,34 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.HandleFunc("DELETE /things/{id}", things.DeleteThingComponentHandler(ctx, l10n, assetLoader.Load, app))
 
 	//things - components
-	r.HandleFunc("GET /components/things", RequireHX(things.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("POST /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("DELETE /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things", RequireHX(things.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("DELETE /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 
-	r.HandleFunc("GET /components/tables/things", RequireHX(things.NewThingsTable(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/things/list", RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/tables/things", RequireHX(things.NewThingsTable(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/list", RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))
 
 	// sensors
 	r.HandleFunc("GET /sensors", sensors.NewSensorsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /sensors/{id}", sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /components/sensors/details", RequireHX(sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/sensors/{id}/batterylevel", RequireHX(sensors.NewBatteryLevelComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/details", RequireHX(sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/{id}/batterylevel", RequireHX(sensors.NewBatteryLevelComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("POST /components/sensors/details", sensors.NewSaveSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /components/tables/sensors", RequireHX(sensors.NewSensorsTable(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/sensors/list", RequireHX(sensors.NewSensorsDataList(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/tables/sensors", RequireHX(sensors.NewSensorsTable(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/list", RequireHX(sensors.NewSensorsDataList(ctx, l10n, assetLoader.Load, app)))
 	//measurements
-	r.HandleFunc("GET /components/measurements", RequireHX(sensors.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/things/measurements/{id}", RequireHX(things.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/measurements", RequireHX(sensors.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/measurements/{id}", RequireHX(things.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	// admin
-	r.HandleFunc("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /admin/token", func(w http.ResponseWriter, r *http.Request) {
+	r.Handle("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /admin/token", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log := logging.GetFromContext(r.Context())
 		token := authz.Token(r.Context())
 		log.Debug("current token", slog.String("token", token))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(token))
-	})
+	}))
 
 	// Handle requests for leaflet images /assets/<leafletcss-sha>/images/<image>.png
 	leafletSHA := assetLoader.Load("/css/leaflet.css").SHA256()

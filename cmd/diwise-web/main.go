@@ -15,6 +15,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/frontend-toolkit/pkg/middleware"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	"github.com/diwise/service-chassis/pkg/infrastructure/buildinfo"
 	"github.com/diwise/service-chassis/pkg/infrastructure/env"
 	"github.com/diwise/service-chassis/pkg/infrastructure/net/http/authn"
@@ -34,7 +35,8 @@ func DefaultFlags() FlagMap {
 		servicePort:   "8080", //
 		controlPort:   "",     // control port disabled by default
 
-		devModeEnabled: "false",
+		devModeEnabled:        "false",
+		contentSecurityPolicy: "strict",
 	}
 }
 
@@ -111,10 +113,23 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 
 				mux := http.NewServeMux()
 				middlewares := append(
-					make([]func(http.Handler) http.Handler, 0, 5),
+					make([]func(http.Handler) http.Handler, 0, 10),
 					api.VersionReloader(helpers.GetVersion(ctx)),
 					api.Logger(ctx),
 				)
+
+				if flags[contentSecurityPolicy] != "off" {
+					if flags[contentSecurityPolicy] != "report" {
+						// default fallback is a strict csp unless one of the other modes are explicitly set
+						middlewares = append(middlewares,
+							csp.NewContentSecurityPolicy(csp.StrictDynamic()),
+						)
+					} else {
+						middlewares = append(middlewares,
+							csp.NewContentSecurityPolicy(csp.ReportOnly(), csp.StrictDynamic()),
+						)
+					}
+				}
 
 				if devModeEnabled {
 					mux = api.InstallDevmodeHandlers(ctx, mux)
@@ -181,6 +196,7 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 	flags[servicePort] = envOrDef(ctx, "SERVICE_PORT", flags[servicePort])
 	flags[controlPort] = envOrDef(ctx, "CONTROL_PORT", flags[controlPort])
 	flags[webAssetPath] = envOrDef(ctx, "DIWISEWEB_ASSET_PATH", "/opt/diwise/assets")
+	flags[contentSecurityPolicy] = envOrDef(ctx, "CONTENT_SECURITY_POLICY", flags[contentSecurityPolicy])
 
 	defaultAppRoot := fmt.Sprintf("http://localhost:%s", flags[servicePort])
 	flags[appRoot] = envOrDef(ctx, "APP_ROOT", defaultAppRoot)
@@ -198,6 +214,7 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 
 	// Allow command line arguments to override defaults and environment variables
 	flag.BoolFunc("devmode", "enable devmode with fake backend data", apply(devModeEnabled))
+	flag.Func("csp", "set content security policy to strict, report or off", apply(contentSecurityPolicy))
 	flag.Func("web-assets", "path to web assets folder", apply(webAssetPath))
 	flag.Parse()
 

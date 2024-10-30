@@ -27,6 +27,8 @@ const (
 	oauth2RealmURL
 	oauth2ClientID
 	oauth2ClientSecret
+
+	contentSecurityPolicy
 )
 
 type AppConfig struct {
