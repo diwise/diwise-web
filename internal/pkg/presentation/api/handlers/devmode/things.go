@@ -749,6 +749,9 @@ var thingsJsonFormat = `
                     "deviceID": "fa9869d8-7c25-48ef-9274-0eb4c050bc82"
                 }
             ],
+            "tags": [
+                "Strand"
+            ],
             "subType": "Beach",
             "temperature": 7.031499999999999,
             "tenant": "default",

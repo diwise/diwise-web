@@ -188,7 +188,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
         });
 
         //Start polygon
-        var polygonCoordinates = [
+        /*var polygonCoordinates = [
             [62.363857, 17.508050],  
             [62.363792, 17.509044],  
             [62.363405, 17.510456],  
@@ -203,10 +203,10 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             fillOpacity: 0.5    
         }).addTo(map);
 
-        var center = polygon.getBounds().getCenter();  
+        var center = polygon.getBounds().getCenter();
 
         const iconType = 'beach';
-        const { iconUrl } = getIconByTypeAndTheme(iconType, isDarkMode);
+        const { iconUrl } = getIconByTypeAndTheme(iconType, subtype, isDarkMode);
 
         const tipColor = isDarkMode ? '#FFFFFF' : '#1F1F25';
         const tipIcon = generateTipIcon(tipColor)
@@ -254,27 +254,42 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                     '</a>' +
                                 '</div>';
 
-        //polygon.bindPopup("Det här är en polygon!");
-        marker.bindPopup(popupPolygon);
+        polygon.bindPopup("Det här är en polygon!");
+        marker.bindPopup(popupPolygon);*/
         
-        function getIconByTypeAndTheme(type, isDarkMode) {
+        function getIconByTypeAndTheme(type, subtype, isDarkMode) {
             let iconUrl;
-
             switch (type) {
+                case 'building':
+                    iconUrl = isDarkMode ? '/assets/1a2e9128692ce6616e3fecbef81fe0e308d3a5fa382c4752005c5a674690c5f2/buildingblack.svg' : '/assets/c9f93bbd7145af1e29a2ae53e2e28bc3c4925ac514959ce38a5585bb90ea689a/building.svg';
+                    break;
                 case 'sensor':
                     iconUrl = isDarkMode ? '/assets/ea4fbf040ffc101dcc425140ef38ba0f840c63af0f7b5a1d3d5f3868a8c6c5fb/sensorblack.svg' : '/assets/34ed2a96f7750c911539c45ae445b9b3cf95264ac9eb7f194718b86215aadb6b/sensor.svg';
                     break;
-                case 'wastecontainer':
-                    iconUrl = isDarkMode ? '/assets/fffe78b7b16e41765bad95685cbbbcb529b6ceb2e7e6ee4b5086b57b9b451768/wastecontainerblack.svg' : '/assets/5d00f7f613cd020b3a46427c3854f9f2b3b42f35a2de051b4f5187df4984cbdd/wastecontainer.svg';
+                case 'container':
+                    switch (subtype) {
+                        case 'wastecontainer':
+                            iconUrl = isDarkMode ? '/assets/fffe78b7b16e41765bad95685cbbbcb529b6ceb2e7e6ee4b5086b57b9b451768/wastecontainerblack.svg' : '/assets/5d00f7f613cd020b3a46427c3854f9f2b3b42f35a2de051b4f5187df4984cbdd/wastecontainer.svg';
+                            break;
+                        case 'sandstorage':
+                            iconUrl = isDarkMode ? '/assets/db0e25bc57ab0e6232d08eecd73fc7a0c04c5bc90fb2f7f2ceae114f0644d159/sandstorageblack.svg' : '/assets/c5b697a2a9ba29ba3d356ad069b1cbd04f151dcd1aa90c3f86539a01253e5c72/sandstorage.svg';
+                            break;        
+                    }
                     break;
                 case 'lifebuoy':
                     iconUrl = isDarkMode ? '/assets/0f3ec38666b68391f3ce390dd4ff4f815109488e727f9c1328ec8180dc155d76/lifebuoyblack.svg' : '/assets/d10dc3c02604380dc75e7b122c2784a2b8c4a525ffd4deee8e714ff0abe97cc8/lifebuoy.svg';
                     break;
                 case 'room':
                 case 'beach':
-                    iconUrl = isDarkMode ? '/assets/f7d100ec98e4fa52cc4d7799ee0e9bd12ed22b45512d6ab4c1b7bde97de9b5c4/thermometerblack.svg' : '/assets/aec35d334f322aea4da1b6b70a627083d1e67f9acb58c11c8ad30dcf317a55c7/thermometer.svg';
+                case 'pointofinterest':
+                    switch (subtype) {
+                        case 'beach':
+                            iconUrl = isDarkMode ? '/assets/f7d100ec98e4fa52cc4d7799ee0e9bd12ed22b45512d6ab4c1b7bde97de9b5c4/thermometerblack.svg' : '/assets/aec35d334f322aea4da1b6b70a627083d1e67f9acb58c11c8ad30dcf317a55c7/thermometer.svg';
+                            break;
+                    }
                     break;
                 case 'sewer':
+                case 'pumpingstation':
                 case 'sewagepumpingstation':
                 case 'combinedsewageoverflow':
                 case 'drain':
@@ -315,12 +330,13 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     L.geoJSON(feature, { 
                        pointToLayer: function(feature, latlng) {
                             const type = feature.properties.type.toLowerCase();
+                            const subtype = feature.properties.subtype.toLowerCase();
                             const { colorClass, lightipColor, darktipColor } = getColorByState(feature.properties.state);
                             const tipColor = isDarkMode ? darktipColor : lightipColor;
                             const tipIcon = generateTipIcon(tipColor)
 
                             // Hämta rätt ikon-URL och storlek beroende på typen och om det är mörkt eller ljust tema
-                            const { iconUrl } = getIconByTypeAndTheme(type, isDarkMode);
+                            const { iconUrl } = getIconByTypeAndTheme(type, subtype, isDarkMode);
                             const fillingLevelHtml = feature.properties.fillinglevel ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' : '';
 
                             const divIcon = L.divIcon({
@@ -355,7 +371,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                 } else {
                                     tagList = '';
                                 }
-
+                                
                                 if (cv === "sensor") {
                                     popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base">' +
                                                         '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
@@ -398,22 +414,33 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                             '</div>' +
                                                         '</a>' +
                                                     '</div>';
-                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "wastecontainer") {
-                                    var colourClass = "bg-background-200";
-
-                                    if (feature.properties.fillinglevel >= 51) {
-                                        colourClass = "bg-red-600 dark:bg-err-prim-surf";
-                                    } else if (feature.properties.fillinglevel <= 30) {
-                                        colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
-                                    } else {
-                                        colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "container") {
+                                   var colourClass = "bg-background-200";
+                                    if (feature.properties.subtype.toLowerCase() == "wastecontainer") {
+                                        if (feature.properties.fillinglevel >= 51) {
+                                            colourClass = "bg-red-600 dark:bg-err-prim-surf";
+                                        } else if (feature.properties.fillinglevel <= 30) {
+                                            colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
+                                        } else {
+                                            colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                        }
                                     }
+                                    else if (feature.properties.subtype.toLowerCase() == "sandstorage") {
+                                        if (feature.properties.fillinglevel <= 51) {
+                                            colourClass = "bg-red-600 dark:bg-err-prim-surf";
+                                        } else if (feature.properties.fillinglevel >= 70) {
+                                            colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
+                                        } else {
+                                            colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                        }
+                                    }
+                                    
                                         popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base">' +
                                                             '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
                                                                 '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                    '<div class="flex items-center gap-2">' +
-                                                                        '<div class="font-bold">' + feature.properties.text_id + '</div>' +
-                                                                        '<div class="">' + feature.properties.id + '</div>' +
+                                                                    '<div class="flex items-start gap-2">' +
+                                                                        '<div class="font-bold">' + feature.properties.text_name + '</div>' +
+                                                                        '<div class="">' + feature.properties.name + '</div>' +
                                                                     '</div>' +
                                                                     '<div class="flex flex-col items-start justify-center gap-2 self-stretch">' +
                                                                         '<div class="font-bold">' + feature.properties.text_fillinglevel + '</div>' +
@@ -445,8 +472,8 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
                                                             '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                                 '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_id + '</div>' +
-                                                                    '<div class="">' + feature.properties.id + '</div>' +
+                                                                    '<div class="font-bold">' + feature.properties.text_name + '</div>' +
+                                                                    '<div class="">' + feature.properties.name + '</div>' +
                                                                 '</div>' +
                                                                 '<div class="flex items-center gap-2"></div>' +
                                                                     '<div class="flex items-start gap-2">' +
@@ -470,8 +497,8 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
                                                             '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                                 '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_id + '</div>' +
-                                                                    '<div class="">' + feature.properties.id + '</div>' +
+                                                                    '<div class="font-bold">' + feature.properties.text_name + '</div>' +
+                                                                    '<div class="">' + feature.properties.name + '</div>' +
                                                                 '</div>' +
                                                                 '<div class="flex items-center gap-2">' +
                                                                     '<div class="font-bold">' + feature.properties.text_overflow + '</div>' +
@@ -498,8 +525,8 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
                                                             '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                                 '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_id + '</div>' +
-                                                                    '<div class="">' + feature.properties.id + '</div>' +
+                                                                    '<div class="font-bold">' + feature.properties.text_name + '</div>' +
+                                                                    '<div class="">' + feature.properties.name + '</div>' +
                                                                 '</div>' +
                                                                 '<div class="flex items-center gap-2">' +
                                                                     '<div class="font-bold">' + feature.properties.text_information + '</div>' +

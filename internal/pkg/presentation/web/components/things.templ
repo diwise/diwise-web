@@ -625,7 +625,6 @@ func WasteContainerCell(l10n Localizer, t ThingViewModel) templ.Component {
 	return ProgressBar(colourClass, text, int(value))
 }
 
-// TODO: Uppdatera till korrekt data
 func SandStorageCell(l10n Localizer, t ThingViewModel) templ.Component {
 	v, ok := t.Properties["percent"]
 	if !ok {
@@ -678,7 +677,9 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		}
 		feature := NewFeature(NewPoint(thing.Latitude, thing.Longitude))
 		feature.AddProperty("type", strings.ToLower(thing.Type))
+		feature.AddProperty("subtype", strings.ToLower(thing.SubType))
 		feature.AddProperty("id", thing.ID)
+		feature.AddProperty("name", thing.Name)
 
 		if len(thing.Tags) > 0 {
 			feature.AddProperty("tags", thing.Tags)
@@ -686,18 +687,37 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 			feature.AddProperty("tags", nil)
 		}
 
-		if strings.ToLower(thing.Type) == "wastecontainer" {
-			fl, ok := thing.Properties["percent"].(*float64)
+		if strings.ToLower(thing.SubType) == "wastecontainer" {
+			fl, ok := thing.Properties["percent"].(float64)
 			if ok {
 				var state string
-				if *fl >= 51 {
+				if fl >= 51 {
 					state = "red"
-				} else if *fl > 31 {
+				} else if fl > 31 {
 					state = "orange"
 				} else {
 					state = "green"
 				}
-				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", *fl))
+				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
+				feature.AddProperty("state", state)
+			} else {
+				feature.AddProperty("fillinglevel", "") // Eller 0 om det inte finns data
+				feature.AddProperty("state", "black")
+			}
+		}
+
+		if strings.ToLower(thing.SubType) == "sandstorage" {
+			fl, ok := thing.Properties["percent"].(float64)
+			if ok {
+				var state string
+				if fl >= 51 {
+					state = "green"
+				} else if fl > 31 {
+					state = "orange"
+				} else {
+					state = "red"
+				}
+				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
 				feature.AddProperty("state", state)
 			} else {
 				feature.AddProperty("fillinglevel", "") // Eller 0 om det inte finns data
@@ -734,6 +754,7 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		feature.AddProperty("text_information", l10n.Get("information"))
 		feature.AddProperty("text_overflow", l10n.Get("overflow"))
 		feature.AddProperty("text_moreinformation", l10n.Get("moreinformation"))
+		feature.AddProperty("text_name", l10n.Get("name"))
 		feature.AddProperty("text_position", l10n.Get("location"))
 		feature.AddProperty("text_tags", l10n.Get("tags"))
 
