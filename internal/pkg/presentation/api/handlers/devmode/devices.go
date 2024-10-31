@@ -12,8 +12,8 @@ import (
 )
 
 var testDevices = []testDevice{
-	{active, online_, "default", "a", "b", "numero uno", "unknown"},
-	{inactv, offline, "default", "a", "b", "numero due", "calcosonic"},
+	{active, online_, "default", "a", "b", "numero uno", "unknown", pos{62.389765, 17.306348}},
+	{inactv, offline, "default", "a", "b", "numero due", "calcosonic", pos{62.398436, 17.294149}},
 }
 
 const deviceJsonFormat string = `{
@@ -24,8 +24,8 @@ const deviceJsonFormat string = `{
 	"name": "%s",
 	"description": "",
 	"location": {
-	  "latitude": 0,
-	  "longitude": 0
+	  "latitude": %f,
+	  "longitude": %f
 	},
 	"types": [
 	  {
@@ -109,8 +109,8 @@ func isType(theType string) func(*testDevice) bool {
 
 func allDevices(d *testDevice) bool { return true }
 
-func deviceJson(active, online bool, sID, dID, tenant, name, profilename string) string {
-	return fmt.Sprintf(deviceJsonFormat, active, sID, dID, tenant, name, profilename, online)
+func deviceJson(active, online bool, sID, dID, tenant, name, profilename string, loc pos) string {
+	return fmt.Sprintf(deviceJsonFormat, active, sID, dID, tenant, name, loc.lat, loc.lon, profilename, online)
 }
 
 func newDeviceResponseFromFilters(limit int, filters ...func(d *testDevice) bool) application.ApiResponse {
@@ -139,6 +139,7 @@ func newDeviceResponseFromFilters(limit int, filters ...func(d *testDevice) bool
 						conf.tenant,
 						conf.name,
 						conf.profilename,
+						conf.location,
 					),
 				)
 			}
@@ -172,6 +173,10 @@ const inactv bool = false
 const online_ bool = true
 const offline bool = false
 
+type pos struct {
+	lat float64
+	lon float64
+}
 type testDevice struct {
 	active      bool
 	online      bool
@@ -180,4 +185,6 @@ type testDevice struct {
 	deviceID    string
 	name        string
 	profilename string
+
+	location pos
 }
