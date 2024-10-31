@@ -2,12 +2,11 @@ package components
 
 import (
 	"fmt"
+	. "github.com/diwise/frontend-toolkit"
 	"slices"
 	"sort"
 	"strings"
 	"time"
-
-	. "github.com/diwise/frontend-toolkit"
 )
 
 type ThingsListViewModel struct {
@@ -50,6 +49,15 @@ func (t ThingViewModel) GetFloatOrDefault(key string, defaultValue float64) floa
 		}
 	}
 	return defaultValue
+}
+
+func (t ThingViewModel) GetFloat(key string) (float64, bool) {
+	if v, ok := t.Properties[key]; ok {
+		if f, ok := v.(float64); ok {
+			return f, true
+		}
+	}
+	return 0.0, false
 }
 
 func (t ThingViewModel) GetFloatAsString(key string, defaultValue float64) string {
@@ -508,10 +516,10 @@ func ThingStatusCell(l10n Localizer, thing ThingViewModel) templ.Component {
 		fallthrough
 	case "container":
 		switch strings.ToLower(thing.SubType) {
-			case "wastecontainer":
-				return WasteContainerCell(l10n, thing)
-			case "sandstorage":
-				return SandStorageCell(l10n, thing)
+		case "wastecontainer":
+			return WasteContainerCell(l10n, thing)
+		case "sandstorage":
+			return SandStorageCell(l10n, thing)
 		}
 		return templ.NopComponent
 	case "lifebuoy":
