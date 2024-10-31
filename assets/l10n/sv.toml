@@ -127,6 +127,9 @@ other = "Information"
 [lastseen]
 other = "Senast sedd"
 
+[level]
+other = "Nivå"
+
 [list]
 other = "Lista"
 
@@ -216,6 +219,9 @@ other = "Antal passager idag"
 
 [numberofsensors]
 other = "Antal sensorer"
+
+[off]
+other = "Av"
 
 [offline]
 other = "Offline"

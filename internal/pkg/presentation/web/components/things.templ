@@ -575,8 +575,15 @@ func SewerCell(l10n Localizer, t ThingViewModel) templ.Component {
 	var components []templ.Component
 
 	if okOverflow {
+		
 		if vb, ok := overflowObserved.(bool); ok {
-			components = append(components, Text(fmt.Sprintf("Overflow: %t", vb)))
+			var vbTranslation string
+			if vb {
+				vbTranslation = l10n.Get("yes") 
+			} else {
+				vbTranslation = l10n.Get("no") 
+			}
+			components = append(components, Text(fmt.Sprintf("%s: %s, ", l10n.Get("overflow"), vbTranslation)))
 		}
 	}
 
@@ -584,10 +591,10 @@ func SewerCell(l10n Localizer, t ThingViewModel) templ.Component {
 		if v, ok := currentLevel.(float64); ok {
 			if okPercent {
 				if p, ok := percent.(float64); ok {
-					components = append(components, Text(fmt.Sprintf("Level: %0.fm (%0.f%%)", v, p)))
+					components = append(components, Text(fmt.Sprintf("%s: %0.fm (%0.f%%)", l10n.Get("level"), v, p)))
 				}
 			} else {
-				components = append(components, Text(fmt.Sprintf("Level: %0.fm", v)))
+				components = append(components, Text(fmt.Sprintf("%s: %0.fm", l10n.Get("level"), v)))
 			}
 		}
 	}
