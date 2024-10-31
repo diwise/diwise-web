@@ -696,8 +696,7 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		}
 
 		if strings.ToLower(thing.SubType) == "wastecontainer" {
-			fl, ok := thing.Properties["percent"].(float64)
-			if ok {
+			if fl, ok := thing.GetFloat("percent"); ok {
 				var state string
 				if fl >= 51 {
 					state = "red"
@@ -715,8 +714,7 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		}
 
 		if strings.ToLower(thing.SubType) == "sandstorage" {
-			fl, ok := thing.Properties["percent"].(float64)
-			if ok {
+			if fl, ok := thing.GetFloat("percent"); ok {
 				var state string
 				if fl >= 51 {
 					state = "green"
@@ -730,6 +728,13 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 			} else {
 				feature.AddProperty("fillinglevel", "") // Eller 0 om det inte finns data
 				feature.AddProperty("state", "black")
+			}
+		}
+
+		if strings.ToLower(thing.SubType) == "beach" {
+			if t, ok := thing.GetFloat("temperature"); ok {
+				formattedTemp := fmt.Sprintf("%.1f", t)
+				feature.AddProperty("temperature", formattedTemp)
 			}
 		}
 
@@ -755,6 +760,7 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		feature.AddProperty("latitude", thing.Latitude)
 		feature.AddProperty("longitude", thing.Longitude)
 		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ID))
+		
 
 		//Språkstöd
 		feature.AddProperty("text_fillinglevel", l10n.Get("fillinglevel"))
@@ -765,6 +771,7 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		feature.AddProperty("text_name", l10n.Get("name"))
 		feature.AddProperty("text_position", l10n.Get("location"))
 		feature.AddProperty("text_tags", l10n.Get("tags"))
+		feature.AddProperty("text_temperature", l10n.Get("temperature"))
 
 		features = append(features, feature)
 	}

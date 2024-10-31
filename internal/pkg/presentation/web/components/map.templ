@@ -338,13 +338,14 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                             // Hämta rätt ikon-URL och storlek beroende på typen och om det är mörkt eller ljust tema
                             const { iconUrl } = getIconByTypeAndTheme(type, subtype, isDarkMode);
                             const fillingLevelHtml = feature.properties.fillinglevel ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' : '';
+                            const temperatureHTML = feature.properties.temperature ? '<div class="text-sm font-bold">' + feature.properties.temperature + '&nbsp;°C</div>' : '';
 
                             const divIcon = L.divIcon({
                                 className: '',
                                 html: '<div class="flex flex-col items-center"><div class="flex flex-col items-center justify-center ' + colorClass + ' text-white dark:text-primary-dark p-2 rounded-lg shadow-md gap-2">' + 
                                         '<div class="flex flex-row items-center gap-2">' +
                                             '<img src="' + iconUrl + '">' +
-                                            fillingLevelHtml +
+                                            fillingLevelHtml + temperatureHTML +
                                         '</div></div>' +
                                     '<div class="flex items-center">' + tipIcon + '</div></div>',
                                 iconSize: [60, 44],
