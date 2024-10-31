@@ -330,7 +330,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     L.geoJSON(feature, { 
                        pointToLayer: function(feature, latlng) {
                             const type = feature.properties.type.toLowerCase();
-                            const subtype = feature.properties.subtype.toLowerCase();
+                            const subtype = feature.properties.subtype !== undefined ? feature.properties.subtype.toLowerCase() : '';
                             const { colorClass, lightipColor, darktipColor } = getColorByState(feature.properties.state);
                             const tipColor = isDarkMode ? darktipColor : lightipColor;
                             const tipIcon = generateTipIcon(tipColor)
