@@ -291,7 +291,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                 case 'sewer':
                 case 'pumpingstation':
                 case 'sewagepumpingstation':
-                case 'combinedsewageoverflow':
+                case 'combinedseweroverflow':
                 case 'drain':
                     iconUrl = isDarkMode ? '/assets/894182e183a94ca34fd8014583fd81269bcb97a88dddfd3ca4c438df4542c41c/sewerblack.svg' : '/assets/b7c62f1202a77226a1a6ca1012eb9ea996f1924135cf82fdbc725f2bfacee904/sewer.svg';
                     break;
@@ -460,7 +460,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                 tagList + 
                                                                 moreinformation +
                                                             '</div>';
-                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "combinedsewageoverflow") {
+                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "combinedseweroverflow") {
                                     popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base">' +
                                                         '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
                                                             '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +

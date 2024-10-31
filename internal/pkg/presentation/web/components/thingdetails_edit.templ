@@ -296,14 +296,14 @@ func editThingDetailType(l10n Localizer, model ThingDetailsViewModel) templ.Comp
 	case "room":
 		return EditRoom(l10n, model)
 	case "sewer":
-		return EditCombinedSewageOverflow(l10n, model)
+		return EditCombinedSewerOverflow(l10n, model)
 	case "watermeter":
 	}
 
 	return templ.NopComponent
 }
 
-templ EditCombinedSewageOverflow(l10n Localizer, model ThingDetailsViewModel) {
+templ EditCombinedSewerOverflow(l10n Localizer, model ThingDetailsViewModel) {
 	@ConnectOneSensor(l10n, model)
 }
 

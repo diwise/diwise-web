@@ -738,7 +738,7 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 			}
 		}
 
-		if strings.ToLower(thing.Type) == "combinedsewageoverflow" {
+		if strings.ToLower(thing.Type) == "combinedseweroverflow" {
 			i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
 				return strings.HasSuffix(m.ID, "3350/5850") // ID för Combined Sewage Overflow/Stopwatch/OnOff
 			})

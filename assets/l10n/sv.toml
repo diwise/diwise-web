@@ -457,10 +457,10 @@ other = "Fyllnadsnivå"
 [Sewer-CombinedSewerOverflow]
 other = "Bräddavlopp"
 
-[CombinedSewageOverflow]
+[CombinedSewerOverflow]
 other = "Bräddavlopp"
 
-[combinedsewageoverflow]
+[combinedseweroverflow]
 other = "Bräddavlopp"
 
 [passage]

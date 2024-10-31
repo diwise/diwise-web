@@ -457,10 +457,10 @@ other = "Filling level"
 [Sewer-CombinedSewerOverflow]
 other = "Combined sewer overflow"
 
-[CombinedSewageOverflow]
+[CombinedSewerOverflow]
 other = "Combined sewer overflow"
 
-[combinedsewageoverflow]
+[combinedseweroverflow]
 other = "Combined sewer overflow"
 
 [passage]
