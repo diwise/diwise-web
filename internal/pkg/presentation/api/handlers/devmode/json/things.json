@@ -162,6 +162,9 @@
             ],
             "subType": "Beach",
             "temperature": 5.125,
+            "tags": [
+                "Strand"
+            ],
             "tenant": "default",
             "type": "PointOfInterest",
             "validURN": [

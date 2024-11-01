@@ -40,12 +40,14 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 										{ l10n.Get(model.Thing.Type) }
 									</div>
 								</div>
-								<div class="flex flex-col gap-2 flex-1">
-									<div class="font-bold">{ l10n.Get("category") }</div>
-									<div class="">
-										{ l10n.Get(model.Thing.SubType) }
+								if model.Thing.SubType != "" {
+									<div class="flex flex-col gap-2 flex-1">
+										<div class="font-bold">{ l10n.Get("category") }</div>
+										<div class="">
+											{ l10n.Get(model.Thing.SubType) }
+										</div>
 									</div>
-								</div>
+								}
 							</div>
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-1">

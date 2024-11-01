@@ -85,10 +85,12 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 							<div class="font-bold">{ l10n.Get("thingtype") }</div>
 							<div class="">{ l10n.Get(model.Thing.Type) }</div>
 						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("category") }</div>
-							<div class="">{ l10n.Get(model.Thing.SubType) }</div>
-						</div>
+						if model.Thing.SubType != "" {
+							<div class="flex flex-start gap-2">
+								<div class="font-bold">{ l10n.Get("category") }</div>
+								<div class="">{ l10n.Get(model.Thing.SubType) }</div>
+							</div>
+						}
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("name") }</div>
 							if model.Thing.Name == "" {
