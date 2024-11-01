@@ -10,6 +10,7 @@ import (
 
 func ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsViewModel) templ.Component {
 	thingType := strings.ToLower(model.Thing.Type)
+	subType := strings.ToLower(model.Thing.SubType)
 
 	switch thingType {
 	case "beach":
@@ -18,10 +19,13 @@ func ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsVi
 		return templ.NopComponent
 	case "building":
 		return templ.NopComponent
-	case "wastecontainer":
-		fallthrough
 	case "container":
-		return thingTypeStatistics(StatisticsWasteContainer(l10n, model))
+		switch subType {
+			case "wastecontainer":
+				return thingTypeStatistics(StatisticsWasteContainer(l10n, model))
+			case "sandstorage":
+				return thingTypeStatistics(StatisticsSandStorage(l10n, model))
+		}
 	case "lifebuoy":
 		return templ.NopComponent
 	case "passage":
@@ -42,6 +46,21 @@ templ thingTypeStatistics(component templ.Component) {
 	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
 		@component
 	</div>
+	<script>
+		function showGraph() {
+			document.getElementById('statisticsGraph').style.display = 'block';
+			document.getElementById('statisticsTable').style.display = 'none';
+		}
+
+		function showTable() {
+			document.getElementById('statisticsGraph').style.display = 'none';
+			document.getElementById('statisticsTable').style.display = 'block';
+		}
+
+		document.addEventListener('DOMContentLoaded', function () {
+			showGraph();
+		});
+	</script>
 }
 
 templ StatisticsFilter(l10n Localizer, model ThingDetailsViewModel) {
@@ -181,21 +200,6 @@ templ StatisticsWasteContainer(l10n Localizer, model ThingDetailsViewModel) {
 	<div id="statisticsTable" class="w-full hidden">
 		@StatisticsWasteContainerTable(l10n, model)
 	</div>
-	<script>
-		function showGraph() {
-			document.getElementById('statisticsGraph').style.display = 'block';
-			document.getElementById('statisticsTable').style.display = 'none';
-		}
-
-		function showTable() {
-			document.getElementById('statisticsGraph').style.display = 'none';
-			document.getElementById('statisticsTable').style.display = 'block';
-		}
-
-		document.addEventListener('DOMContentLoaded', function () {
-			showGraph();
-		});
-	</script>
 }
 
 func WastecontainerChart(datasets []ChartDataset) templ.Component {
@@ -299,20 +303,22 @@ templ StatisticsSewerTableRow(l10n Localizer, thing MeasurementViewModel) {
 }
 
 templ StatisticsSandStorage(l10n Localizer, model ThingDetailsViewModel) {
-	//Statistik
-	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
-		<div class="flex items-center w-full justify-between">
-			<div class="flex flex-col gap-2">
-				<div class="">{ l10n.Get("currentlevel") }</div>
-				<div class="text-3xl font-bold">
-					{ fmt.Sprintf("%0.f%%", model.Thing.GetFloatOrDefault("percent", 0)) }
-				</div>
-			</div>
-			<div class="flex items-center gap-6">
-				@StatisticsFilter(l10n, model)
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("currentlevel") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%0.f%%", model.Thing.GetFloatOrDefault("percent", 0)) }
 			</div>
 		</div>
-		@StatisticsData(l10n, RenderStatisticsGraph(l10n, model), StatisticsSandStorageTable(l10n, model), model.TableView)
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsSandStorageTable(l10n, model)
 	</div>
 }
 
@@ -350,10 +356,16 @@ templ StatisticsSandStorageTable(l10n Localizer, model ThingDetailsViewModel) {
 	</table>
 }
 
-templ StatisticsSandStorageTableRow(l10n Localizer, thing MeasurementViewModel) {
+templ StatisticsSandStorageTableRow(l10n Localizer, measurement MeasurementViewModel) {
 	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
-		<td class="px-6 py-3">00:00</td>
-		<td class="px-6 py-3">20%</td>
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%0.f%%", *measurement.Value) }
+			} else {
+				{ l10n.Get("noData") }
+			}
+		</td>
 	</tr>
 }
 
