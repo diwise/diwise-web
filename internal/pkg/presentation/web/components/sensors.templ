@@ -291,8 +291,8 @@ templ TableOrMap(l10n Localizer, hxGet string) {
 					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=false", hxGet))) }
 					hx-target="#tableOrMap"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
-					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white'); this.classList.remove('dark:fill-white', 'stroke-black'); 
-					document.getElementById('mapButton').classList.add('fill-black', 'dark:fill-white'); 
+					hx-on:click="this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white'); this.classList.remove('dark:fill-white', 'stroke-black');
+					document.getElementById('mapButton').classList.add('fill-black', 'dark:fill-white');
 					document.getElementById('mapButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');"
 				>
 					<svg class="w-[18px] h-[18px]">
@@ -307,8 +307,8 @@ templ TableOrMap(l10n Localizer, hxGet string) {
 					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=true", hxGet))) }
 					hx-target="#tableOrMap"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
-					hx-on="click: this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white'); 
-					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
+					hx-on:click="this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white');
+					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black');
 					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
 				>
 					<svg class="w-[18px] h-[18px]">

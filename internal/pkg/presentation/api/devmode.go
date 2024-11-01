@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/devmode"
 )
@@ -11,7 +12,11 @@ const DevModePrefix string = "/devmode"
 
 func NoCache(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		wmw := &writerMiddleware{rw: w, nocache: true}
+		wmw := &writerMiddleware{
+			rw:       w,
+			nocache:  true,
+			isStream: len(r.Header["Accept"]) > 0 && strings.Contains(r.Header["Accept"][0], "text/event-stream"),
+		}
 		next.ServeHTTP(wmw, r)
 	})
 }

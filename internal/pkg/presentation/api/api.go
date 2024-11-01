@@ -28,6 +28,7 @@ type writerMiddleware struct {
 
 	contentLength int
 	statusCode    int
+	isStream      bool
 }
 
 func (w *writerMiddleware) disableCache() {
@@ -41,12 +42,19 @@ func (w *writerMiddleware) disableCache() {
 	}
 }
 
+func (w *writerMiddleware) Flush() {
+	f, ok := w.rw.(http.Flusher)
+	if ok {
+		f.Flush()
+	}
+}
+
 func (w *writerMiddleware) Header() http.Header {
 	return w.rw.Header()
 }
 
 func (w *writerMiddleware) Write(data []byte) (int, error) {
-	if w.statusCode == 0 {
+	if w.statusCode == 0 && !w.isStream {
 		fmt.Println("write wo header!")
 	}
 
@@ -79,7 +87,10 @@ func Logger(ctx context.Context) func(http.Handler) http.Handler {
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			wmw := &writerMiddleware{rw: w}
+			wmw := &writerMiddleware{
+				rw:       w,
+				isStream: len(r.Header["Accept"]) > 0 && strings.Contains(r.Header["Accept"][0], "text/event-stream"),
+			}
 			start := time.Now()
 
 			ctx := logging.NewContextWithLogger(r.Context(), log)
@@ -194,6 +205,65 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 		log.Debug("current token", slog.String("token", token))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(token))
+	}))
+
+	// TODO: Move this handler to a place of its own
+	r.Handle("GET /events/{version}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		out, ok := w.(http.Flusher)
+
+		if !ok {
+			http.Error(w, "streaming not supported", http.StatusInternalServerError)
+			return
+		}
+
+		log := logging.GetFromContext(r.Context())
+
+		w.Header().Set("Content-Type", "text/event-stream; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+		w.Header().Set("X-Accel-Buffering", "no")
+
+		const eventFmt string = "event: %s\ndata: %s\n\n"
+
+		log.Info("comparing versions", "client", r.PathValue("version"), "mine", helpers.GetVersion(ctx))
+
+		if r.PathValue("version") != helpers.GetVersion(ctx) {
+			log.Warn("client is out of date, sending upgrade and goodbye messages")
+			fmt.Fprintf(w, eventFmt, "upgrade", helpers.GetVersion(ctx))
+			out.Flush()
+			fmt.Fprintf(w, eventFmt, "goodbye", "see you soon")
+			out.Flush()
+
+			select {
+			case <-time.After(time.Second):
+				return
+			case <-r.Context().Done():
+				return
+			}
+		}
+
+		log.Info("client connected, sending hello")
+		fmt.Fprintf(w, eventFmt, "hello", "version handshake ok")
+		out.Flush()
+
+		tmr := time.NewTicker(5 * time.Second)
+
+		for {
+			select {
+			case t := <-tmr.C:
+				fmt.Fprintf(w, eventFmt, "tick", t.Format(time.RFC3339Nano))
+				out.Flush()
+			case <-r.Context().Done():
+				log.Info("sse client closed the connection")
+				return
+			case <-ctx.Done():
+				log.Info("we are closing down, sending goodbye to client")
+				fmt.Fprintf(w, eventFmt, "goodbye", "system closing down")
+				out.Flush()
+				return
+			}
+		}
 	}))
 
 	// Handle requests for leaflet images /assets/<leafletcss-sha>/images/<image>.png

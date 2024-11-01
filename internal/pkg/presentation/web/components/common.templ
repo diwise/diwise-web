@@ -518,9 +518,9 @@ templ graphTableButtons(l10n Localizer) {
 				<button
 					id="graphButton"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black stroke-white dark:bg-white dark:stroke-black hover:bg-tertiary-surface-hover"
-					hx-on="click: showGraph(); 
-					this.classList.add('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black'); this.classList.remove('stroke-black', 'dark:stroke-white'); 
-					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black'); 
+					hx-on:click="showGraph();
+					this.classList.add('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black'); this.classList.remove('stroke-black', 'dark:stroke-white');
+					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black');
 					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');">
 					<svg class="w-[18px] h-[18px]">
 						@SVG("chartline", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
@@ -532,9 +532,9 @@ templ graphTableButtons(l10n Localizer) {
 				<button
 					id="tableButton"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer stroke-black dark:stroke-white dark:fill-white hover:bg-tertiary-surface-hover"
-					hx-on="click: showTable(); 
-					this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'dark:stroke-black', 'stroke-white' ); this.classList.remove('dark:fill-white', 'dark:stroke-white'); 
-					document.getElementById('graphButton').classList.add('stroke-black', 'dark:stroke-white'); 
+					hx-on:click="showTable();
+					this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'dark:stroke-black', 'stroke-white' ); this.classList.remove('dark:fill-white', 'dark:stroke-white');
+					document.getElementById('graphButton').classList.add('stroke-black', 'dark:stroke-white');
 					document.getElementById('graphButton').classList.remove('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');">
 					<svg class="w-[18px] h-[18px]">
 						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))

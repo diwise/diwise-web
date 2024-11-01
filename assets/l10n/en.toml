@@ -130,6 +130,9 @@ other = "Last seen"
 [latitude]
 other = "Latitude"
 
+[level]
+other = "Level"
+
 [lifebuoy]
 other = "Lifebuoy"
 
@@ -216,6 +219,9 @@ other = "Number of passages today"
 
 [numberofsensors]
 other = "Number of sensors"
+
+[off]
+other = "Off"
 
 [offline]
 other = "Offline"
@@ -457,10 +463,10 @@ other = "Filling level"
 [Sewer-CombinedSewerOverflow]
 other = "Combined sewer overflow"
 
-[CombinedSewageOverflow]
+[CombinedSewerOverflow]
 other = "Combined sewer overflow"
 
-[combinedsewageoverflow]
+[combinedseweroverflow]
 other = "Combined sewer overflow"
 
 [passage]

@@ -188,7 +188,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
         });
 
         //Start polygon
-        var polygonCoordinates = [
+        /*var polygonCoordinates = [
             [62.363857, 17.508050],  
             [62.363792, 17.509044],  
             [62.363405, 17.510456],  
@@ -203,10 +203,10 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             fillOpacity: 0.5    
         }).addTo(map);
 
-        var center = polygon.getBounds().getCenter();  
+        var center = polygon.getBounds().getCenter();
 
         const iconType = 'beach';
-        const { iconUrl } = getIconByTypeAndTheme(iconType, isDarkMode);
+        const { iconUrl } = getIconByTypeAndTheme(iconType, subtype, isDarkMode);
 
         const tipColor = isDarkMode ? '#FFFFFF' : '#1F1F25';
         const tipIcon = generateTipIcon(tipColor)
@@ -254,29 +254,44 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                     '</a>' +
                                 '</div>';
 
-        //polygon.bindPopup("Det här är en polygon!");
-        marker.bindPopup(popupPolygon);
+        polygon.bindPopup("Det här är en polygon!");
+        marker.bindPopup(popupPolygon);*/
         
-        function getIconByTypeAndTheme(type, isDarkMode) {
+        function getIconByTypeAndTheme(type, subtype, isDarkMode) {
             let iconUrl;
-
             switch (type) {
+                case 'building':
+                    iconUrl = isDarkMode ? '/assets/1a2e9128692ce6616e3fecbef81fe0e308d3a5fa382c4752005c5a674690c5f2/buildingblack.svg' : '/assets/c9f93bbd7145af1e29a2ae53e2e28bc3c4925ac514959ce38a5585bb90ea689a/building.svg';
+                    break;
                 case 'sensor':
                     iconUrl = isDarkMode ? '/assets/ea4fbf040ffc101dcc425140ef38ba0f840c63af0f7b5a1d3d5f3868a8c6c5fb/sensorblack.svg' : '/assets/34ed2a96f7750c911539c45ae445b9b3cf95264ac9eb7f194718b86215aadb6b/sensor.svg';
                     break;
-                case 'wastecontainer':
-                    iconUrl = isDarkMode ? '/assets/fffe78b7b16e41765bad95685cbbbcb529b6ceb2e7e6ee4b5086b57b9b451768/wastecontainerblack.svg' : '/assets/5d00f7f613cd020b3a46427c3854f9f2b3b42f35a2de051b4f5187df4984cbdd/wastecontainer.svg';
+                case 'container':
+                    switch (subtype) {
+                        case 'wastecontainer':
+                            iconUrl = isDarkMode ? '/assets/fffe78b7b16e41765bad95685cbbbcb529b6ceb2e7e6ee4b5086b57b9b451768/wastecontainerblack.svg' : '/assets/5d00f7f613cd020b3a46427c3854f9f2b3b42f35a2de051b4f5187df4984cbdd/wastecontainer.svg';
+                            break;
+                        case 'sandstorage':
+                            iconUrl = isDarkMode ? '/assets/db0e25bc57ab0e6232d08eecd73fc7a0c04c5bc90fb2f7f2ceae114f0644d159/sandstorageblack.svg' : '/assets/c5b697a2a9ba29ba3d356ad069b1cbd04f151dcd1aa90c3f86539a01253e5c72/sandstorage.svg';
+                            break;        
+                    }
                     break;
                 case 'lifebuoy':
                     iconUrl = isDarkMode ? '/assets/0f3ec38666b68391f3ce390dd4ff4f815109488e727f9c1328ec8180dc155d76/lifebuoyblack.svg' : '/assets/d10dc3c02604380dc75e7b122c2784a2b8c4a525ffd4deee8e714ff0abe97cc8/lifebuoy.svg';
                     break;
                 case 'room':
                 case 'beach':
-                    iconUrl = isDarkMode ? '/assets/f7d100ec98e4fa52cc4d7799ee0e9bd12ed22b45512d6ab4c1b7bde97de9b5c4/thermometerblack.svg' : '/assets/aec35d334f322aea4da1b6b70a627083d1e67f9acb58c11c8ad30dcf317a55c7/thermometer.svg';
+                case 'pointofinterest':
+                    switch (subtype) {
+                        case 'beach':
+                            iconUrl = isDarkMode ? '/assets/f7d100ec98e4fa52cc4d7799ee0e9bd12ed22b45512d6ab4c1b7bde97de9b5c4/thermometerblack.svg' : '/assets/aec35d334f322aea4da1b6b70a627083d1e67f9acb58c11c8ad30dcf317a55c7/thermometer.svg';
+                            break;
+                    }
                     break;
                 case 'sewer':
+                case 'pumpingstation':
                 case 'sewagepumpingstation':
-                case 'combinedsewageoverflow':
+                case 'combinedseweroverflow':
                 case 'drain':
                     iconUrl = isDarkMode ? '/assets/894182e183a94ca34fd8014583fd81269bcb97a88dddfd3ca4c438df4542c41c/sewerblack.svg' : '/assets/b7c62f1202a77226a1a6ca1012eb9ea996f1924135cf82fdbc725f2bfacee904/sewer.svg';
                     break;
@@ -315,20 +330,22 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     L.geoJSON(feature, { 
                        pointToLayer: function(feature, latlng) {
                             const type = feature.properties.type.toLowerCase();
+                            const subtype = feature.properties.subtype !== undefined ? feature.properties.subtype.toLowerCase() : '';
                             const { colorClass, lightipColor, darktipColor } = getColorByState(feature.properties.state);
                             const tipColor = isDarkMode ? darktipColor : lightipColor;
                             const tipIcon = generateTipIcon(tipColor)
 
                             // Hämta rätt ikon-URL och storlek beroende på typen och om det är mörkt eller ljust tema
-                            const { iconUrl } = getIconByTypeAndTheme(type, isDarkMode);
+                            const { iconUrl } = getIconByTypeAndTheme(type, subtype, isDarkMode);
                             const fillingLevelHtml = feature.properties.fillinglevel ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' : '';
+                            const temperatureHTML = feature.properties.temperature ? '<div class="text-sm font-bold">' + feature.properties.temperature + '&nbsp;°C</div>' : '';
 
                             const divIcon = L.divIcon({
                                 className: '',
                                 html: '<div class="flex flex-col items-center"><div class="flex flex-col items-center justify-center ' + colorClass + ' text-white dark:text-primary-dark p-2 rounded-lg shadow-md gap-2">' + 
                                         '<div class="flex flex-row items-center gap-2">' +
                                             '<img src="' + iconUrl + '">' +
-                                            fillingLevelHtml +
+                                            fillingLevelHtml + temperatureHTML +
                                         '</div></div>' +
                                     '<div class="flex items-center">' + tipIcon + '</div></div>',
                                 iconSize: [60, 44],
@@ -344,183 +361,129 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                             if (showPopup) {
                                 var cv = mapData.CurrentView;
                                 var popupContent = null;
+                                var intro = '<div class="flex flex-col items-start gap-6 py-3 text-base"><div class="flex flex-col items-start self-stretch justify-center gap-6">';
 
                                 var tagList = '';
                                 if (feature.properties.tags && Array.isArray(feature.properties.tags)) {
-                                    tagList = `<div class="flex flex-wrap gap-1">` + feature.properties.tags.map(tag => 
+                                    tagList = `<div class="flex items-start gap-2"><div class="flex flex-wrap gap-1">` + feature.properties.tags.map(tag => 
                                                 `<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
                                                     ${tag}
-                                                </span>`).join('')+ 
-                                              `</div>`; 
+                                                </span>`).join('')+ `</div></div>`; 
                                 } else {
                                     tagList = '';
                                 }
+                                var name = feature.properties.name ? '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_name + '</div><div class="">' + feature.properties.name + '</div></div>' : '';
+                                var location = (feature.properties.latitude && feature.properties.longitude) ? '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_position + '</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div>' : '';
+                                var moreinformation = feature.properties.url ? '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div><a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a>' : '';
+                                var outro = '</div></div>';
 
                                 if (cv === "sensor") {
-                                    popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base">' +
-                                                        '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
-                                                            '<div class="flex flex-col items-start gap-2">' +
-                                                                '<span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 ' + (feature.properties.status ? 'bg-primary-green-accent' : 'bg-tertiary-surface') + '">' +
-                                                                    '<span class="text-sm font-bold font-sans leading-none ' + (feature.properties.status ? 'text-primary-green' : 'text-primary-dark"') + '">' + 
-                                                                        (feature.properties.status ? feature.properties.text_active : feature.properties.text_inactive) + 
-                                                                    '</span>' +
+                                    popupContent = intro +
+                                                        '<div class="flex flex-col items-start gap-2">' +
+                                                            '<span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 ' + (feature.properties.status ? 'bg-primary-green-accent' : 'bg-tertiary-surface') + '">' +
+                                                                '<span class="text-sm font-bold font-sans leading-none ' + (feature.properties.status ? 'text-primary-green' : 'text-primary-dark"') + '">' + 
+                                                                    (feature.properties.status ? feature.properties.text_active : feature.properties.text_inactive) + 
                                                                 '</span>' +
-                                                                '<h2 class="font-heading text-xl font-bold first-letter:uppercase">' + feature.properties.name + '</h2>' +
+                                                            '</span>' +
+                                                            '<h2 class="font-heading text-xl font-bold first-letter:uppercase">' + feature.properties.name + '</h2>' +
+                                                        '</div>' +
+                                                        '<div class="flex flex-col items-start gap-2">' +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_deveui + '</div>' +
+                                                                '<div class="">' + feature.properties.deveui + '</div>' +
                                                             '</div>' +
-                                                            '<div class="flex flex-col items-start gap-2">' +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_deveui + '</div>' +
-                                                                    '<div class="">' + feature.properties.deveui + '</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-center gap-2">' + 
-                                                                    '<div class="font-bold">' + feature.properties.text_sensortype + '</div>' +
-                                                                    '<div class="">' + feature.properties.type + '</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_batterylevel + '</div>' +
-                                                                    '<div class="">' + feature.properties.batterylevel + '</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-start gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_position + '</div>' +
-                                                                    '<div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_lastseen + '</div>' +
-                                                                    '<div class="">' + feature.properties.lastseen + '</div>' +
-                                                                '</div>' +
+                                                            '<div class="flex items-center gap-2">' + 
+                                                                '<div class="font-bold">' + feature.properties.text_sensortype + '</div>' +
+                                                                '<div class="">' + feature.properties.type + '</div>' +
+                                                            '</div>' +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_batterylevel + '</div>' +
+                                                                '<div class="">' + feature.properties.batterylevel + '</div>' +
+                                                            '</div>' +
+                                                            location +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_lastseen + '</div>' +
+                                                                '<div class="">' + feature.properties.lastseen + '</div>' +
                                                             '</div>' +
                                                         '</div>' +
-                                                        '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>' +
-                                                        '<a href="' + feature.properties.url + ' "class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' + 
-                                                            feature.properties.text_moreinformation +
-                                                            '<div class="w-[20px] h-[20px]">' +
-                                                                '<svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg>' +
-                                                            '</div>' +
-                                                        '</a>' +
-                                                    '</div>';
-                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "wastecontainer") {
-                                    var colourClass = "bg-background-200";
-
-                                    if (feature.properties.fillinglevel >= 51) {
-                                        colourClass = "bg-red-600 dark:bg-err-prim-surf";
-                                    } else if (feature.properties.fillinglevel <= 30) {
-                                        colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
-                                    } else {
-                                        colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                                    '</div>' +
+                                                    moreinformation +
+                                                outro;
+                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "container") {
+                                   var colourClass = "bg-background-200";
+                                    if (feature.properties.subtype.toLowerCase() == "wastecontainer") {
+                                        if (feature.properties.fillinglevel >= 51) {
+                                            colourClass = "bg-red-600 dark:bg-err-prim-surf";
+                                        } else if (feature.properties.fillinglevel <= 30) {
+                                            colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
+                                        } else {
+                                            colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                        }
                                     }
-                                        popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base">' +
-                                                            '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
-                                                                '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                    '<div class="flex items-center gap-2">' +
-                                                                        '<div class="font-bold">' + feature.properties.text_id + '</div>' +
-                                                                        '<div class="">' + feature.properties.id + '</div>' +
-                                                                    '</div>' +
-                                                                    '<div class="flex flex-col items-start justify-center gap-2 self-stretch">' +
-                                                                        '<div class="font-bold">' + feature.properties.text_fillinglevel + '</div>' +
-                                                                        '<div class="flex w-full items-center gap-2 text-sm">' +
-                                                                            '<div class="w-[75%] bg-background-200 dark:bg-primary-surface-white rounded-lg">' +
-                                                                                '<div class="' + colourClass + ' rounded-lg" style="width: ' + feature.properties.fillinglevel + '%; height: 6px;"></div>' +
-                                                                            '</div>' +
-                                                                            '<div class="text-sm text-right w-auto">' + feature.properties.fillinglevel + '%</div>' +
-                                                                        '</div>' + 
-                                                                    '</div>' +
-                                                                    '<div class="flex items-start gap-2">' +
-                                                                        '<div class="font-bold">' + feature.properties.text_position + '</div>' +
-                                                                        '<div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div>' +
-                                                                    '</div>' +
-                                                                    '<div class="flex items-start gap-2">' +
-                                                                        '<div class="">' + tagList + '</div>' +
-                                                                    '</div>' +
+                                    else if (feature.properties.subtype.toLowerCase() == "sandstorage") {
+                                        if (feature.properties.fillinglevel <= 51) {
+                                            colourClass = "bg-red-600 dark:bg-err-prim-surf";
+                                        } else if (feature.properties.fillinglevel >= 70) {
+                                            colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
+                                        } else {
+                                            colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                        }
+                                    }
+                                    
+                                        popupContent = intro +
+                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                name + 
+                                                                '<div class="flex flex-col items-start justify-center gap-2 self-stretch">' +
+                                                                    '<div class="font-bold">' + feature.properties.text_fillinglevel + '</div>' +
+                                                                    '<div class="flex w-full items-center gap-2 text-sm">' +
+                                                                        '<div class="w-[75%] bg-background-200 dark:bg-primary-surface-white rounded-lg">' +
+                                                                            '<div class="' + colourClass + ' rounded-lg" style="width: ' + feature.properties.fillinglevel + '%; height: 6px;"></div>' +
+                                                                        '</div>' +
+                                                                        '<div class="text-sm text-right w-auto">' + feature.properties.fillinglevel + '%</div>' +
+                                                                    '</div>' + 
                                                                 '</div>' +
-                                                                '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>' +					
-                                                                '<a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' +
-                                                                    feature.properties.text_moreinformation + 
-                                                                    '<div class="w-[20px] h-[20px]">' +
-                                                                        '<svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg>' +
-                                                                    '</div>' +
-                                                                '</a>' +
-                                                            '</div>';
+                                                                location +
+                                                                tagList +
+                                                            '</div>' +
+                                                            moreinformation +
+                                                        outro;
                                 } else if (cv === "thing" && feature.properties.type.toLowerCase() === "passage") {
-                                    popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base">' +
-                                                        '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
-                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_id + '</div>' +
-                                                                    '<div class="">' + feature.properties.id + '</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-center gap-2"></div>' +
-                                                                    '<div class="flex items-start gap-2">' +
-                                                                        '<div class="font-bold">' + feature.properties.text_position + '</div>' +
-                                                                        '<div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div>' +
-                                                                    '</div>' +
-                                                                    '<div class="flex items-start gap-2">' +
-                                                                        '<div class="">' + tagList + '</div>' +
-                                                                    '</div>' +
-                                                                '</div>' +
-                                                                '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>' +					
-                                                                '<a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' +
-                                                                    feature.properties.text_moreinformation + 
-                                                                    '<div class="w-[20px] h-[20px]">' +
-                                                                        '<svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg>' +
-                                                                    '</div>' +
-                                                                '</a>' +
-                                                            '</div>';
-                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "combinedsewageoverflow") {
-                                    popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base">' +
-                                                        '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
-                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_id + '</div>' +
-                                                                    '<div class="">' + feature.properties.id + '</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_overflow + '</div>' +
-                                                                    '<div class="">' + feature.properties.state + '</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-start gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_position + '</div>' +
-                                                                    '<div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-start gap-2">' +
-                                                                    '<div class="">' + tagList + '</div>' +
-                                                                '</div>' +
+                                    popupContent = intro +
+                                                        '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                            name +
+                                                            '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_passagestoday + '</div><div class="">' + feature.properties.passagestoday + '&nbsp;st</div></div>' +
+                                                            location +
+                                                            tagList + 
+                                                            moreinformation +
+                                                        '</div>' +
+                                                    outro;
+                                                        
+                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "sewer") {
+                                    popupContent = intro +
+                                                        '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                            name +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_overflow + '</div>' +
+                                                                '<div class="">' + feature.properties.state + '</div>' +
                                                             '</div>' +
-                                                            '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>' +					
-                                                            '<a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' +
-                                                                feature.properties.text_moreinformation + 
-                                                                '<div class="w-[20px] h-[20px]">' +
-                                                                    '<svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg>' +
-                                                                '</div>' +
-                                                            '</a>' +
-                                                        '</div>';
+                                                            location +
+                                                            tagList +
+                                                        '</div>' +
+                                                        moreinformation +
+                                                    outro;
                                 } else {
-                                    popupContent = '<div class="flex flex-col items-start gap-6 py-3 text-base">' +
-                                                        '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
-                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_id + '</div>' +
-                                                                    '<div class="">' + feature.properties.id + '</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_information + '</div>' +
-                                                                    '<div class="italic">Saknas</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-start gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_position + '</div>' +
-                                                                    '<div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-start gap-2">' +
-                                                                    '<div class="">' + tagList + '</div>' +
-                                                                '</div>' +
+                                    popupContent = intro +
+                                                        '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                            name +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_information + '</div>' +
+                                                                '<div class="italic">Saknas</div>' +
                                                             '</div>' +
-                                                            '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>' +					
-                                                            '<a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' +
-                                                                feature.properties.text_moreinformation + 
-                                                                '<div class="w-[20px] h-[20px]">' +
-                                                                    '<svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg>' +
-                                                                '</div>' +
-                                                            '</a>' +
-                                                        '</div>';
+                                                            location +
+                                                            tagList +
+                                                        '</div>' +
+                                                        moreinformation +
+                                                    outro;
                                 }
                                 
                                 layer.bindPopup(popupContent);
