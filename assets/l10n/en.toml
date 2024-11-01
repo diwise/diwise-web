@@ -61,6 +61,9 @@ other = "Pick measurement type"
 [choosetags]
 other = "Choose tags"
 
+[consumption]
+other = "Consumption"
+
 [container]
 other = "Container"
 
@@ -202,7 +205,7 @@ other = "Name"
 [no]
 other = "No"
 
-[noData]
+[nodata]
 other = "-"
 
 [notloggedin]

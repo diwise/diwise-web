@@ -13,12 +13,14 @@ func ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsVi
 	subType := strings.ToLower(model.Thing.SubType)
 
 	switch thingType {
-	case "beach":
-		fallthrough
 	case "pointofinterest":
+		switch subType {
+			case "beach":
+				return thingTypeStatistics(StatisticsBeach(l10n, model))
+		}
 		return templ.NopComponent
 	case "building":
-		return templ.NopComponent
+		return thingTypeStatistics(StatisticsBuilding(l10n, model))
 	case "container":
 		switch subType {
 			case "wastecontainer":
@@ -182,6 +184,145 @@ templ Graph(l10n Localizer, startDate, endDate time.Time) {
 	</script>
 }
 
+templ StatisticsBeach(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("currenttemperature") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%.1f °C", model.Thing.GetFloatOrDefault("temperature", 0)) }
+			</div>
+		</div>
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsBeachTable(l10n, model)
+	</div>
+}
+
+func BeachChart(datasets []ChartDataset) templ.Component {
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("line", false, nil, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsBeachTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+				<th class="px-6 py-3">{ l10n.Get("temperature") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsBeachTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsBeachTableRow(l10n Localizer, measurement MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%.1f °C", *measurement.Value) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
+	</tr>
+}
+
+templ StatisticsBuilding(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("consumption") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%0.f kWh", model.Thing.GetFloatOrDefault("power", 0)) } / { fmt.Sprintf("%0.f kW", model.Thing.GetFloatOrDefault("energy", 0)) }
+			</div>
+		</div>
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsBuildingTable(l10n, model)
+	</div>
+}
+
+func BuildingChart(datasets []ChartDataset) templ.Component {
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("line", false, nil, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsBuildingTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+				<th class="px-6 py-3">{ l10n.Get("kWh") }</th>
+				<th class="px-6 py-3">{ l10n.Get("kW") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsBuildingTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsBuildingTableRow(l10n Localizer, measurement MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%0.f kWh", *measurement.Value) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%0.f kW", *measurement.Value) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
+	</tr>
+}
+
 templ StatisticsWasteContainer(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex items-center w-full justify-between">
 		<div class="flex flex-col gap-2">
@@ -242,14 +383,13 @@ templ StatisticsWasteContainerTableRow(l10n Localizer, measurement MeasurementVi
 			if measurement.Value != nil {
 				{ fmt.Sprintf("%0.f%%", *measurement.Value) }
 			} else {
-				{ l10n.Get("noData") }
+				{ l10n.Get("nodata") }
 			}
 		</td>
 	</tr>
 }
 
 templ StatisticsSewer(l10n Localizer, model ThingDetailsViewModel) {
-	//Statistik
 	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
 		<div class="flex items-center w-full justify-between">
 			<div class="flex flex-col gap-2">
@@ -363,27 +503,29 @@ templ StatisticsSandStorageTableRow(l10n Localizer, measurement MeasurementViewM
 			if measurement.Value != nil {
 				{ fmt.Sprintf("%0.f%%", *measurement.Value) }
 			} else {
-				{ l10n.Get("noData") }
+				{ l10n.Get("nodata") }
 			}
 		</td>
 	</tr>
 }
 
 templ StatisticsRoom(l10n Localizer, model ThingDetailsViewModel) {
-	//Statistik
-	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
-		<div class="flex items-center w-full justify-between">
-			<div class="flex flex-col gap-2">
-				<div class="">{ l10n.Get("currenttemperature") }</div>
-				<div class="text-3xl font-bold">
-					{ fmt.Sprintf("%0.f °C", model.Thing.GetFloatOrDefault("temperature", 0)) }
-				</div>
-			</div>
-			<div class="flex items-center gap-6">
-				@StatisticsFilter(l10n, model)
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("currenttemperature") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%.1f °C", model.Thing.GetFloatOrDefault("temperature", 0)) }
 			</div>
 		</div>
-		@StatisticsData(l10n, RenderStatisticsGraph(l10n, model), StatisticsRoomTable(l10n, model), model.TableView)
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsRoomTable(l10n, model)
 	</div>
 }
 
@@ -420,49 +562,36 @@ templ StatisticsRoomTable(l10n Localizer, model ThingDetailsViewModel) {
 	</table>
 }
 
-templ StatisticsRoomTableRow(l10n Localizer, thing MeasurementViewModel) {
+templ StatisticsRoomTableRow(l10n Localizer, measurement MeasurementViewModel) {
 	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
-		<td class="px-6 py-3">00:00</td>
-		<td class="px-6 py-3">20 °C</td>
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%.1f °C", *measurement.Value) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
 	</tr>
 }
 
 templ StatisticsPassage(l10n Localizer, model ThingDetailsViewModel) {
-	//Statistik
-	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
-		<div class="flex items-center w-full justify-between">
-			<div class="flex flex-col gap-2">
-				<div class="">{ l10n.Get("numberofpassagestoday") }</div>
-				<div class="text-3xl font-bold">
-					{ fmt.Sprintf("%0.f st", model.Thing.GetFloatOrDefault("passagesToday", 0)) }
-				</div>
-			</div>
-			<div class="flex items-center gap-6">
-				@StatisticsFilter(l10n, model)
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("numberofpassagestoday") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%0.f st", model.Thing.GetFloatOrDefault("passagesToday", 0)) }
 			</div>
 		</div>
-		<div id="statisticsGraph" class="w-full">
-			@RenderStatisticsGraph(l10n, model)
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
 		</div>
-		<div id="statisticsTable" class="w-full hidden">
-			@StatisticsPassageTable(l10n, model)
-		</div>
-		<script>
-			function showGraph() {
-				document.getElementById('statisticsGraph').style.display = 'block';
-				document.getElementById('statisticsTable').style.display = 'none';
-			}
-
-			function showTable() {
-				document.getElementById('statisticsTable').style.display = 'block';
-				document.getElementById('statisticsGraph').style.display = 'none';
-			}
-
-			document.addEventListener('DOMContentLoaded', function () {
-				showGraph();
-			});
-		</script>
-		//@StatisticsData(l10n, RenderStatisticsGraph(l10n, model), StatisticsPassageTable(l10n, model), model.TableView)
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsPassageTable(l10n, model)
 	</div>
 }
 
@@ -507,46 +636,29 @@ templ StatisticsPassageTableRow(l10n Localizer, measurement MeasurementViewModel
 			if measurement.Value != nil {
 				{ fmt.Sprintf("%d st", int(*measurement.Value)) }
 			} else {
-				{ l10n.Get("noData") }
+				{ l10n.Get("nodata") }
 			}
 		</td>
 	</tr>
 }
 
 templ StatisticsCombinedSewerOverflow(l10n Localizer, model ThingDetailsViewModel) {
-	//Statistik
-	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
-		<div class="flex items-center w-full justify-between">
-			<div class="flex flex-col gap-2">
-				<div class="">{ l10n.Get("overflowrightnow") }</div>
-				<div class="text-3xl font-bold">{ fmt.Sprintf("%t", model.Thing.GetBoolOrDefault("overflowObserved", false)) }</div>
-			</div>
-			<div class="flex items-center gap-6">
-				@StatisticsFilter(l10n, model)
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("overflowrightnow") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%t", model.Thing.GetBoolOrDefault("overflowObserved", false)) }
 			</div>
 		</div>
-		<div id="statisticsGraph" class="w-full">
-			@RenderStatisticsGraph(l10n, model)
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
 		</div>
-		<div id="statisticsTable" class="w-full hidden">
-			@StatisticsCombinedSewerOverflowTable(l10n, model)
-		</div>
-		<script>
-			function showGraph() {
-				document.getElementById('statisticsGraph').style.display = 'block';
-				document.getElementById('statisticsTable').style.display = 'none';
-			}
-
-			function showTable() {
-				document.getElementById('statisticsTable').style.display = 'block';
-				document.getElementById('statisticsGraph').style.display = 'none';
-			}
-
-			document.addEventListener('DOMContentLoaded', function () {
-				showGraph();
-			});
-		</script>
-		//@StatisticsData(l10n, StatisticsCombinedSewerOverflowGraph(l10n, model), StatisticsCombinedSewerOverflowTable(l10n, model), model.TableView)
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsCombinedSewerOverflowTable(l10n, model)
 	</div>
 }
 

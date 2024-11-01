@@ -548,11 +548,11 @@ templ BuildingCell(l10n Localizer, t ThingViewModel) {
 func LifebuoyCell(l10n Localizer, t ThingViewModel) templ.Component {
 	vb, ok := t.Properties["presence"]
 	if !ok {
-		return Text(l10n.Get("noData"))
+		return Text(l10n.Get("nodata"))
 	}
 	b, ok := vb.(bool)
 	if !ok {
-		return Text(l10n.Get("noData"))
+		return Text(l10n.Get("nodata"))
 	}
 	if b {
 		return Text(l10n.Get("present"))
@@ -605,11 +605,11 @@ func SewerCell(l10n Localizer, t ThingViewModel) templ.Component {
 func SewagePumpingstationCell(l10n Localizer, t ThingViewModel) templ.Component {
 	vb, ok := t.Properties["pumpingObserved"]
 	if !ok {
-		return Text(l10n.Get("noData"))
+		return Text(l10n.Get("nodata"))
 	}
 	b, ok := vb.(bool)
 	if !ok {
-		return Text(l10n.Get("noData"))
+		return Text(l10n.Get("nodata"))
 	}
 	if b {
 		return Text(l10n.Get("pumpingObserved"))
@@ -621,7 +621,7 @@ func SewagePumpingstationCell(l10n Localizer, t ThingViewModel) templ.Component 
 func WasteContainerCell(l10n Localizer, t ThingViewModel) templ.Component {
 	v, ok := t.Properties["percent"]
 	if !ok {
-		return Text(l10n.Get("noData"))
+		return Text(l10n.Get("nodata"))
 	}
 
 	value := v.(float64)
@@ -643,7 +643,7 @@ func WasteContainerCell(l10n Localizer, t ThingViewModel) templ.Component {
 func SandStorageCell(l10n Localizer, t ThingViewModel) templ.Component {
 	v, ok := t.Properties["percent"]
 	if !ok {
-		return Text(l10n.Get("noData"))
+		return Text(l10n.Get("nodata"))
 	}
 
 	value := v.(float64)

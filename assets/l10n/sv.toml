@@ -61,6 +61,9 @@ other = "Ange mättyp"
 [choosetags]
 other = "Välj taggar"
 
+[consumption]
+other = "Förbrukning"
+
 [container]
 other = "Välj taggar"
 
@@ -202,7 +205,7 @@ other = "Namn"
 [no]
 other = "Nej"
 
-[noData]
+[nodata]
 other = "-"
 
 [notloggedin]
