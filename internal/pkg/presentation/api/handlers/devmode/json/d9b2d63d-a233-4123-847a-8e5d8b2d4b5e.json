@@ -1,0 +1,148 @@
+{
+    "meta": {
+        "totalRecords": 15
+    },
+    "data": {
+        "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e",
+        "location": {
+            "latitude": 62.36955,
+            "longitude": 17.27541
+        },
+        "name": "Sidsjön",
+        "observedAt": "2024-11-01T09:14:41Z",
+        "refDevices": [
+            {
+                "deviceID": "fa9869d8-7c25-48ef-9274-0eb4c050bc82"
+            }
+        ],
+        "subType": "Beach",
+        "temperature": 5.156499999999999,
+        "tenant": "default",
+        "type": "PointOfInterest",
+        "validURN": [
+            "urn:oma:lwm2m:ext:3303"
+        ],
+        "values": [
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.25,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T08:14:37Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.313,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T11:14:12Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.313,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T12:14:37Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.313,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T13:14:39Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.25,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T18:14:42Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.25,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T19:14:39Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.188,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T00:14:39Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.125,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T01:14:43Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.125,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T02:14:34Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.125,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T03:14:46Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.188,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T05:14:38Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.188,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T06:14:39Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.125,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T07:14:18Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.125,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T08:14:42Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            },
+            {
+                "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 5.188,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T09:14:41Z",
+                "ref": "fa9869d8-7c25-48ef-9274-0eb4c050bc82/3303/5700"
+            }
+        ]
+    }
+}

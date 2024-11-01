@@ -1,0 +1,55 @@
+{
+    "meta": {
+        "totalRecords": 258,
+        "limit": 100,
+        "count": 100
+    },
+    "data": {
+        "id": "333b31cd-cd78-4fc7-bc30-e4e1753d4070",
+        "location": {
+            "latitude": 62.34634,
+            "longitude": 17.36489
+        },
+        "name": "Lifebuoy-001",
+        "observedAt": "2024-11-01T09:12:18Z",
+        "presence": false,
+        "refDevices": [
+            {
+                "deviceID": "df334c16-4f9b-4d88-a72c-629592a73d13"
+            }
+        ],
+        "tags": [
+            "Livboj"
+        ],
+        "tenant": "default",
+        "type": "Lifebuoy",
+        "validURN": [
+            "urn:oma:lwm2m:ext:3200",
+            "urn:oma:lwm2m:ext:3302"
+        ],
+        "values": {
+            "178e58f3-bcaa-4f22-874a-ea14aef624d0/3200/5500": [
+                {
+                    "id": "333b31cd-cd78-4fc7-bc30-e4e1753d4070/3302/5500",
+                    "urn": "urn:oma:lwm2m:ext:3302",
+                    "vb": false,
+                    "timestamp": "2024-10-31T07:59:22Z",
+                    "ref": "df334c16-4f9b-4d88-a72c-629592a73d13/3200/5500"
+                },
+                {
+                    "id": "333b31cd-cd78-4fc7-bc30-e4e1753d4070/3302/5500",
+                    "urn": "urn:oma:lwm2m:ext:3302",
+                    "vb": false,
+                    "timestamp": "2024-10-31T11:09:18Z",
+                    "ref": "df334c16-4f9b-4d88-a72c-629592a73d13/3200/5500"
+                }
+            ]
+        }
+    },
+    "links": {
+        "self": "/api/v0/things/333b31cd-cd78-4fc7-bc30-e4e1753d4070?offset=0&options=groupByRef",
+        "first": "/api/v0/things/333b31cd-cd78-4fc7-bc30-e4e1753d4070?offset=0&options=groupByRef",
+        "next": "/api/v0/things/333b31cd-cd78-4fc7-bc30-e4e1753d4070?offset=100&options=groupByRef",
+        "last": "/api/v0/things/333b31cd-cd78-4fc7-bc30-e4e1753d4070?offset=200&options=groupByRef"
+    }
+}

@@ -32,9 +32,7 @@ func InstallDevmodeHandlers(ctx context.Context, mux *http.ServeMux) *http.Serve
 	devmux.HandleFunc("GET /devices", devmode.NewDevicesHandler(ctx))
 	devmux.HandleFunc("GET /measurements", devmode.NewMeasurementsHandler(ctx))
 	devmux.HandleFunc("GET /things", devmode.NewThingsHandler(ctx))
-	devmux.HandleFunc("GET /things/{id}", devmode.NewThingHandler(ctx))
-	devmux.HandleFunc("GET /things/tags", devmode.NewThingsTagsHandler(ctx))
-	devmux.HandleFunc("GET /things/types", devmode.NewThingsTypesHandler(ctx))
+	devmux.HandleFunc("GET /things/{id}", devmode.NewThingsHandler(ctx))
 
 	mux.Handle("GET "+DevModePrefix+"/", http.StripPrefix(DevModePrefix, devmux))
 
