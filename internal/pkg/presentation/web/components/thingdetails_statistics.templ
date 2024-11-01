@@ -29,16 +29,17 @@ func ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsVi
 				return thingTypeStatistics(StatisticsSandStorage(l10n, model))
 		}
 	case "lifebuoy":
-		return templ.NopComponent
+		return thingTypeStatistics(StatisticsLifebuoy(l10n, model))
 	case "passage":
 		return thingTypeStatistics(StatisticsPassage(l10n, model))
 	case "pumpingstation":
-		return templ.NopComponent
+		return thingTypeStatistics(StatisticsPumpingStation(l10n, model))
 	case "room":
 		return thingTypeStatistics(StatisticsRoom(l10n, model))
 	case "sewer":
 		return thingTypeStatistics(StatisticsSewer(l10n, model))
 	case "watermeter":
+		return thingTypeStatistics(StatisticsWatermeter(l10n, model))
 	}
 
 	return templ.NopComponent
@@ -389,6 +390,72 @@ templ StatisticsWasteContainerTableRow(l10n Localizer, measurement MeasurementVi
 	</tr>
 }
 
+templ StatisticsPumpingStation(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2 justify-start">
+			<div class="">{ l10n.Get("pumping") }</div>
+			<div class="text-3xl font-bold">
+				if model.Thing.GetBoolOrDefault("pumpingObserved", false) {
+					{ l10n.Get("yes") }
+				} else {
+					{ l10n.Get("no") }
+				}
+			</div>
+		</div>
+		<div class="flex items-center gap-6 ml-auto">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsPumpingStationTable(l10n, model)
+	</div>
+}
+
+func PumpingStationChart(datasets []ChartDataset) templ.Component {
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("line", false, nil, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsPumpingStationTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("starttime") }</th>
+				<th class="px-6 py-3">{ l10n.Get("endtime") }</th>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsPumpingStationTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsPumpingStationTableRow(l10n Localizer, thing MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">00:00</td>
+		<td class="px-6 py-3">23:59</td>
+		<td class="px-6 py-3">2 timmar</td>
+	</tr>
+}
+
 templ StatisticsSewer(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex items-center w-full justify-between">
 		<div class="flex gap-6">
@@ -596,6 +663,72 @@ templ StatisticsRoomTableRow(l10n Localizer, measurement MeasurementViewModel) {
 	</tr>
 }
 
+templ StatisticsLifebuoy(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2 justify-start">
+			<div class="">{ l10n.Get("inplace") }</div>
+			<div class="text-3xl font-bold">
+				if model.Thing.GetBoolOrDefault("presence", false) {
+					{ l10n.Get("yes") }
+				} else {
+					{ l10n.Get("no") }
+				}
+			</div>
+		</div>
+		<div class="flex items-center gap-6 ml-auto">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsLifebuoyTable(l10n, model)
+	</div>
+}
+
+func LifebuoyChart(datasets []ChartDataset) templ.Component {
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("line", false, nil, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsLifebuoyTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("starttime") }</th>
+				<th class="px-6 py-3">{ l10n.Get("endtime") }</th>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsLifebuoyTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsLifebuoyTableRow(l10n Localizer, thing MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">00:00</td>
+		<td class="px-6 py-3">23:59</td>
+		<td class="px-6 py-3">2 timmar</td>
+	</tr>
+}
+
 templ StatisticsPassage(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex items-center w-full justify-between">
 		<div class="flex flex-col gap-2">
@@ -656,6 +789,72 @@ templ StatisticsPassageTableRow(l10n Localizer, measurement MeasurementViewModel
 		<td class="px-6 py-3">
 			if measurement.Value != nil {
 				{ fmt.Sprintf("%d st", int(*measurement.Value)) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
+	</tr>
+}
+
+templ StatisticsWatermeter(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("volume") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%0.f m³", model.Thing.GetFloatOrDefault("cumulativeVolume", 0)) }
+			</div>
+		</div>
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsWatermeterTable(l10n, model)
+	</div>
+}
+
+func WatermeterChart(datasets []ChartDataset) templ.Component {
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("line", false, nil, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsWatermeterTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+				<th class="px-6 py-3">{ l10n.Get("m³") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsWatermeterTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsWatermeterTableRow(l10n Localizer, measurement MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%0.f m³", *measurement.Value) }
 			} else {
 				{ l10n.Get("nodata") }
 			}

@@ -127,6 +127,9 @@ other = "Inactive sensors"
 [information]
 other = "Information"
 
+[inplace]
+other = "In place"
+
 [lastseen]
 other = "Last seen"
 
@@ -259,6 +262,9 @@ other = "Point of interest"
 [pointoftime]
 other = "Time"
 
+[pumping]
+other = "Pumping"
+
 [Pumpingstation]
 other = "Pumping station"
 
@@ -346,9 +352,6 @@ other = "Total"
 [totaltime]
 other = "Total time"
 
-[trashcan]
-other = "Trashcan"
-
 [type]
 other = "Type"
 
@@ -357,6 +360,9 @@ other = "Unknown"
 
 [unknownsensors]
 other = "Unknown sensors"
+
+[volume]
+other = "Volume"
 
 [WaterMeter]
 other = "Water meter"

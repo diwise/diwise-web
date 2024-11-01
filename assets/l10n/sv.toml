@@ -127,6 +127,9 @@ other = "Inaktiva sensorer"
 [information]
 other = "Information"
 
+[inplace]
+other = "På plats"
+
 [lastseen]
 other = "Senast sedd"
 
@@ -259,6 +262,9 @@ other = "Intressepunkt"
 [pointoftime]
 other = "Tidpunkt"
 
+[pumping]
+other = "Pumpar"
+
 [Pumpingstation]
 other = "Pumpstation"
 
@@ -346,9 +352,6 @@ other = "Totalt"
 [totaltime]
 other = "Total tid"
 
-[trashcan]
-other = "Soptunna"
-
 [type]
 other = "Typ"
 
@@ -357,6 +360,9 @@ other = "Okänd"
 
 [unknownsensors]
 other = "Okända sensorer"
+
+[volume]
+other = "Volym"
 
 [WaterMeter]
 other = "Vattenmätare"
