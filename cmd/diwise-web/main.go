@@ -57,11 +57,15 @@ func main() {
 	cfg, err := newConfig(ctx, flags)
 	exitIf(err, logger, "failed to create application config")
 
+	ctx, cfg.cancelContext = context.WithCancel(ctx)
+
 	runner, err := initialize(ctx, flags, cfg)
 	exitIf(err, logger, "failed to initialize service")
 
 	err = runner.Run(ctx)
 	exitIf(err, logger, "service runner failed")
+
+	logger.Info("shutting down")
 }
 
 func newConfig(_ context.Context, _ FlagMap) (*AppConfig, error) {
@@ -171,6 +175,11 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 			return nil
 		}),
 		onshutdown(func(ctx context.Context, svcCfg *AppConfig) error {
+			if svcCfg.cancelContext != nil {
+				svcCfg.cancelContext()
+				svcCfg.cancelContext = nil
+			}
+
 			if svcCfg.pte != nil {
 				svcCfg.pte.Shutdown()
 			}
