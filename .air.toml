@@ -5,11 +5,11 @@ tmp_dir = ".tmp"
 [build]
   args_bin = ["-devmode", "-csp", "off", "-web-assets", "$PWD/assets"]
   bin = "./.tmp/main"
-  cmd = "tailwindcss -c ./internal/pkg/presentation/web/css/tailwind.config.js -i ./internal/pkg/presentation/web/css/input.css -o ./assets/css/diwise.css && templ generate && go build -o ./.tmp/main ./cmd/diwise-web"
+  cmd = "tailwindcss -c ./internal/pkg/presentation/web/css/tailwind.config.js -i ./internal/pkg/presentation/web/css/input.css -o ./assets/css/diwise.css && templ generate && go build -race -o ./.tmp/main ./cmd/diwise-web"
   delay = 1000
   exclude_dir = ["assets/css", "tmp", "vendor", "testdata", ".vscode"]
   exclude_file = []
-  exclude_regex = [".*_templ.go","_test.go","output.css"]
+  exclude_regex = [".*_templ.go","_test.go"]
   exclude_unchanged = false
   follow_symlink = false
   full_bin = "./.tmp/main"
