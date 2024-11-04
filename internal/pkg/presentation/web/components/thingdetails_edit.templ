@@ -164,9 +164,7 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 									/>
 								</div>
 							</div>
-							<div class="w-full self-stretch">
-								@Map("medium", false, true, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
-							</div>
+							@Map("medium", false, true, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))	
 						</div>
 					</div>
 				</div>
@@ -282,11 +280,11 @@ func editThingDetailType(l10n Localizer, model ThingDetailsViewModel) templ.Comp
 
 	switch thingType {
 	case "beach":
-		return EditBeach(l10n, model)
+		return ConnectOneSensor(l10n, model)
 	case "pointofinterest":
 		return templ.NopComponent
 	case "building":
-		return EditBuilding(l10n, model)
+		return ConnectMultipleSensors(l10n, model)
 	case "wastecontainer":
 		return EditWasteContainer(l10n, model)
 	case "sandstorage":
@@ -294,55 +292,33 @@ func editThingDetailType(l10n Localizer, model ThingDetailsViewModel) templ.Comp
 	case "container":
 		return EditWasteContainer(l10n, model)
 	case "lifebuoy":
-		return EditLifebuoy(l10n, model)
+		return ConnectOneSensor(l10n, model)
 	case "passage":
-		return EditPassage(l10n, model)
+		return ConnectOneSensor(l10n, model)
 	case "pumpingstation":
-		return EditPumpingStation(l10n, model)
+		return ConnectOneSensor(l10n, model)
 	case "room":
-		return EditRoom(l10n, model)
+		return ConnectMultipleSensors(l10n, model)
 	case "sewer":
-		return EditSewerOverflow(l10n, model)
+		return ConnectMultipleSensors(l10n, model)
 	case "watermeter":
-		return EditWatermeter(l10n, model)
+		return ConnectOneSensor(l10n, model)
 	}
 	return templ.NopComponent
 }
 
-templ EditBeach(l10n Localizer, model ThingDetailsViewModel) {
-	@ConnectOneSensor(l10n, model)
-}
-
-templ EditBuilding(l10n Localizer, model ThingDetailsViewModel) {
-	@ConnectMultipleSensors(l10n, model)
-}
-
-templ EditSewerOverflow(l10n Localizer, model ThingDetailsViewModel) {
-	@ConnectMultipleSensors(l10n, model)
-}
-
-templ EditLifebuoy(l10n Localizer, model ThingDetailsViewModel) {
-	@ConnectOneSensor(l10n, model)
-}
-
-templ EditPassage(l10n Localizer, model ThingDetailsViewModel) {
-	@ConnectOneSensor(l10n, model)
-}
-
-templ EditPumpingStation(l10n Localizer, model ThingDetailsViewModel) {
-	@ConnectOneSensor(l10n, model)
-}
-
-templ EditRoom(l10n Localizer, model ThingDetailsViewModel) {
-	@ConnectMultipleSensors(l10n, model)
-}
-
-templ EditWatermeter(l10n Localizer, model ThingDetailsViewModel) {
-	@ConnectOneSensor(l10n, model)
-}
-
-
 templ EditSandStorage(l10n Localizer, model ThingDetailsViewModel) {
+	@EditHeightAndLevel(l10n, model)
+	@EditAngle(l10n, model)
+	@ConnectMultipleSensors(l10n, model)
+}
+
+templ EditWasteContainer(l10n Localizer, model ThingDetailsViewModel) {
+	@EditHeightAndLevel(l10n, model)
+	@ConnectOneSensor(l10n, model)
+}
+
+templ EditHeightAndLevel(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex flex-start gap-10 self-stretch">
 		<div class="flex flex-col gap-2 flex-1">
 			<div class="font-bold">{ l10n.Get("maxheight") }</div>
@@ -350,6 +326,7 @@ templ EditSandStorage(l10n Localizer, model ThingDetailsViewModel) {
 				<input
 					type="number"
 					name="maxd"
+					step="0.01"
 					class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
 					placeholder=""
 					value={ model.Thing.GetFloatAsString("maxd", 0) }
@@ -363,6 +340,7 @@ templ EditSandStorage(l10n Localizer, model ThingDetailsViewModel) {
 				<input
 					type="number"
 					name="maxl"
+					step="0.01"
 					class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
 					placeholder=""
 					value={ model.Thing.GetFloatAsString("maxl", 0) }
@@ -371,6 +349,9 @@ templ EditSandStorage(l10n Localizer, model ThingDetailsViewModel) {
 			</div>
 		</div>
 	</div>
+}
+
+templ EditAngle(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="w-full flex flex-start gap-10 self-stretch">
 		<div class="w-full flex flex-col gap-2 flex-1">
 			<div class="font-bold">{ l10n.Get("angle") }</div>
@@ -389,40 +370,4 @@ templ EditSandStorage(l10n Localizer, model ThingDetailsViewModel) {
 			</div>
 		</div>
 	</div>
-	//Koppla flera sensorer
-	@ConnectMultipleSensors(l10n, model)
-}
-
-templ EditWasteContainer(l10n Localizer, model ThingDetailsViewModel) {
-	<div class="flex flex-start gap-10 self-stretch">
-		<div class="flex flex-col gap-2 flex-1">
-			<div class="font-bold">{ l10n.Get("maxheight") }</div>
-			<div class="flex items-center">
-				<input
-					type="number"
-					name="maxd"
-					step="0.01"
-					class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-					placeholder=""
-					value={ model.Thing.GetFloatAsString("maxd", 0) }
-				/>
-				<span class="ml-2">{ l10n.Get("m") }</span>
-			</div>
-		</div>
-		<div class="flex flex-col gap-2 flex-1">
-			<div class="font-bold">{ l10n.Get("maxlevel") }</div>
-			<div class="flex items-center">
-				<input
-					type="number"
-					name="maxl"
-					step="0.01"
-					class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-					placeholder=""
-					value={ model.Thing.GetFloatAsString("maxl", 0) }
-				/>
-				<span class="ml-2">{ l10n.Get("m") }</span>
-			</div>
-		</div>
-	</div>
-	@ConnectOneSensor(l10n, model)
 }
