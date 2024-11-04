@@ -120,7 +120,9 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 						</div>
 					</div>
 				</div>
-				<div class="border-l border-gray-30 dark:border-white-30 h-auto"></div> //Vertikal gray-30 mellan uppgifter och position
+				//Vertikal gray-30 mellan uppgifter och position
+				<div class="flex flex-col items-start self-stretch gap-2 border-l border-gray-30 dark:border-white-30 h-auto"></div>
+				//Position
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					<div class="flex flex-col items-start self-stretch">
 						//Karta
@@ -162,7 +164,9 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 									/>
 								</div>
 							</div>
-							@Map("medium", false, true, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+							<div class="w-full self-stretch">
+								@Map("medium", false, true, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+							</div>
 						</div>
 					</div>
 				</div>

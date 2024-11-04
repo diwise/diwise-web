@@ -70,6 +70,9 @@ other = "Välj taggar"
 [containerheight]
 other = "Behållaren har en höjd på"
 
+[cumulativevolume]
+other = "Ackumulerad volym"
+
 [currentlevel]
 other = "Aktuell nivå"
 
@@ -360,9 +363,6 @@ other = "Okänd"
 
 [unknownsensors]
 other = "Okända sensorer"
-
-[volume]
-other = "Volym"
 
 [WaterMeter]
 other = "Vattenmätare"

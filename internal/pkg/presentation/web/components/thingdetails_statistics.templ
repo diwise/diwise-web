@@ -799,7 +799,7 @@ templ StatisticsPassageTableRow(l10n Localizer, measurement MeasurementViewModel
 templ StatisticsWatermeter(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex items-center w-full justify-between">
 		<div class="flex flex-col gap-2">
-			<div class="">{ l10n.Get("volume") }</div>
+			<div class="">{ l10n.Get("cumulativevolume") }</div>
 			<div class="text-3xl font-bold">
 				{ fmt.Sprintf("%0.f m³", model.Thing.GetFloatOrDefault("cumulativeVolume", 0)) }
 			</div>
