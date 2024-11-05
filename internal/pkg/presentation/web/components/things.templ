@@ -738,9 +738,9 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 			}
 		}
 
-		if strings.ToLower(thing.SubType) == "beach" {
+		if strings.ToLower(thing.SubType) == "beach" || strings.ToLower(thing.Type) == "room" {
 			if t, ok := thing.GetFloat("temperature"); ok {
-				formattedTemp := fmt.Sprintf("%.1f", t)
+				formattedTemp := fmt.Sprintf("%.1f&nbsp;°C", t)
 				feature.AddProperty("temperature", formattedTemp)
 			}
 		}
@@ -764,9 +764,83 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 			}
 		}
 
+		if strings.ToLower(thing.Type) == "lifebuoy" {
+			vb, ok := thing.Properties["presence"]
+			if !ok {
+				feature.AddProperty("text_nodata", l10n.Get("nodata"))
+			}
+			b, ok := vb.(bool)
+			if !ok {
+				feature.AddProperty("text_nodata", l10n.Get("nodata"))
+			}
+			if b {
+				feature.AddProperty("present", l10n.Get("yes"))
+			} else {
+				feature.AddProperty("present", l10n.Get("no"))
+			}
+		}
+
+		if strings.ToLower(thing.Type) == "pumpingstation" {
+			vb, ok := thing.Properties["pumpingObserved"]
+			if !ok {
+				feature.AddProperty("text_nodata", l10n.Get("nodata"))
+			}
+			b, ok := vb.(bool)
+			if !ok {
+				feature.AddProperty("text_nodata", l10n.Get("nodata"))
+			}
+			if b {
+				feature.AddProperty("pumpingObserved", l10n.Get("yes"))
+			} else {
+				feature.AddProperty("pumpingObserved", l10n.Get("no"))
+			}
+		}
+
+		if strings.ToLower(thing.Type) == "building" { 
+			energyAndPower := fmt.Sprintf("%0.f kWh / %0.f kW", thing.Properties["energy"], thing.Properties["power"])
+			feature.AddProperty("energyandpower", energyAndPower)
+		}
+
+		if strings.ToLower(thing.Type) == "sewer" {
+			overflowObserved, okOverflow := thing.Properties["overflowObserved"]
+			currentLevel, okLevel := thing.Properties["currentLevel"]
+			percent, okPercent := thing.Properties["percent"]
+
+			if okOverflow {
+				
+				if vb, ok := overflowObserved.(bool); ok {
+					var vbTranslation string
+					if vb {
+						vbTranslation = l10n.Get("yes")
+						feature.AddProperty("overflow", vbTranslation)
+					} else {
+						vbTranslation = l10n.Get("no") 
+						feature.AddProperty("overflow", vbTranslation)
+					}
+				}
+			}
+
+			if okLevel {
+				if v, ok := currentLevel.(float64); ok {
+					if okPercent {
+						if p, ok := percent.(float64); ok {
+							level := fmt.Sprintf("%0.fm (%0.f%%)", v, p)
+							feature.AddProperty("level", level)
+						}
+					} else {
+						level := fmt.Sprintf("%0.fm", v)
+						feature.AddProperty("level", level)
+					}
+				}
+			}
+		}
+
 		var passages = thing.Properties["passagesToday"]
 		feature.AddProperty("passagestoday", passages)
 		
+		cumulativeVolume := fmt.Sprintf("%.0f m³", thing.Properties["cumulativeVolume"])
+		feature.AddProperty("cumulativeVolume", cumulativeVolume)
+
 		feature.AddProperty("latitude", thing.Latitude)
 		feature.AddProperty("longitude", thing.Longitude)
 		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ID))
@@ -774,13 +848,18 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 
 		//Språkstöd
 		feature.AddProperty("text_fillinglevel", l10n.Get("fillinglevel"))
+		feature.AddProperty("text_consumption", l10n.Get("consumption"))
+		feature.AddProperty("text_cumulativevolume", l10n.Get("cumulativevolume"))
 		feature.AddProperty("text_id", l10n.Get("id"))
 		feature.AddProperty("text_information", l10n.Get("information"))
+		feature.AddProperty("text_inplace", l10n.Get("inplace"))
+		feature.AddProperty("text_level", l10n.Get("level"))
 		feature.AddProperty("text_overflow", l10n.Get("overflow"))
 		feature.AddProperty("text_moreinformation", l10n.Get("moreinformation"))
 		feature.AddProperty("text_name", l10n.Get("name"))
 		feature.AddProperty("text_passagestoday", l10n.Get("numberofpassagestoday"))
 		feature.AddProperty("text_position", l10n.Get("location"))
+		feature.AddProperty("text_pumping", l10n.Get("pumping"))
 		feature.AddProperty("text_tags", l10n.Get("tags"))
 		feature.AddProperty("text_temperature", l10n.Get("temperature"))
 

@@ -100,8 +100,8 @@
         {
             "id": "333b31cd-cd78-4fc7-bc30-e4e1753d4070",
             "location": {
-                "latitude": 62.34634,
-                "longitude": 17.36489
+                "latitude": 62.390291,
+                "longitude": 17.320307
             },
             "name": "Lifebuoy-001",
             "observedAt": "2024-11-01T08:30:16Z",
@@ -174,8 +174,8 @@
         {
             "id": "2230d55e-0934-4759-b68b-92f82a358414",
             "location": {
-                "latitude": 62.34634,
-                "longitude": 17.36489
+                "latitude": 62.393511,
+                "longitude": 17.334417
             },
             "name": "PumpingStation-001",
             "observedAt": "2024-11-01T08:30:16Z",
@@ -201,8 +201,8 @@
             "description": "Kontor",
             "id": "8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae",
             "location": {
-                "latitude": 62.34634,
-                "longitude": 17.36489
+                "latitude": 62.3954025,
+                "longitude": 17.3102349
             },
             "name": "Rum-001",
             "observedAt": "2024-11-01T08:32:42Z",
@@ -266,8 +266,8 @@
             "id": "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
             "leakage": false,
             "location": {
-                "latitude": 0,
-                "longitude": 0
+                "latitude": 62.391201,
+                "longitude": 17.295211
             },
             "name": "055",
             "observedAt": "2024-10-31T17:00:00Z",

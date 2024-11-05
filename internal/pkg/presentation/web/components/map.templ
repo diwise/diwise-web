@@ -19,6 +19,7 @@ func newMapData(lat, lon float64) mapData {
 		md.Longitude = 17.3069
 		md.Zoom = 9
         md.CurrentView = "sensor"
+        //TODO: Hantera även things här
 	}
 
 	return md
@@ -186,76 +187,6 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             const isDarkMode = e.matches;
             updateMapForTheme(isDarkMode);
         });
-
-        //Start polygon
-        /*var polygonCoordinates = [
-            [62.363857, 17.508050],  
-            [62.363792, 17.509044],  
-            [62.363405, 17.510456],  
-            [62.362676, 17.508488],
-            [62.363183, 17.508726],
-            [62.363857, 17.508050]   // Tillbaka till första punkten för att sluta polygonen
-        ];
-
-        var polygon = L.polygon(polygonCoordinates, {
-            color: '#DB6900',  // Färg på polygonens kantlinje
-            fillColor: '#DB6900',  // Fyllningsfärg
-            fillOpacity: 0.5    
-        }).addTo(map);
-
-        var center = polygon.getBounds().getCenter();
-
-        const iconType = 'beach';
-        const { iconUrl } = getIconByTypeAndTheme(iconType, subtype, isDarkMode);
-
-        const tipColor = isDarkMode ? '#FFFFFF' : '#1F1F25';
-        const tipIcon = generateTipIcon(tipColor)
-
-        const beachIcon = L.divIcon({
-            className: '',
-            html: '<div class="flex flex-col items-center"><div class="flex flex-col items-center justify-center bg-primary-dark dark:bg-white text-white dark:text-primary-dark p-2 rounded-lg shadow-md gap-2">' + 
-                    '<div class="flex flex-row items-center gap-2">' +
-                        '<img src="' + iconUrl + '">' +
-                    '</div></div>' +
-                '<div class="flex items-center">' + tipIcon + '</div></div>',
-            iconSize: [60, 44],
-            iconAnchor: [30, 40],
-            popupAnchor: [0, -50], 
-            shadowSize: [41, 41]
-        });
-
-        var marker = L.marker(center, { icon: beachIcon }).addTo(map);
-        
-        var popupPolygon = '<div class="flex flex-col items-start gap-6 py-3 text-base">' +
-                                '<div class="flex flex-col items-start self-stretch justify-center gap-6">' +
-                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                        '<div class="flex items-center gap-2">' +
-                                            '<div class="font-bold">ID</div>' +
-                                            '<div class="">12345</div>' +
-                                        '</div>' +
-                                        '<div class="flex items-center gap-2">' +
-                                            '<div class="font-bold">Temperatur</div>' +
-                                            '<div class="">18 °C</div>' +
-                                        '</div>' +
-                                        '<div class="flex items-start gap-2">' +
-                                            '<div class="font-bold">Position</div>' +
-                                            '<div class="">Lat o long</div>' +
-                                        '</div>' +
-                                        '<div class="flex items-start gap-2">' +
-                                            '<div class="">Taglist</div>' +
-                                        '</div>' +
-                                    '</div>' +
-                                    '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>' +					
-                                    '<a href="/" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' +
-                                        'Mer information' + 
-                                        '<div class="w-[20px] h-[20px]">' +
-                                            '<svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg>' +
-                                        '</div>' +
-                                    '</a>' +
-                                '</div>';
-
-        polygon.bindPopup("Det här är en polygon!");
-        marker.bindPopup(popupPolygon);*/
         
         function getIconByTypeAndTheme(type, subtype, isDarkMode) {
             let iconUrl;
@@ -280,7 +211,8 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     iconUrl = isDarkMode ? '/assets/0f3ec38666b68391f3ce390dd4ff4f815109488e727f9c1328ec8180dc155d76/lifebuoyblack.svg' : '/assets/d10dc3c02604380dc75e7b122c2784a2b8c4a525ffd4deee8e714ff0abe97cc8/lifebuoy.svg';
                     break;
                 case 'room':
-                case 'beach':
+                    iconUrl = isDarkMode ? '/assets/f7d100ec98e4fa52cc4d7799ee0e9bd12ed22b45512d6ab4c1b7bde97de9b5c4/thermometerblack.svg' : '/assets/aec35d334f322aea4da1b6b70a627083d1e67f9acb58c11c8ad30dcf317a55c7/thermometer.svg';
+                    break;
                 case 'pointofinterest':
                     switch (subtype) {
                         case 'beach':
@@ -337,8 +269,9 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 
                             // Hämta rätt ikon-URL och storlek beroende på typen och om det är mörkt eller ljust tema
                             const { iconUrl } = getIconByTypeAndTheme(type, subtype, isDarkMode);
-                            const fillingLevelHtml = feature.properties.fillinglevel ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' : '';
-                            const temperatureHTML = feature.properties.temperature ? '<div class="text-sm font-bold">' + feature.properties.temperature + '&nbsp;°C</div>' : '';
+                            const fillingLevelHtml = feature.properties.fillinglevel !== undefined ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' : '';
+                            const temperatureHTML = feature.properties.temperature !== undefined ? '<div class="text-sm font-bold">' + feature.properties.temperature + '</div>' : '';
+
 
                             const divIcon = L.divIcon({
                                 className: '',
@@ -464,7 +397,76 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                             name +
                                                             '<div class="flex items-center gap-2">' +
                                                                 '<div class="font-bold">' + feature.properties.text_overflow + '</div>' +
-                                                                '<div class="">' + feature.properties.state + '</div>' +
+                                                                '<div class="">' + feature.properties.overflow + '</div>' +
+                                                            '</div>' +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_level + '</div>' +
+                                                                '<div class="">' + feature.properties.level + '</div>' +
+                                                            '</div>' +
+                                                            location +
+                                                            tagList +
+                                                        '</div>' +
+                                                        moreinformation +
+                                                    outro;
+                                } else if (cv === "thing" && feature.properties.subtype.toLowerCase() === "beach" || feature.properties.type.toLowerCase() === "room") {
+                                    popupContent = intro +
+                                                        '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                            name +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_temperature + '</div>' +
+                                                                '<div class="">' + feature.properties.temperature + '</div>' +
+                                                            '</div>' +
+                                                            location +
+                                                            tagList +
+                                                        '</div>' +
+                                                        moreinformation +
+                                                    outro;
+                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "lifebuoy") {
+                                    popupContent = intro +
+                                                        '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                            name +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_inplace + '</div>' +
+                                                                '<div class="">' + feature.properties.present + '</div>' +
+                                                            '</div>' +
+                                                            location +
+                                                            tagList +
+                                                        '</div>' +
+                                                        moreinformation +
+                                                    outro;
+                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "watermeter") {
+                                    popupContent = intro +
+                                                        '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                            name +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_cumulativevolume + '</div>' +
+                                                                '<div class="">' + feature.properties.cumulativeVolume + '</div>' +
+                                                            '</div>' +
+                                                            location +
+                                                            tagList +
+                                                        '</div>' +
+                                                        moreinformation +
+                                                    outro;
+                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "building") {
+                                    popupContent = intro +
+                                                        '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                            name +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_consumption + '</div>' +
+                                                                '<div class="">' + feature.properties.energyandpower + '</div>' +
+                                                            '</div>' +
+                                                            location +
+                                                            tagList +
+                                                        '</div>' +
+                                                        moreinformation +
+                                                    outro;
+                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "pumpingstation") {
+                                    popupContent = intro +
+                                                        '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                            name +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_pumping + '</div>' +
+                                                                '<div class="">' + feature.properties.pumpingObserved + '</div>' +
                                                             '</div>' +
                                                             location +
                                                             tagList +
