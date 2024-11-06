@@ -196,6 +196,9 @@ other = "Measurement values"
 [missing]
 other = "Missing"
 
+[missingpage]
+other = "Page is missing"
+
 [mm]
 other = "mm"
 
@@ -237,6 +240,9 @@ other = "Offline"
 
 [online]
 other = "Online"
+
+[oops]
+other = "Oops..."
 
 [organisation]
 other = "Organisation"

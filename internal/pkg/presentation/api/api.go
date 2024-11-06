@@ -199,6 +199,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /components/things/measurements/{id}", RequireHX(things.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	// admin
 	r.Handle("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /error", admin.NewErrorPage(ctx, l10n, assetLoader.Load, app))
 	r.Handle("GET /admin/token", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log := logging.GetFromContext(r.Context())
 		token := authz.Token(r.Context())
