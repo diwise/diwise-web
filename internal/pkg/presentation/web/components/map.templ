@@ -74,11 +74,11 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
         data-show-popup={ fmt.Sprintf("%t", showPopup) }
         data-edit-mode={ fmt.Sprintf("%t", editmode) }
         if mapsize == "small" {
-            class="w-full z-0 h-[30vh]"
+            class="w-full z-0 h-[30vh] leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom relative"
         } else if mapsize == "medium" {
-            class="w-full z-0 h-[50vh]"
+            class="w-full z-0 h-[50vh] leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom relative"
         } else if mapsize == "large" {
-            class="w-full z-0 h-[60vh]"
+            class="w-full z-0 h-[60vh] leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom relative"
         }></div>
 	<script>
         var map, lightModeTileLayer, darkModeTileLayer;
