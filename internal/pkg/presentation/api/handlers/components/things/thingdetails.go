@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -234,7 +235,12 @@ func formToFields(form url.Values) map[string]any {
 			refs := strings.Split(v, ",")
 			devices := []application.Device{}
 			for _, r := range refs {
-				devices = append(devices, application.Device{DeviceID: strings.TrimSpace(r)})
+				exists := slices.ContainsFunc(devices, func(d application.Device) bool {
+					return d.DeviceID == strings.TrimSpace(r)
+				})
+				if !exists {
+					devices = append(devices, application.Device{DeviceID: strings.TrimSpace(r)})
+				}
 			}
 			fields["refDevices"] = devices
 		case "maxl":
