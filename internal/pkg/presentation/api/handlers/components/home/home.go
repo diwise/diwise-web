@@ -11,18 +11,17 @@ import (
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewHomePage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
 		ctx = helpers.Decorate(
@@ -51,13 +50,9 @@ func NewHomePage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoa
 		result, _ := app.GetAlarms(ctx, offset, limit, args)
 		for _, a := range result.Alarms {
 			model.Alarms = append(model.Alarms, components.AlarmViewModel{
-				ID:          a.ID,
-				AlarmType:   a.AlarmType,
-				Description: a.Description,
-				ObservedAt:  a.ObservedAt,
-				RefID:       a.RefID,
-				Severity:    a.Severity,
-				Tenant:      a.Tenant,
+				DeviceID:   a.DeviceID,
+				ObservedAt: a.ObservedAt,
+				Types:      a.Types,
 			})
 		}
 
@@ -75,11 +70,10 @@ func NewHomePage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoa
 	return http.HandlerFunc(fn)
 }
 
-func NewAlarmsTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewAlarmsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
 		ctx = helpers.Decorate(
@@ -101,13 +95,9 @@ func NewAlarmsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 		result, _ := app.GetAlarms(ctx, offset, limit, args)
 		for _, a := range result.Alarms {
 			model.Alarms = append(model.Alarms, components.AlarmViewModel{
-				ID:          a.ID,
-				AlarmType:   a.AlarmType,
-				Description: a.Description,
-				ObservedAt:  a.ObservedAt,
-				RefID:       a.RefID,
-				Severity:    a.Severity,
-				Tenant:      a.Tenant,
+				DeviceID:   a.DeviceID,
+				ObservedAt: a.ObservedAt,
+				Types:      a.Types,
 			})
 		}
 
@@ -122,12 +112,11 @@ func NewAlarmsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 	return http.HandlerFunc(fn)
 }
 
-func NewOverviewCardsHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewOverviewCardsHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "max-age=30")
 		w.Header().Add("Vary", "Accept-Language")
-		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
@@ -147,11 +136,10 @@ func NewOverviewCardsHandler(ctx context.Context, l10n locale.Bundle, assets ass
 	return http.HandlerFunc(fn)
 }
 
-func NewUsageHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewUsageHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "max-age=600")
-		//w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
 		//localizer := l10n.For(r.Header.Get("Accept-Language"))

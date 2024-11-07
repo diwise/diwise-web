@@ -5,63 +5,34 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
-	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
-			return
-		}
-
-		ctx := helpers.Decorate(r.Context(),
-			components.CurrentComponent, "things",
-		)
-
-		thing, err := app.GetThing(ctx, id)
+		ctx, thingDetails, err := newThingDetails(r, localizer, assets, app)
 		if err != nil {
-			http.Error(w, "could not compose view model", http.StatusInternalServerError)
-			return
+			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
 		}
 
-		thingDetailsViewModel := components.ThingDetailsViewModel{
-			Thing: toViewModel(thing),
-		}
+		thingDetailsPage := components.ThingDetailsPage(localizer, assets, thingDetails)
+		page := components.StartPage(version, localizer, assets, thingDetailsPage)
 
-		thingDetailsViewModel.Measurements = thingDetailsViewModel.Thing.Measurements
-
-		for _, r := range thing.Related {
-			if strings.ToLower(r.Type) != "device" {
-				continue
-			}
-
-			thingDetailsViewModel.Related = append(thingDetailsViewModel.Related, components.ThingViewModel{
-				ThingID: fmt.Sprintf("urn:diwise:%s:%s", r.Type, r.ID),
-				ID:      r.ID,
-				Type:    r.Type,
-			})
-		}
-
-		thingDetails := components.ThingDetailsPage(localizer, assets, thingDetailsViewModel)
-		page := components.StartPage(version, localizer, assets, thingDetails)
-
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		err = page.Render(ctx, w)
 		if err != nil {
@@ -74,92 +45,66 @@ func NewThingDetailsPage(ctx context.Context, l10n locale.Bundle, assets assets.
 	return http.HandlerFunc(fn)
 }
 
-func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		id := r.URL.Query().Get("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
-			return
-		}
-
-		mode := r.URL.Query().Get("mode")
-
-		ctx := helpers.Decorate(r.Context(),
-			components.CurrentComponent, "things",
-		)
-
-		thing, err := app.GetThing(ctx, id)
-		if err != nil {
-			http.Error(w, "could not compose view model", http.StatusInternalServerError)
-			return
-		}
-
-		thingDetailsViewModel := components.ThingDetailsViewModel{
-			Thing: toViewModel(thing),
-		}
-
-		thingDetailsViewModel.Measurements = thingDetailsViewModel.Thing.Measurements
-
-		for _, r := range thing.Related {
-			//TODO: should it be possible to add other types of related things?
-			if strings.ToLower(r.Type) != "device" {
-				continue
-			}
-
-			thingDetailsViewModel.Related = append(thingDetailsViewModel.Related, components.ThingViewModel{
-				ThingID: fmt.Sprintf("urn:diwise:%s:%s", r.Type, r.ID),
-				ID:      r.ID,
-				Type:    r.Type,
-			})
-		}
-
-		if len(thingDetailsViewModel.Related) > 0 {
-			thingDetailsViewModel.RelatedDevice = thingDetailsViewModel.Related[0].ID
-		}
-
-		if mode == "edit" {
-			urn := []string{}
-			switch thing.Type {
-			case "combinedsewageoverflow":
-				urn = append(urn, "urn:oma:lwm2m:ext:3200")
-			case "wastecontainer":
-				urn = append(urn, "urn:oma:lwm2m:ext:3300", "urn:oma:lwm2m:ext:3435")
-			case "sewer":
-				urn = append(urn, "urn:oma:lwm2m:ext:3200")
-			case "sewagepumpingstation":
-				urn = append(urn, "urn:oma:lwm2m:ext:3200")
-			case "passage":
-				urn = append(urn, "urn:oma:lwm2m:ext:3200", "urn:oma:lwm2m:ext:3434")
-			}
-
-			validSensors, _ := app.GetValidSensors(ctx, urn)
-			for _, s := range validSensors {
-				thingDetailsViewModel.ValidSensors = append(thingDetailsViewModel.ValidSensors, components.ValidSensorViewModel{
-					SensorID: s.SensorID,
-					DeviceID: s.DeviceID,
-					Decoder:  s.Decoder,
-				})
-			}
-
-			thingDetailsViewModel.Organisations = app.GetTenants(ctx)
-			thingDetailsViewModel.Tags, _ = app.GetTags(ctx)
-
-			component := components.EditThingDetails(localizer, assets, thingDetailsViewModel)
-			component.Render(ctx, w)
-			return
-		}
-
-		thingDetails := components.ThingDetails(localizer, assets, thingDetailsViewModel)
-
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+
+		if r.Method == http.MethodDelete {
+			ctx := r.Context()
+
+			id := r.PathValue("id")
+			if id == "" {
+				http.Error(w, "no ID found in url", http.StatusBadRequest)
+				return
+			}
+
+			c := components.DeleteThing(localizer, assets, id)
+
+			err := c.Render(ctx, w)
+			if err != nil {
+				http.Error(w, "could not render delete thing", http.StatusInternalServerError)
+				return
+			}
+
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		if r.Method == http.MethodPost {
+			ctx := r.Context()
+
+			id := r.PathValue("id")
+			if id == "" {
+				http.Error(w, "no ID found in url", http.StatusBadRequest)
+				return
+			}
+			err := r.ParseForm()
+			if err != nil {
+				http.Error(w, "could not parse form", http.StatusBadRequest)
+				return
+			}
+
+			fields := formToFields(r.Form)
+			err = app.UpdateThing(ctx, id, fields)
+			if err != nil {
+				http.Error(w, "could not update thing", http.StatusBadRequest)
+				return
+			}
+		}
+
+		ctx, thingDetails, err := newThingDetails(r, localizer, assets, app)
+		if err != nil {
+			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
+			return
+		}
 
 		err = thingDetails.Render(ctx, w)
 		if err != nil {
 			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
+			return
 		}
 
 		w.WriteHeader(http.StatusOK)
@@ -168,63 +113,75 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, as
 	return http.HandlerFunc(fn)
 }
 
-func NewSaveThingDetailsComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
-	log := logging.GetFromContext(ctx)
+func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFunc, app application.ThingManagement) (context.Context, templ.Component, error) {
+	ctx := r.Context()
 
+	id := r.PathValue("id")
+	if id == "" {
+		return ctx, nil, fmt.Errorf("no id found in url")
+	}
+
+	editMode := r.URL.Query().Get("mode") == "edit"
+
+	ctx = helpers.Decorate(ctx,
+		components.CurrentComponent, "things",
+	)
+
+	thing, err := app.GetThing(ctx, id, r.URL.Query())
+	if err != nil {
+		return ctx, nil, fmt.Errorf("could not compose view model")
+	}
+
+	thingDetailsViewModel := components.ThingDetailsViewModel{
+		Thing: toViewModel(thing),
+	}
+
+	thingDetailsViewModel.Tenant = thingDetailsViewModel.Thing.Tenant
+
+	if editMode {
+		validSensors, _ := app.GetValidSensors(ctx, thing.ValidURNs)
+		for _, s := range validSensors {
+			thingDetailsViewModel.ValidSensors = append(thingDetailsViewModel.ValidSensors, components.ValidSensorViewModel{
+				SensorID: s.SensorID,
+				DeviceID: s.DeviceID,
+				Decoder:  s.Decoder,
+			})
+		}
+
+		thingDetailsViewModel.Organisations = app.GetTenants(ctx)
+		thingDetailsViewModel.Tags, _ = app.GetTags(ctx)
+
+		component := components.EditThingDetails(localizer, assets, thingDetailsViewModel)
+		return ctx, component, nil
+	}
+
+	return ctx, components.ThingDetails(localizer, assets, thingDetailsViewModel), nil
+}
+
+func DeleteThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "", http.StatusBadRequest)
+		ctx := helpers.Decorate(r.Context(),
+			components.CurrentComponent, "things",
+		)
+
+		id := r.PathValue("id")
+		if id == "" {
+			http.Error(w, "no ID found in url", http.StatusBadRequest)
 			return
 		}
 
-		ctx := logging.NewContextWithLogger(r.Context(), log)
-
-		err := r.ParseForm()
-		if err != nil {
-			http.Error(w, "could not parse form data", http.StatusBadRequest)
-			return
-		}
-
-		id := r.Form.Get("id")
-
-		if r.Form.Has("save") {
-			fields := formToFields(r.Form)
-			err = connectSensor(ctx, id, fields, app)
+		if r.URL.Query().Get("confirmed") == "true" {
+			err := app.DeleteThing(ctx, id)
 			if err != nil {
-				http.Error(w, "could not connect sensor", http.StatusInternalServerError)
-				return
-			}
-			err = app.UpdateThing(ctx, id, fields)
-			if err != nil {
-				http.Error(w, "could not update thing", http.StatusInternalServerError)
+				http.Error(w, "could not delete thing", http.StatusInternalServerError)
 				return
 			}
 		}
 
-		http.Redirect(w, r, "/things/"+id, http.StatusFound)
+		http.Redirect(w, r, "/things", http.StatusSeeOther)
 	}
 
 	return http.HandlerFunc(fn)
-}
-
-func connectSensor(ctx context.Context, thingID string, fields map[string]any, app application.ThingManagement) error {
-	currentID, currentOk := fields["currentDevice"].(string)
-	newID, newOk := fields["relatedDevice"].(string)
-
-	if !currentOk || !newOk {
-		return fmt.Errorf("could not connect sensor, invalid ID")
-	}
-
-	if currentID == newID {
-		return nil
-	}
-
-	err := app.ConnectSensor(ctx, thingID, currentID, newID)
-
-	delete(fields, "currentDevice")
-	delete(fields, "relatedDevice")
-
-	return err
 }
 
 func formToFields(form url.Values) map[string]any {
@@ -237,7 +194,6 @@ func formToFields(form url.Values) map[string]any {
 
 	fields := make(map[string]any)
 	fields["tags"] = []string{}
-	fields["currentDevice"] = ""
 
 	for k := range form {
 		v := form.Get(k)
@@ -276,9 +232,29 @@ func formToFields(form url.Values) map[string]any {
 		case "description":
 			fields["description"] = strings.TrimSpace(v)
 		case "currentDevice":
-			fields["currentDevice"] = strings.TrimSpace(v)
-		case "relatedDevice":
-			fields["relatedDevice"] = strings.TrimSpace(v)
+			refs := strings.Split(v, ",")
+			devices := []application.Device{}
+			for _, r := range refs {
+				exists := slices.ContainsFunc(devices, func(d application.Device) bool {
+					return d.DeviceID == strings.TrimSpace(r)
+				})
+				if !exists {
+					devices = append(devices, application.Device{DeviceID: strings.TrimSpace(r)})
+				}
+			}
+			fields["refDevices"] = devices
+		case "maxl":
+			if f, ok := asFloat(v); ok {
+				fields["maxl"] = f
+			}
+		case "maxd":
+			if f, ok := asFloat(v); ok {
+				fields["maxd"] = f
+			}
+		case "angle":
+			if f, ok := asFloat(v); ok {
+				fields["angle"] = f
+			}
 		}
 	}
 

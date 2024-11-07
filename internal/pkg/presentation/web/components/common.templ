@@ -2,8 +2,9 @@ package components
 
 import (
 	"fmt"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
 	"strings"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
 type SlotContents struct {
@@ -26,7 +27,7 @@ type PagingViewModel struct {
 	TargetID  string
 }
 
-templ Paging(l10n locale.Localizer, p PagingViewModel) {
+templ Paging(l10n Localizer, p PagingViewModel) {
 	<div id="paginering" class="flex items-center w-full h-[60px] px-4 py-3.5 rounded-b-2xl border-white border-opacity-30">
 		<div class="flex flex-1 h-8 justify-start items-center gap-2">
 			<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{ l10n.Get("rowsPerPage") }:</span>
@@ -119,29 +120,65 @@ templ ProgressBar(cssClass, text string, value int) {
 	</div>
 }
 
-templ CheckboxOption(name, value, text string, l10n locale.Localizer, attrs templ.Attributes) {
-	<label class="flex justify-between items-center gap-3 dark:text-primary-dark">
+templ CheckboxOption(name, value, text string, l10n Localizer, attrs templ.Attributes) {
+	<label class="flex items-center gap-3 dark:text-primary-dark cursor-pointer capitalize">
+		<input
+			type="checkbox"
+			name={ name }
+			value={ value }
+			data-text={ l10n.Get(value) }
+			class="filter sr-only peer form-checkbox"
+			hx-trigger="change"
+			hx-include=".filter"
+			{ attrs... }
+		/>
+		<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center hover:bg-secondary-outline-hover hover:border-black">
+			<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M20 6 9 17l-5-5"></path></svg>
+		</div>
 		if text != "" {
 			{ l10n.Get(text) }
 		} else {
 			{ l10n.Get(value) }
 		}
-		<input
-			type="checkbox"
-			name={ name }
-			value={ value }
-			class="filter sr-only peer form-checkbox cursor-pointer"
-			hx-trigger="change"
-			hx-include=".filter"
-			{ attrs... }
-		/>
-		<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
-			<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M20 6 9 17l-5-5"></path></svg>
-		</div>
 	</label>
 }
 
 templ CheckboxList(header string) {
+	<div class="relative inline-block group">
+		<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg">{ header } <svg class="w-[18px] h-[18px] dark:fill-white"><path fill-rule="evenodd" d="M3.97 6.22a.75.75 0 0 1 1.06 0L9 10.19l3.97-3.97a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path></svg></button>
+		<div class="hidden absolute bg-gray-100 min-w-max rounded-md shadow-lg z-10 p-4 group-hover:block">
+			{ children... }
+		</div>
+	</div>
+}
+
+templ RadioOption(name, value, text string, l10n Localizer, attrs templ.Attributes) {
+	<label class="flex items-center gap-3 dark:text-primary-dark cursor-pointer">
+		<input
+			type="radio"
+			name={ name }
+			value={ value }
+			data-text={ l10n.Get(value) }
+			class="filter sr-only peer"
+			hx-trigger="change"
+			hx-include=".filter"
+			{ attrs... }
+		/>
+		<div
+			class="w-[20px] h-[20px] bg-white rounded-full border border-gray-400 relative 
+					peer-checked:before:bg-primary-dark before:content-[''] before:w-[12px] before:h-[12px] 
+					before:rounded-full before:bg-transparent before:absolute before:top-[50%] before:left-[50%] before:transform 
+					before:-translate-x-1/2 before:-translate-y-1/2 hover:before:bg-secondary-outline-hover hover:border-black"
+		></div>
+		if text != "" {
+			{ l10n.Get(text) }
+		} else {
+			{ l10n.Get(value) }
+		}
+	</label>
+}
+
+templ RadioList(header string) {
 	<div class="relative inline-block group">
 		<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg">{ header } <svg class="w-[18px] h-[18px] dark:fill-white"><path fill-rule="evenodd" d="M3.97 6.22a.75.75 0 0 1 1.06 0L9 10.19l3.97-3.97a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path></svg></button>
 		<div class="hidden absolute bg-gray-100 min-w-max rounded-md shadow-lg z-10 p-4 group-hover:block">
@@ -157,7 +194,7 @@ templ Tooltip(tooltiptext string) {
 		<svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full">
 			@SVG("tip", Box(41, 8), FillColor("black", "white"))
 		</svg>
-		<div class="bg-primary-surface text-white dark:bg-white dark:text-black rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
+		<div class="bg-primary-surface text-white dark:bg-white dark:text-primary-dark rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px]">
 			{ tooltiptext }
 		</div>
 	</div>
@@ -181,7 +218,9 @@ type buttonCfg struct {
 	method  templ.Attributes
 	name    templ.Attributes
 	style   string
+	swap    templ.Attributes
 	target  templ.Attributes
+	trigger templ.Attributes
 }
 
 type ButtonStyle string
@@ -195,7 +234,11 @@ const (
 )
 
 templ Div(id string, contents ...templ.Component) {
-	<div id={ id }>
+	<div
+		if id != "" {
+			id={ id }
+		}
+	>
 		for _,c := range contents {
 			@c
 		}
@@ -240,13 +283,35 @@ func HxUrl(method, url string) func(*buttonCfg) {
 }
 
 func (cfg *buttonCfg) Target() templ.Attributes {
-	return cfg.name
+	return cfg.target
 }
 
 func Target(target string) func(*buttonCfg) {
 	attrs := templ.Attributes{"hx-target": target}
 	return func(cfg *buttonCfg) {
-		cfg.name = attrs
+		cfg.target = attrs
+	}
+}
+
+func (cfg *buttonCfg) Trigger() templ.Attributes {
+	return cfg.trigger
+}
+
+func Trigger(trigger string) func(*buttonCfg) {
+	attrs := templ.Attributes{"hx-trigger": trigger}
+	return func(cfg *buttonCfg) {
+		cfg.trigger = attrs
+	}
+}
+
+func (cfg *buttonCfg) Swap() templ.Attributes {
+	return cfg.swap
+}
+
+func Swap(swap string) func(*buttonCfg) {
+	attrs := templ.Attributes{"hx-swap": swap}
+	return func(cfg *buttonCfg) {
+		cfg.swap = attrs
 	}
 }
 
@@ -327,6 +392,8 @@ templ Button(style ButtonStyle, title, icon string, config ...func(*buttonCfg)) 
 		{ newButtonCfg(config...).BtnType()... }
 		{ newButtonCfg(config...).HxUrl()... }
 		{ newButtonCfg(config...).Target()... }
+		{ newButtonCfg(config...).Trigger()... }
+		{ newButtonCfg(config...).Swap()... }
 	>
 		if icon != "" {
 			<div class="w-[20px] h-[20px]">
@@ -358,6 +425,7 @@ templ Select(id string, multiple bool, hxGet, hxTarget string, options []OptionV
 			if hxTarget != "" {
 				hx-target={ hxTarget }
 			}
+			hx-trigger="change"
 			class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base dark:border dark:border-white-50 dark:bg-input-surface-dark dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
 			multiple?={ multiple }
 		>
@@ -401,7 +469,7 @@ templ SelectMultipleInputs(id string, multiple bool, hxGet, hxTarget, hxInclude 
 
 templ OptionCheckbox(option OptionViewModel) {
 	<label for={ option.Value } class="flex items-center justify-between w-full cursor-pointer mb-2 gap-3 pr-2">
-		<span class="ml-2 text-gray-700 dark:text-black">{ option.Text }</span>
+		<span class="ml-2 text-gray-700 dark:text-primary-dark">{ option.Text }</span>
 		<div class="flex items-center">
 			<input
 				type="checkbox"
@@ -428,7 +496,7 @@ templ OptionCheckboxes(options []OptionViewModel) {
 }
 
 templ CheckboxDropdownList(id string, options []OptionViewModel, buttonText string) {
-	<div class="relative w-full inline-block group">
+	<div id={ id } class="relative w-full inline-block group">
 		<button type="button" class="flex items-center justify-between p-2 w-full font-medium cursor-pointer">
 			{ buttonText }
 			<svg class="w-[18px] h-[18px] dark:fill-white">
@@ -438,6 +506,41 @@ templ CheckboxDropdownList(id string, options []OptionViewModel, buttonText stri
 		<div class="hidden absolute z-10 py-2 rounded-md bg-background-100 shadow-md group-hover:block hover:block">
 			<div class="flex flex-col w-full">
 				@OptionCheckboxes(options)
+			</div>
+		</div>
+	</div>
+}
+
+templ graphTableButtons(l10n Localizer) {
+	<div class="flex items-center self-stretch gap-6">
+		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
+			<div class="relative group">
+				<button
+					id="graphButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black stroke-white dark:bg-white dark:stroke-black hover:bg-tertiary-surface-hover"
+					hx-on:click="showGraph();
+					this.classList.add('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black'); this.classList.remove('stroke-black', 'dark:stroke-white');
+					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black');
+					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');">
+					<svg class="w-[18px] h-[18px]">
+						@SVG("chartline", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@Tooltip(l10n.Get("graph"))
+			</div>
+			<div class="relative group">
+				<button
+					id="tableButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer stroke-black dark:stroke-white dark:fill-white hover:bg-tertiary-surface-hover"
+					hx-on:click="showTable();
+					this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'dark:stroke-black', 'stroke-white' ); this.classList.remove('dark:fill-white', 'dark:stroke-white');
+					document.getElementById('graphButton').classList.add('stroke-black', 'dark:stroke-white');
+					document.getElementById('graphButton').classList.remove('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');">
+					<svg class="w-[18px] h-[18px]">
+						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@Tooltip(l10n.Get("table"))
 			</div>
 		</div>
 	</div>

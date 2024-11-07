@@ -7,17 +7,16 @@ import (
 	"time"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewBatteryLevelComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewBatteryLevelComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "max-age=86400")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
 		ctx := r.Context()
@@ -47,13 +46,11 @@ func NewBatteryLevelComponentHandler(ctx context.Context, l10n locale.Bundle, as
 	return http.HandlerFunc(fn)
 }
 
-func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
-		//w.Header().Add("Cache-Control", "max-age=60")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 
 		//localizer := l10n.For(r.Header.Get("Accept-Language"))
@@ -68,7 +65,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n locale.Bundle, ass
 			Default borde vara "between" de senaste 24 timmarna.
 		*/
 
-		layout := "2006-01-02"
+		layout := "2006-01-02T15:04"
 		t := r.URL.Query().Get("timeAt")
 		if t == "" {
 			t = time.Now().Add(time.Hour * -24).Format(layout)

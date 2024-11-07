@@ -1,0 +1,19 @@
+package components
+
+import (
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ ErrorPage(l10n Localizer, asset AssetLoaderFunc) {
+	<div class="flex flex-col items-start gap-4 flex-[1_0_0] w-full dark:text-white">
+		<div class="flex flex-col items-start gap-6 self-stretch w-full">
+			<div class="flex items-center w-full justify-between">
+				<h1 class="text-2xl font-bold font-heading leading-loose">{ l10n.Get("oops") }</h1>
+			</div>
+		</div>
+		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+		<div class="flex flex-col items-start self-stretch gap-10">
+			Något gick fel
+		</div>
+	</div>
+}

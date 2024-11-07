@@ -13,18 +13,17 @@ import (
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		ctx = helpers.Decorate(
 			r.Context(),
@@ -66,7 +65,7 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
-			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor)
+			tvm.BatteryLevel = getBatteryLevel(ctx, app, sensor)
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
@@ -101,11 +100,10 @@ func NewSensorsPage(ctx context.Context, l10n locale.Bundle, assets assets.Asset
 	return http.HandlerFunc(fn)
 }
 
-func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		ctx = helpers.Decorate(
 			r.Context(),
@@ -136,7 +134,7 @@ func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asse
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
-			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor)
+			tvm.BatteryLevel = getBatteryLevel(ctx, app, sensor)
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
@@ -160,11 +158,10 @@ func NewSensorsTable(ctx context.Context, l10n locale.Bundle, assets assets.Asse
 	return http.HandlerFunc(fn)
 }
 
-func NewSensorsDataList(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 
 		ctx = helpers.Decorate(
 			r.Context(),
@@ -206,7 +203,7 @@ func NewSensorsDataList(ctx context.Context, l10n locale.Bundle, assets assets.A
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
-			tvm.BatteryLevel = getBatterLevel(ctx, app, sensor)
+			tvm.BatteryLevel = getBatteryLevel(ctx, app, sensor)
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
@@ -256,7 +253,7 @@ func getStatistics(ctx context.Context, app application.DeviceManagement) compon
 	return stats
 }
 
-func getBatterLevel(ctx context.Context, app application.DeviceManagement, sensor application.Sensor) int {
+func getBatteryLevel(ctx context.Context, app application.DeviceManagement, sensor application.Sensor) int {
 	if sensor.DeviceStatus != nil {
 		if sensor.DeviceStatus.BatteryLevel != 0 {
 			return sensor.DeviceStatus.BatteryLevel
@@ -294,6 +291,9 @@ func toViewModel(sensor application.Sensor) components.SensorViewModel {
 
 	if sensor.DeviceProfile != nil {
 		s.Type = sensor.DeviceProfile.Name
+	}
+	if sensor.DeviceState != nil {
+		s.Online = sensor.DeviceState.Online
 	}
 
 	return s

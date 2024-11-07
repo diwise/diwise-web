@@ -1,0 +1,289 @@
+{
+    "meta": {
+        "totalRecords": 12
+    },
+    "data": [
+        {
+            "energy": 40,
+            "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65",
+            "location": {
+                "latitude": 62.377963,
+                "longitude": 17.34542
+            },
+            "name": "UC Framåt",
+            "observedAt": "2024-11-01T05:55:04Z",
+            "power": 60,
+            "refDevices": [
+                {
+                    "deviceID": "63356661-3566-6636-3235-636631346439"
+                },
+                {
+                    "deviceID": "34616163-3666-6232-3632-353730396163"
+                },
+                {
+                    "deviceID": "a94dd95e-4da4-49e2-8431-d8d37894e5cc"
+                }
+            ],
+            "tags": [
+                "Byggnad"
+            ],
+            "temperature": 20,
+            "tenant": "default",
+            "type": "Building",
+            "validURN": [
+                "urn:oma:lwm2m:ext:3331",
+                "urn:oma:lwm2m:ext:3328",
+                "urn:oma:lwm2m:ext:3303"
+            ]
+        },
+        {
+            "currentLevel": 0.72,
+            "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+            "location": {
+                "latitude": 62.425242,
+                "longitude": 17.417382
+            },
+            "maxd": 0.94,
+            "maxl": 0.76,
+            "name": "Sandficka",
+            "observedAt": "2024-11-01T08:14:16Z",
+            "percent": 94.73684210526315,
+            "refDevices": [
+                {
+                    "deviceID": "milesight:193"
+                },
+                {
+                    "deviceID": "milesight:194"
+                },
+                {
+                    "deviceID": "milesight:195"
+                }
+            ],
+            "subType": "Sandstorage",
+            "tags": [
+                "Sandficka"
+            ],
+            "tenant": "default",
+            "type": "Container",
+            "validURN": [
+                "urn:oma:lwm2m:ext:3330"
+            ]
+        },
+        {
+            "currentLevel": 0.4,
+            "description": "Beskrivning",
+            "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3",
+            "location": {
+                "latitude": 62.37894,
+                "longitude": 17.33997
+            },
+            "maxd": 0.94,
+            "maxl": 0.76,
+            "name": "Soptunna-054",
+            "observedAt": "2024-11-01T08:19:16Z",
+            "percent": 52.63157894736842,
+            "refDevices": [
+                {
+                    "deviceID": "milesight:54"
+                }
+            ],
+            "subType": "WasteContainer",
+            "tags": [
+                "Soptunna"
+            ],
+            "tenant": "default",
+            "type": "Container",
+            "validURN": [
+                "urn:oma:lwm2m:ext:3330"
+            ]
+        },
+        {
+            "id": "333b31cd-cd78-4fc7-bc30-e4e1753d4070",
+            "location": {
+                "latitude": 62.390291,
+                "longitude": 17.320307
+            },
+            "name": "Lifebuoy-001",
+            "observedAt": "2024-11-01T08:30:16Z",
+            "presence": false,
+            "refDevices": [
+                {
+                    "deviceID": "df334c16-4f9b-4d88-a72c-629592a73d13"
+                }
+            ],
+            "tags": [
+                "Livboj"
+            ],
+            "tenant": "default",
+            "type": "Lifebuoy",
+            "validURN": [
+                "urn:oma:lwm2m:ext:3200",
+                "urn:oma:lwm2m:ext:3302"
+            ]
+        },
+        {
+            "cumulatedNumberOfPassages": 36,
+            "currentState": false,
+            "description": "Dörrbrytare",
+            "id": "1a9d7d59-4ada-42fb-8c06-33f3fcc2d205",
+            "location": {
+                "latitude": 62.397726,
+                "longitude": 17.340344
+            },
+            "name": "Testgatan",
+            "observedAt": "2024-11-01T08:18:09Z",
+            "passagesToday": 6,
+            "refDevices": [
+                {
+                    "deviceID": "c43967c6-3382-48c4-9e93-ac9bd9ae8306"
+                }
+            ],
+            "tags": [
+                "Dörrbrytare"
+            ],
+            "tenant": "default",
+            "type": "Passage",
+            "validURN": [
+                "urn:oma:lwm2m:ext:3200"
+            ]
+        },
+        {
+            "id": "d9b2d63d-a233-4123-847a-8e5d8b2d4b5e",
+            "location": {
+                "latitude": 62.36955,
+                "longitude": 17.27541
+            },
+            "name": "Sidsjön",
+            "observedAt": "2024-11-01T08:14:42Z",
+            "refDevices": [
+                {
+                    "deviceID": "fa9869d8-7c25-48ef-9274-0eb4c050bc82"
+                }
+            ],
+            "subType": "Beach",
+            "temperature": 5.125,
+            "tags": [
+                "Strand"
+            ],
+            "tenant": "default",
+            "type": "PointOfInterest",
+            "validURN": [
+                "urn:oma:lwm2m:ext:3303"
+            ]
+        },
+        {
+            "id": "2230d55e-0934-4759-b68b-92f82a358414",
+            "location": {
+                "latitude": 62.393511,
+                "longitude": 17.334417
+            },
+            "name": "PumpingStation-001",
+            "observedAt": "2024-11-01T08:30:16Z",
+            "pumpingCumulativeTime": 6722000000000,
+            "pumpingDuration": 49000000000,
+            "pumpingObserved": false,
+            "pumpingObservedAt": "2024-11-01T08:28:11Z",
+            "refDevices": [
+                {
+                    "deviceID": "7d2e762f-e836-4fd9-891c-d2a6b727a0ef"
+                }
+            ],
+            "tags": [
+                "Pumpstation"
+            ],
+            "tenant": "default",
+            "type": "PumpingStation",
+            "validURN": [
+                "urn:oma:lwm2m:ext:3200"
+            ]
+        },
+        {
+            "description": "Kontor",
+            "id": "8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae",
+            "location": {
+                "latitude": 62.3954025,
+                "longitude": 17.3102349
+            },
+            "name": "Rum-001",
+            "observedAt": "2024-11-01T08:32:42Z",
+            "refDevices": [
+                {
+                    "deviceID": "0205d469-3cbc-4025-b06d-f2c3f56a3420"
+                },
+                {
+                    "deviceID": "0fbf4edd-62f9-4570-a30b-b7a8face8b26"
+                }
+            ],
+            "tags": [
+                "Rum"
+            ],
+            "temperature": 18.3,
+            "tenant": "default",
+            "type": "Room",
+            "validURN": [
+                "urn:oma:lwm2m:ext:3303"
+            ]
+        },
+        {
+            "currentLevel": 0.56,
+            "id": "edfc6fca-735a-49ee-ab9b-5c38843c61f9",
+            "location": {
+                "latitude": 62.34634,
+                "longitude": 17.36489
+            },
+            "maxd": 0.94,
+            "maxl": 0.76,
+            "name": "Sewer-001",
+            "observedAt": "2024-11-01T08:32:04Z",
+            "overflowCumulativeTime": 0,
+            "overflowDuration": null,
+            "overflowObserved": false,
+            "overflowObservedAt": null,
+            "percent": 73.6842105263158,
+            "refDevices": [
+                {
+                    "deviceID": "braddmatare-05"
+                },
+                {
+                    "deviceID": "milesight:77"
+                }
+            ],
+            "tags": [
+                "Avlopp"
+            ],
+            "tenant": "default",
+            "type": "Sewer",
+            "validURN": [
+                "urn:oma:lwm2m:ext:3330",
+                "urn:oma:lwm2m:ext:3200"
+            ]
+        },
+        {
+            "backflow": false,
+            "burst": false,
+            "cumulativeVolume": 411.189,
+            "fraud": false,
+            "id": "3f2504e0-4f89-11d3-9a0c-0305e82c3301",
+            "leakage": false,
+            "location": {
+                "latitude": 62.391201,
+                "longitude": 17.295211
+            },
+            "name": "055",
+            "observedAt": "2024-10-31T17:00:00Z",
+            "refDevices": [
+                {
+                    "deviceID": "se:lora:055"
+                }
+            ],
+            "tags": [
+                "Vattenmätare"
+            ],
+            "tenant": "default",
+            "type": "WaterMeter",
+            "validURN": [
+                "urn:oma:lwm2m:ext:3424"
+            ]
+        }
+    ]
+}

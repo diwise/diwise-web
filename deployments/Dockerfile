@@ -1,15 +1,15 @@
-FROM --platform=$BUILDPLATFORM docker.io/golang:1.22 AS builder
+FROM --platform=$BUILDPLATFORM docker.io/golang:1.23 AS builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
-RUN go install github.com/a-h/templ/cmd/templ@v0.2.771
+RUN go install github.com/a-h/templ/cmd/templ@v0.2.778
 
 ARG BUILDARCH
 
 RUN echo $BUILDARCH
 
-RUN curl --fail -sL "https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.10/tailwindcss-linux-$BUILDARCH" -o tailwindcss
+RUN curl --fail -sL "https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.13/tailwindcss-linux-$BUILDARCH" -o tailwindcss
 RUN chmod +x tailwindcss
 
 COPY go.mod .

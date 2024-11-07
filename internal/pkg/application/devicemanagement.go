@@ -2,9 +2,9 @@ package application
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
-	"strings"
 	"time"
 )
 
@@ -71,6 +71,7 @@ type Sensor struct {
 	DeviceState   *DeviceState   `json:"deviceState,omitempty"`
 	Alarms        []string       `json:"alarms,omitempty"`
 }
+
 func (s Sensor) ObservedAt() time.Time {
 	if s.DeviceState != nil {
 		return s.DeviceState.ObservedAt
@@ -78,15 +79,10 @@ func (s Sensor) ObservedAt() time.Time {
 	return time.Time{}
 }
 
-
 type Alarm struct {
-	ID          string    `json:"id"`
-	AlarmType   string    `json:"alarmType"`
-	Description string    `json:"description,omitempty"`
-	ObservedAt  time.Time `json:"observedAt"`
-	RefID       string    `json:"refID"`
-	Severity    int       `json:"severity"`
-	Tenant      string    `json:"tenant"`
+	DeviceID   string    `json:"deviceID"`
+	ObservedAt time.Time `json:"observedAt"`
+	Types      []string  `json:"types"`
 }
 
 type SensorResult struct {
@@ -103,57 +99,6 @@ type AlarmResult struct {
 	Count        int
 	Offset       int
 	Limit        int
-}
-
-type InputParam func(v *url.Values)
-
-func WithReverse(reverse bool) InputParam {
-	return func(v *url.Values) {
-		v.Set("reverse", fmt.Sprintf("%t", reverse))
-	}
-}
-func WithLimit(limit int) InputParam {
-	return func(v *url.Values) {
-		v.Set("limit", fmt.Sprintf("%d", limit))
-	}
-}
-func WithLastN(lastN bool) InputParam {
-	return func(v *url.Values) {
-		v.Set("lastN", fmt.Sprintf("%t", lastN))
-	}
-}
-
-func WithTimeRel(timeRel string, timeAt, endTimeAt time.Time) InputParam {
-	return func(v *url.Values) {
-		v.Set("timeRel", timeRel)
-		v.Set("timeAt", timeAt.UTC().Format(time.RFC3339))
-		v.Set("endTimeAt", endTimeAt.UTC().Format(time.RFC3339))
-	}
-}
-
-func WithAggrMethods(methods ...string) InputParam {
-	return func(v *url.Values) {
-		v.Set("aggrMethods", strings.Join(methods, ","))
-	}
-}
-
-func WithTimeUnit(timeUnit string) InputParam {
-	return func(v *url.Values) {
-		v.Set("timeUnit", timeUnit)
-	}
-}
-
-func WithAfter(timeAt time.Time) InputParam {
-	return func(v *url.Values) {
-		v.Set("timeRel", "after")
-		v.Set("timeAt", timeAt.UTC().Format(time.RFC3339))
-	}
-}
-
-func WithBoolValue(boolValue bool) InputParam {
-	return func(v *url.Values) {
-		v.Set("vb", fmt.Sprintf("%t", boolValue))
-	}
 }
 
 type MeasurementData struct {
@@ -177,4 +122,72 @@ type MeasurementValue struct {
 	Timestamp   time.Time `json:"timestamp"`
 	Link        *string   `json:"link,omitempty"`
 	Count       uint64    `json:"sum,omitempty"`
+}
+
+func (a *App) GetSensor(ctx context.Context, id string) (Sensor, error) {
+	res, err := a.get(ctx, a.deviceManagementURL, id, url.Values{})
+	if err != nil {
+		return Sensor{}, err
+	}
+
+	var sensor Sensor
+	err = json.Unmarshal(res.Data, &sensor)
+	if err != nil {
+		return Sensor{}, err
+	}
+
+	return sensor, nil
+}
+
+func (a *App) GetSensors(ctx context.Context, offset, limit int, args map[string][]string) (SensorResult, error) {
+	params := url.Values{}
+	params.Add("limit", fmt.Sprintf("%d", limit))
+	params.Add("offset", fmt.Sprintf("%d", offset))
+
+	for k, v := range args {
+		params[k] = v
+	}
+
+	res, err := a.get(ctx, a.deviceManagementURL, "", params)
+	if err != nil {
+		return SensorResult{}, err
+	}
+
+	var sensors []Sensor
+	err = json.Unmarshal(res.Data, &sensors)
+	if err != nil {
+		return SensorResult{}, err
+	}
+
+	return SensorResult{
+		Sensors:      sensors,
+		TotalRecords: int(res.Meta.TotalRecords),
+		Offset:       int(*res.Meta.Offset),
+		Limit:        int(*res.Meta.Limit),
+		Count:        len(sensors),
+	}, nil
+}
+
+func (a *App) UpdateSensor(ctx context.Context, deviceID string, fields map[string]any) error {
+	b, err := json.Marshal(fields)
+	if err != nil {
+		return err
+	}
+
+	return a.patch(ctx, a.deviceManagementURL, deviceID, b)
+}
+
+func (a *App) GetTenants(ctx context.Context) []string {
+	res, err := a.get(ctx, a.adminURL, "tenants", url.Values{})
+	if err != nil {
+		return []string{}
+	}
+
+	var tenants []string
+	err = json.Unmarshal(res.Data, &tenants)
+	if err != nil {
+		return []string{}
+	}
+
+	return tenants
 }

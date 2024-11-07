@@ -1,0 +1,111 @@
+{
+    "meta": {
+        "totalRecords": 3695,
+        "limit": 100,
+        "count": 100
+    },
+    "data": {
+        "description": "Kontor",
+        "id": "8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae",
+        "location": {
+            "latitude": 62.3954025,
+            "longitude": 17.3102349
+        },
+        "name": "Rum-001",
+        "observedAt": "2024-11-01T09:37:04Z",
+        "refDevices": [
+            {
+                "deviceID": "0205d469-3cbc-4025-b06d-f2c3f56a3420"
+            },
+            {
+                "deviceID": "0fbf4edd-62f9-4570-a30b-b7a8face8b26"
+            }
+        ],
+        "tags": [
+            "Rum",
+            "DigIT"
+        ],
+        "temperature": 18.429166666666664,
+        "tenant": "default",
+        "type": "Room",
+        "validURN": [
+            "urn:oma:lwm2m:ext:3303"
+        ],
+        "values": {
+            "0205d469-3cbc-4025-b06d-f2c3f56a3420/3303/5700": [
+                {
+                    "id": "8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae/3303/5700",
+                    "urn": "urn:oma:lwm2m:ext:3303",
+                    "v": 20.5,
+                    "unit": "Cel",
+                    "timestamp": "2024-10-31T07:32:24Z",
+                    "ref": "0205d469-3cbc-4025-b06d-f2c3f56a3420/3303/5700"
+                },
+                {
+                    "id": "8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae/3303/5700",
+                    "urn": "urn:oma:lwm2m:ext:3303",
+                    "v": 20.8,
+                    "unit": "Cel",
+                    "timestamp": "2024-10-31T07:42:17Z",
+                    "ref": "0205d469-3cbc-4025-b06d-f2c3f56a3420/3303/5700"
+                },
+                {
+                    "id": "8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae/3303/5700",
+                    "urn": "urn:oma:lwm2m:ext:3303",
+                    "v": 21.1,
+                    "unit": "Cel",
+                    "timestamp": "2024-10-31T07:52:17Z",
+                    "ref": "0205d469-3cbc-4025-b06d-f2c3f56a3420/3303/5700"
+                },
+                {
+                    "id": "8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae/3303/5700",
+                    "urn": "urn:oma:lwm2m:ext:3303",
+                    "v": 21.3,
+                    "unit": "Cel",
+                    "timestamp": "2024-10-31T08:02:17Z",
+                    "ref": "0205d469-3cbc-4025-b06d-f2c3f56a3420/3303/5700"
+                }
+            ],
+            "0fbf4edd-62f9-4570-a30b-b7a8face8b26/3303/5700": [
+                {
+                    "id": "8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae/3303/5700",
+                    "urn": "urn:oma:lwm2m:ext:3303",
+                    "v": 19.7,
+                    "unit": "Cel",
+                    "timestamp": "2024-10-31T07:32:31Z",
+                    "ref": "0fbf4edd-62f9-4570-a30b-b7a8face8b26/3303/5700"
+                },
+                {
+                    "id": "8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae/3303/5700",
+                    "urn": "urn:oma:lwm2m:ext:3303",
+                    "v": 19.8,
+                    "unit": "Cel",
+                    "timestamp": "2024-10-31T07:42:31Z",
+                    "ref": "0fbf4edd-62f9-4570-a30b-b7a8face8b26/3303/5700"
+                },
+                {
+                    "id": "8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae/3303/5700",
+                    "urn": "urn:oma:lwm2m:ext:3303",
+                    "v": 19.7,
+                    "unit": "Cel",
+                    "timestamp": "2024-10-31T07:52:34Z",
+                    "ref": "0fbf4edd-62f9-4570-a30b-b7a8face8b26/3303/5700"
+                },
+                {
+                    "id": "8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae/3303/5700",
+                    "urn": "urn:oma:lwm2m:ext:3303",
+                    "v": 19.7,
+                    "unit": "Cel",
+                    "timestamp": "2024-10-31T08:02:31Z",
+                    "ref": "0fbf4edd-62f9-4570-a30b-b7a8face8b26/3303/5700"
+                }
+            ]
+        }
+    },
+    "links": {
+        "self": "/api/v0/things/8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae?offset=0&options=groupByRef",
+        "first": "/api/v0/things/8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae?offset=0&options=groupByRef",
+        "next": "/api/v0/things/8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae?offset=100&options=groupByRef",
+        "last": "/api/v0/things/8b449db2-a3c5-48e0-a4fd-82fd50f0f8ae?offset=3600&options=groupByRef"
+    }
+}

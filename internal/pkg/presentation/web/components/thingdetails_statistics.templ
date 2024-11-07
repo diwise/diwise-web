@@ -1,0 +1,863 @@
+package components
+
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	. "github.com/diwise/frontend-toolkit"
+)
+
+func ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsViewModel) templ.Component {
+	thingType := strings.ToLower(model.Thing.Type)
+	subType := strings.ToLower(model.Thing.SubType)
+
+	switch thingType {
+	case "pointofinterest":
+		switch subType {
+			case "beach":
+				return thingTypeStatistics(StatisticsBeach(l10n, model))
+		}
+		return templ.NopComponent
+	case "building":
+		return thingTypeStatistics(StatisticsBuilding(l10n, model))
+	case "container":
+		switch subType {
+			case "wastecontainer":
+				return thingTypeStatistics(StatisticsWasteContainer(l10n, model))
+			case "sandstorage":
+				return thingTypeStatistics(StatisticsSandStorage(l10n, model))
+		}
+	case "lifebuoy":
+		return thingTypeStatistics(StatisticsLifebuoy(l10n, model))
+	case "passage":
+		return thingTypeStatistics(StatisticsPassage(l10n, model))
+	case "pumpingstation":
+		return thingTypeStatistics(StatisticsPumpingStation(l10n, model))
+	case "room":
+		return thingTypeStatistics(StatisticsRoom(l10n, model))
+	case "sewer":
+		return thingTypeStatistics(StatisticsSewer(l10n, model))
+	case "watermeter":
+		return thingTypeStatistics(StatisticsWatermeter(l10n, model))
+	}
+
+	return templ.NopComponent
+}
+
+templ thingTypeStatistics(component templ.Component) {
+	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
+		@component
+	</div>
+	<script>
+		function showGraph() {
+			document.getElementById('statisticsGraph').style.display = 'block';
+			document.getElementById('statisticsTable').style.display = 'none';
+		}
+
+		function showTable() {
+			document.getElementById('statisticsGraph').style.display = 'none';
+			document.getElementById('statisticsTable').style.display = 'block';
+		}
+
+		document.addEventListener('DOMContentLoaded', function () {
+			showGraph();
+		});
+	</script>
+}
+
+templ StatisticsFilter(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex flex-col items-start gap-2">
+		<div class="font-bold">
+			{ l10n.Get("timeinterval") }
+		</div>
+		<div class="">
+			<input
+				name="timeAt"
+				type="datetime-local"
+				id="timeAt"
+				hx-trigger="change, load"
+				hx-include="#endTimeAt,#tableButton,#graphButton"
+				hx-target="#measurementCharts"
+				hx-get={ fmt.Sprintf("/components/things/measurements/%s?type=%s&subType=%s", model.Thing.ID, model.Thing.Type, model.Thing.SubType) }
+				hx-params="*"
+				class="border border-input-surface dark:border-white-50 rounded-xl py-2 px-3 dark:bg-input-surface-dark"
+			/>
+			-
+			<input
+				name="endTimeAt"
+				type="datetime-local"
+				id="endTimeAt"
+				hx-trigger="change"
+				hx-include="#timeAt,#tableButton,#graphButton"
+				hx-target="#measurementCharts"
+				hx-get={ fmt.Sprintf("/components/things/measurements/%s?type=%s&subType=%s", model.Thing.ID, model.Thing.Type, model.Thing.SubType) }
+				hx-params="*"
+				class="border border-input-surface dark:border-white-50 rounded-xl py-2 px-3 dark:bg-input-surface-dark"
+			/>
+		</div>
+	</div>
+	<div class="flex flex-col items-start gap-2">
+		<div class="text-primary-dark font-bold">
+			&nbsp;
+		</div>
+		<div class="">
+			@graphTableButtons(l10n)
+		</div>
+	</div>
+}
+
+templ StatisticsData(l10n Localizer, graphComponent, tableComponent templ.Component, tableView bool) {
+	<div id="graphOrTable" class="w-full flex flex-col gap-6 items-start inline-flex">
+		<input
+			type="hidden"
+			id="tableview"
+			name="tableview"
+			class="filter"
+			if tableView {
+				value="true"
+			} else {
+				value="false"
+			}
+		/>
+		<div
+			if tableView {
+				id="tableview"
+			} else {
+				id="graphview"
+			}
+			class="w-full"
+		>
+			if tableView {
+				@tableComponent
+			} else {
+				@graphComponent
+			}
+		</div>
+	</div>
+}
+
+func RenderStatisticsGraph(l10n Localizer, model ThingDetailsViewModel) templ.Component {
+	startDate := time.Now().Add(-24 * time.Hour)
+	endDate := time.Now()
+
+	if len(model.Thing.Measurements) > 0 {
+		startDate = model.Thing.Measurements[0].Timestamp.Add(-24 * time.Hour)
+		endDate = model.Thing.Measurements[0].Timestamp
+	}
+
+	return Graph(l10n, startDate, endDate)
+}
+
+templ Graph(l10n Localizer, startDate, endDate time.Time) {
+	<div
+		id="graphView"
+		class="w-full"
+		style="height: 40vh; position: relative;"
+		data-start-date={ fmt.Sprintf("%s", startDate.Format("2006-01-02 15:04")) }
+		data-end-date={ fmt.Sprintf("%s", endDate.Format("2006-01-02 15:04")) }
+	>
+		<canvas id="measurement-chart"></canvas>
+		<div id="measurementCharts" style="display:none;"></div>
+	</div>
+	<script>
+		(() => {
+			const graphElement = document.getElementById('graphView');
+			if (graphElement) {
+				const startDateStr = graphElement.getAttribute('data-start-date');
+				const endDateStr = graphElement.getAttribute('data-end-date');
+				
+				const timeAtInput = document.getElementById("timeAt");
+				const endTimeAtInput = document.getElementById("endTimeAt");
+
+				var startDate = dateFns.startOfDay(new Date(startDateStr));
+  				var endDate = dateFns.endOfDay(new Date(endDateStr)); 
+
+				var formattedStartDate = dateFns.format(startDate, 'yyyy-MM-dd HH:mm');
+				var formattedEndDate = dateFns.format(endDate, 'yyyy-MM-dd HH:mm');
+
+				if (timeAtInput && endTimeAtInput) {
+					timeAtInput.value = formattedStartDate;
+					endTimeAtInput.value = formattedEndDate;
+				}
+			}
+		})();
+	</script>
+}
+
+templ StatisticsBeach(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("currenttemperature") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%.1f °C", model.Thing.GetFloatOrDefault("temperature", 0)) }
+			</div>
+		</div>
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsBeachTable(l10n, model)
+	</div>
+}
+
+func BeachChart(datasets []ChartDataset) templ.Component {
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("line", false, nil, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsBeachTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+				<th class="px-6 py-3">{ l10n.Get("temperature") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsBeachTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsBeachTableRow(l10n Localizer, measurement MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%.1f °C", *measurement.Value) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
+	</tr>
+}
+
+templ StatisticsBuilding(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("consumption") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%.1f kWh", model.Thing.GetFloatOrDefault("power", 0)) } / { fmt.Sprintf("%.1f kW", model.Thing.GetFloatOrDefault("energy", 0)) }
+			</div>
+		</div>
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsBuildingTable(l10n, model)
+	</div>
+}
+
+func BuildingChart(datasets []ChartDataset) templ.Component {
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("line", false, nil, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsBuildingTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+				<th class="px-6 py-3">{ l10n.Get("kWh") }</th>
+				<th class="px-6 py-3">{ l10n.Get("kW") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsBuildingTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsBuildingTableRow(l10n Localizer, measurement MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%.1f kWh", *measurement.Value) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%.1f kW", *measurement.Value) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
+	</tr>
+}
+
+templ StatisticsWasteContainer(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("currentlevel") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%0.f%%", model.Thing.GetFloatOrDefault("percent", 0)) }
+			</div>
+		</div>
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsWasteContainerTable(l10n, model)
+	</div>
+}
+
+func WastecontainerChart(datasets []ChartDataset) templ.Component {
+	maxvalue := uint(100)
+	stepsize := uint(10)
+	cfg := NewChartConfiguration("line", false, nil, &maxvalue, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsWasteContainerTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+				<th class="px-6 py-3">{ l10n.Get("fillinglevel") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsWasteContainerTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsWasteContainerTableRow(l10n Localizer, measurement MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%0.f%s", *measurement.Value, measurement.Unit) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
+	</tr>
+}
+
+templ StatisticsPumpingStation(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2 justify-start">
+			<div class="">{ l10n.Get("pumping") }</div>
+			<div class="text-3xl font-bold">
+				if model.Thing.GetBoolOrDefault("pumpingObserved", false) {
+					{ l10n.Get("yes") }
+				} else {
+					{ l10n.Get("no") }
+				}
+			</div>
+		</div>
+		<div class="flex items-center gap-6 ml-auto">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsPumpingStationTable(l10n, model)
+	</div>
+}
+
+func PumpingStationChart(datasets []ChartDataset) templ.Component {
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("line", false, nil, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsPumpingStationTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("starttime") }</th>
+				<th class="px-6 py-3">{ l10n.Get("endtime") }</th>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsPumpingStationTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsPumpingStationTableRow(l10n Localizer, thing MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">00:00</td>
+		<td class="px-6 py-3">23:59</td>
+		<td class="px-6 py-3">2 timmar</td>
+	</tr>
+}
+
+templ StatisticsSewer(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex gap-6">
+			<div class="flex flex-col gap-2 justify-start">
+				<div class="">{ l10n.Get("overflowrightnow") }</div>
+				<div class="text-3xl font-bold">
+					if model.Thing.GetBoolOrDefault("overflowObserved", false) {
+						{ l10n.Get("yes") }
+					} else {
+						{ l10n.Get("no") }
+					}
+				</div>
+			</div>
+			<div class="flex flex-col gap-2 justify-start">
+				<div class="">{ l10n.Get("level") }</div>
+				<div class="text-3xl font-bold">
+					{ fmt.Sprintf("%0.fm (%0.f%%)", model.Thing.GetFloatOrDefault("currentLevel", 0), model.Thing.GetFloatOrDefault("percent", 0)) }
+				</div>
+			</div>
+		</div>
+		<div class="flex items-center gap-6 ml-auto">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsSewerTable(l10n, model)
+	</div>
+}
+
+func SewerChart(datasets []ChartDataset) templ.Component {
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("line", false, nil, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsSewerTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("starttime") }</th>
+				<th class="px-6 py-3">{ l10n.Get("endtime") }</th>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsSewerTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsSewerTableRow(l10n Localizer, thing MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">00:00</td>
+		<td class="px-6 py-3">23:59</td>
+		<td class="px-6 py-3">2 timmar</td>
+	</tr>
+}
+
+templ StatisticsSandStorage(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("currentlevel") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%0.f%%", model.Thing.GetFloatOrDefault("percent", 0)) }
+			</div>
+		</div>
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsSandStorageTable(l10n, model)
+	</div>
+}
+
+func SandStorageChart(datasets []ChartDataset) templ.Component {
+	maxvalue := uint(100)
+	stepsize := uint(10)
+	cfg := NewChartConfiguration("line", false, nil, &maxvalue, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsSandStorageTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+				<th class="px-6 py-3">{ l10n.Get("fillinglevel") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsSandStorageTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsSandStorageTableRow(l10n Localizer, measurement MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%0.f%%", *measurement.Value) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
+	</tr>
+}
+
+templ StatisticsRoom(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("currenttemperature") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%.1f °C", model.Thing.GetFloatOrDefault("temperature", 0)) }
+			</div>
+		</div>
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsRoomTable(l10n, model)
+	</div>
+}
+
+func RoomChart(datasets []ChartDataset) templ.Component {
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("line", false, nil, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsRoomTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+				<th class="px-6 py-3">{ l10n.Get("temperature") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsRoomTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsRoomTableRow(l10n Localizer, measurement MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%.1f °C", *measurement.Value) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
+	</tr>
+}
+
+templ StatisticsLifebuoy(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2 justify-start">
+			<div class="">{ l10n.Get("inplace") }</div>
+			<div class="text-3xl font-bold">
+				if model.Thing.GetBoolOrDefault("presence", false) {
+					{ l10n.Get("yes") }
+				} else {
+					{ l10n.Get("no") }
+				}
+			</div>
+		</div>
+		<div class="flex items-center gap-6 ml-auto">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsLifebuoyTable(l10n, model)
+	</div>
+}
+
+func LifebuoyChart(datasets []ChartDataset) templ.Component {
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("line", false, nil, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsLifebuoyTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("starttime") }</th>
+				<th class="px-6 py-3">{ l10n.Get("endtime") }</th>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsLifebuoyTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsLifebuoyTableRow(l10n Localizer, thing MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">00:00</td>
+		<td class="px-6 py-3">23:59</td>
+		<td class="px-6 py-3">2 timmar</td>
+	</tr>
+}
+
+templ StatisticsPassage(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("numberofpassagestoday") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%0.f st", model.Thing.GetFloatOrDefault("passagesToday", 0)) }
+			</div>
+		</div>
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsPassageTable(l10n, model)
+	</div>
+}
+
+func PassagesChart(datasets []ChartDataset) templ.Component {
+	minvalue := uint(0)
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("bar", false, &minvalue, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsPassageTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+				<th class="px-6 py-3">{ l10n.Get("numberofpassages") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsPassageTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsPassageTableRow(l10n Localizer, measurement MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%d st", int(*measurement.Value)) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
+	</tr>
+}
+
+templ StatisticsWatermeter(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex items-center w-full justify-between">
+		<div class="flex flex-col gap-2">
+			<div class="">{ l10n.Get("cumulativevolume") }</div>
+			<div class="text-3xl font-bold">
+				{ fmt.Sprintf("%0.f m³", model.Thing.GetFloatOrDefault("cumulativeVolume", 0)) }
+			</div>
+		</div>
+		<div class="flex items-center gap-6">
+			@StatisticsFilter(l10n, model)
+		</div>
+	</div>
+	<div id="statisticsGraph" class="w-full">
+		@RenderStatisticsGraph(l10n, model)
+	</div>
+	<div id="statisticsTable" class="w-full hidden">
+		@StatisticsWatermeterTable(l10n, model)
+	</div>
+}
+
+func WatermeterChart(datasets []ChartDataset) templ.Component {
+	stepsize := uint(1)
+	cfg := NewChartConfiguration("line", false, nil, nil, &stepsize)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return Chart("measurement-chart", "", cfg)
+}
+
+templ StatisticsWatermeterTable(l10n Localizer, model ThingDetailsViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+		<thead class="border-b border-primary-dark dark:border-white">
+			<tr>
+				<th class="px-6 py-3">{ l10n.Get("time") }</th>
+				<th class="px-6 py-3">{ l10n.Get("m³") }</th>
+			</tr>
+		</thead>
+		<tbody>
+			//TODO: Här ska mätningar listas
+			for _, measurement := range model.Thing.Measurements {
+				@StatisticsWatermeterTableRow(l10n, measurement)
+			}
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="6">
+					//@Paging(l10n, model.Pageing)
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+}
+
+templ StatisticsWatermeterTableRow(l10n Localizer, measurement MeasurementViewModel) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		<td class="px-6 py-3">{ measurement.Timestamp.Format("2006-01-02 15:04") }</td>
+		<td class="px-6 py-3">
+			if measurement.Value != nil {
+				{ fmt.Sprintf("%0.f m³", *measurement.Value) }
+			} else {
+				{ l10n.Get("nodata") }
+			}
+		</td>
+	</tr>
+}

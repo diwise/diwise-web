@@ -13,6 +13,7 @@ module.exports = {
           'err-prim-surf': '#FBC1C1',
           'err-prim-surf-hover': '#FCD4D4',
           'gray-30': '#1C1C284D',
+          'gray-500': '#68686D',
           'green-700': '#00733B',
           'input-surface': '#1C1C2880',
           'input-surface-dark': '#1C1C2880',

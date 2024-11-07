@@ -4,18 +4,20 @@ import (
 	"context"
 	"net/http"
 	"slices"
+	"sort"
+	"strings"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewMeasurementTypesComponentHandler(ctx context.Context, l10n locale.Bundle, assets assets.AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewMeasurementTypesComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
 		w.Header().Add("Cache-Control", "no-cache")
-		w.Header().Add("Strict-Transport-Security", "max-age=86400; includeSubDomains")
 		w.WriteHeader(http.StatusOK)
 
 		ctx := r.Context()
@@ -34,15 +36,45 @@ func NewMeasurementTypesComponentHandler(ctx context.Context, l10n locale.Bundle
 		options := []components.OptionViewModel{}
 
 		for _, t := range *profile.Types {
+			parts := strings.Split(t, ":")
+			text := strings.Join(parts[1:], "-")
+
 			options = append(options, components.OptionViewModel{
 				Value:    t,
-				Text:     localizer.Get(t),
+				Text:     localizer.Get(text),
 				Name:     "measurementType-option[]",
 				Selected: t == sensorType,
 			})
 		}
 
-		component := components.OptionCheckboxes(options)
+		sort.Slice(options, func(i int, j int) bool {
+			return options[i].Text < options[j].Text
+		})
+
+		component := components.CheckboxDropdownList("measurementType", options, localizer.Get("chooseMeasurementtype"))
+		component.Render(ctx, w)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func NewErrorPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+	version := helpers.GetVersion(ctx)
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
+		w.Header().Add("Cache-Control", "no-cache")
+		w.WriteHeader(http.StatusOK)
+
+		ctx = helpers.Decorate(
+			r.Context(),
+			components.CurrentComponent, "error",
+		)
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		errorpage := components.ErrorPage(localizer, assets)
+		component := components.StartPage(version, localizer, assets, errorpage)
+
 		component.Render(ctx, w)
 	}
 

@@ -2,11 +2,12 @@ package components
 
 import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
+
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
+	. "github.com/diwise/frontend-toolkit"
 )
 
-templ StartPage(version string, localizer locale.Localizer, asset assets.AssetLoaderFunc, mainContent templ.Component) {
+templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, mainContent templ.Component) {
 	<!DOCTYPE html>
 	<html>
 		<head>
@@ -14,12 +15,13 @@ templ StartPage(version string, localizer locale.Localizer, asset assets.AssetLo
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<link href={ asset("/css/diwise.css").Path() } rel="stylesheet"/>
 			<link href={ asset("/css/leaflet.css").Path() } rel="stylesheet"/>
-			<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-			<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-			<script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
-			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-			<script src={ asset("/js/htmx.min.js").Path() }></script>
-			<script src={ asset("/js/leaflet.js").Path() }></script>
+			<script src="https://cdn.jsdelivr.net/npm/chart.js" nonce={ csp.Nonce(ctx) }></script>
+			<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js" nonce={ csp.Nonce(ctx) }></script>
+			<script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js" nonce={ csp.Nonce(ctx) }></script>
+			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" nonce={ csp.Nonce(ctx) }></script>
+			<script src={ asset("/js/htmx.min.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+			<script src={ asset("/js/htmx-ext-sse.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+			<script src={ asset("/js/leaflet.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 			<link href="https://fonts.googleapis.com/css2?family=Raleway&display=swap" rel="stylesheet"/>
 			<link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,700;1,700&display=swap" rel="stylesheet"/>
 			<link rel="icon" type="image/x-icon" href={ asset("/icons/favicon.ico").Path() }/>

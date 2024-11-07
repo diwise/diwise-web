@@ -2,11 +2,12 @@ package components
 
 import (
 	"fmt"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
 	"slices"
+	"sort"
 	"strings"
 	"time"
+
+	. "github.com/diwise/frontend-toolkit"
 )
 
 type SensorDetailsViewModel struct {
@@ -23,6 +24,7 @@ type SensorDetailsViewModel struct {
 	Organisations     []string
 	DeviceProfiles    []DeviceProfile
 	MeasurementTypes  []string
+	Measurements      []MeasurementViewModel
 	ObservedAt        time.Time
 }
 
@@ -33,13 +35,13 @@ type DeviceProfile struct {
 	Types    []string `json:"types,omitempty"`
 }
 
-templ SensorDetailsPage(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
-	<div class="flex flex-col items-start gap-14 flex-[1_0_0] py-8 w-full" id="sensor-view">
+templ SensorDetailsPage(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {
+	<div class="flex flex-col items-start gap-14 flex-[1_0_0] w-full" id="sensor-view">
 		@SensorDetails(l10n, asset, sensor)
 	</div>
 }
 
-templ statusActive(active bool, l10n locale.Localizer) {
+templ statusActive(active bool, l10n Localizer) {
 	if active {
 		@Label(l10n.Get("active"), active)
 	} else {
@@ -47,8 +49,8 @@ templ statusActive(active bool, l10n locale.Localizer) {
 	}
 }
 
-templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
-	<div class="w-full px-8">
+templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {
+	<div class="w-full">
 		<div class="flex items-center w-full justify-between">
 			if sensor.Name == "" {
 				<div class="flex items-center align-middle">
@@ -57,7 +59,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 				</div>
 			} else {
 				<div class="flex items-center gap-6 align-middle">
-					<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
+					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
 					@statusActive(sensor.Active, l10n)
 				</div>
 			}
@@ -93,10 +95,17 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 							<div class="font-bold">{ l10n.Get("organisation") }</div>
 							<div class="">{ sensor.Tenant }</div>
 						</div>
-						<div class="flex flex-col gap-2">
-							<div class="font-bold">{ l10n.Get("description") }</div>
-							<div class="">{ sensor.Description }</div>
-						</div>
+						if sensor.Description != "" {
+							<div class="flex flex-col gap-2">
+								<div class="font-bold">{ l10n.Get("description") }</div>
+								<div class="">{ sensor.Description }</div>
+							</div>
+						} else {
+							<div class="flex gap-2">
+								<div class="font-bold">{ l10n.Get("description") }</div>
+								<div class="">-</div>
+							</div>
+						}
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("lastseen") }</div>
 							<div class="">{ sensor.ObservedAt.Format("2006-01-02, 15:04") }</div>
@@ -113,7 +122,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 						<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("measurementvalues") }</h2>
 						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 					</div>
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-8 pr-2">
 						<div class="border border-input-surface dark:border-white-50 rounded-xl w-auto">
 							<label for="sensorMeasurementTypes" class="hidden block text-sm font-medium text-gray-700">
 								{ l10n.Get("sensorMeasurementTypes") }
@@ -127,9 +136,9 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 							<div class="">
 								<input
 									name="timeAt"
-									type="date"
+									type="datetime-local"
 									id="timeAt"
-									hx-trigger="change"
+									hx-trigger="change, load"
 									hx-include="#sensorMeasurementTypes,#endTimeAt"
 									hx-target="#measurementCharts"
 									hx-get="/components/measurements"
@@ -139,9 +148,9 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 								-
 								<input
 									name="endTimeAt"
-									type="date"
+									type="datetime-local"
 									id="endTimeAt"
-									hx-trigger="change"
+									hx-trigger="change, load"
 									hx-include="#sensorMeasurementTypes,#timeAt"
 									hx-target="#measurementCharts"
 									hx-get="/components/measurements"
@@ -150,10 +159,7 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 								/>
 							</div>
 						</div>
-						<div class="w-full">
-							<canvas id="measurement-chart"></canvas>
-							<div id="measurementCharts" style="display:none;"></div>
-						</div>
+						@RenderMeasurementGraph(l10n, sensor)
 					</div>
 				</div>
 			</div>
@@ -185,10 +191,23 @@ templ SensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor 
 	</div>
 }
 
-templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sensor SensorDetailsViewModel) {
-	<div class="w-full px-8">
+func RenderMeasurementGraph(l10n Localizer, model SensorDetailsViewModel) templ.Component {
+
+	startDate := time.Now().Add(-24 * time.Hour)
+	endDate := time.Now()
+
+	if len(model.Measurements) > 0 {
+		startDate = model.Measurements[0].Timestamp.Add(-24 * time.Hour)
+		endDate = model.Measurements[0].Timestamp
+	}
+
+	return Graph(l10n, startDate, endDate)
+}
+
+templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {
+	<div class="w-full">
 		<div class="flex items-center justify-between w-full">
-			<h1 class="text-black dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { sensor.Name }</h1>
+			<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { sensor.Name }</h1>
 		</div>
 		<form action="/components/sensors/details" method="post">
 			<input type="hidden" name="id" value={ sensor.DeviceID }/>
@@ -289,27 +308,31 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("latitude") }</div>
-									<input type="number" 
-											name="latitude"
-											id="latitude" 
-											min="-90" 
-											max="90" 
-											step="0.000001"
-											value={ fmt.Sprintf("%f", sensor.Latitude) } 
-											class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
-											placeholder="Latitud"/>
+									<input
+										type="number"
+										name="latitude"
+										id="latitude"
+										min="-90"
+										max="90"
+										step="0.000001"
+										value={ fmt.Sprintf("%f", sensor.Latitude) }
+										class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2"
+										placeholder="Latitud"
+									/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("longitude") }</div>
-									<input type="number" 
-											name="longitude" 
-											id="longitude"
-											min="-180" 
-											max="180" 
-											step="0.000001"
-											value={ fmt.Sprintf("%f", sensor.Longitude) } 
-											class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
-											placeholder="Longitud"/>
+									<input
+										type="number"
+										name="longitude"
+										id="longitude"
+										min="-180"
+										max="180"
+										step="0.000001"
+										value={ fmt.Sprintf("%f", sensor.Longitude) }
+										class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2"
+										placeholder="Longitud"
+									/>
 								</div>
 							</div>
 							@Map("medium", false, true, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
@@ -329,7 +352,7 @@ templ EditSensorDetails(l10n locale.Localizer, asset assets.AssetLoaderFunc, sen
 	</div>
 }
 
-templ AlarmList(l10n locale.Localizer) {
+templ AlarmList(l10n Localizer) {
 	<div class="flex flex-col items-start self-stretch">
 		//Larm
 		<div class="flex items-center gap-3 self-stretch">
@@ -382,7 +405,7 @@ func sensorMapFeature(sensor SensorDetailsViewModel) FeatureCollection {
 	return NewFeatureCollection([]Feature{feature})
 }
 
-func SensorMeasurementSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, target string, sensorViewModel SensorDetailsViewModel) templ.Component {
+func SensorMeasurementSelect(l10n Localizer, asset AssetLoaderFunc, id, target string, sensorViewModel SensorDetailsViewModel) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
@@ -415,7 +438,7 @@ func MeasurementChart(datasets []ChartDataset, keepRatio bool) templ.Component {
 	return Chart("measurement-chart", "", cfg)
 }
 
-func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
+func MeasurementTypeSelect(l10n Localizer, asset AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
@@ -449,7 +472,7 @@ func MeasurementTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, 
 	return Select(id, true, "", "", viewModel)
 }
 
-func SensorTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, profiles []DeviceProfile) templ.Component {
+func SensorTypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, profiles []DeviceProfile) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
@@ -471,29 +494,29 @@ func SensorTypeSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, s
 	return Select(id, false, "/components/admin/types", "#measurementType", viewModel)
 }
 
-func OrganisationSelect(l10n locale.Localizer, asset assets.AssetLoaderFunc, id, selected string, organisations []string) templ.Component {
+func OrganisationSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, organisations []string) templ.Component {
 	viewModel := []OptionViewModel{
 		{
 			Value:    "",
 			Text:     l10n.Get("choose"),
-			Selected: true,
+			Selected: selected == "",
 			Hidden:   true,
 			Disabled: true,
 		},
 	}
 
-	for _, org := range organisations {
+	for i, org := range organisations {
 		viewModel = append(viewModel, OptionViewModel{
 			Value:    org,
 			Text:     org,
-			Selected: org == selected,
+			Selected: org == selected || (selected == "" && i == 0),
 		})
 	}
 
 	return Select(id, false, "", "", viewModel)
 }
 
-func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
+func MeasurementTypeCheckboxDropdown(l10n Localizer, asset AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
 	viewModel := []OptionViewModel{}
 
 	i := slices.IndexFunc(sensorViewModel.DeviceProfiles, func(p DeviceProfile) bool {
@@ -507,15 +530,22 @@ func MeasurementTypeCheckboxDropdown(l10n locale.Localizer, asset assets.AssetLo
 	profile := sensorViewModel.DeviceProfiles[i]
 
 	for _, t := range profile.Types {
+		parts := strings.Split(t, ":")
+		text := strings.Join(parts[1:], "-")
+
 		viewModel = append(viewModel, OptionViewModel{
 			Value: t,
-			Text:  t,
+			Text:  l10n.Get(text),
 			Name:  id + "-option[]",
 			Selected: slices.ContainsFunc(sensorViewModel.Types, func(s string) bool {
 				return s == t
 			}),
 		})
 	}
+
+	sort.Slice(viewModel, func(i int, j int) bool {
+		return viewModel[i].Text < viewModel[j].Text
+	})
 
 	return CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
 }

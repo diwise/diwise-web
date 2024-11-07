@@ -22,14 +22,35 @@ other = "Alerts"
 [all]
 other = "All"
 
+[angle]
+other = "Angle"
+
+[angleis]
+other = "The angle is"
+
+[angleismissing]
+other = "Angle missing."
+
 [area]
 other = "Area"
 
 [batterylevel]
 other = "Battery level"
 
+[PointOfInterest-Beach]
+other = "Beach"
+
+[Beach]
+other = "Beach"
+
+[Building]
+other = "Building"
+
 [cancel]
 other = "Cancel"
+
+[category]
+other = "Category"
 
 [choose]
 other = "Choose"
@@ -40,11 +61,35 @@ other = "Pick measurement type"
 [choosetags]
 other = "Choose tags"
 
+[consumption]
+other = "Consumption"
+
+[container]
+other = "Container"
+
+[containerheight]
+other = "The container has a height of"
+
+[cumulativevolume]
+other = "Cumulative volume"
+
 [currentlevel]
 other = "Current level"
 
+[currenttemperature]
+other = "Current temperature"
+
+[degrees]
+other = "degrees"
+
 [delete]
 other = "Delete"
+
+[deletethingconfirm]
+other = "Do you want to delete the thing?"
+
+[deletethinginformation]
+other = "The thing and data related to the thing will be removed."
 
 [description]
 other = "Description"
@@ -61,6 +106,9 @@ other = "Edit"
 [endtime]
 other = "End time"
 
+[export]
+other = "Export"
+
 [fillinglevel]
 other = "Filling level"
 
@@ -76,6 +124,9 @@ other = "Home"
 [id]
 other = "ID"
 
+[import]
+other = "Import"
+
 [inactive]
 other = "Inactive"
 
@@ -85,13 +136,22 @@ other = "Inactive sensors"
 [information]
 other = "Information"
 
+[inplace]
+other = "In place"
+
 [lastseen]
 other = "Last seen"
 
 [latitude]
 other = "Latitude"
 
+[level]
+other = "Level"
+
 [lifebuoy]
+other = "Lifebuoy"
+
+[Lifebuoy]
 other = "Lifebuoy"
 
 [list]
@@ -118,6 +178,15 @@ other = "Inactive"
 [map]
 other = "Map"
 
+[maxfillingheight]
+other = "with a maximum filling height of"
+
+[maxheight]
+other = "Container height"
+
+[maxlevel]
+other = "Max filling height"
+
 [measurementperday]
 other = "Measurements per day"
 
@@ -133,11 +202,17 @@ other = "Measurement values"
 [missing]
 other = "Missing"
 
-[moreinformation]
-other = "More information"
+[missingpage]
+other = "Page is missing"
+
+[mm]
+other = "mm"
 
 [more]
 other = "more"
+
+[moreinformation]
+other = "More information"
 
 [name]
 other = "Name"
@@ -145,8 +220,14 @@ other = "Name"
 [no]
 other = "No"
 
+[nodata]
+other = "-"
+
 [notloggedin]
 other = "Please log in"
+
+[notPresent]
+other = "Not present"
 
 [numberofpassages]
 other = "Number of passages"
@@ -157,11 +238,17 @@ other = "Number of passages today"
 [numberofsensors]
 other = "Number of sensors"
 
+[off]
+other = "Off"
+
 [offline]
 other = "Offline"
 
 [online]
 other = "Online"
+
+[oops]
+other = "Oops..."
 
 [organisation]
 other = "Organisation"
@@ -175,14 +262,47 @@ other = "Overflow right now"
 [overview]
 other = "Overview"
 
+[Passage]
+other = "Passage"
+
 [pickOption]
 other = "Pick an option"
 
 [picksensor]
 other = "Pick sensor"
 
+[PointOfInterest]
+other = "Point of interest"
+
+[pointoftime]
+other = "Time"
+
+[pumping]
+other = "Pumping"
+
+[Pumpingstation]
+other = "Pumping station"
+
+[PumpingStation]
+other = "Pumping station"
+
+[room]
+other = "Room"
+
+[Room]
+other = "Room"
+
 [rowsPerPage]
 other = "Rows per page"
+
+[Container-Sandstorage]
+other = "Sand storage"
+
+[sandstorage]
+other = "Sand storage"
+
+[Sandstorage]
+other = "Sand storage"
 
 [save]
 other = "Save"
@@ -196,6 +316,9 @@ other = "Selected filters:"
 [sensorconnected]
 other = "Connected sensor"
 
+[sensorID]
+other = "Sensor ID"
+
 [sensormissing]
 other = "Sensor missing"
 
@@ -204,6 +327,9 @@ other = "Sensors"
 
 [sensortype]
 other = "Type of sensor"
+
+[size]
+other = "Size"
 
 [starttime]
 other = "Start time"
@@ -241,9 +367,6 @@ other = "Total"
 [totaltime]
 other = "Total time"
 
-[trashcan]
-other = "Trashcan"
-
 [type]
 other = "Type"
 
@@ -252,6 +375,9 @@ other = "Unknown"
 
 [unknownsensors]
 other = "Unknown sensors"
+
+[WaterMeter]
+other = "Water meter"
 
 [yes]
 other = "Yes"
@@ -304,11 +430,65 @@ other = "Distance"
 [3331-5700]
 other = "Cumulated energy consumption"
 
-[CombinedSewageOverflow]
-other = "Combined sewage overflow"
+[oma-lwm2m-ext-3]
+other = "Device"
 
-[combinedsewageoverflow]
-other = "Combined sewage overflow"
+[oma-lwm2m-ext-3200]
+other = "Digital input"
+
+[oma-lwm2m-ext-3301]
+other = "Illuminance"
+
+[oma-lwm2m-ext-3302]
+other = "Presence"
+
+[oma-lwm2m-ext-3303]
+other = "Temperature"
+
+[oma-lwm2m-ext-3304]
+other = "Humidity"
+
+[oma-lwm2m-ext-3323]
+other = "Pressure"
+
+[oma-lwm2m-ext-3327]
+other = "Conductivity"
+
+[oma-lwm2m-ext-3328]
+other = "Power"
+
+[oma-lwm2m-ext-3330]
+other = "Distance"
+
+[oma-lwm2m-ext-3331]
+other = "Energy consumption"
+
+[oma-lwm2m-ext-3350]
+other = "Timing"
+
+[oma-lwm2m-ext-3411]
+other = "Battery"
+
+[oma-lwm2m-ext-3424]
+other = "Water meter"
+
+[oma-lwm2m-ext-3428]
+other = "Air quality"
+
+[oma-lwm2m-ext-3434]
+other = "People counter"
+
+[oma-lwm2m-ext-3435]
+other = "Filling level"
+
+[Sewer-CombinedSewerOverflow]
+other = "Combined sewer overflow"
+
+[CombinedSewerOverflow]
+other = "Combined sewer overflow"
+
+[combinedseweroverflow]
+other = "Combined sewer overflow"
 
 [passage]
 other = "Passage"
@@ -322,11 +502,11 @@ other = "Sewer"
 [sewer]
 other = "Sewer"
 
+[Container-WasteContainer]
+other = "Waste container"
+
 [WasteContainer]
 other = "Waste container"
 
 [wastecontainer]
 other = "Waste container"
-
-[noData]
-other = "-"

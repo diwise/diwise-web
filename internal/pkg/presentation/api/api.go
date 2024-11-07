@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
@@ -14,29 +16,37 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/sensors"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/things"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/locale"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/assets"
-	"github.com/diwise/service-chassis/pkg/infrastructure/net/http/authn"
+
+	"github.com/diwise/frontend-toolkit/pkg/assets"
+	"github.com/diwise/frontend-toolkit/pkg/locale"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
-type Api interface {
-	Router() *http.ServeMux
-}
-
-type impl struct {
-	webapp        *application.App
-	router        *http.ServeMux
-	tokenExchange authn.PhantomTokenExchange
-
-	version string
-}
-
 type writerMiddleware struct {
-	rw http.ResponseWriter
+	rw      http.ResponseWriter
+	nocache bool
 
 	contentLength int
 	statusCode    int
+	isStream      bool
+}
+
+func (w *writerMiddleware) disableCache() {
+	if w.nocache {
+		const CacheHeader string = "Cache-Control"
+		currentValue, exists := w.rw.Header()[CacheHeader]
+		// Only set no-store if the endpoint hasn't already set immutable
+		if !exists || !strings.Contains(currentValue[0], "immutable") {
+			w.rw.Header()[CacheHeader] = []string{"no-store"}
+		}
+	}
+}
+
+func (w *writerMiddleware) Flush() {
+	f, ok := w.rw.(http.Flusher)
+	if ok {
+		f.Flush()
+	}
 }
 
 func (w *writerMiddleware) Header() http.Header {
@@ -44,6 +54,14 @@ func (w *writerMiddleware) Header() http.Header {
 }
 
 func (w *writerMiddleware) Write(data []byte) (int, error) {
+	if w.statusCode == 0 && !w.isStream {
+		fmt.Println("write wo header!")
+	}
+
+	if w.nocache && w.contentLength == 0 {
+		w.disableCache()
+	}
+
 	count, err := w.rw.Write(data)
 	if err == nil {
 		w.contentLength += count
@@ -52,37 +70,48 @@ func (w *writerMiddleware) Write(data []byte) (int, error) {
 }
 
 func (w *writerMiddleware) WriteHeader(statusCode int) {
+	if w.statusCode != 0 {
+		return
+	}
+
+	if w.nocache {
+		w.disableCache()
+	}
+
 	w.statusCode = statusCode
 	w.rw.WriteHeader(statusCode)
 }
 
-func logger(ctx context.Context, next http.Handler) http.Handler {
+func Logger(ctx context.Context) func(http.Handler) http.Handler {
 	log := logging.GetFromContext(ctx)
 
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		wmw := &writerMiddleware{rw: w}
-		start := time.Now()
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			wmw := &writerMiddleware{
+				rw:       w,
+				isStream: len(r.Header["Accept"]) > 0 && strings.Contains(r.Header["Accept"][0], "text/event-stream"),
+			}
+			start := time.Now()
 
-		ctx := logging.NewContextWithLogger(r.Context(), log)
-		r = r.WithContext(ctx)
+			ctx := logging.NewContextWithLogger(r.Context(), log)
+			r = r.WithContext(ctx)
 
-		next.ServeHTTP(wmw, r)
-		duration := time.Since(start)
+			next.ServeHTTP(wmw, r)
+			duration := time.Since(start)
 
-		if wmw.statusCode < http.StatusBadRequest {
-			log.Info("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
-		} else if wmw.statusCode < http.StatusInternalServerError {
-			log.Warn("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
-		} else {
-			log.Error("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
-		}
+			if wmw.statusCode < http.StatusBadRequest {
+				log.Info("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
+			} else if wmw.statusCode < http.StatusInternalServerError {
+				log.Warn("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
+			} else {
+				log.Error("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
+			}
+		})
 	}
-
-	return http.HandlerFunc(fn)
 }
 
-func RequireHX(next http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func RequireHX(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		isHxRequest := r.Header.Get("HX-Request")
 		if isHxRequest != "true" {
 			http.Error(w, "bad request", http.StatusBadRequest)
@@ -90,121 +119,175 @@ func RequireHX(next http.Handler) http.HandlerFunc {
 		}
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+func VersionReloader(version string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if helpers.IsHxRequest(r) && strings.HasPrefix(r.URL.Path, "/version") {
+				if strings.Compare(r.URL.Path, "/version/"+version) != 0 {
+					currentURL := r.Header.Get("HX-Current-URL")
+					if currentURL == "" {
+						currentURL = "/"
+					}
+					w.Header().Set("HX-Redirect", currentURL)
+				}
+
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
 	}
 }
 
-func New(ctx context.Context, mux *http.ServeMux, pte authn.PhantomTokenExchange, app *application.App, assetPath string) (Api, error) {
-	version := helpers.GetVersion(ctx)
-
-	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNoContent)
-	})
-
-	mux.HandleFunc("GET /version/{v}", func(w http.ResponseWriter, r *http.Request) {
-		if helpers.IsHxRequest(r) {
-			if r.PathValue("v") != version {
-				currentURL := r.Header.Get("HX-Current-URL")
-				if currentURL == "" {
-					currentURL = "/"
-				}
-				w.Header().Set("HX-Redirect", currentURL)
-			}
-		}
-
-		w.WriteHeader(http.StatusNoContent)
-	})
+func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func(http.Handler) http.Handler, app *application.App, assetPath string) error {
 
 	r := http.NewServeMux()
 
-	assetLoader, _ := assets.NewLoader(ctx, assets.BasePath(assetPath))
+	assetLoader, _ := assets.NewLoader(ctx,
+		assets.BasePath(assetPath), assets.Logger(logging.GetFromContext(ctx)),
+	)
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
 	// home
-	r.HandleFunc("GET /", home.NewHomePage(ctx, l10n, assetLoader.Load, app))
+	r.Handle("GET /", func() http.Handler {
+		// GET / catches ALL routes that no other handler matches, so we need to make sure that
+		// we only serve the homepage when the path actually IS / (or /home as handled below).
+		next := home.NewHomePage(ctx, l10n, assetLoader.Load, app)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != "/" {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+
+			next(w, r)
+		})
+	}())
 	r.HandleFunc("GET /home", home.NewHomePage(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /components/home/statistics", RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/home/usage", RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/tables/alarms", RequireHX(home.NewAlarmsTable(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/home/statistics", RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/home/usage", RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/tables/alarms", RequireHX(home.NewAlarmsTable(ctx, l10n, assetLoader.Load, app)))
 
 	// things
 	r.HandleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("POST /things", things.NewCreateThingComponentHandler(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /things/{id}", things.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /components/things/details", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("POST /components/things/details", things.NewSaveThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /components/tables/things", RequireHX(things.NewThingsTable(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/things/list", RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("DELETE /things/{id}", things.DeleteThingComponentHandler(ctx, l10n, assetLoader.Load, app))
+
+	//things - components
+	r.Handle("GET /components/things", RequireHX(things.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("DELETE /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+
+	r.Handle("GET /components/tables/things", RequireHX(things.NewThingsTable(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/list", RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))
 
 	// sensors
 	r.HandleFunc("GET /sensors", sensors.NewSensorsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /sensors/{id}", sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /components/sensors/details", RequireHX(sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/sensors/{id}/batterylevel", RequireHX(sensors.NewBatteryLevelComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/details", RequireHX(sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/{id}/batterylevel", RequireHX(sensors.NewBatteryLevelComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("POST /components/sensors/details", sensors.NewSaveSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /components/tables/sensors", RequireHX(sensors.NewSensorsTable(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/sensors/list", RequireHX(sensors.NewSensorsDataList(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/tables/sensors", RequireHX(sensors.NewSensorsTable(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/list", RequireHX(sensors.NewSensorsDataList(ctx, l10n, assetLoader.Load, app)))
 	//measurements
-	r.HandleFunc("GET /components/measurements", RequireHX(sensors.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/things/measurements/{type}", RequireHX(things.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /components/things/measurements/{type}/current", RequireHX(things.NewCurrentValueComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/measurements", RequireHX(sensors.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/measurements/{id}", RequireHX(things.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	// admin
-	r.HandleFunc("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("GET /admin/token", func(w http.ResponseWriter, r *http.Request) {
+	r.Handle("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /error", admin.NewErrorPage(ctx, l10n, assetLoader.Load, app))
+	r.Handle("GET /admin/token", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log := logging.GetFromContext(r.Context())
 		token := authz.Token(r.Context())
 		log.Debug("current token", slog.String("token", token))
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(token))
-	})
+	}))
 
-	// Handle requests for leaflet images /assets/<leafletcss-sha>/images/<image>.png
-	leafletSHA := assetLoader.Load("/css/leaflet.css").SHA256()
-	r.HandleFunc(fmt.Sprintf("GET /assets/%s/images/{img}", leafletSHA), func(w http.ResponseWriter, r *http.Request) {
-		image := r.PathValue("img")
-		http.Redirect(w, r, assetLoader.Load("/images/leaflet-"+image).Path(), http.StatusMovedPermanently)
-	})
+	// TODO: Move this handler to a place of its own
+	r.Handle("GET /events/{version}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-	r.HandleFunc("GET /assets/{sha}/{filename}", func(w http.ResponseWriter, r *http.Request) {
-		sha := r.PathValue("sha")
+		out, ok := w.(http.Flusher)
 
-		a, err := assetLoader.LoadFromSha256(sha)
-		if err != nil {
-			if err == assets.ErrNotFound {
-				w.WriteHeader(http.StatusNotFound)
-			} else {
-				w.WriteHeader(http.StatusInternalServerError)
-			}
-
+		if !ok {
+			http.Error(w, "streaming not supported", http.StatusInternalServerError)
 			return
 		}
 
-		w.Header().Set("Content-Type", a.ContentType())
-		w.Header().Set("Content-Length", fmt.Sprintf("%d", a.ContentLength()))
-		w.WriteHeader(http.StatusOK)
-		w.Write(a.Body())
-	})
+		log := logging.GetFromContext(r.Context())
 
-	r.HandleFunc("GET /favicon.ico", func() http.HandlerFunc {
-		faviconPath := assetLoader.Load("/icons/favicon.ico").Path()
-		return func(w http.ResponseWriter, r *http.Request) {
-			http.Redirect(w, r, faviconPath, http.StatusFound)
+		w.Header().Set("Content-Type", "text/event-stream; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+		w.Header().Set("X-Accel-Buffering", "no")
+
+		const eventFmt string = "event: %s\ndata: %s\n\n"
+
+		log.Info("comparing versions", "client", r.PathValue("version"), "mine", helpers.GetVersion(ctx))
+
+		if r.PathValue("version") != helpers.GetVersion(ctx) {
+			log.Warn("client is out of date, sending upgrade and goodbye messages")
+			fmt.Fprintf(w, eventFmt, "upgrade", helpers.GetVersion(ctx))
+			out.Flush()
+			fmt.Fprintf(w, eventFmt, "goodbye", "see you soon")
+			out.Flush()
+
+			select {
+			case <-time.After(time.Second):
+				return
+			case <-r.Context().Done():
+				return
+			}
 		}
-	}())
 
-	mux.Handle(
-		"GET /", logger(ctx, pte.Middleware()(authz.Middleware()(r))),
+		log.Info("client connected, sending hello")
+		fmt.Fprintf(w, eventFmt, "hello", "version handshake ok")
+		out.Flush()
+
+		tmr := time.NewTicker(5 * time.Second)
+
+		for {
+			select {
+			case t := <-tmr.C:
+				fmt.Fprintf(w, eventFmt, "tick", t.Format(time.RFC3339Nano))
+				out.Flush()
+			case <-r.Context().Done():
+				log.Info("sse client closed the connection")
+				return
+			case <-ctx.Done():
+				log.Info("we are closing down, sending goodbye to client")
+				fmt.Fprintf(w, eventFmt, "goodbye", "system closing down")
+				out.Flush()
+				return
+			}
+		}
+	}))
+
+	// Handle requests for leaflet images /assets/<leafletcss-sha>/images/<image>.png
+	leafletSHA := assetLoader.Load("/css/leaflet.css").SHA256()
+
+	assets.RegisterEndpoints(ctx, assetLoader, assets.WithMux(r),
+		assets.WithImmutableExpiry(48*time.Hour),
+		assets.WithRedirect("/favicon.ico", "/icons/favicon.ico", http.StatusFound),
+		assets.WithRedirect(
+			fmt.Sprintf("/assets/%s/images/{img}", leafletSHA), "/images/leaflet-{img}", http.StatusMovedPermanently,
+		),
 	)
-	mux.Handle(
-		"POST /", logger(ctx, pte.Middleware()(authz.Middleware()(r))),
-	)
 
-	return &impl{
-		webapp:        app,
-		router:        mux,
-		tokenExchange: pte,
-		version:       version,
-	}, nil
-}
+	var handler http.Handler = r
 
-func (a *impl) Router() *http.ServeMux {
-	return a.router
+	// wrap the mux with any passed in middleware handlers
+	for _, mw := range slices.Backward(middleware) {
+		handler = mw(handler)
+	}
+
+	mux.Handle("GET /", handler)
+	mux.Handle("POST /", handler)
+	mux.Handle("DELETE /", handler)
+
+	return nil
 }

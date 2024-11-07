@@ -7,9 +7,9 @@ import (
 	"strconv"
 )
 
-type globalConfigKey string
+type versionKeyType string
 
-var versionKey globalConfigKey = "version"
+const versionKey versionKeyType = "version"
 
 func Decorate(ctx context.Context, kv ...any) context.Context {
 	for kvidx := range len(kv) / 2 {
