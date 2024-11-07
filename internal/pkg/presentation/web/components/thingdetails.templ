@@ -407,6 +407,7 @@ templ afterSwap() {
 					var hiddenInput = document.getElementById(hiddenInputId);
 					var currentItems = hiddenInput.value ? hiddenInput.value.split(',') : [];
 					currentItems.push(item);
+					currentItems = [...new Set(currentItems)];
 					updateHiddenInput(currentItems, hiddenInputId);
 
 					addRemoveItemListener(itemElement, item, currentItems, hiddenInputId, datalistId);
