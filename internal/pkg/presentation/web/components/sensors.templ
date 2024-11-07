@@ -48,10 +48,24 @@ templ Statistics(l10n Localizer, model StatisticsViewModel) {
 
 templ SensorsList(l10n Localizer, model SensorListViewModel) {
 	<div class="flex flex-col items-start gap-6 flex-[1_0_0] w-full" id="sensor-view">
-		<div class="flex flex-col items-start gap-6 self-stretch w-full">
-			<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
+		<div class="flex flex-col items-start gap-6 w-full">
+			<div class="flex items-center justify-between w-full">
+				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
+				<div class="flex flex-row items-center text-white dark:text-primary-dark font-bold gap-6">
+					<label class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover">
+						{ l10n.Get("import") }
+						<input type="file" 
+							class="hidden" 
+							hx-post="/upload-file" 
+							hx-target="#uploadStatus">
+					</label>
+						
+					@Button(Primary, l10n.Get("export"), "")
+				</div>
+			</div>
 			@Statistics(l10n, model.Statistics)
 		</div>
+		
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 		<div class="flex flex-col items-start self-stretch gap-10">
 			@SensorsFilter(l10n, model)

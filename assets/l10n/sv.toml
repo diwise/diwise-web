@@ -106,6 +106,9 @@ other = "Redigera"
 [endtime]
 other = "Sluttid"
 
+[export]
+other = "Exportera"
+
 [fillinglevel]
 other = "Fyllnadsnivå"
 
@@ -120,6 +123,9 @@ other = "Hem"
 
 [id]
 other = "ID"
+
+[import]
+other = "Importera"
 
 [inactive]
 other = "Inaktiv"

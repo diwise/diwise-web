@@ -106,6 +106,9 @@ other = "Edit"
 [endtime]
 other = "End time"
 
+[export]
+other = "Export"
+
 [fillinglevel]
 other = "Filling level"
 
@@ -120,6 +123,9 @@ other = "Home"
 
 [id]
 other = "ID"
+
+[import]
+other = "Import"
 
 [inactive]
 other = "Inactive"
