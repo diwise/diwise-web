@@ -32,6 +32,10 @@ type ThingViewModel struct {
 	Properties   map[string]any
 }
 
+func (t ThingViewModel) HasWarning() bool {
+	return t.ObservedAt.IsZero()
+}
+
 func (t ThingViewModel) GetBoolOrDefault(key string, defaultValue bool) bool {
 	if v, ok := t.Properties[key]; ok {
 		if b, ok := v.(bool); ok {
