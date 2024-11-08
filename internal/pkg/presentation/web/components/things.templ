@@ -3,7 +3,6 @@ package components
 import (
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
-	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -58,6 +57,15 @@ func (t ThingViewModel) GetFloat(key string) (float64, bool) {
 		}
 	}
 	return 0.0, false
+}
+
+func (t ThingViewModel) GetBool(key string) (bool, bool) {
+	if v, ok := t.Properties[key]; ok {
+		if b, ok := v.(bool); ok {
+			return b, true
+		}
+	}
+	return false, false
 }
 
 func (t ThingViewModel) GetFloatAsString(key string, defaultValue float64) string {
@@ -579,13 +587,13 @@ func SewerCell(l10n Localizer, t ThingViewModel) templ.Component {
 	var components []templ.Component
 
 	if okOverflow {
-		
+
 		if vb, ok := overflowObserved.(bool); ok {
 			var vbTranslation string
 			if vb {
-				vbTranslation = l10n.Get("yes") 
+				vbTranslation = l10n.Get("yes")
 			} else {
-				vbTranslation = l10n.Get("no") 
+				vbTranslation = l10n.Get("no")
 			}
 			components = append(components, Text(fmt.Sprintf("%s: %s, ", l10n.Get("overflow"), vbTranslation)))
 		}
@@ -694,11 +702,22 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		if thing.Latitude == 0 || thing.Longitude == 0 {
 			continue
 		}
+
+		thingType := strings.ToLower(thing.Type)
+		thingSubType := strings.ToLower(thing.SubType)
+
 		feature := NewFeature(NewPoint(thing.Latitude, thing.Longitude))
-		feature.AddProperty("type", strings.ToLower(thing.Type))
-		feature.AddProperty("subtype", strings.ToLower(thing.SubType))
 		feature.AddProperty("id", thing.ID)
+		feature.AddProperty("type", thingType)
+		feature.AddProperty("subtype", thingSubType)
 		feature.AddProperty("name", thing.Name)
+		feature.AddProperty("latitude", thing.Latitude)
+		feature.AddProperty("longitude", thing.Longitude)
+		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ID))
+
+		if thing.Description != "" {
+			feature.AddProperty("description", thing.Description)
+		}
 
 		if len(thing.Tags) > 0 {
 			feature.AddProperty("tags", thing.Tags)
@@ -706,8 +725,23 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 			feature.AddProperty("tags", nil)
 		}
 
-		if strings.ToLower(thing.SubType) == "wastecontainer" {
-			if fl, ok := thing.GetFloat("percent"); ok {
+		thingPropsType := thingType
+		if thingSubType != "" {
+			thingPropsType = thingSubType
+		}
+
+		switch thingPropsType {
+		case "pointofinterest":
+			fallthrough
+		case "beach":
+			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetFloatOrDefault("temperature", 0)))
+		case "room":
+			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetFloatOrDefault("temperature", 0)))
+		case "container":
+			fallthrough
+		case "wastecontainer":
+			fl, ok := thing.GetFloat("percent")
+			if ok {
 				var state string
 				if fl >= 51 {
 					state = "red"
@@ -719,13 +753,12 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
 				feature.AddProperty("state", state)
 			} else {
-				feature.AddProperty("fillinglevel", "") // Eller 0 om det inte finns data
+				feature.AddProperty("fillinglevel", "")
 				feature.AddProperty("state", "black")
 			}
-		}
-
-		if strings.ToLower(thing.SubType) == "sandstorage" {
-			if fl, ok := thing.GetFloat("percent"); ok {
+		case "sandstorage":
+			fl, ok := thing.GetFloat("percent")
+			if ok {
 				var state string
 				if fl >= 51 {
 					state = "green"
@@ -737,123 +770,79 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
 				feature.AddProperty("state", state)
 			} else {
-				feature.AddProperty("fillinglevel", "") // Eller 0 om det inte finns data
+				feature.AddProperty("fillinglevel", "")
 				feature.AddProperty("state", "black")
 			}
-		}
-
-		if strings.ToLower(thing.SubType) == "beach" || strings.ToLower(thing.Type) == "room" {
-			if t, ok := thing.GetFloat("temperature"); ok {
-				formattedTemp := fmt.Sprintf("%.1f&nbsp;°C", t)
-				feature.AddProperty("temperature", formattedTemp)
+		case "sewer":
+			var l, p float64
+			l, levelOk := thing.GetFloat("currentLevel")
+			if !levelOk {
+				l = 0
 			}
-		}
+			p, percentOk := thing.GetFloat("percent")
+			if !percentOk {
+				p = 0
+			}
+			if levelOk || percentOk {
+				level := fmt.Sprintf("%0.fm (%0.f%%)", l, p)
+				feature.AddProperty("level", level)
+			}
 
-		if strings.ToLower(thing.Type) == "combinedseweroverflow" {
-			i := slices.IndexFunc(thing.Measurements, func(m MeasurementViewModel) bool {
-				return strings.HasSuffix(m.ID, "3350/5850") // ID för Combined Sewage Overflow/Stopwatch/OnOff
-			})
-
-			if i != -1 && thing.Measurements[i].BoolValue != nil {
-				var state string
-				if *thing.Measurements[i].BoolValue {
-					state = l10n.Get("overflow") // Exempelvis när översvämning detekteras
+			fallthrough
+		case "combinedseweroverflow":
+			if overflow, ok := thing.GetBool("overflow"); ok {
+				if overflow {
+					feature.AddProperty("state", l10n.Get("overflow"))
 				} else {
-					state = l10n.Get("Ok") // Exempelvis normalt tillstånd
+					feature.AddProperty("state", l10n.Get("Ok"))
 				}
-
-				feature.AddProperty("state", state) // Lägg till "state" som egenskap i feature
 			} else {
-				feature.AddProperty("state", "nil") // Hantera fallet där det inte finns data
+				feature.AddProperty("state", "nil")
 			}
-		}
-
-		if strings.ToLower(thing.Type) == "lifebuoy" {
-			vb, ok := thing.Properties["presence"]
-			if !ok {
-				feature.AddProperty("text_nodata", l10n.Get("nodata"))
-			}
-			b, ok := vb.(bool)
-			if !ok {
-				feature.AddProperty("text_nodata", l10n.Get("nodata"))
-			}
-			if b {
-				feature.AddProperty("present", l10n.Get("yes"))
+		case "lifebuoy":
+			if presence, ok := thing.GetBool("presence"); ok {
+				if presence {
+					feature.AddProperty("present", l10n.Get("yes"))
+				} else {
+					feature.AddProperty("present", l10n.Get("no"))
+				}
 			} else {
-				feature.AddProperty("present", l10n.Get("no"))
-			}
-		}
-
-		if strings.ToLower(thing.Type) == "desk" {
-
-		}
-
-		if strings.ToLower(thing.Type) == "pumpingstation" {
-			vb, ok := thing.Properties["pumpingObserved"]
-			if !ok {
 				feature.AddProperty("text_nodata", l10n.Get("nodata"))
 			}
-			b, ok := vb.(bool)
-			if !ok {
-				feature.AddProperty("text_nodata", l10n.Get("nodata"))
-			}
-			if b {
-				feature.AddProperty("pumpingObserved", l10n.Get("yes"))
+		case "desk":
+			if presence, ok := thing.GetBool("presence"); ok {
+				if presence {
+					feature.AddProperty("present", l10n.Get("yes"))
+				} else {
+					feature.AddProperty("present", l10n.Get("no"))
+				}
 			} else {
-				feature.AddProperty("pumpingObserved", l10n.Get("no"))
+				feature.AddProperty("text_nodata", l10n.Get("nodata"))
 			}
-		}
-
-		if strings.ToLower(thing.Type) == "building" { 
-			energyAndPower := fmt.Sprintf("%0.f kWh / %0.f kW", thing.Properties["energy"], thing.Properties["power"])
+		case "pumpingstation":
+			if pumpingObserved, ok := thing.GetBool("pumpingObserved"); ok {
+				if pumpingObserved {
+					feature.AddProperty("pumpingObserved", l10n.Get("yes"))
+				} else {
+					feature.AddProperty("pumpingObserved", l10n.Get("no"))
+				}
+			} else {
+				feature.AddProperty("text_nodata", l10n.Get("nodata"))
+			}
+		case "building":
+			energyAndPower := fmt.Sprintf("%0.f kWh / %0.f kW", thing.GetFloatOrDefault("energy", 0.0), thing.GetFloatOrDefault("power", 0.0))
 			feature.AddProperty("energyandpower", energyAndPower)
 		}
 
-		if strings.ToLower(thing.Type) == "sewer" {
-			overflowObserved, okOverflow := thing.Properties["overflowObserved"]
-			currentLevel, okLevel := thing.Properties["currentLevel"]
-			percent, okPercent := thing.Properties["percent"]
-
-			if okOverflow {
-				
-				if vb, ok := overflowObserved.(bool); ok {
-					var vbTranslation string
-					if vb {
-						vbTranslation = l10n.Get("yes")
-						feature.AddProperty("overflow", vbTranslation)
-					} else {
-						vbTranslation = l10n.Get("no") 
-						feature.AddProperty("overflow", vbTranslation)
-					}
-				}
-			}
-
-			if okLevel {
-				if v, ok := currentLevel.(float64); ok {
-					if okPercent {
-						if p, ok := percent.(float64); ok {
-							level := fmt.Sprintf("%0.fm (%0.f%%)", v, p)
-							feature.AddProperty("level", level)
-						}
-					} else {
-						level := fmt.Sprintf("%0.fm", v)
-						feature.AddProperty("level", level)
-					}
-				}
-			}
+		// todo: only if thing is passage?
+		if passages, ok := thing.GetFloat("passagesToday"); ok {
+			feature.AddProperty("passagestoday", passages)
 		}
 
-		var passages = thing.Properties["passagesToday"]
-		feature.AddProperty("passagestoday", passages)
-		
-		cumulativeVolume := fmt.Sprintf("%.0f m³", thing.Properties["cumulativeVolume"])
-		feature.AddProperty("cumulativeVolume", cumulativeVolume)
-
-		feature.AddProperty("latitude", thing.Latitude)
-		feature.AddProperty("longitude", thing.Longitude)
-		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ID))
-		
-		feature.AddProperty("description", thing.Description)
+		// todo: only if thing is watermeter?
+		if cumulativeVolume, ok := thing.GetFloat("cumulativeVolume"); ok {
+			feature.AddProperty("cumulativeVolume", fmt.Sprintf("%.0f m³", cumulativeVolume))
+		}
 
 		//Språkstöd
 		feature.AddProperty("text_consumption", l10n.Get("consumption"))
