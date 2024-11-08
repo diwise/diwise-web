@@ -94,6 +94,9 @@ other = "Saken och dess data kommer tas bort."
 [description]
 other = "Beskrivning"
 
+[desk]
+other = "Skrivbord"
+
 [details]
 other = "Uppgifter"
 

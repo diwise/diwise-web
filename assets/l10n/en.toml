@@ -94,6 +94,9 @@ other = "The thing and data related to the thing will be removed."
 [description]
 other = "Description"
 
+[desk]
+other = "Desk"
+
 [details]
 other = "Details"
 

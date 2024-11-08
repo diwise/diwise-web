@@ -194,6 +194,9 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                 case 'building':
                     iconUrl = isDarkMode ? '/assets/1a2e9128692ce6616e3fecbef81fe0e308d3a5fa382c4752005c5a674690c5f2/buildingblack.svg' : '/assets/c9f93bbd7145af1e29a2ae53e2e28bc3c4925ac514959ce38a5585bb90ea689a/building.svg';
                     break;
+                case 'desk':
+                    iconUrl = isDarkMode ? '/assets/e996daa9a3380d6b36204d956ae4f9113f42ed5c9c2fbcada6655074fe02890b/deskblack.svg' : '/assets/03c732a7ab23bd785cd9d918d74109f7c4a19011e68318d927b91ab42ec706d0/desk.svg';
+                    break;
                 case 'sensor':
                     iconUrl = isDarkMode ? '/assets/ea4fbf040ffc101dcc425140ef38ba0f840c63af0f7b5a1d3d5f3868a8c6c5fb/sensorblack.svg' : '/assets/34ed2a96f7750c911539c45ae445b9b3cf95264ac9eb7f194718b86215aadb6b/sensor.svg';
                     break;
@@ -422,6 +425,19 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         moreinformation +
                                                     outro;
                                 } else if (cv === "thing" && feature.properties.type.toLowerCase() === "lifebuoy") {
+                                    popupContent = intro +
+                                                        '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                            name +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_inplace + '</div>' +
+                                                                '<div class="">' + feature.properties.present + '</div>' +
+                                                            '</div>' +
+                                                            location +
+                                                            tagList +
+                                                        '</div>' +
+                                                        moreinformation +
+                                                    outro;
+                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "desk") {
                                     popupContent = intro +
                                                         '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                             name +

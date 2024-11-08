@@ -780,6 +780,10 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 			}
 		}
 
+		if strings.ToLower(thing.Type) == "desk" {
+
+		}
+
 		if strings.ToLower(thing.Type) == "pumpingstation" {
 			vb, ok := thing.Properties["pumpingObserved"]
 			if !ok {
