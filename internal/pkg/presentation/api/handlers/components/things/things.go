@@ -43,7 +43,7 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 			limit = 1000
 		}
 
-		helpers.SanitizeParams(args, "page", "limit", "offset")
+		helpers.SanitizeParams(args, "mapview", "page", "limit", "offset")
 
 		tags, _ := app.GetTags(ctx)
 		types, _ := app.GetTypes(ctx)
