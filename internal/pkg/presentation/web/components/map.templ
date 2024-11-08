@@ -221,6 +221,9 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                         case 'beach':
                             iconUrl = isDarkMode ? '/assets/f7d100ec98e4fa52cc4d7799ee0e9bd12ed22b45512d6ab4c1b7bde97de9b5c4/thermometerblack.svg' : '/assets/aec35d334f322aea4da1b6b70a627083d1e67f9acb58c11c8ad30dcf317a55c7/thermometer.svg';
                             break;
+                        default: 
+                            iconUrl = isDarkMode ? '/assets/24e3590b328345f1c25af28dbb6ce0fcca164c0cfe6790c2420b992faac7fa18/map-pinblack.svg' : '/assets/8abe45c4645c860835ba990c7056973536f396fc50fe98afc0e4aa1dc310bf61/map-pin.svg';
+                            break;
                     }
                     break;
                 case 'sewer':
