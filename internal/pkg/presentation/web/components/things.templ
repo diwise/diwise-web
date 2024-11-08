@@ -241,30 +241,22 @@ templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
 						}
 					}
 					<div id="fillinglevelFilter" class="hidden">
-						@CheckboxList(l10n.Get("fillinglevel")) {
-							@CheckboxOption("fillinglevel", "Grön", "", l10n, templ.Attributes{
-								"hx-get":     string(templ.SafeURL("/components/things/list?fillinglevel=green")),
+						@RadioList(l10n.Get("fillinglevel")) {
+							@RadioOption("fillinglevel", ">30%", "", l10n, templ.Attributes{
+								"hx-get":     string(templ.SafeURL("/components/things/list")),
 								"hx-target":  "#tableOrMap",
 								"hx-swap":    "outerHTML",
 								"hx-include": "[name=fillinglevel]:checked",
 								"onchange":   "updateSelectedFilters()",
-								"value":      "Grön",
+								"value":      ">30%",
 							})
-							@CheckboxOption("fillinglevel", "Orange", "", l10n, templ.Attributes{
-								"hx-get":     string(templ.SafeURL("/components/things/list?fillinglevel=orange")),
+							@RadioOption("fillinglevel", ">50%", "", l10n, templ.Attributes{
+								"hx-get":     string(templ.SafeURL("/components/things/list")),
 								"hx-target":  "#tableOrMap",
 								"hx-swap":    "outerHTML",
 								"hx-include": "[name=fillinglevel]:checked",
 								"onchange":   "updateSelectedFilters()",
-								"value":      "Orange",
-							})
-							@CheckboxOption("fillinglevel", "Röd", "", l10n, templ.Attributes{
-								"hx-get":     string(templ.SafeURL("/components/things/list?fillinglevel=red")),
-								"hx-target":  "#tableOrMap",
-								"hx-swap":    "outerHTML",
-								"hx-include": "[name=fillinglevel]:checked",
-								"onchange":   "updateSelectedFilters()",
-								"value":      "Röd",
+								"value":      ">50%",
 							})
 						}
 					</div>
@@ -391,11 +383,12 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 		document.body.addEventListener('htmx:afterOnLoad', updateSelectedFilters);
 
 		function toggleFillinglevelVisibility() {
+			
 			const typeCheckboxes = document.querySelectorAll('input[name="type"]');
 			let isWastecontainerSelected = false;
 
 			typeCheckboxes.forEach(checkbox => {
-				if (checkbox.checked && checkbox.value === "wastecontainer") {
+				if (checkbox.checked && checkbox.value.toLowerCase() === "container-wastecontainer") {
 					isWastecontainerSelected = true;
 				}
 			});
