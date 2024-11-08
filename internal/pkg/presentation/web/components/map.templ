@@ -275,10 +275,19 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 
                             // Hämta rätt ikon-URL och storlek beroende på typen och om det är mörkt eller ljust tema
                             const { iconUrl } = getIconByTypeAndTheme(type, subtype, isDarkMode);
-                            const fillingLevelHtml = feature.properties.fillinglevel !== undefined ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' : '';
-                            const temperatureHTML = feature.properties.temperature !== undefined ? '<div class="text-sm font-bold">' + feature.properties.temperature + '</div>' : '';
+                            
+                            const fillingLevelHtml = feature.properties.missingdata
+                                ? ''
+                                : (feature.properties.fillinglevel !== undefined 
+                                    ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' 
+                                    : '');
 
-
+                            const temperatureHTML = feature.properties.missingdata
+                                ? ''
+                                : (feature.properties.temperature !== undefined 
+                                    ? '<div class="text-sm font-bold">' + feature.properties.temperature + '</div>' 
+                                    : '');
+                            
                             const divIcon = L.divIcon({
                                 className: '',
                                 html: '<div class="flex flex-col items-center"><div class="flex flex-col items-center justify-center ' + colorClass + ' text-white dark:text-primary-dark p-2 rounded-lg shadow-md gap-2">' + 
@@ -368,18 +377,21 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                             colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
                                         }
                                     }
+                                    const containerdata = feature.properties.missingdata
+                                    ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                    : '<div class="flex w-full items-center gap-2 text-sm">' +
+                                        '<div class="w-[75%] bg-background-200 dark:bg-primary-surface-white rounded-lg">' +
+                                            '<div class="' + colourClass + ' rounded-lg" style="width: ' + feature.properties.fillinglevel + '%; height: 6px;"></div>' +
+                                        '</div>' +
+                                        '<div class="text-sm text-right w-auto">' + feature.properties.fillinglevel + '%</div>' +
+                                    '</div>';
                                     
                                         popupContent = intro +
                                                             '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                                 name + 
                                                                 '<div class="flex flex-col items-start justify-center gap-2 self-stretch">' +
                                                                     '<div class="font-bold">' + feature.properties.text_fillinglevel + '</div>' +
-                                                                    '<div class="flex w-full items-center gap-2 text-sm">' +
-                                                                        '<div class="w-[75%] bg-background-200 dark:bg-primary-surface-white rounded-lg">' +
-                                                                            '<div class="' + colourClass + ' rounded-lg" style="width: ' + feature.properties.fillinglevel + '%; height: 6px;"></div>' +
-                                                                        '</div>' +
-                                                                        '<div class="text-sm text-right w-auto">' + feature.properties.fillinglevel + '%</div>' +
-                                                                    '</div>' + 
+                                                                    containerdata +
                                                                 '</div>' +
                                                                 location +
                                                                 tagList +

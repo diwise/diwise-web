@@ -521,38 +521,49 @@ func ThingsTable(l10n Localizer, model ThingsListViewModel) templ.Component {
 }
 
 func ThingStatusCell(l10n Localizer, thing ThingViewModel) templ.Component {
-	switch strings.ToLower(thing.Type) {
-	case "beach":
-		fallthrough
-	case "pointofinterest":
-		return TemperatureCell(thing)
-	case "building":
-		return BuildingCell(l10n, thing)
-	case "wastecontainer":
-		fallthrough
-	case "container":
-		switch strings.ToLower(thing.SubType) {
-		case "wastecontainer":
-			return WasteContainerCell(l10n, thing)
-		case "sandstorage":
-			return SandStorageCell(l10n, thing)
+	if thing.HasWarning() { 
+		return NoDataCell(l10n, thing)
+	} else {
+		switch strings.ToLower(thing.Type) {
+			case "beach":
+				fallthrough
+			case "pointofinterest":
+				return TemperatureCell(thing)
+			case "building":
+				return BuildingCell(l10n, thing)
+			case "wastecontainer":
+				fallthrough
+			case "container":
+				switch strings.ToLower(thing.SubType) {
+				case "wastecontainer":
+					return WasteContainerCell(l10n, thing)
+				case "sandstorage":
+					return SandStorageCell(l10n, thing)
+				}
+				return templ.NopComponent
+			case "lifebuoy":
+				return LifebuoyCell(l10n, thing)
+			case "passage":
+				return PassageCell(thing)
+			case "pumpingstation":
+				return SewagePumpingstationCell(l10n, thing)
+			case "room":
+				return TemperatureCell(thing)
+			case "sewer":
+				return SewerCell(l10n, thing)
+			case "watermeter":
+				return WaterMeterCell(l10n, thing)
+			default:
+				return templ.NopComponent
 		}
-		return templ.NopComponent
-	case "lifebuoy":
-		return LifebuoyCell(l10n, thing)
-	case "passage":
-		return PassageCell(thing)
-	case "pumpingstation":
-		return SewagePumpingstationCell(l10n, thing)
-	case "room":
-		return TemperatureCell(thing)
-	case "sewer":
-		return SewerCell(l10n, thing)
-	case "watermeter":
-		return WaterMeterCell(l10n, thing)
-	default:
-		return templ.NopComponent
 	}
+}
+	
+templ NoDataCell(l10n Localizer, t ThingViewModel) {
+	<div class="flex items-center gap-2">
+		@SVG("alert-triangle", Size(24))
+		{ l10n.Get("missingdata") }
+	</div>
 }
 
 templ BuildingCell(l10n Localizer, t ThingViewModel) {
@@ -734,6 +745,8 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 			thingPropsType = thingSubType
 		}
 
+		feature.AddProperty("missingdata", thing.HasWarning())
+
 		switch thingPropsType {
 		case "pointofinterest":
 			fallthrough
@@ -857,6 +870,7 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		feature.AddProperty("text_information", l10n.Get("information"))
 		feature.AddProperty("text_inplace", l10n.Get("inplace"))
 		feature.AddProperty("text_level", l10n.Get("level"))
+		feature.AddProperty("text_missingdata", l10n.Get("missingdata"))
 		feature.AddProperty("text_moreinformation", l10n.Get("moreinformation"))
 		feature.AddProperty("text_name", l10n.Get("name"))
 		feature.AddProperty("text_overflow", l10n.Get("overflow"))

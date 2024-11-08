@@ -205,6 +205,9 @@ other = "Measurement values"
 [missing]
 other = "Missing"
 
+[missingdata]
+other = "Missing data"
+
 [missingpage]
 other = "Page is missing"
 

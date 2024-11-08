@@ -205,6 +205,9 @@ other = "Mätvärden"
 [missing]
 other = "Saknas"
 
+[missingdata]
+other = "Data saknas"
+
 [missingpage]
 other = "Sida saknas"
 
