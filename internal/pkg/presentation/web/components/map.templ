@@ -320,8 +320,8 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                 } else {
                                     tagList = '';
                                 }
-                                var name = feature.properties.name ? '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_name + '</div><div class="">' + feature.properties.name + '</div></div>' : '';
-                                var location = (feature.properties.latitude && feature.properties.longitude) ? '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_position + '</div><div class="">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div>' : '';
+                                var name = feature.properties.name ? '<div class="w-[90%] flex items-start gap-2"><div class="font-bold">' + feature.properties.text_name + '</div><div class="break-all">' + feature.properties.name + '</div></div>' : '';
+                                var location = (feature.properties.latitude && feature.properties.longitude) ? '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_position + '</div><div class="break-word">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div>' : '';
                                 var moreinformation = feature.properties.url ? '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div><a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a>' : '';
                                 var outro = '</div></div>';
 
@@ -377,7 +377,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                             colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
                                         }
                                     }
-                                    const containerdata = feature.properties.missingdata
+                                    const thingdata = feature.properties.missingdata
                                     ? '<div class="">' + feature.properties.text_missingdata + '</div>'
                                     : '<div class="flex w-full items-center gap-2 text-sm">' +
                                         '<div class="w-[75%] bg-background-200 dark:bg-primary-surface-white rounded-lg">' +
@@ -391,7 +391,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                 name + 
                                                                 '<div class="flex flex-col items-start justify-center gap-2 self-stretch">' +
                                                                     '<div class="font-bold">' + feature.properties.text_fillinglevel + '</div>' +
-                                                                    containerdata +
+                                                                    thingdata +
                                                                 '</div>' +
                                                                 location +
                                                                 tagList +
@@ -399,10 +399,15 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                             moreinformation +
                                                         outro;
                                 } else if (cv === "thing" && feature.properties.type.toLowerCase() === "passage") {
+                                    const thingdata = feature.properties.missingdata
+                                    ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                    : '<div class="">' + feature.properties.passagestoday + '&nbsp;st</div>'
+                                    
                                     popupContent = intro +
                                                         '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                             name +
-                                                            '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_passagestoday + '</div><div class="">' + feature.properties.passagestoday + '&nbsp;st</div></div>' +
+                                                            '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_passagestoday + '</div>' + 
+                                                            thingdata + '</div>' +
                                                             location +
                                                             tagList + 
                                                             moreinformation +
@@ -410,16 +415,24 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                     outro;
                                                         
                                 } else if (cv === "thing" && feature.properties.type.toLowerCase() === "sewer") {
+                                    const thingdata = feature.properties.missingdata
+                                    ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                    : '<div class="">' + feature.properties.state + '</div>'
+                                    
+                                    const thingdatalevel = feature.properties.missingdata
+                                    ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                    : '<div class="">' + feature.properties.level + '</div>'
+
                                     popupContent = intro +
                                                         '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                             name +
                                                             '<div class="flex items-center gap-2">' +
                                                                 '<div class="font-bold">' + feature.properties.text_overflow + '</div>' +
-                                                                '<div class="">' + feature.properties.overflow + '</div>' +
+                                                                thingdata +
                                                             '</div>' +
                                                             '<div class="flex items-center gap-2">' +
                                                                 '<div class="font-bold">' + feature.properties.text_level + '</div>' +
-                                                                '<div class="">' + feature.properties.level + '</div>' +
+                                                                thingdatalevel +
                                                             '</div>' +
                                                             location +
                                                             tagList +
@@ -427,12 +440,16 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         moreinformation +
                                                     outro;
                                 } else if (cv === "thing" && feature.properties.subtype.toLowerCase() === "beach" || feature.properties.type.toLowerCase() === "room") {
+                                    const thingdata = feature.properties.missingdata
+                                    ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                    : '<div class="">' + feature.properties.temperature + '</div>'
+                                    
                                     popupContent = intro +
                                                         '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                             name +
                                                             '<div class="flex items-center gap-2">' +
                                                                 '<div class="font-bold">' + feature.properties.text_temperature + '</div>' +
-                                                                '<div class="">' + feature.properties.temperature + '</div>' +
+                                                                thingdata +
                                                             '</div>' +
                                                             location +
                                                             tagList +
@@ -440,12 +457,16 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         moreinformation +
                                                     outro;
                                 } else if (cv === "thing" && feature.properties.type.toLowerCase() === "lifebuoy") {
+                                    const thingdata = feature.properties.missingdata
+                                    ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                    : '<div class="">' + feature.properties.present + '</div>'
+
                                     popupContent = intro +
                                                         '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                             name +
                                                             '<div class="flex items-center gap-2">' +
                                                                 '<div class="font-bold">' + feature.properties.text_inplace + '</div>' +
-                                                                '<div class="">' + feature.properties.present + '</div>' +
+                                                                thingdata +
                                                             '</div>' +
                                                             location +
                                                             tagList +
@@ -453,12 +474,15 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         moreinformation +
                                                     outro;
                                 } else if (cv === "thing" && feature.properties.type.toLowerCase() === "desk") {
+                                    const thingdata = feature.properties.missingdata
+                                    ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                    : '<div class="">' + feature.properties.present + '</div>'
                                     popupContent = intro +
                                                         '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                             name +
                                                             '<div class="flex items-center gap-2">' +
                                                                 '<div class="font-bold">' + feature.properties.text_inplace + '</div>' +
-                                                                '<div class="">' + feature.properties.present + '</div>' +
+                                                                thingdata +
                                                             '</div>' +
                                                             location +
                                                             tagList +
@@ -466,12 +490,15 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         moreinformation +
                                                     outro;
                                 } else if (cv === "thing" && feature.properties.type.toLowerCase() === "watermeter") {
+                                    const thingdata = feature.properties.missingdata
+                                    ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                    : '<div class="">' + feature.properties.cumulativeVolume + '</div>'
                                     popupContent = intro +
                                                         '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                             name +
                                                             '<div class="flex items-center gap-2">' +
                                                                 '<div class="font-bold">' + feature.properties.text_cumulativevolume + '</div>' +
-                                                                '<div class="">' + feature.properties.cumulativeVolume + '</div>' +
+                                                                thingdata +
                                                             '</div>' +
                                                             location +
                                                             tagList +
@@ -479,12 +506,15 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         moreinformation +
                                                     outro;
                                 } else if (cv === "thing" && feature.properties.type.toLowerCase() === "building") {
+                                    const thingdata = feature.properties.missingdata
+                                    ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                    : '<div class="">' + feature.properties.energyandpower + '</div>'
                                     popupContent = intro +
                                                         '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                             name +
                                                             '<div class="flex items-center gap-2">' +
                                                                 '<div class="font-bold">' + feature.properties.text_consumption + '</div>' +
-                                                                '<div class="">' + feature.properties.energyandpower + '</div>' +
+                                                                thingdata +
                                                             '</div>' +
                                                             location +
                                                             tagList +
@@ -492,12 +522,15 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         moreinformation +
                                                     outro;
                                 } else if (cv === "thing" && feature.properties.type.toLowerCase() === "pumpingstation") {
+                                    const thingdata = feature.properties.missingdata
+                                    ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                    : '<div class="">' + feature.properties.pumpingObserved + '</div>'
                                     popupContent = intro +
                                                         '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                             name +
                                                             '<div class="flex items-center gap-2">' +
                                                                 '<div class="font-bold">' + feature.properties.text_pumping + '</div>' +
-                                                                '<div class="">' + feature.properties.pumpingObserved + '</div>' +
+                                                                thingdata +
                                                             '</div>' +
                                                             location +
                                                             tagList +
