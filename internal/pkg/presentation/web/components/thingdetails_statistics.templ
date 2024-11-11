@@ -8,41 +8,53 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
+templ MissingData(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
+		<div class="flex items-center gap-2">
+			{ l10n.Get("missingdata") }
+		</div>
+	</div>
+}
+
 func ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsViewModel) templ.Component {
 	thingType := strings.ToLower(model.Thing.Type)
 	subType := strings.ToLower(model.Thing.SubType)
 
-	switch thingType {
-	case "pointofinterest":
-		switch subType {
-			case "beach":
-				return thingTypeStatistics(StatisticsBeach(l10n, model))
+	if model.Thing.HasWarning() {
+		return MissingData(l10n, model)
+	} else {
+		switch thingType {
+		case "pointofinterest":
+			switch subType {
+				case "beach":
+					return thingTypeStatistics(StatisticsBeach(l10n, model))
+			}
+			return templ.NopComponent
+		case "building":
+			return thingTypeStatistics(StatisticsBuilding(l10n, model))
+		case "container":
+			switch subType {
+				case "wastecontainer":
+					return thingTypeStatistics(StatisticsWasteContainer(l10n, model))
+				case "sandstorage":
+					return thingTypeStatistics(StatisticsSandStorage(l10n, model))
+			}
+		case "lifebuoy":
+			return thingTypeStatistics(StatisticsLifebuoy(l10n, model))
+		case "passage":
+			return thingTypeStatistics(StatisticsPassage(l10n, model))
+		case "pumpingstation":
+			return thingTypeStatistics(StatisticsPumpingStation(l10n, model))
+		case "room":
+			return thingTypeStatistics(StatisticsRoom(l10n, model))
+		case "sewer":
+			return thingTypeStatistics(StatisticsSewer(l10n, model))
+		case "watermeter":
+			return thingTypeStatistics(StatisticsWatermeter(l10n, model))
 		}
-		return templ.NopComponent
-	case "building":
-		return thingTypeStatistics(StatisticsBuilding(l10n, model))
-	case "container":
-		switch subType {
-			case "wastecontainer":
-				return thingTypeStatistics(StatisticsWasteContainer(l10n, model))
-			case "sandstorage":
-				return thingTypeStatistics(StatisticsSandStorage(l10n, model))
-		}
-	case "lifebuoy":
-		return thingTypeStatistics(StatisticsLifebuoy(l10n, model))
-	case "passage":
-		return thingTypeStatistics(StatisticsPassage(l10n, model))
-	case "pumpingstation":
-		return thingTypeStatistics(StatisticsPumpingStation(l10n, model))
-	case "room":
-		return thingTypeStatistics(StatisticsRoom(l10n, model))
-	case "sewer":
-		return thingTypeStatistics(StatisticsSewer(l10n, model))
-	case "watermeter":
-		return thingTypeStatistics(StatisticsWatermeter(l10n, model))
-	}
 
-	return templ.NopComponent
+		return templ.NopComponent
+	}	
 }
 
 templ thingTypeStatistics(component templ.Component) {

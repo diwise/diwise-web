@@ -194,6 +194,9 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                 case 'building':
                     iconUrl = isDarkMode ? '/assets/1a2e9128692ce6616e3fecbef81fe0e308d3a5fa382c4752005c5a674690c5f2/buildingblack.svg' : '/assets/c9f93bbd7145af1e29a2ae53e2e28bc3c4925ac514959ce38a5585bb90ea689a/building.svg';
                     break;
+                case 'desk':
+                    iconUrl = isDarkMode ? '/assets/e996daa9a3380d6b36204d956ae4f9113f42ed5c9c2fbcada6655074fe02890b/deskblack.svg' : '/assets/03c732a7ab23bd785cd9d918d74109f7c4a19011e68318d927b91ab42ec706d0/desk.svg';
+                    break;
                 case 'sensor':
                     iconUrl = isDarkMode ? '/assets/ea4fbf040ffc101dcc425140ef38ba0f840c63af0f7b5a1d3d5f3868a8c6c5fb/sensorblack.svg' : '/assets/34ed2a96f7750c911539c45ae445b9b3cf95264ac9eb7f194718b86215aadb6b/sensor.svg';
                     break;
@@ -217,6 +220,9 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     switch (subtype) {
                         case 'beach':
                             iconUrl = isDarkMode ? '/assets/f7d100ec98e4fa52cc4d7799ee0e9bd12ed22b45512d6ab4c1b7bde97de9b5c4/thermometerblack.svg' : '/assets/aec35d334f322aea4da1b6b70a627083d1e67f9acb58c11c8ad30dcf317a55c7/thermometer.svg';
+                            break;
+                        default: 
+                            iconUrl = isDarkMode ? '/assets/24e3590b328345f1c25af28dbb6ce0fcca164c0cfe6790c2420b992faac7fa18/map-pinblack.svg' : '/assets/8abe45c4645c860835ba990c7056973536f396fc50fe98afc0e4aa1dc310bf61/map-pin.svg';
                             break;
                     }
                     break;
@@ -269,10 +275,19 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 
                             // Hämta rätt ikon-URL och storlek beroende på typen och om det är mörkt eller ljust tema
                             const { iconUrl } = getIconByTypeAndTheme(type, subtype, isDarkMode);
-                            const fillingLevelHtml = feature.properties.fillinglevel !== undefined ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' : '';
-                            const temperatureHTML = feature.properties.temperature !== undefined ? '<div class="text-sm font-bold">' + feature.properties.temperature + '</div>' : '';
+                            
+                            const fillingLevelHtml = feature.properties.missingdata
+                                ? ''
+                                : (feature.properties.fillinglevel !== undefined 
+                                    ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' 
+                                    : '');
 
-
+                            const temperatureHTML = feature.properties.missingdata
+                                ? ''
+                                : (feature.properties.temperature !== undefined 
+                                    ? '<div class="text-sm font-bold">' + feature.properties.temperature + '</div>' 
+                                    : '');
+                            
                             const divIcon = L.divIcon({
                                 className: '',
                                 html: '<div class="flex flex-col items-center"><div class="flex flex-col items-center justify-center ' + colorClass + ' text-white dark:text-primary-dark p-2 rounded-lg shadow-md gap-2">' + 
@@ -362,18 +377,21 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                             colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
                                         }
                                     }
+                                    const containerdata = feature.properties.missingdata
+                                    ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                    : '<div class="flex w-full items-center gap-2 text-sm">' +
+                                        '<div class="w-[75%] bg-background-200 dark:bg-primary-surface-white rounded-lg">' +
+                                            '<div class="' + colourClass + ' rounded-lg" style="width: ' + feature.properties.fillinglevel + '%; height: 6px;"></div>' +
+                                        '</div>' +
+                                        '<div class="text-sm text-right w-auto">' + feature.properties.fillinglevel + '%</div>' +
+                                    '</div>';
                                     
                                         popupContent = intro +
                                                             '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                                 name + 
                                                                 '<div class="flex flex-col items-start justify-center gap-2 self-stretch">' +
                                                                     '<div class="font-bold">' + feature.properties.text_fillinglevel + '</div>' +
-                                                                    '<div class="flex w-full items-center gap-2 text-sm">' +
-                                                                        '<div class="w-[75%] bg-background-200 dark:bg-primary-surface-white rounded-lg">' +
-                                                                            '<div class="' + colourClass + ' rounded-lg" style="width: ' + feature.properties.fillinglevel + '%; height: 6px;"></div>' +
-                                                                        '</div>' +
-                                                                        '<div class="text-sm text-right w-auto">' + feature.properties.fillinglevel + '%</div>' +
-                                                                    '</div>' + 
+                                                                    containerdata +
                                                                 '</div>' +
                                                                 location +
                                                                 tagList +
@@ -434,6 +452,19 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         '</div>' +
                                                         moreinformation +
                                                     outro;
+                                } else if (cv === "thing" && feature.properties.type.toLowerCase() === "desk") {
+                                    popupContent = intro +
+                                                        '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                            name +
+                                                            '<div class="flex items-center gap-2">' +
+                                                                '<div class="font-bold">' + feature.properties.text_inplace + '</div>' +
+                                                                '<div class="">' + feature.properties.present + '</div>' +
+                                                            '</div>' +
+                                                            location +
+                                                            tagList +
+                                                        '</div>' +
+                                                        moreinformation +
+                                                    outro;
                                 } else if (cv === "thing" && feature.properties.type.toLowerCase() === "watermeter") {
                                     popupContent = intro +
                                                         '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
@@ -478,8 +509,8 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                             name +
                                                             '<div class="flex items-center gap-2">' +
-                                                                '<div class="font-bold">' + feature.properties.text_information + '</div>' +
-                                                                '<div class="italic">Saknas</div>' +
+                                                                '<div class="font-bold">' + feature.properties.text_description + '</div>' +
+                                                                '<div class="">' + feature.properties.description + '</div>' +
                                                             '</div>' +
                                                             location +
                                                             tagList +

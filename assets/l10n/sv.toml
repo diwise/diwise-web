@@ -94,6 +94,9 @@ other = "Saken och dess data kommer tas bort."
 [description]
 other = "Beskrivning"
 
+[desk]
+other = "Skrivbord"
+
 [details]
 other = "Uppgifter"
 
@@ -201,6 +204,9 @@ other = "Mätvärden"
 
 [missing]
 other = "Saknas"
+
+[missingdata]
+other = "Data saknas"
 
 [missingpage]
 other = "Sida saknas"

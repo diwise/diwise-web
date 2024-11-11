@@ -203,6 +203,13 @@ func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string]
 		params[k] = v
 	}
 
+	if t := params.Get("type"); t != "" {
+		if strings.Contains(t, "-") {
+			params.Set("type", strings.Split(t, "-")[0])
+			params.Set("subType", strings.Split(t, "-")[1])
+		}
+	}
+
 	res, err := a.get(ctx, a.thingManagementURL, "", params)
 	if err != nil {
 		return ThingResult{}, err
