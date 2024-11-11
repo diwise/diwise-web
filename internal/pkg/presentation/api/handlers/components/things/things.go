@@ -59,7 +59,7 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 
 		model := components.ThingsListViewModel{
 			Things:  make([]components.ThingViewModel, 0),
-			Pageing: getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			Pageing: getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			Tags:    tags,
 			Types:   types,
 			MapView: mapview,
@@ -219,7 +219,7 @@ func NewThingsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 
 		model := components.ThingsListViewModel{
 			Things:  make([]components.ThingViewModel, 0),
-			Pageing: getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			Pageing: getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			MapView: mapview,
 		}
 
@@ -285,7 +285,7 @@ func NewThingsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 
 		model := components.ThingsListViewModel{
 			Things:  make([]components.ThingViewModel, 0),
-			Pageing: getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			Pageing: getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			MapView: false,
 		}
 
@@ -376,15 +376,17 @@ func toMap(v any) map[string]any {
 	return m
 }
 
-func getPaging(pageIndex, pageLast, pageSize, offset int, pages []int64, args url.Values) components.PagingViewModel {
+func getPaging(pageIndex, pageLast, pageSize, count, total, offset int, pages []int64, args url.Values) components.PagingViewModel {
 	return components.PagingViewModel{
-		PageIndex: pageIndex,
-		PageLast:  pageLast,
-		PageSize:  pageSize,
-		Offset:    offset,
-		Pages:     pages,
-		Query:     args.Encode(),
-		TargetURL: "/components/tables/things",
-		TargetID:  "#tableview",
+		PageIndex:  pageIndex,
+		PageLast:   pageLast,
+		PageSize:   pageSize,
+		Offset:     offset,
+		Count:      count,
+		TotalCount: total,
+		Pages:      pages,
+		Query:      args.Encode(),
+		TargetURL:  "/components/tables/things",
+		TargetID:   "#tableview",
 	}
 }
