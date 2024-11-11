@@ -298,6 +298,9 @@ other = "Pumpstation"
 [PumpingStation]
 other = "Pumpstation"
 
+[resultof]
+other = "resultat av"
+
 [room]
 other = "Rum"
 
@@ -339,6 +342,9 @@ other = "Sensorer"
 
 [sensortype]
 other = "Sensortyp"
+
+[show]
+other = "Visar"
 
 [size]
 other = "Storlek"

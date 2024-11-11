@@ -116,7 +116,7 @@ templ ThingsList(l10n Localizer, model ThingsListViewModel) {
 			</div>
 		</div>
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-		<div class="flex flex-col items-start self-stretch gap-10">
+		<div class="flex flex-col items-start self-stretch gap-8">
 			@ThingsFilter(l10n, model)
 			@DataList(l10n, ThingsTable(l10n, model), ThingsMap(l10n, model), model.MapView)
 		</div>
@@ -267,13 +267,20 @@ templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
 }
 
 templ SelectedFilters(l10n Localizer, hxget string) {
-	<div class="flex flex-start items-center gap-2 self-stretch">
-		<div class="font-bold dark:text-white p-2">
-			{ l10n.Get("selectedfilters") }
+	<div class="flex w-full flex-col gap-2">
+		<div class="flex flex-start items-center gap-2 self-stretch">
+			<div class="font-bold dark:text-white p-2">
+				{ l10n.Get("selectedfilters") }
+			</div>
+			<form id="filterForm" hx-get={ hxget } hx-target="#tableOrMap" hx-swap="outerHTML">
+				<div id="selectedFilters" class="flex items-center gap-2 self-stretch text-sm dark:text-white"></div>
+			</form>
 		</div>
-		<form id="filterForm" hx-get={ hxget } hx-target="#tableOrMap" hx-swap="outerHTML">
-			<div id="selectedFilters" class="flex items-center gap-2 self-stretch text-sm dark:text-white"></div>
-		</form>
+		<div class="flex flex-start items-center gap-2 self-stretch">
+			<div class="dark:text-white p-2 text-sm">
+				{ l10n.Get("show") } 24 { l10n.Get("resultof") } 270
+			</div>
+		</div>
 	</div>
 	<script>
 		function updateSelectedFilters() {
