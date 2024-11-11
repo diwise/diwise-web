@@ -242,21 +242,19 @@ templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
 					}
 					<div id="fillinglevelFilter" class="hidden">
 						@RadioList(l10n.Get("fillinglevel")) {
-							@RadioOption("fillinglevel", ">30%", "", l10n, templ.Attributes{
-								"hx-get":     string(templ.SafeURL("/components/things/list")),
+							@RadioOption("v[percent]", "30", ">30%", l10n, templ.Attributes{
+								"hx-get":     string(templ.SafeURL("/components/things/list?op=gt")),
 								"hx-target":  "#tableOrMap",
 								"hx-swap":    "outerHTML",
-								"hx-include": "[name=fillinglevel]:checked",
+								"hx-include": "[name=v[percent]]:checked",
 								"onchange":   "updateSelectedFilters()",
-								"value":      ">30%",
 							})
-							@RadioOption("fillinglevel", ">50%", "", l10n, templ.Attributes{
-								"hx-get":     string(templ.SafeURL("/components/things/list")),
+							@RadioOption("v[percent]", "50", ">50%", l10n, templ.Attributes{
+								"hx-get":     string(templ.SafeURL("/components/things/list?op=gt")),
 								"hx-target":  "#tableOrMap",
 								"hx-swap":    "outerHTML",
-								"hx-include": "[name=fillinglevel]:checked",
+								"hx-include": "[name=v[percent]]:checked",
 								"onchange":   "updateSelectedFilters()",
-								"value":      ">50%",
 							})
 						}
 					</div>
@@ -514,44 +512,44 @@ func ThingsTable(l10n Localizer, model ThingsListViewModel) templ.Component {
 }
 
 func ThingStatusCell(l10n Localizer, thing ThingViewModel) templ.Component {
-	if thing.HasWarning() { 
+	if thing.HasWarning() {
 		return NoDataCell(l10n, thing)
 	} else {
 		switch strings.ToLower(thing.Type) {
-			case "beach":
-				fallthrough
-			case "pointofinterest":
-				return TemperatureCell(thing)
-			case "building":
-				return BuildingCell(l10n, thing)
+		case "beach":
+			fallthrough
+		case "pointofinterest":
+			return TemperatureCell(thing)
+		case "building":
+			return BuildingCell(l10n, thing)
+		case "wastecontainer":
+			fallthrough
+		case "container":
+			switch strings.ToLower(thing.SubType) {
 			case "wastecontainer":
-				fallthrough
-			case "container":
-				switch strings.ToLower(thing.SubType) {
-				case "wastecontainer":
-					return WasteContainerCell(l10n, thing)
-				case "sandstorage":
-					return SandStorageCell(l10n, thing)
-				}
-				return templ.NopComponent
-			case "lifebuoy":
-				return LifebuoyCell(l10n, thing)
-			case "passage":
-				return PassageCell(thing)
-			case "pumpingstation":
-				return SewagePumpingstationCell(l10n, thing)
-			case "room":
-				return TemperatureCell(thing)
-			case "sewer":
-				return SewerCell(l10n, thing)
-			case "watermeter":
-				return WaterMeterCell(l10n, thing)
-			default:
-				return templ.NopComponent
+				return WasteContainerCell(l10n, thing)
+			case "sandstorage":
+				return SandStorageCell(l10n, thing)
+			}
+			return templ.NopComponent
+		case "lifebuoy":
+			return LifebuoyCell(l10n, thing)
+		case "passage":
+			return PassageCell(thing)
+		case "pumpingstation":
+			return SewagePumpingstationCell(l10n, thing)
+		case "room":
+			return TemperatureCell(thing)
+		case "sewer":
+			return SewerCell(l10n, thing)
+		case "watermeter":
+			return WaterMeterCell(l10n, thing)
+		default:
+			return templ.NopComponent
 		}
 	}
 }
-	
+
 templ NoDataCell(l10n Localizer, t ThingViewModel) {
 	<div class="flex items-center gap-2">
 		@SVG("alert-triangle", Size(24))
