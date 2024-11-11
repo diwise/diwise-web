@@ -298,12 +298,13 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 			}));
 
 			let selectedFillingLevel = [];
-			const fillingLevelFilter = document.querySelectorAll('input[name="fillinglevel"]:checked');
+			const fillingLevelFilter = document.querySelectorAll('input[name="v[percent]"]:checked');
+			
 			if (fillingLevelFilter.length > 0) {
 				selectedFillingLevel = Array.from(fillingLevelFilter).map(cb => ({
-					name: "fillinglevel",
+					name: "v[percent]",
 					value: cb.value,
-					text: cb.value,
+					text: cb.getAttribute('data-text'),
 				}));
 			}
 
