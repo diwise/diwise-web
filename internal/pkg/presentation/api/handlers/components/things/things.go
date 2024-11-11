@@ -206,7 +206,7 @@ func NewThingsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 			limit = 1000
 		}
 
-		helpers.SanitizeParams(args, "page", "limit", "offset")
+		helpers.SanitizeParams(args, "mapview", "page", "limit", "offset")
 
 		result, err := app.GetThings(ctx, offset, limit, args)
 		if err != nil {
@@ -272,7 +272,7 @@ func NewThingsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 		offset, limit := helpers.GetOffsetAndLimit(r)
 
 		args := r.URL.Query()
-		helpers.SanitizeParams(args, "page", "limit", "offset")
+		helpers.SanitizeParams(args, "mapview", "page", "limit", "offset")
 
 		result, err := app.GetThings(ctx, offset, limit, args)
 		if err != nil {
