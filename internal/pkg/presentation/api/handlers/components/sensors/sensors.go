@@ -58,7 +58,7 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 
 		model := components.SensorListViewModel{
 			Sensors:        make([]components.SensorViewModel, 0),
-			Pageing:        getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			Pageing:        getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			MapView:        showMap,
 			DeviceProfiles: make([]string, 0),
 		}
@@ -129,7 +129,7 @@ func NewSensorsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderF
 		model := components.SensorListViewModel{
 			Statistics: components.StatisticsViewModel{},
 			Sensors:    make([]components.SensorViewModel, 0),
-			Pageing:    getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			Pageing:    getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 		}
 
 		for _, sensor := range result.Sensors {
@@ -197,7 +197,7 @@ func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 		model := components.SensorListViewModel{
 			Statistics: components.StatisticsViewModel{},
 			Sensors:    make([]components.SensorViewModel, 0),
-			Pageing:    getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			Pageing:    getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			MapView:    showMap,
 		}
 
@@ -299,15 +299,17 @@ func toViewModel(sensor application.Sensor) components.SensorViewModel {
 	return s
 }
 
-func getPaging(pageIndex, pageLast, pageSize, offset int, pages []int64, args url.Values) components.PagingViewModel {
+func getPaging(pageIndex, pageLast, pageSize, count, total, offset int, pages []int64, args url.Values) components.PagingViewModel {
 	return components.PagingViewModel{
-		PageIndex: pageIndex,
-		PageLast:  pageLast,
-		PageSize:  pageSize,
-		Offset:    offset,
-		Pages:     pages,
-		Query:     args.Encode(),
-		TargetURL: "/components/tables/sensors",
-		TargetID:  "#tableview",
+		PageIndex:  pageIndex,
+		PageLast:   pageLast,
+		PageSize:   pageSize,
+		Offset:     offset,
+		Count:      count,
+		TotalCount: total,
+		Pages:      pages,
+		Query:      args.Encode(),
+		TargetURL:  "/components/tables/sensors",
+		TargetID:   "#tableview",
 	}
 }

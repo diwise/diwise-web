@@ -2,9 +2,8 @@ package components
 
 import (
 	"fmt"
-	"strings"
-
 	. "github.com/diwise/frontend-toolkit"
+	"strings"
 )
 
 type SlotContents struct {
@@ -17,14 +16,16 @@ templ Slot(name string) {
 }
 
 type PagingViewModel struct {
-	PageIndex int
-	PageLast  int
-	PageSize  int
-	Offset    int
-	Pages     []int64
-	Query     string
-	TargetURL string
-	TargetID  string
+	PageIndex  int
+	PageLast   int
+	PageSize   int
+	Offset     int
+	Count      int
+	TotalCount int
+	Pages      []int64
+	Query      string
+	TargetURL  string
+	TargetID   string
 }
 
 templ Paging(l10n Localizer, p PagingViewModel) {
@@ -521,7 +522,8 @@ templ graphTableButtons(l10n Localizer) {
 					hx-on:click="showGraph();
 					this.classList.add('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black'); this.classList.remove('stroke-black', 'dark:stroke-white');
 					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black');
-					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');">
+					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
+				>
 					<svg class="w-[18px] h-[18px]">
 						@SVG("chartline", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					</svg>
@@ -535,7 +537,8 @@ templ graphTableButtons(l10n Localizer) {
 					hx-on:click="showTable();
 					this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'dark:stroke-black', 'stroke-white' ); this.classList.remove('dark:fill-white', 'dark:stroke-white');
 					document.getElementById('graphButton').classList.add('stroke-black', 'dark:stroke-white');
-					document.getElementById('graphButton').classList.remove('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');">
+					document.getElementById('graphButton').classList.remove('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');"
+				>
 					<svg class="w-[18px] h-[18px]">
 						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					</svg>
