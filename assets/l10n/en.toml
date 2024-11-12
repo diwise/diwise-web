@@ -298,9 +298,6 @@ other = "Pumping station"
 [PumpingStation]
 other = "Pumping station"
 
-[resultof]
-other = "results out of"
-
 [room]
 other = "Room"
 
@@ -343,6 +340,9 @@ other = "Sensors"
 [sensortype]
 other = "Type of sensor"
 
+[sensorsof]
+other = "sensors out of"
+
 [show]
 other = "Showing"
 
@@ -372,6 +372,9 @@ other = "Type of thing"
 
 [things]
 other = "Things"
+
+[thingsof]
+other = "things out of"
 
 [time]
 other = "Time"
