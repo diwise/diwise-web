@@ -807,15 +807,30 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 
 			fallthrough
 		case "combinedseweroverflow":
-			if overflow, ok := thing.GetBool("overflow"); ok {
+			if overflow, ok := thing.GetBool("overflowObserved"); ok {
 				if overflow {
-					feature.AddProperty("state", l10n.Get("overflow"))
+					feature.AddProperty("state", l10n.Get("yes"))
 				} else {
-					feature.AddProperty("state", l10n.Get("Ok"))
+					feature.AddProperty("state", l10n.Get("no"))
 				}
 			} else {
 				feature.AddProperty("state", "nil")
 			}
+
+			var l, p float64
+			l, levelOk := thing.GetFloat("currentLevel")
+			if !levelOk {
+				l = 0
+			}
+			p, percentOk := thing.GetFloat("percent")
+			if !percentOk {
+				p = 0
+			}
+			if levelOk || percentOk {
+				level := fmt.Sprintf("%0.fm (%0.f%%)", l, p)
+				feature.AddProperty("level", level)
+			}
+			
 		case "lifebuoy":
 			if presence, ok := thing.GetBool("presence"); ok {
 				if presence {
