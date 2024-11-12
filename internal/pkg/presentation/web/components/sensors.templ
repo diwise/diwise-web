@@ -67,7 +67,7 @@ templ SensorsList(l10n Localizer, model SensorListViewModel) {
 		</div>
 		
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-		<div class="flex flex-col items-start self-stretch gap-8">
+		<div class="flex flex-col items-start self-stretch gap-4">
 			@SensorsFilter(l10n, model)
 			@DataList(l10n, SensorsTable(l10n, model), SensorMap(l10n, model), model.MapView)
 		</div>
@@ -270,32 +270,40 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel) {
 }
 
 templ SensorsTable(l10n Localizer, model SensorListViewModel) {
-	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
-		<thead class="border-b border-primary-dark dark:border-white">
-			<tr>
-				<th class="px-6 py-3">{ l10n.Get("online") }</th>
-				<th class="px-6 py-3">{ l10n.Get("id") }</th>
-				<th class="px-6 py-3">{ l10n.Get("name") }</th>
-				<th class="px-6 py-3">{ l10n.Get("status") }</th>
-				<th class="px-6 py-3">{ l10n.Get("type") }</th>
-				<th class="px-6 py-3">{ l10n.Get("deveui") }</th>
-				<th class="px-6 py-3">{ l10n.Get("batterylevel") }</th>
-				<th class="px-6 py-3">{ l10n.Get("lastseen") }</th>
-			</tr>
-		</thead>
-		<tbody>
-			for _, sensor := range model.Sensors {
-				@SensorRow(l10n, sensor)
-			}
-		</tbody>
-		<tfoot>
-			<tr>
-				<td colspan="8">
-					@Paging(l10n, model.Pageing)
-				</td>
-			</tr>
-		</tfoot>
-	</table>
+	<div class="flex flex-col gap-2">
+		<div class="flex flex-start items-center gap-2 self-stretch">
+			<div class="dark:text-white p-2 text-sm">
+				{ l10n.Get("show") } { fmt.Sprintf("%d", model.Pageing.Count) } { l10n.Get("resultof") } { fmt.Sprintf("%d", model.Pageing.TotalCount) }
+			</div>
+		</div>
+		
+		<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+			<thead class="border-b border-primary-dark dark:border-white">
+				<tr>
+					<th class="px-6 py-3">{ l10n.Get("online") }</th>
+					<th class="px-6 py-3">{ l10n.Get("id") }</th>
+					<th class="px-6 py-3">{ l10n.Get("name") }</th>
+					<th class="px-6 py-3">{ l10n.Get("status") }</th>
+					<th class="px-6 py-3">{ l10n.Get("type") }</th>
+					<th class="px-6 py-3">{ l10n.Get("deveui") }</th>
+					<th class="px-6 py-3">{ l10n.Get("batterylevel") }</th>
+					<th class="px-6 py-3">{ l10n.Get("lastseen") }</th>
+				</tr>
+			</thead>
+			<tbody>
+				for _, sensor := range model.Sensors {
+					@SensorRow(l10n, sensor)
+				}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="8">
+						@Paging(l10n, model.Pageing)
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+	</div>
 }
 
 templ TableOrMap(l10n Localizer, hxGet string) {
