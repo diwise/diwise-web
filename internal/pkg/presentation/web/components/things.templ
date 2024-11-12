@@ -416,7 +416,7 @@ templ ThingsTableComponent(l10n Localizer, model ThingsListViewModel) {
 	<div class="flex flex-col gap-2">
 		<div class="flex flex-start items-center gap-2 self-stretch">
 			<div class="dark:text-white p-2 text-sm">
-				{ l10n.Get("show") } 24 { l10n.Get("resultof") } 270
+				{ l10n.Get("show") } { fmt.Sprintf("%d", model.Pageing.Count) } { l10n.Get("resultof") } { fmt.Sprintf("%d", model.Pageing.TotalCount) }
 			</div>
 		</div>
 		
