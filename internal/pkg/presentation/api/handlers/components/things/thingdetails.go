@@ -229,6 +229,8 @@ func formToFields(form url.Values) map[string]any {
 			fields["tags"] = appendTag(fields["tags"], strings.Split(v, ","))
 		case "name":
 			fields["name"] = strings.TrimSpace(v)
+		case "alternativeName":
+			fields["alternativeName"] = strings.TrimSpace(v)
 		case "description":
 			fields["description"] = strings.TrimSpace(v)
 		case "currentDevice":

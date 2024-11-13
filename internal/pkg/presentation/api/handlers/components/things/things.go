@@ -316,19 +316,20 @@ func NewThingsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 
 func toViewModel(thing application.Thing) components.ThingViewModel {
 	tvm := components.ThingViewModel{
-		ID:           thing.ID,
-		Type:         thing.Type,
-		SubType:      thing.SubType,
-		Name:         thing.Name,
-		Description:  thing.Description,
-		Latitude:     thing.Location.Latitude,
-		Longitude:    thing.Location.Longitude,
-		Tenant:       thing.Tenant,
-		Tags:         thing.Tags,
-		ObservedAt:   thing.ObservedAt,
-		Measurements: make([]components.MeasurementViewModel, 0),
-		Properties:   make(map[string]any),
-		RefDevice:    make([]string, 0),
+		ID:              thing.ID,
+		Type:            thing.Type,
+		SubType:         thing.SubType,
+		Name:            thing.Name,
+		AlternativeName: thing.AlternativeName,
+		Description:     thing.Description,
+		Latitude:        thing.Location.Latitude,
+		Longitude:       thing.Location.Longitude,
+		Tenant:          thing.Tenant,
+		Tags:            thing.Tags,
+		ObservedAt:      thing.ObservedAt,
+		Measurements:    make([]components.MeasurementViewModel, 0),
+		Properties:      make(map[string]any),
+		RefDevice:       make([]string, 0),
 	}
 
 	for _, rd := range thing.RefDevices {

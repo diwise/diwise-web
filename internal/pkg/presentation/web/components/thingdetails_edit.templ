@@ -2,9 +2,8 @@ package components
 
 import (
 	"fmt"
-	"strings"
-
 	. "github.com/diwise/frontend-toolkit"
+	"strings"
 )
 
 templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsViewModel) {
@@ -61,6 +60,18 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 									/>
 								</div>
 								<div class="flex flex-col gap-2 flex-1">
+									<div class="font-bold">{ l10n.Get("alternativeName") }</div>
+									<input
+										type="text"
+										name="alternativeName"
+										class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
+										placeholder=""
+										value={ model.Thing.AlternativeName }
+									/>
+								</div>
+							</div>
+							<div class="flex flex-start gap-10 self-stretch">
+								<div class="flex flex-col gap-2 flex-1">
 									<div class="font-bold">{ l10n.Get("organisation") }</div>
 									<div class="border border-input-surface rounded-xl">
 										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
@@ -77,8 +88,7 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 									<div class="flex flex-col gap-2 flex-1">
 										<div class="font-bold">{ l10n.Get("tags") }</div>
 										<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
-											<div id="selectedTagContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full">
-											</div>
+											<div id="selectedTagContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full"></div>
 										</div>
 									</div>
 									<div class="flex flex-start self-stretch gap-3">
@@ -164,7 +174,7 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 									/>
 								</div>
 							</div>
-							@Map("medium", false, true, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))	
+							@Map("medium", false, true, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
 						</div>
 					</div>
 				</div>
@@ -236,8 +246,7 @@ templ ConnectMultipleSensors(l10n Localizer, model ThingDetailsViewModel) {
 			<div class="flex flex-col gap-2 flex-1">
 				<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
 				<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
-					<div id="selectedSensorContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full">
-					</div>
+					<div id="selectedSensorContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full"></div>
 				</div>
 			</div>
 			<div class="flex flex-start self-stretch gap-3">
