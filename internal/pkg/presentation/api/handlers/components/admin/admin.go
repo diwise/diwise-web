@@ -14,11 +14,8 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewMeasurementTypesComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
-		w.WriteHeader(http.StatusOK)
 
 		ctx := r.Context()
 
@@ -52,7 +49,7 @@ func NewMeasurementTypesComponentHandler(ctx context.Context, l10n LocaleBundle,
 		})
 
 		component := components.CheckboxDropdownList("measurementType", options, localizer.Get("chooseMeasurementtype"))
-		component.Render(ctx, w)
+		helpers.WriteComponentResponse(ctx, w, r, component, 2*1024, 0)
 	}
 
 	return http.HandlerFunc(fn)
@@ -62,9 +59,6 @@ func NewErrorPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
-		w.WriteHeader(http.StatusOK)
 
 		ctx = helpers.Decorate(
 			r.Context(),
@@ -75,7 +69,7 @@ func NewErrorPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 		errorpage := components.ErrorPage(localizer, assets)
 		component := components.StartPage(version, localizer, assets, errorpage)
 
-		component.Render(ctx, w)
+		helpers.WriteComponentResponse(ctx, w, r, component, 30*1024, 0)
 	}
 
 	return http.HandlerFunc(fn)

@@ -14,17 +14,17 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
-	. "github.com/diwise/frontend-toolkit"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"github.com/google/uuid"
+
+	//lint:ignore ST1001 it is OK when we do it
+	. "github.com/diwise/frontend-toolkit"
 )
 
 func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
 
 		ctx = helpers.Decorate(
 			r.Context(),
@@ -80,14 +80,9 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 			components.PageSize, limit,
 		)
 
-		err = page.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-
+		helpers.WriteComponentResponse(ctx, w, r, page, 1024, 0)
 	}
+
 	return http.HandlerFunc(fn)
 }
 
@@ -109,16 +104,7 @@ func NewThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets Ass
 		newThingViewModel.Tags, _ = app.GetTags(ctx)
 
 		component := components.NewThing(localizer, assets, newThingViewModel)
-
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
-
-		err := component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, "could not render new thing page", http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
 
 	return http.HandlerFunc(fn)
@@ -184,12 +170,10 @@ func NewCreateThingComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 	return http.HandlerFunc(fn)
 }
 
-func NewThingsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
 
-		ctx = helpers.Decorate(
+		ctx := helpers.Decorate(
 			r.Context(),
 			components.CurrentComponent, "things",
 		)
@@ -246,23 +230,16 @@ func NewThingsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 			components.PageSize, limit,
 		)
 
-		err = component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
+
 	return http.HandlerFunc(fn)
 }
 
-func NewThingsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
 
-		ctx = helpers.Decorate(
+		ctx := helpers.Decorate(
 			r.Context(),
 			components.CurrentComponent, "things",
 		)
@@ -303,14 +280,9 @@ func NewThingsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			components.PageSize, limit,
 		)
 
-		err = component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
+
 	return http.HandlerFunc(fn)
 }
 

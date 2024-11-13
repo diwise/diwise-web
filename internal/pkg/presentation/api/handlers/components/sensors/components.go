@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
@@ -15,9 +16,6 @@ import (
 
 func NewBatteryLevelComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "max-age=86400")
-		w.WriteHeader(http.StatusOK)
 
 		ctx := r.Context()
 		id := r.PathValue("id")
@@ -41,8 +39,9 @@ func NewBatteryLevelComponentHandler(ctx context.Context, l10n LocaleBundle, ass
 		}
 
 		component := components.Text(fmt.Sprintf("%s%s", v, u))
-		component.Render(ctx, w)
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 10*time.Minute)
 	}
+
 	return http.HandlerFunc(fn)
 }
 
@@ -50,8 +49,6 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
 
 		//localizer := l10n.For(r.Header.Get("Accept-Language"))
 		ctx := logging.NewContextWithLogger(r.Context(), log)
@@ -121,7 +118,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		}
 
 		component := components.MeasurementChart([]components.ChartDataset{dataset}, true)
-		component.Render(ctx, w)
+		helpers.WriteComponentResponse(ctx, w, r, component, 20*1024, 5*time.Minute)
 	}
 
 	return http.HandlerFunc(fn)
