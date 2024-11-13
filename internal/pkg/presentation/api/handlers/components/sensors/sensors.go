@@ -22,8 +22,6 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
 
 		ctx = helpers.Decorate(
 			r.Context(),
@@ -89,23 +87,16 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			components.PageSize, limit,
 		)
 
-		w.WriteHeader(http.StatusOK)
-
-		err = page.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
+		helpers.WriteComponentResponse(ctx, w, r, page, 10*1024, 0)
 	}
+
 	return http.HandlerFunc(fn)
 }
 
-func NewSensorsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
 
-		ctx = helpers.Decorate(
+		ctx := helpers.Decorate(
 			r.Context(),
 			components.CurrentComponent, "sensors",
 		)
@@ -147,23 +138,16 @@ func NewSensorsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderF
 			components.PageSize, limit,
 		)
 
-		err = component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
+
 	return http.HandlerFunc(fn)
 }
 
-func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
 
-		ctx = helpers.Decorate(
+		ctx := helpers.Decorate(
 			r.Context(),
 			components.CurrentComponent, "sensors",
 		)
@@ -225,14 +209,9 @@ func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 			components.PageSize, limit,
 		)
 
-		err = component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
+
 	return http.HandlerFunc(fn)
 }
 

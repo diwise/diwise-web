@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
@@ -38,15 +39,7 @@ func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 		sensorDetails := components.SensorDetailsPage(localizer, assets, *detailsViewModel)
 		page := components.StartPage(version, localizer, assets, sensorDetails)
 
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
-
-		err = page.Render(ctx, w)
-		if err != nil {
-			http.Error(w, "could not render sensor details page", http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
+		helpers.WriteComponentResponse(ctx, w, r, page, 1024, 0)
 	}
 
 	return http.HandlerFunc(fn)
@@ -73,9 +66,7 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, as
 			return
 		}
 
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
-		w.WriteHeader(http.StatusOK)
+		var component templ.Component
 
 		if mode == "edit" {
 			tenants := app.GetTenants(ctx)
@@ -98,13 +89,12 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, as
 			detailsViewModel.Organisations = tenants
 			detailsViewModel.DeviceProfiles = dp
 
-			component := components.EditSensorDetails(localizer, assets, *detailsViewModel)
-			component.Render(ctx, w)
-			return
+			component = components.EditSensorDetails(localizer, assets, *detailsViewModel)
+		} else {
+			component = components.SensorDetails(localizer, assets, *detailsViewModel)
 		}
 
-		component := components.SensorDetails(localizer, assets, *detailsViewModel)
-		component.Render(ctx, w)
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
 
 	return http.HandlerFunc(fn)
