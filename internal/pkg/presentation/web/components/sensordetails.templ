@@ -192,13 +192,14 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 }
 
 func RenderMeasurementGraph(l10n Localizer, model SensorDetailsViewModel) templ.Component {
-
-	startDate := time.Now().Add(-24 * time.Hour)
+	startDate := time.Now()
 	endDate := time.Now()
 
 	if len(model.Measurements) > 0 {
-		startDate = model.Measurements[0].Timestamp.Add(-24 * time.Hour)
-		endDate = model.Measurements[0].Timestamp
+		m := model.Measurements[len(model.Measurements)-1]
+		ts := m.Timestamp
+		startDate = time.Date(ts.Year(), ts.Month(), ts.Day(), 0, 0, 0, 0, ts.Location())
+		endDate = ts
 	}
 
 	return Graph(l10n, startDate, endDate)

@@ -149,7 +149,7 @@ templ StatisticsData(l10n Localizer, graphComponent, tableComponent templ.Compon
 }
 
 func RenderStatisticsGraph(l10n Localizer, model ThingDetailsViewModel) templ.Component {
-	startDate := time.Now().Add(-24 * time.Hour)
+	startDate := time.Now()
 	endDate := time.Now()
 
 	if len(model.Thing.Measurements) > 0 {
