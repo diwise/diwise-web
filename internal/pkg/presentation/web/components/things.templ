@@ -112,9 +112,11 @@ templ ThingsList(l10n Localizer, model ThingsListViewModel) {
 						HxUrl("get", "/components/things"),
 						Trigger("click"),
 						Swap("innerHTML"))
-					
 					<div class="relative group">
-						@Button(Secondary, "", "download-cloud")
+						@Button(Secondary, "", "download-cloud",
+							HxUrl("get", "/admin/export?export=things&accept=text/csv"),							
+							Trigger("click"),
+							Include(".filter"))
 						@Tooltip(l10n.Get("export"))
 					</div>
 				</div>

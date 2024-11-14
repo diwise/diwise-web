@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"math"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
 type versionKeyType string
@@ -208,4 +210,48 @@ func WriteComponentResponse(ctx context.Context, w http.ResponseWriter, r *http.
 	w.WriteHeader(http.StatusOK)
 
 	w.Write(writeBuffer.Bytes())
+}
+
+func GET(ctx context.Context, targetUrl string, headers map[string][]string, params url.Values) ([]byte, error) {
+	u, err := url.Parse(targetUrl)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse url: %s", err.Error())
+	}
+
+	u.RawQuery = params.Encode()
+
+	urlToGet := u.String()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, urlToGet, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http request: %s", err.Error())
+	}
+
+	req.Header = headers
+
+	var httpClient = http.Client{
+		Transport: otelhttp.NewTransport(&http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		}),
+		Timeout: 60 * time.Second,
+	}
+
+	response, err := httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send get request: %s", err.Error())
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode >= http.StatusBadRequest {
+		return nil, fmt.Errorf("request failed: %d", response.StatusCode)
+	}
+
+	b, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %s", err.Error())
+	}
+
+	return b, nil
 }
