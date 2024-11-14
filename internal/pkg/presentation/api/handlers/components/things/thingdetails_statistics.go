@@ -9,9 +9,11 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
+	//lint:ignore ST1001 it is OK when we do it
 	. "github.com/diwise/frontend-toolkit"
 )
 
@@ -19,8 +21,6 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
 
 		//localizer := l10n.For(r.Header.Get("Accept-Language"))
 		ctx := logging.NewContextWithLogger(r.Context(), log)
@@ -120,7 +120,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			component = components.MeasurementChart(datasets, keepRatio)
 		}
 
-		component.Render(ctx, w)
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
 
 	return http.HandlerFunc(fn)

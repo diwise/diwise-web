@@ -17,19 +17,20 @@ type ThingsListViewModel struct {
 }
 
 type ThingViewModel struct {
-	ID           string
-	Type         string
-	SubType      string
-	Name         string
-	Description  string
-	Latitude     float64
-	Longitude    float64
-	RefDevice    []string
-	Tenant       string
-	Tags         []string
-	Measurements []MeasurementViewModel
-	ObservedAt   time.Time
-	Properties   map[string]any
+	ID              string
+	Type            string
+	SubType         string
+	Name            string
+	AlternativeName string
+	Description     string
+	Latitude        float64
+	Longitude       float64
+	RefDevice       []string
+	Tenant          string
+	Tags            []string
+	Measurements    []MeasurementViewModel
+	ObservedAt      time.Time
+	Properties      map[string]any
 }
 
 func (t ThingViewModel) HasWarning() bool {
@@ -424,7 +425,6 @@ templ ThingsTableComponent(l10n Localizer, model ThingsListViewModel) {
 				{ l10n.Get("show") } { fmt.Sprintf("%d", model.Pageing.Count) } { l10n.Get("thingsof") } { fmt.Sprintf("%d", model.Pageing.TotalCount) }
 			</div>
 		</div>
-		
 		<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 			<thead class="border-b border-dark-primary dark:border-white">
 				<tr>
