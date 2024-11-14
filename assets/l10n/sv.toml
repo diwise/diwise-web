@@ -406,6 +406,9 @@ other = "Vattenmätare"
 [yes]
 other = "Ja"
 
+[10351-50]
+other = "Passager per dag"
+
 [3-9]
 other = "Batterinivå (%)"
 
