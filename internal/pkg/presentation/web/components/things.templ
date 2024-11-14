@@ -13,7 +13,12 @@ type ThingsListViewModel struct {
 	Pageing PagingViewModel
 	MapView bool
 	Tags    []string
-	Types   []string
+	Types   []TypeViewModel
+}
+
+type TypeViewModel struct {
+	Type	string
+	Name	string
 }
 
 type ThingViewModel struct {
@@ -224,13 +229,13 @@ templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
 				<div class="flex items-center gap-6">
 					@CheckboxList(l10n.Get("type")) {
 						for _, t := range model.Types {
-							@CheckboxOption("type", t, "", l10n, templ.Attributes{
+							@CheckboxOption("type", t.Type, "", l10n, templ.Attributes{
 								"hx-get":     string(templ.SafeURL("/components/things/list")),
 								"hx-target":  "#tableOrMap",
 								"hx-swap":    "outerHTML",
 								"hx-include": "[name=type]:checked",
 								"onchange":   "updateSelectedFilters()",
-								"data-text":  l10n.Get(t),
+								"data-text":  t.Name,
 							})
 						}
 					}

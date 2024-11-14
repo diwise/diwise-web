@@ -1,12 +1,14 @@
 package things
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -48,6 +50,19 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 		tags, _ := app.GetTags(ctx)
 		types, _ := app.GetTypes(ctx)
 
+		typesViewModels := []components.TypeViewModel{}
+
+		for _, t := range types {
+			typesViewModels = append(typesViewModels, components.TypeViewModel{
+				Type: t,
+				Name: localizer.Get(t),
+			})
+		}
+
+		slices.SortFunc(typesViewModels, func(a, b components.TypeViewModel) int {
+			return cmp.Compare(a.Name, b.Name)
+		})
+
 		result, err := app.GetThings(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch things", http.StatusInternalServerError)
@@ -61,7 +76,7 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 			Things:  make([]components.ThingViewModel, 0),
 			Pageing: getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			Tags:    tags,
-			Types:   types,
+			Types:   typesViewModels,
 			MapView: mapview,
 		}
 
