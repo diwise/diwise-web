@@ -2,9 +2,8 @@ package components
 
 import (
 	"fmt"
-	"time"
-
 	. "github.com/diwise/frontend-toolkit"
+	"time"
 )
 
 type SensorListViewModel struct {
@@ -26,7 +25,7 @@ type SensorViewModel struct {
 	LastSeen     time.Time
 	HasAlerts    bool
 	Type         string
-	Online		 bool
+	Online       bool
 }
 
 type StatisticsViewModel struct {
@@ -53,14 +52,16 @@ templ SensorsList(l10n Localizer, model SensorListViewModel) {
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
 				<div class="flex flex-row items-center text-white dark:text-primary-dark font-bold gap-4">
 					<div class="relative group">
-						@Button(Secondary, "", "download-cloud")
+						@Button(Secondary, "", "download-cloud",
+							HxUrl("get", "/admin/export?export=devices&accept=text/csv"),
+							Trigger("click"),
+							Include(".filter"))
 						@Tooltip(l10n.Get("export"))
 					</div>
 				</div>
 			</div>
 			@Statistics(l10n, model.Statistics)
 		</div>
-		
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 		<div class="flex flex-col items-start self-stretch gap-4">
 			@SensorsFilter(l10n, model)
@@ -77,46 +78,46 @@ templ SensorsFilter(l10n Localizer, model SensorListViewModel) {
 					@CheckboxList(l10n.Get("type")) {
 						for _, t := range model.DeviceProfiles {
 							@CheckboxOption("type", t, "", l10n, templ.Attributes{
-								"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
-								"hx-target": "#tableOrMap",
-								"hx-swap":   "outerHTML",
+								"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+								"hx-target":  "#tableOrMap",
+								"hx-swap":    "outerHTML",
 								"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
-								"onchange":  "updateSelectedFilters()",
-								"data-text": l10n.Get(t),
-								"value": t,
+								"onchange":   "updateSelectedFilters()",
+								"data-text":  l10n.Get(t),
+								"value":      t,
 							})
 						}
 					}
 					@RadioList(l10n.Get("status")) {
 						@RadioOption("active", "true", l10n.Get("active"), l10n, templ.Attributes{
-							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
-							"hx-target": "#tableOrMap",
-							"hx-swap":   "outerHTML",
+							"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target":  "#tableOrMap",
+							"hx-swap":    "outerHTML",
 							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
-							"onchange":  "updateSelectedFilters()",
+							"onchange":   "updateSelectedFilters()",
 						})
 						@RadioOption("active", "false", l10n.Get("inactive"), l10n, templ.Attributes{
-							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
-							"hx-target": "#tableOrMap",
-							"hx-swap":   "outerHTML",
+							"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target":  "#tableOrMap",
+							"hx-swap":    "outerHTML",
 							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
-							"onchange":  "updateSelectedFilters()",
+							"onchange":   "updateSelectedFilters()",
 						})
 					}
 					@RadioList(l10n.Get("Online")) {
 						@RadioOption("online", "true", l10n.Get("online"), l10n, templ.Attributes{
-							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
-							"hx-target": "#tableOrMap",
-							"hx-swap":   "outerHTML",
+							"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target":  "#tableOrMap",
+							"hx-swap":    "outerHTML",
 							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
-							"onchange":  "updateSelectedFilters()",
+							"onchange":   "updateSelectedFilters()",
 						})
 						@RadioOption("online", "false", l10n.Get("offline"), l10n, templ.Attributes{
-							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
-							"hx-target": "#tableOrMap",
-							"hx-swap":   "outerHTML",
+							"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target":  "#tableOrMap",
+							"hx-swap":    "outerHTML",
 							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
-							"onchange":  "updateSelectedFilters()",
+							"onchange":   "updateSelectedFilters()",
 						})
 					}
 				</div>
@@ -271,7 +272,6 @@ templ SensorsTable(l10n Localizer, model SensorListViewModel) {
 				{ l10n.Get("show") } { fmt.Sprintf("%d", model.Pageing.Count) } { l10n.Get("sensorsof") } { fmt.Sprintf("%d", model.Pageing.TotalCount) }
 			</div>
 		</div>
-		
 		<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 			<thead class="border-b border-primary-dark dark:border-white">
 				<tr>

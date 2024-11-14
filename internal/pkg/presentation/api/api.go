@@ -207,6 +207,39 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(token))
 	}))
+	r.HandleFunc("GET /admin/export", func(w http.ResponseWriter, r *http.Request) {
+		query := r.URL.Query()
+
+		if !query.Has("export") {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if !query.Has("accept") {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if !query.Has("redirected") {
+			query.Set("redirected", "true")
+			redirect := fmt.Sprintf("/admin/export?%s", query.Encode())
+			w.Header().Set("HX-Redirect", redirect)
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(""))
+			return
+		}
+		
+		b, err := app.Export(r.Context(), query)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		w.Header().Set("Content-Type", query.Get("accept"))
+		w.WriteHeader(http.StatusOK)
+		w.Write(b)
+	})
 
 	// TODO: Move this handler to a place of its own
 	r.Handle("GET /events/{version}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

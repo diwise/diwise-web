@@ -222,6 +222,7 @@ type buttonCfg struct {
 	swap    templ.Attributes
 	target  templ.Attributes
 	trigger templ.Attributes
+	include templ.Attributes
 }
 
 type ButtonStyle string
@@ -316,6 +317,17 @@ func Swap(swap string) func(*buttonCfg) {
 	}
 }
 
+func (cfg *buttonCfg) Include() templ.Attributes {
+	return cfg.include
+}
+
+func Include(incl string) func(*buttonCfg) {
+	attrs := templ.Attributes{"hx-include": incl}
+	return func(cfg *buttonCfg) {
+		cfg.include = attrs
+	}
+}
+
 func (cfg *buttonCfg) Classes() string {
 	classNames := make([]string, 0, 6)
 
@@ -395,6 +407,7 @@ templ Button(style ButtonStyle, title, icon string, config ...func(*buttonCfg)) 
 		{ newButtonCfg(config...).Target()... }
 		{ newButtonCfg(config...).Trigger()... }
 		{ newButtonCfg(config...).Swap()... }
+		{ newButtonCfg(config...).Include()... }
 	>
 		if icon != "" {
 			<div class="w-[20px] h-[20px]">
