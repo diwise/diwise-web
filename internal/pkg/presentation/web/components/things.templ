@@ -384,7 +384,6 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 			}
 		}
 
-		document.addEventListener("DOMContentLoaded", updateSelectedFilters);
 		document.body.addEventListener('htmx:afterOnLoad', updateSelectedFilters);
 
 		function toggleFillinglevelVisibility() {
@@ -406,7 +405,7 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 			}
 		}
 
-		document.addEventListener('DOMContentLoaded', function () {
+		document.addEventListener('htmx:load', function () {
 			const typeCheckboxes = document.querySelectorAll('input[name="type"]');
 			typeCheckboxes.forEach(checkbox => {
 				checkbox.addEventListener('change', toggleFillinglevelVisibility);
