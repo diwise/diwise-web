@@ -106,21 +106,16 @@ templ ThingsList(l10n Localizer, model ThingsListViewModel) {
 			<div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
 				<div class="flex gap-4 items-center text-white dark:text-primary-dark font-bold">
-					<label class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover">
-						{ l10n.Get("import") }
-						<input type="file" 
-							class="hidden" 
-							hx-post="/upload-file" 
-							hx-target="#uploadStatus">
-					</label>
-						
-					@Button(Primary, l10n.Get("export"), "")
-
 					@Button(Primary, l10n.Get("addthing"), "",
 						Target("#modalCreateThingContainer"),
 						HxUrl("get", "/components/things"),
 						Trigger("click"),
 						Swap("innerHTML"))
+					
+					<div class="relative group">
+						@Button(Secondary, "", "download-cloud")
+						@Tooltip(l10n.Get("export"))
+					</div>
 				</div>
 				<div id="modalCreateThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
 			</div>
