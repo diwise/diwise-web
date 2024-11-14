@@ -769,6 +769,7 @@ func PassagesChart(datasets []ChartDataset) templ.Component {
 	cfg := NewChartConfiguration("bar", false, &minvalue, nil, &stepsize)
 	cfg.Timeseries(true)
 	cfg.Add(datasets...)
+	cfg.SetColor("#68686D")
 
 	return Chart("measurement-chart", "", cfg)
 }

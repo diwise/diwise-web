@@ -407,7 +407,7 @@ other = "Water meter"
 other = "Yes"
 
 [10351-50]
-other = "Passages per day"
+other = "Number of passages"
 
 [3-9]
 other = "Battery level (%)"

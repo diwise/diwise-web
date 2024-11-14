@@ -1,11 +1,18 @@
 package components
 
 func NewChartConfiguration(chartType string, keepRatio bool, min, max, stepSize *uint) ChartConfiguration {
-	return ChartConfiguration{
-		Type: chartType,
-		Data: NewChartData(),
+	cfg := ChartConfiguration{
+		Type:    chartType,
+		Data:    NewChartData(),
 		Options: NewChartOptions(keepRatio, min, max, stepSize),
 	}
+
+	if chartType == "bar" {
+		borderRadius := 8
+		cfg.Options.BarBorderRadius = &borderRadius
+	}
+
+	return cfg
 }
 
 type ChartConfiguration struct {
@@ -43,6 +50,7 @@ func NewChartDataset(label string) ChartDataset {
 type ChartDataset struct {
 	Label                string       `json:"label"`
 	Data                 []ChartValue `json:"data"`
+	BackgroundColor		 string		  `json:"backgroundColor"`
 	BorderColor          string       `json:"borderColor"`
 	BorderWidth          int          `json:"borderWidth"`
 	PointBackgroundColor string       `json:"pointBackgroundColor"`
@@ -70,6 +78,8 @@ type ChartValue struct {
 func NewChartOptions(keepRatio bool, min, max, stepSize *uint) ChartOptions {
 	t := true
 	return ChartOptions{
+		BackgroundColor: "#1F1F25",
+		BorderColor: "#1F1F25",
 		Scales: ChartOptionsScales{
 			X: ChartOptionsScale{
 				Ticks: ChartOptionsTicks{
@@ -91,6 +101,9 @@ func NewChartOptions(keepRatio bool, min, max, stepSize *uint) ChartOptions {
 }
 
 type ChartOptions struct {
+	BackgroundColor		string			   `json:"backgroundColor,omitempty"`
+	BorderColor			string			   `json:"borderColor,omitempty"`
+	BarBorderRadius     *int               `json:"borderRadius,omitempty"`
 	MaintainAspectRatio *bool              `json:"maintainAspectRatio,omitempty"`
 	Responsive          *bool              `json:"responsive,omitempty"`
 	Scales              ChartOptionsScales `json:"scales"`
@@ -140,6 +153,10 @@ func (cfg *ChartConfiguration) SetResponsive(vb bool) {
 func (cfg *ChartConfiguration) SetMaintainAspectRatio(vb bool) {
 	cfg.Options.MaintainAspectRatio = &vb
 }
+func (cfg *ChartConfiguration) SetColor(vb string) {
+	cfg.Options.BackgroundColor = vb
+	cfg.Options.BorderColor = vb
+}
 func (cfg *ChartConfiguration) Timeseries(vb bool) {
 	if vb {
 		t := "time"
@@ -176,7 +193,7 @@ templ Chart(id, className string, cfg ChartConfiguration) {
 			(() => {			
 				const c = document.getElementById('chart-data');
 				const chartID = JSON.parse(c.getAttribute('data-chart-id'));	
-				const cfg = JSON.parse(c.getAttribute('data-chart-cfg'));			
+				window.chartConfig = JSON.parse(c.getAttribute('data-chart-cfg'));			
 									
 				try {
 					var existing_chart = Chart.getChart(chartID);
@@ -185,7 +202,7 @@ templ Chart(id, className string, cfg ChartConfiguration) {
 				}
 
 				const ctx = document.getElementById(chartID);
-				window.myChart = new Chart(ctx, cfg);
+				window.myChart = new Chart(ctx, window.chartConfig);
 
 				const isDarkMode = localStorage.theme === 'dark' || 
 					(!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -207,9 +224,9 @@ templ Chart(id, className string, cfg ChartConfiguration) {
 					ticksColor: 'rgba(255, 255, 255, 1)',
 					gridColor: 'rgba(255, 255, 255, 0.3)',
 				} : {
-					backgroundColor: 'rgba(31, 31, 37, 1)',  // Light mode bakgrundsfärg
-					borderColor: 'rgba(31, 31, 37, 1)',        // Light mode kantfärg
-					pointBackgroundColor: 'rgba(0, 0, 0, 1)',
+					backgroundColor: window.chartConfig.options.backgroundColor,  // Light mode bakgrundsfärg
+					borderColor: window.chartConfig.options.borderColor,        // Light mode kantfärg
+					pointBackgroundColor: 'rgba(31, 31, 37, 1)',
 					pointBorderColor: 'rgba(31, 31, 37, 1)',
 					ticksColor: 'rgba(31, 31, 37, 1)',
 					gridColor: 'rgba(229, 229, 229, 1)',
