@@ -28,6 +28,9 @@ other = "Alerts"
 [all]
 other = "All"
 
+[alternativeName]
+other = "Alternative name"
+
 [angle]
 other = "Angle"
 

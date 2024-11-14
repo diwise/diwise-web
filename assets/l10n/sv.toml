@@ -28,6 +28,9 @@ other = "Larm"
 [all]
 other = "Alla"
 
+[alternativeName]
+other = "Alternativt namn"
+
 [angle]
 other = "Vinkel"
 
