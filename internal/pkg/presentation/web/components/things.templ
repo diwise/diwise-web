@@ -398,6 +398,9 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 			});
 
 			const fillinglevelFilter = document.getElementById('fillinglevelFilter');
+			if (!fillinglevelFilter) {
+				return;
+			}
 			if (isWastecontainerSelected) {
 				fillinglevelFilter.classList.remove('hidden');
 			} else {
