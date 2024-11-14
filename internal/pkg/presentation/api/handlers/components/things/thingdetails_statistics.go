@@ -22,7 +22,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
-		//localizer := l10n.For(r.Header.Get("Accept-Language"))
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		ctx := logging.NewContextWithLogger(r.Context(), log)
 
 		id := r.PathValue("id")
@@ -44,17 +44,21 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		q.Add("endTimeAt", endTimeAt.Format(time.RFC3339))
 		q.Add("options", "groupByRef")
 
+		label := ""
 		switch thingType {
 		case "beach":
 			fallthrough
 		case "pointofinterest":
 			q.Add("n", "3303/5700") //Temperature
+			label = localizer.Get("3303-5700")
 		case "building":
 			q.Add("n", "3331/5700") // Energy
+			label = localizer.Get("3331-5700")
 		case "wastecontainer":
 			fallthrough
 		case "container":
 			q.Add("n", "3435/2") //FillingLevel/Percentage
+			label = localizer.Get("3435-2")
 		case "lifebuoy":
 			q.Add("n", "3302/5500") //Presence/State
 			q.Add("timeunit", "hour")
@@ -65,6 +69,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			q.Add("timeunit", "hour")
 			q.Add("vb", "true")
 			q.Del("options")
+			label = localizer.Get("10351-50")
 		case "pumpingstation":
 			q.Add("n", "3350/50") //Stopwatch/OnOff
 			q.Add("timeunit", "hour")
@@ -72,10 +77,13 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			q.Del("options")
 		case "room":
 			q.Add("n", "3303/5700") //Temperature
+			label = localizer.Get("3303-5700")
 		case "sewer":
 			q.Add("n", "3435/2") //FillingLevel/Percentage
+			label = localizer.Get("3435-2")
 		case "watermeter":
 			q.Add("n", "3424/1") //WaterMeter/CumulativeVolume
+			label = localizer.Get("3424-1")
 		}
 
 		thing, err := app.GetThing(ctx, id, q)
@@ -87,7 +95,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		datasets := []components.ChartDataset{}
 
 		for _, values := range thing.Values {
-			datasets = append(datasets, toDataset("", values))
+			datasets = append(datasets, toDataset(label, values))
 		}
 
 		var component templ.Component

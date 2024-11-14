@@ -36,6 +36,7 @@ func NewChartDataset(label string) ChartDataset {
 		PointRadius:          1,
 		PointHoverRadius:     6,
 		MaintainAspectRatio:  true,
+		Tension:			  0.2,
 	}
 }
 
@@ -49,6 +50,7 @@ type ChartDataset struct {
 	PointRadius          int          `json:"pointRadius"`
 	PointHoverRadius     int          `json:"pointHoverRadius"`
 	MaintainAspectRatio  bool		  `json:"maintainAspectRatio"`
+	Tension				 float32	  `json:"tension"`
 }
 
 func (dataset *ChartDataset) Append(data ChartValue) {

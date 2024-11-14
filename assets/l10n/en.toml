@@ -28,6 +28,9 @@ other = "Alerts"
 [all]
 other = "All"
 
+[alternativeName]
+other = "Alternative name"
+
 [angle]
 other = "Angle"
 
@@ -402,6 +405,9 @@ other = "Water meter"
 
 [yes]
 other = "Yes"
+
+[10351-50]
+other = "Passages per day"
 
 [3-9]
 other = "Battery level (%)"
