@@ -105,6 +105,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 
                     const mapData = JSON.parse(m.getAttribute('data-map'));
                     const geodata = JSON.parse(m.getAttribute('data-features'));
+                    
                     const showPopup = m.getAttribute('data-show-popup') === 'true';
                     const editMode = m.getAttribute('data-edit-mode') === 'true';
                     const isDarkMode = document.body.classList.contains('dark');
@@ -115,7 +116,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     m._leaflet_id = null;
                     
                     var map = L.map(m).setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
-                    map.on('load moveend zoomend', function(ev){
+                    map.on('load moveend zoomend', function(ev) {
                         var bounds = map.getBounds();
                         var southwest = bounds.getSouthWest();
                         var northeast = bounds.getNorthEast();
@@ -129,7 +130,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                         lightModeTileLayer.addTo(map);
                     }
 
-                    addFeaturesToMap(geodata, map);
+                    addFeaturesToMap(geodata, map, isDarkMode, editMode);
                 }
 
 
@@ -264,12 +265,55 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     }
                 }
                 
-                function addFeaturesToMap(gd, m) {
+                function addFeaturesToMap(gd, m, isDarkMode, editMode) {
                     if (gd && Array.isArray(gd)) {
                         gd.forEach(data => {
                             data.features.forEach(feature => {
+                                    const type = feature.properties.type.toLowerCase();
+                                    const subtype = feature.properties.subtype !== undefined ? feature.properties.subtype.toLowerCase() : '';
+                                    const { colorClass, lightipColor, darktipColor } = getColorByState(feature.properties.state);
+                                    const tipColor = isDarkMode ? darktipColor : lightipColor;
+                                    const tipIcon = generateTipIcon(tipColor)
+                                    const { iconUrl } = getIconByTypeAndTheme(type, subtype, isDarkMode);
 
-                                    L.geoJSON(feature, {}).addTo(m);
+                                    L.geoJSON(feature, {
+                                        pointToLayer: function(feature, latlng) {
+                                            const fillingLevelHtml = feature.properties.missingdata
+                                                ? ''
+                                                : (feature.properties.fillinglevel !== undefined
+                                                    ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>'
+                                                    : '');
+
+                                            const temperatureHTML = feature.properties.missingdata
+                                                ? ''
+                                                : (feature.properties.temperature !== undefined
+                                                    ? '<div class="text-sm font-bold">' + feature.properties.temperature + '</div>'
+                                                    : '');
+
+                                            const divIcon = L.divIcon({
+                                                className: '',
+                                                html:   '<div class="flex flex-col items-center">' +
+                                                            '<div class="flex flex-col items-center justify-center ' + colorClass + ' text-white dark:text-primary-dark p-2 rounded-lg shadow-md gap-2">' +
+                                                                '<div class="flex flex-row items-center gap-2">' +
+                                                                    '<img src="' + iconUrl + '">' + fillingLevelHtml + temperatureHTML + 
+                                                                '</div>' +
+                                                            '</div>' +
+                                                            '<div class="flex items-center">' + tipIcon + '</div>' +
+                                                        '</div>',
+                                                iconSize: [60, 44],
+                                                iconAnchor: [30, 44],
+                                                popupAnchor: [0, -50],
+                                                shadowSize: [41, 41]
+                                            });
+
+                                            const marker = createMarker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], divIcon, editMode);
+                                            return marker;
+                                        },
+                                        onEachFeature: function(feature, layer) {
+
+                                            //layer.bindPopup(popupContent);
+                                        },
+                                    }).addTo(m);
 
                             });
                         });
