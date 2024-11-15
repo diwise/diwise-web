@@ -107,10 +107,6 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             const isDarkMode = document.body.classList.contains('dark');
 
             let layers = {};
-
-            // "Fixes" Map container is already initialized error         
-              
-            //m._leaflet_id = null;
             
             const map = L.map('map2').setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
             map.on('load moveend zoomend', function(ev) {
@@ -129,7 +125,6 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 
             addFeaturesToMap(geodata, map, isDarkMode, editMode);
                 
-
             function createMarker(latlng, icon, editMode = false, onDragCallback = null, zIndexOffset = 0) {
                 let marker = L.marker(latlng, {
                     icon: icon,
