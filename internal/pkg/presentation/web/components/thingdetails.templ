@@ -180,30 +180,38 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 	</div>
 }
 
-templ DeleteThing(l10n Localizer, asset AssetLoaderFunc, thingID string) {
+templ DeleteThing(l10n Localizer, asset AssetLoaderFunc, thingID, thingName string) {
 	<div id="modalDeleteThing" class="fixed inset-0 bg-gray-30 z-50 flex items-center justify-center">
 		<div class="bg-white rounded-lg shadow-xl w-full max-w-xl p-6">
 			<div class="w-full">
 				<div class="flex items-center w-full justify-between">
 					<div class="flex items-center gap-6 align-middle">
-						<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("deletethingconfirm") }</h1>
+						<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">
+							{ l10n.Get("deletethingconfirm") }{ fmt.Sprintf(" %s", thingName) }?
+						</h1>
 					</div>
 				</div>
 				<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
 					<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+						{ fmt.Sprintf("%s ", thingName) }
 						{ l10n.Get("deletethinginformation") }
 					</div>
 				</div>
 				<div class="flex items-center justify-end pt-6">
 					<div class="flex items-center gap-4">
-						@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"),
-							HxUrl("on", "click: this.closest('#modalDeleteThingContainer').classList.add('hidden')"),
-							BtnType("button"))
+						<div id="cancelButton">
+							@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"), BtnType("button"))
+						</div>
 						@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"),
 							HxUrl("delete", "/things/"+thingID+"?confirmed=true"),
 							Target("#body"))
 					</div>
 				</div>
+				<script>
+					document.getElementById('cancelButton').addEventListener('click', function() {
+						document.getElementById('modalDeleteThingContainer').classList.add('hidden');
+					});
+				</script>
 			</div>
 		</div>
 	</div>
@@ -417,5 +425,5 @@ templ afterSwap() {
 
 			checkItemsLoaded();
 		});
-		</script>
+	</script>
 }
