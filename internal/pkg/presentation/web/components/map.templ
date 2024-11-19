@@ -1,14 +1,12 @@
 package components
 
-import (
-    "fmt"
-)
+import "fmt"
 
 type mapData struct {
-	Latitude  float64
-	Longitude float64
-	Zoom      int
-    CurrentView string
+	Latitude    float64
+	Longitude   float64
+	Zoom        int
+	CurrentView string
 }
 
 func newMapData(lat, lon float64) mapData {
@@ -18,8 +16,8 @@ func newMapData(lat, lon float64) mapData {
 		md.Latitude = 62.3908
 		md.Longitude = 17.3069
 		md.Zoom = 9
-        md.CurrentView = "sensor"
-        //TODO: Hantera även things här
+		md.CurrentView = "sensor"
+		//TODO: Hantera även things här
 	}
 
 	return md
@@ -41,7 +39,7 @@ func NewFeature(point Point) Feature {
 	return Feature{
 		Type:       "Feature",
 		Geometry:   point,
-		Properties: make(map[string]any), 
+		Properties: make(map[string]any),
 	}
 }
 
@@ -67,81 +65,93 @@ type Point struct {
 	Coordinates []float64 `json:"coordinates"`
 }
 
+var mapHandle = templ.NewOnceHandle()
+
 templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollection ...FeatureCollection) {
-    <div id="map" 
-        data-map={ templ.JSONString(data) } 
-        data-features={ templ.JSONString(featureCollection) }
-        data-show-popup={ fmt.Sprintf("%t", showPopup) }
-        data-edit-mode={ fmt.Sprintf("%t", editmode) }
-        if mapsize == "small" {
-            class="w-full z-0 h-[30vh]"
-        } else if mapsize == "medium" {
-            class="w-full z-0 h-[50vh]"
-        } else if mapsize == "large" {
-            class="w-full z-0 h-[60vh]"
-        }></div>
-	<script>
-        
-        function initializeMap() {
-            const mapview = document.getElementById('map');
-            if (!mapview) return;
+	<div
+		id="map"
+		data-map={ templ.JSONString(data) }
+		data-features={ templ.JSONString(featureCollection) }
+		data-show-popup={ fmt.Sprintf("%t", showPopup) }
+		data-edit-mode={ fmt.Sprintf("%t", editmode) }
+		if mapsize == "small" {
+			class="w-full z-0 h-[30vh]"
+		}
+		if mapsize == "medium" {
+			class="w-full z-0 h-[50vh]"
+		}
+		if mapsize == "large" {
+			class="w-full z-0 h-[60vh]"
+		}
+	></div>
+	@mapHandle.Once() {
+		<script>
+        (()=> {
 
-            if (mapview._leaflet_id) { // `_leaflet_id` är en indikator på att en karta är instansierad på elementet
-                mapview._leaflet_id = null; // Ta bort referensen till tidigare karta
-                mapview.innerHTML = ""; // Rensa kartans innehåll
-            }
-
-            function updateMapForTheme(isDarkMode) {
-                if (!map) {
-                    return;
-                }
-
-                if (isDarkMode) {
-                    if (map.hasLayer(lightModeTileLayer)) {
-                        map.removeLayer(lightModeTileLayer);
-                    }
-                    darkModeTileLayer.addTo(map);
-                } else {
-                    if (map.hasLayer(darkModeTileLayer)) {
-                        map.removeLayer(darkModeTileLayer);
-                    }
-                    lightModeTileLayer.addTo(map);
-                }
-            }
-
-            var lightModeTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            const lightModeTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                 maxZoom: 19,
             });
 
-            var darkModeTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            const darkModeTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 maxZoom: 19,
             });
 
+            const m = document.getElementById('map');
+            m.innerHTML= "<div id='map2' class='w-full z-0' style='width: 100%; height: 100%;'></div>";
+
+            const mapData = JSON.parse(m.getAttribute('data-map'));
+            const geodata = JSON.parse(m.getAttribute('data-features'));
+            
+            const showPopup = m.getAttribute('data-show-popup') === 'true';
+            const editMode = m.getAttribute('data-edit-mode') === 'true';
+            const isDarkMode = document.body.classList.contains('dark');
+
+            let layers = {};
+            
+            const map = L.map('map2').setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
+            map.on('load moveend zoomend', function(ev) {
+                let bounds = map.getBounds();
+                let southwest = bounds.getSouthWest();
+                let northeast = bounds.getNorthEast();
+            });
+
+            L.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
+                                                                            
+            if (isDarkMode) {
+                darkModeTileLayer.addTo(map);
+            } else {
+                lightModeTileLayer.addTo(map);
+            }
+
+            addFeaturesToMap(geodata, map, isDarkMode, editMode);
+                
             function createMarker(latlng, icon, editMode = false, onDragCallback = null, zIndexOffset = 0) {
-                const marker = L.marker(latlng, {
+                let marker = L.marker(latlng, {
                     icon: icon,
                     zIndexOffset: zIndexOffset,
                     draggable: editMode
                 });
 
                 if (editMode) {
-                    marker.on('drag', function(event) {
-                        const position = marker.getLatLng();
-                        document.getElementById('latitude').value = position.lat.toFixed(6);
-                        document.getElementById('longitude').value = position.lng.toFixed(6);
+                    let latitude = document.getElementById('latitude');
+                    let longitude = document.getElementById('longitude');
+
+                    marker.on('drag', function(e) {
+                        latitude.value = e.latlng.lat.toFixed(6);
+                        longitude.value = e.latlng.lng.toFixed(6);
 
                         if (onDragCallback) {
-                            onDragCallback(position);
+                            onDragCallback(e.latlng);
                         }
                     });
 
-                    marker.on('dragend', function(event) {
-                        const position = marker.getLatLng();
-                        document.getElementById('latitude').value = position.lat.toFixed(6);
-                        document.getElementById('longitude').value = position.lng.toFixed(6);
+                    marker.on('dragend', function(event) {                            
+                        let e = marker.getLatLng();
+                        latitude.value = e.lat.toFixed(6);
+                        longitude.value = e.lng.toFixed(6);
 
                         if (onDragCallback) {
-                            onDragCallback(position);
+                            onDragCallback(e);
                         }
                     });
                 }
@@ -175,26 +185,6 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                         </svg>`;
             }
 
-            const m = document.getElementById('map');
-            const mapData = JSON.parse(m.getAttribute('data-map'));
-            const geodata = JSON.parse(m.getAttribute('data-features'));
-            const showPopup = m.getAttribute('data-show-popup') === 'true';
-            const editMode = m.getAttribute('data-edit-mode') === 'true';
-
-            var map = L.map('map').setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
-
-            const isDarkMode = document.body.classList.contains('dark');
-            if (isDarkMode) {
-                darkModeTileLayer.addTo(map);
-            } else {
-                lightModeTileLayer.addTo(map);
-            }
-
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-                const isDarkMode = e.matches;
-                updateMapForTheme(isDarkMode);
-            });
-            
             function getIconByTypeAndTheme(type, subtype, isDarkMode) {
                 let iconUrl;
                 switch (type) {
@@ -254,356 +244,325 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                 return { iconUrl };
             }
 
-            var layers = {};
+            function getColorByState(state) {
+                switch(state) {
+                    case "red":
+                        return { colorClass: 'bg-red-600 dark:bg-err-prim-surf', lightipColor: '#D62E2E', darktipColor: '#FBC1C1' };
+                    case "orange":
+                        return { colorClass: 'bg-orange-600 dark:bg-primary-surface-orange-accent', lightipColor: '#DB6900', darktipColor: '#FFA34D' };
+                    case "green":
+                        return { colorClass: 'bg-green-700 dark:bg-primary-surface-green-accent', lightipColor: '#00733B', darktipColor: '#AAD4BF' };
+                    default:
+                        return { colorClass: 'bg-primary-dark dark:bg-white', lightipColor: '#1F1F25', darktipColor: '#FFFFFF' };
+                }
+            }
 
-            if (geodata && Array.isArray(geodata)) {
-                geodata.forEach(data => {
-                    data.features.forEach(feature => { 
-                        function getColorByState(state) {
-                            switch(state) {
-                                case "red":
-                                    return { colorClass: 'bg-red-600 dark:bg-err-prim-surf', lightipColor: '#D62E2E', darktipColor: '#FBC1C1' };
-                                case "orange":
-                                    return { colorClass: 'bg-orange-600 dark:bg-primary-surface-orange-accent', lightipColor: '#DB6900', darktipColor: '#FFA34D' };
-                                case "green": 
-                                    return { colorClass: 'bg-green-700 dark:bg-primary-surface-green-accent', lightipColor: '#00733B', darktipColor: '#AAD4BF' };
-                                default: 
-                                    return { colorClass: 'bg-primary-dark dark:bg-white', lightipColor: '#1F1F25', darktipColor: '#FFFFFF' };
-                            }
-                        }
-
-                        L.geoJSON(feature, { 
-                        pointToLayer: function(feature, latlng) {
+            function createSensorPopup(feature, intro, location, moreinformation, outro) {
+                popup = intro +
+                        '<div class="flex flex-col items-start gap-2">' +
+                            '<span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 ' + (feature.properties.status ? 'bg-primary-green-accent' : 'bg-tertiary-surface') + '">' +
+                                '<span class="text-sm font-bold font-sans leading-none ' + (feature.properties.status ? 'text-primary-green' : 'text-primary-dark"') + '">' +
+                                    (feature.properties.status ? feature.properties.text_active : feature.properties.text_inactive) +
+                                '</span>' +
+                            '</span>' +
+                            '<h2 class="font-heading text-xl font-bold first-letter:uppercase">' + feature.properties.name + '</h2>' +
+                        '</div>' +
+                        '<div class="flex flex-col items-start gap-2">' +
+                            '<div class="flex items-start gap-2">' +
+                                '<div class="font-bold">' + feature.properties.text_deveui + '</div>' +
+                                '<div class="break-all">' + feature.properties.deveui + '</div>' +
+                            '</div>' +
+                            '<div class="flex items-center gap-2">' +
+                                '<div class="font-bold">' + feature.properties.text_sensortype + '</div>' +
+                                '<div class="">' + feature.properties.type + '</div>' +
+                            '</div>' +
+                            '<div class="flex items-center gap-2">' +
+                                '<div class="font-bold">' + feature.properties.text_batterylevel + '</div>' +
+                                '<div class="">' + feature.properties.batterylevel + '</div>' +
+                            '</div>' +
+                            location +
+                            '<div class="flex items-center gap-2">' +
+                                '<div class="font-bold">' + feature.properties.text_lastseen + '</div>' +
+                                '<div class="">' + feature.properties.lastseen + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    moreinformation +
+                outro;
+                return popup;
+            }
+            
+            function addFeaturesToMap(gd, m, isDarkMode, editMode) {
+                if (gd && Array.isArray(gd)) {
+                    gd.forEach(data => {
+                        data.features.forEach(feature => {
                                 const type = feature.properties.type.toLowerCase();
                                 const subtype = feature.properties.subtype !== undefined ? feature.properties.subtype.toLowerCase() : '';
                                 const { colorClass, lightipColor, darktipColor } = getColorByState(feature.properties.state);
                                 const tipColor = isDarkMode ? darktipColor : lightipColor;
                                 const tipIcon = generateTipIcon(tipColor)
-
-                                // Hämta rätt ikon-URL och storlek beroende på typen och om det är mörkt eller ljust tema
                                 const { iconUrl } = getIconByTypeAndTheme(type, subtype, isDarkMode);
-                                
-                                const fillingLevelHtml = feature.properties.missingdata
-                                    ? ''
-                                    : (feature.properties.fillinglevel !== undefined 
-                                        ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>' 
-                                        : '');
 
-                                const temperatureHTML = feature.properties.missingdata
-                                    ? ''
-                                    : (feature.properties.temperature !== undefined 
-                                        ? '<div class="text-sm font-bold">' + feature.properties.temperature + '</div>' 
-                                        : '');
-                                
-                                const divIcon = L.divIcon({
-                                    className: '',
-                                    html: '<div class="flex flex-col items-center"><div class="flex flex-col items-center justify-center ' + colorClass + ' text-white dark:text-primary-dark p-2 rounded-lg shadow-md gap-2">' + 
-                                            '<div class="flex flex-row items-center gap-2">' +
-                                                '<img src="' + iconUrl + '">' +
-                                                fillingLevelHtml + temperatureHTML +
-                                            '</div></div>' +
-                                        '<div class="flex items-center">' + tipIcon + '</div></div>',
-                                    iconSize: [60, 44],
-                                    iconAnchor: [30, 44],
-                                    popupAnchor: [0, -50], 
-                                    shadowSize: [41, 41]
-                                });
+                                L.geoJSON(feature, {
+                                    pointToLayer: function(feature, latlng) {
+                                        const fillingLevelHtml = feature.properties.missingdata
+                                            ? ''
+                                            : (feature.properties.fillinglevel !== undefined
+                                                ? '<div class="text-sm font-bold">' + feature.properties.fillinglevel + '%</div>'
+                                                : '');
 
-                                const marker = createMarker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], divIcon, editMode);
-                                return marker;
-                            },
-                            onEachFeature: function(feature, layer) {
-                                if (showPopup) {
-                                    var cv = mapData.CurrentView;
-                                    var popupContent = null;
-                                    var intro = '<div class="flex flex-col items-start gap-6 py-3 text-base"><div class="flex flex-col items-start self-stretch justify-center gap-6">';
+                                        const temperatureHTML = feature.properties.missingdata
+                                            ? ''
+                                            : (feature.properties.temperature !== undefined
+                                                ? '<div class="text-sm font-bold">' + feature.properties.temperature + '</div>'
+                                                : '');
 
-                                    var tagList = '';
-                                    if (feature.properties.tags && Array.isArray(feature.properties.tags)) {
-                                        tagList = `<div class="flex items-start gap-2"><div class="flex flex-wrap gap-1">` + feature.properties.tags.map(tag => 
-                                                    `<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
-                                                        ${tag}
-                                                    </span>`).join('')+ `</div></div>`; 
-                                    } else {
-                                        tagList = '';
-                                    }
-                                    var name = feature.properties.name ? '<div class="w-[90%] flex items-start gap-2"><div class="font-bold">' + feature.properties.text_name + '</div><div class="break-all">' + feature.properties.name + '</div></div>' : '';
-                                    var location = (feature.properties.latitude && feature.properties.longitude) ? '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_position + '</div><div class="break-word">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div>' : '';
-                                    var moreinformation = feature.properties.url ? '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div><a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a>' : '';
-                                    var outro = '</div></div>';
-
-                                    if (cv === "sensor") {
-                                        popupContent = intro +
-                                                            '<div class="flex flex-col items-start gap-2">' +
-                                                                '<span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 ' + (feature.properties.status ? 'bg-primary-green-accent' : 'bg-tertiary-surface') + '">' +
-                                                                    '<span class="text-sm font-bold font-sans leading-none ' + (feature.properties.status ? 'text-primary-green' : 'text-primary-dark"') + '">' + 
-                                                                        (feature.properties.status ? feature.properties.text_active : feature.properties.text_inactive) + 
-                                                                    '</span>' +
-                                                                '</span>' +
-                                                                '<h2 class="font-heading text-xl font-bold first-letter:uppercase">' + feature.properties.name + '</h2>' +
-                                                            '</div>' +
-                                                            '<div class="flex flex-col items-start gap-2">' +
-                                                                '<div class="flex items-start gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_deveui + '</div>' +
-                                                                    '<div class="break-all">' + feature.properties.deveui + '</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-center gap-2">' + 
-                                                                    '<div class="font-bold">' + feature.properties.text_sensortype + '</div>' +
-                                                                    '<div class="">' + feature.properties.type + '</div>' +
-                                                                '</div>' +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_batterylevel + '</div>' +
-                                                                    '<div class="">' + feature.properties.batterylevel + '</div>' +
-                                                                '</div>' +
-                                                                location +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_lastseen + '</div>' +
-                                                                    '<div class="">' + feature.properties.lastseen + '</div>' +
-                                                                '</div>' +
+                                        const divIcon = L.divIcon({
+                                            className: '',
+                                            html:   '<div class="flex flex-col items-center">' +
+                                                        '<div class="flex flex-col items-center justify-center ' + colorClass + ' text-white dark:text-primary-dark p-2 rounded-lg shadow-md gap-2">' +
+                                                            '<div class="flex flex-row items-center gap-2">' +
+                                                                '<img src="' + iconUrl + '">' + fillingLevelHtml + temperatureHTML + 
                                                             '</div>' +
                                                         '</div>' +
-                                                        moreinformation +
-                                                    outro;
-                                    } else if (cv === "thing" && feature.properties.type.toLowerCase() === "container") {
-                                    var colourClass = "bg-background-200";
-                                        if (feature.properties.subtype.toLowerCase() == "wastecontainer") {
-                                            if (feature.properties.fillinglevel >= 51) {
-                                                colourClass = "bg-red-600 dark:bg-err-prim-surf";
-                                            } else if (feature.properties.fillinglevel <= 30) {
-                                                colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
+                                                        '<div class="flex items-center">' + tipIcon + '</div>' +
+                                                    '</div>',
+                                            iconSize: [60, 44],
+                                            iconAnchor: [30, 44],
+                                            popupAnchor: [0, -50],
+                                            shadowSize: [41, 41]
+                                        });
+
+                                        const marker = createMarker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], divIcon, editMode);
+                                        return marker;
+                                    },
+                                    onEachFeature: function(feature, layer) {
+                                        if (showPopup) {
+                                            var cv = mapData.CurrentView;
+                                            var popupContent = null;
+                                            var intro = '<div class="flex flex-col items-start gap-6 py-3 text-base"><div class="flex flex-col items-start self-stretch justify-center gap-6">';
+
+                                            var tagList = '';
+                                            if (feature.properties.tags && Array.isArray(feature.properties.tags)) {
+                                                tagList = `<div class="flex items-start gap-2"><div class="flex flex-wrap gap-1">` + feature.properties.tags.map(tag =>
+                                                            `<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+                                                                ${tag}
+                                                            </span>`).join('')+ `</div></div>`;
                                             } else {
-                                                colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                                tagList = '';
                                             }
-                                        }
-                                        else if (feature.properties.subtype.toLowerCase() == "sandstorage") {
-                                            if (feature.properties.fillinglevel <= 51) {
-                                                colourClass = "bg-red-600 dark:bg-err-prim-surf";
-                                            } else if (feature.properties.fillinglevel >= 70) {
-                                                colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
-                                            } else {
-                                                colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
-                                            }
-                                        }
-                                        const thingdata = feature.properties.missingdata
-                                        ? '<div class="">' + feature.properties.text_missingdata + '</div>'
-                                        : '<div class="flex w-full items-center gap-2 text-sm">' +
-                                            '<div class="w-[75%] bg-background-200 dark:bg-primary-surface-white rounded-lg">' +
-                                                '<div class="' + colourClass + ' rounded-lg" style="width: ' + feature.properties.fillinglevel + '%; height: 6px;"></div>' +
-                                            '</div>' +
-                                            '<div class="text-sm text-right w-auto">' + feature.properties.fillinglevel + '%</div>' +
-                                        '</div>';
-                                        
-                                            popupContent = intro +
-                                                                '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                    name + 
-                                                                    '<div class="flex flex-col items-start justify-center gap-2 self-stretch">' +
-                                                                        '<div class="font-bold">' + feature.properties.text_fillinglevel + '</div>' +
-                                                                        thingdata +
+                                            var name = feature.properties.name ? '<div class="w-[90%] flex items-start gap-2"><div class="font-bold">' + feature.properties.text_name + '</div><div class="break-all">' + feature.properties.name + '</div></div>' : '';
+                                            var location = (feature.properties.latitude && feature.properties.longitude) ? '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_position + '</div><div class="break-word">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div>' : '';
+                                            var moreinformation = feature.properties.url ? '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div><a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a>' : '';
+                                            var outro = '</div></div>';
+
+                                            if (cv === "sensor") {
+                                                const sensorpopup = createSensorPopup(feature, intro, location, moreinformation, outro);
+                                                popupContent = sensorpopup;
+                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "container") {
+                                            var colourClass = "bg-background-200";
+                                                if (feature.properties.subtype.toLowerCase() == "wastecontainer") {
+                                                    if (feature.properties.fillinglevel >= 51) {
+                                                        colourClass = "bg-red-600 dark:bg-err-prim-surf";
+                                                    } else if (feature.properties.fillinglevel <= 30) {
+                                                        colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
+                                                    } else {
+                                                        colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                                    }
+                                                }
+                                                else if (feature.properties.subtype.toLowerCase() == "sandstorage") {
+                                                    if (feature.properties.fillinglevel <= 51) {
+                                                        colourClass = "bg-red-600 dark:bg-err-prim-surf";
+                                                    } else if (feature.properties.fillinglevel >= 70) {
+                                                        colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
+                                                    } else {
+                                                        colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                                    }
+                                                }
+                                                const thingdata = feature.properties.missingdata
+                                                ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                                : '<div class="flex w-full items-center gap-2 text-sm">' +
+                                                    '<div class="w-[75%] bg-background-200 dark:bg-primary-surface-white rounded-lg">' +
+                                                        '<div class="' + colourClass + ' rounded-lg" style="width: ' + feature.properties.fillinglevel + '%; height: 6px;"></div>' +
+                                                    '</div>' +
+                                                    '<div class="text-sm text-right w-auto">' + feature.properties.fillinglevel + '%</div>' +
+                                                '</div>';
+
+                                                    popupContent = intro +
+                                                                        '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                            name +
+                                                                            '<div class="flex flex-col items-start justify-center gap-2 self-stretch">' +
+                                                                                '<div class="font-bold">' + feature.properties.text_fillinglevel + '</div>' +
+                                                                                thingdata +
+                                                                            '</div>' +
+                                                                            location +
+                                                                            tagList +
+                                                                        '</div>' +
+                                                                        moreinformation +
+                                                                    outro;
+                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "passage") {
+                                                const thingdata = feature.properties.missingdata
+                                                ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                                : '<div class="">' + feature.properties.passagestoday + '&nbsp;st</div>'
+
+                                                popupContent = intro +
+                                                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                        name +
+                                                                        '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_passagestoday + '</div>' +
+                                                                        thingdata + '</div>' +
+                                                                        location +
+                                                                        tagList +
+                                                                        moreinformation +
                                                                     '</div>' +
-                                                                    location +
-                                                                    tagList +
-                                                                '</div>' +
-                                                                moreinformation +
-                                                            outro;
-                                    } else if (cv === "thing" && feature.properties.type.toLowerCase() === "passage") {
-                                        const thingdata = feature.properties.missingdata
-                                        ? '<div class="">' + feature.properties.text_missingdata + '</div>'
-                                        : '<div class="">' + feature.properties.passagestoday + '&nbsp;st</div>'
-                                        
-                                        popupContent = intro +
-                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                name +
-                                                                '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_passagestoday + '</div>' + 
-                                                                thingdata + '</div>' +
-                                                                location +
-                                                                tagList + 
-                                                                moreinformation +
-                                                            '</div>' +
-                                                        outro;
-                                                            
-                                    } else if (cv === "thing" && feature.properties.subtype.toLowerCase() === "combinedseweroverflow") {
-                                        const thingdata = feature.properties.missingdata
-                                        ? '<div class="">' + feature.properties.text_missingdata + '</div>'
-                                        : '<div class="">' + feature.properties.state + '</div>'
-                                        
-                                        const thingdatalevel = feature.properties.missingdata
-                                        ? '<div class="">' + feature.properties.text_missingdata + '</div>'
-                                        : '<div class="">' + feature.properties.level + '</div>'
+                                                                outro;
 
-                                        popupContent = intro +
-                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                name +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_overflow + '</div>' +
-                                                                    thingdata +
-                                                                '</div>' +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_level + '</div>' +
-                                                                    thingdatalevel +
-                                                                '</div>' +
-                                                                location +
-                                                                tagList +
-                                                            '</div>' +
-                                                            moreinformation +
-                                                        outro;
-                                    } else if (cv === "thing" && feature.properties.subtype.toLowerCase() === "beach" || feature.properties.type.toLowerCase() === "room") {
-                                        const thingdata = feature.properties.missingdata
-                                        ? '<div class="">' + feature.properties.text_missingdata + '</div>'
-                                        : '<div class="">' + feature.properties.temperature + '</div>'
-                                        
-                                        popupContent = intro +
-                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                name +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_temperature + '</div>' +
-                                                                    thingdata +
-                                                                '</div>' +
-                                                                location +
-                                                                tagList +
-                                                            '</div>' +
-                                                            moreinformation +
-                                                        outro;
-                                    } else if (cv === "thing" && feature.properties.type.toLowerCase() === "lifebuoy") {
-                                        const thingdata = feature.properties.missingdata
-                                        ? '<div class="">' + feature.properties.text_missingdata + '</div>'
-                                        : '<div class="">' + feature.properties.present + '</div>'
+                                            } else if (cv === "thing" && feature.properties.subtype.toLowerCase() === "combinedseweroverflow") {
+                                                const thingdata = feature.properties.missingdata
+                                                ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                                : '<div class="">' + feature.properties.state + '</div>'
 
-                                        popupContent = intro +
-                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                name +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_inplace + '</div>' +
-                                                                    thingdata +
-                                                                '</div>' +
-                                                                location +
-                                                                tagList +
-                                                            '</div>' +
-                                                            moreinformation +
-                                                        outro;
-                                    } else if (cv === "thing" && feature.properties.type.toLowerCase() === "desk") {
-                                        const thingdata = feature.properties.missingdata
-                                        ? '<div class="">' + feature.properties.text_missingdata + '</div>'
-                                        : '<div class="">' + feature.properties.present + '</div>'
-                                        popupContent = intro +
-                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                name +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_inplace + '</div>' +
-                                                                    thingdata +
-                                                                '</div>' +
-                                                                location +
-                                                                tagList +
-                                                            '</div>' +
-                                                            moreinformation +
-                                                        outro;
-                                    } else if (cv === "thing" && feature.properties.type.toLowerCase() === "watermeter") {
-                                        const thingdata = feature.properties.missingdata
-                                        ? '<div class="">' + feature.properties.text_missingdata + '</div>'
-                                        : '<div class="">' + feature.properties.cumulativeVolume + '</div>'
-                                        popupContent = intro +
-                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                name +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_cumulativevolume + '</div>' +
-                                                                    thingdata +
-                                                                '</div>' +
-                                                                location +
-                                                                tagList +
-                                                            '</div>' +
-                                                            moreinformation +
-                                                        outro;
-                                    } else if (cv === "thing" && feature.properties.type.toLowerCase() === "building") {
-                                        const thingdata = feature.properties.missingdata
-                                        ? '<div class="">' + feature.properties.text_missingdata + '</div>'
-                                        : '<div class="">' + feature.properties.energyandpower + '</div>'
-                                        popupContent = intro +
-                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                name +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_consumption + '</div>' +
-                                                                    thingdata +
-                                                                '</div>' +
-                                                                location +
-                                                                tagList +
-                                                            '</div>' +
-                                                            moreinformation +
-                                                        outro;
-                                    } else if (cv === "thing" && feature.properties.type.toLowerCase() === "pumpingstation") {
-                                        const thingdata = feature.properties.missingdata
-                                        ? '<div class="">' + feature.properties.text_missingdata + '</div>'
-                                        : '<div class="">' + feature.properties.pumpingObserved + '</div>'
-                                        popupContent = intro +
-                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                name +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_pumping + '</div>' +
-                                                                    thingdata +
-                                                                '</div>' +
-                                                                location +
-                                                                tagList +
-                                                            '</div>' +
-                                                            moreinformation +
-                                                        outro;
-                                    } else {
-                                        popupContent = intro +
-                                                            '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
-                                                                name +
-                                                                '<div class="flex items-center gap-2">' +
-                                                                    '<div class="font-bold">' + feature.properties.text_description + '</div>' +
-                                                                    '<div class="">' + feature.properties.description + '</div>' +
-                                                                '</div>' +
-                                                                location +
-                                                                tagList +
-                                                            '</div>' +
-                                                            moreinformation +
-                                                        outro;
-                                    }
-                                    
-                                    layer.bindPopup(popupContent);
-                                }  
-                            }
-                        }).addTo(map);
+                                                const thingdatalevel = feature.properties.missingdata
+                                                ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                                : '<div class="">' + feature.properties.level + '</div>'
 
-                        function resetZIndex() {
-                            map.eachLayer(function(layer) {
-                                if (layer instanceof L.Marker) {
-                                    layer.setZIndexOffset(0); 
-                                }
-                            });
-                        }
+                                                popupContent = intro +
+                                                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                        name +
+                                                                        '<div class="flex items-center gap-2">' +
+                                                                            '<div class="font-bold">' + feature.properties.text_overflow + '</div>' +
+                                                                            thingdata +
+                                                                        '</div>' +
+                                                                        '<div class="flex items-center gap-2">' +
+                                                                            '<div class="font-bold">' + feature.properties.text_level + '</div>' +
+                                                                            thingdatalevel +
+                                                                        '</div>' +
+                                                                        location +
+                                                                        tagList +
+                                                                    '</div>' +
+                                                                    moreinformation +
+                                                                outro;
+                                            } else if (cv === "thing" && feature.properties.subtype.toLowerCase() === "beach" || feature.properties.type.toLowerCase() === "room") {
+                                                const thingdata = feature.properties.missingdata
+                                                ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                                : '<div class="">' + feature.properties.temperature + '</div>'
+
+                                                popupContent = intro +
+                                                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                        name +
+                                                                        '<div class="flex items-center gap-2">' +
+                                                                            '<div class="font-bold">' + feature.properties.text_temperature + '</div>' +
+                                                                            thingdata +
+                                                                        '</div>' +
+                                                                        location +
+                                                                        tagList +
+                                                                    '</div>' +
+                                                                    moreinformation +
+                                                                outro;
+                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "lifebuoy") {
+                                                const thingdata = feature.properties.missingdata
+                                                ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                                : '<div class="">' + feature.properties.present + '</div>'
+
+                                                popupContent = intro +
+                                                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                        name +
+                                                                        '<div class="flex items-center gap-2">' +
+                                                                            '<div class="font-bold">' + feature.properties.text_inplace + '</div>' +
+                                                                            thingdata +
+                                                                        '</div>' +
+                                                                        location +
+                                                                        tagList +
+                                                                    '</div>' +
+                                                                    moreinformation +
+                                                                outro;
+                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "desk") {
+                                                const thingdata = feature.properties.missingdata
+                                                ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                                : '<div class="">' + feature.properties.present + '</div>'
+                                                popupContent = intro +
+                                                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                        name +
+                                                                        '<div class="flex items-center gap-2">' +
+                                                                            '<div class="font-bold">' + feature.properties.text_inplace + '</div>' +
+                                                                            thingdata +
+                                                                        '</div>' +
+                                                                        location +
+                                                                        tagList +
+                                                                    '</div>' +
+                                                                    moreinformation +
+                                                                outro;
+                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "watermeter") {
+                                                const thingdata = feature.properties.missingdata
+                                                ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                                : '<div class="">' + feature.properties.cumulativeVolume + '</div>'
+                                                popupContent = intro +
+                                                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                        name +
+                                                                        '<div class="flex items-center gap-2">' +
+                                                                            '<div class="font-bold">' + feature.properties.text_cumulativevolume + '</div>' +
+                                                                            thingdata +
+                                                                        '</div>' +
+                                                                        location +
+                                                                        tagList +
+                                                                    '</div>' +
+                                                                    moreinformation +
+                                                                outro;
+                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "building") {
+                                                const thingdata = feature.properties.missingdata
+                                                ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                                : '<div class="">' + feature.properties.energyandpower + '</div>'
+                                                popupContent = intro +
+                                                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                        name +
+                                                                        '<div class="flex items-center gap-2">' +
+                                                                            '<div class="font-bold">' + feature.properties.text_consumption + '</div>' +
+                                                                            thingdata +
+                                                                        '</div>' +
+                                                                        location +
+                                                                        tagList +
+                                                                    '</div>' +
+                                                                    moreinformation +
+                                                                outro;
+                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "pumpingstation") {
+                                                const thingdata = feature.properties.missingdata
+                                                ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                                : '<div class="">' + feature.properties.pumpingObserved + '</div>'
+                                                popupContent = intro +
+                                                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                        name +
+                                                                        '<div class="flex items-center gap-2">' +
+                                                                            '<div class="font-bold">' + feature.properties.text_pumping + '</div>' +
+                                                                            thingdata +
+                                                                        '</div>' +
+                                                                        location +
+                                                                        tagList +
+                                                                    '</div>' +
+                                                                    moreinformation +
+                                                                outro;
+                                            } else {
+                                                popupContent = intro +
+                                                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                        name +
+                                                                        '<div class="flex items-center gap-2">' +
+                                                                            '<div class="font-bold">' + feature.properties.text_description + '</div>' +
+                                                                            '<div class="">' + feature.properties.description + '</div>' +
+                                                                        '</div>' +
+                                                                        location +
+                                                                        tagList +
+                                                                    '</div>' +
+                                                                    moreinformation +
+                                                                outro;
+                                            }
+
+                                            layer.bindPopup(popupContent);
+                                        }
+                                    },
+                                }).addTo(m);
+                        });
                     });
-                });
-            }
-
-            L.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
-
-            function getBoundsCoordinates() {
-                var bounds = map.getBounds();
-
-                var southwest = bounds.getSouthWest();
-                var northeast = bounds.getNorthEast();
-            }
-
-            // Kontrollera hörnkoordinater när kartan laddas och vid varje dragning eller zoomning
-            map.on('load moveend zoomend', getBoundsCoordinates);
-
-            /*
-            document.querySelectorAll('.map-checkbox').forEach(checkbox => {
-                checkbox.onchange = function() {
-                    var layerGroup = layers[this.id.replace('show', '').toLowerCase()];
-                    if (this.checked) {
-                        layerGroup.addTo(map);
-                    } else {
-                        map.removeLayer(layerGroup);
-                    }
                 }
-            });
-            */
-
-        }
-
-        document.addEventListener("DOMContentLoaded", initializeMap);
-        document.body.addEventListener('htmx:load', initializeMap);
-
-    </script>
+            }
+            })();
+        </script>
+	}
 }
