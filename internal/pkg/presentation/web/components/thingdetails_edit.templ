@@ -12,12 +12,12 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 		<div class="flex items-center w-full justify-between">
 			<div class="flex items-center gap-6 align-middle">
 				<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">
-					{ l10n.Get("edit") } 					 
-					if model.Thing.Name == "" { 
+					{ l10n.Get("edit") }
+					if model.Thing.Name == "" {
 						{ model.Thing.ID }
-					} else { 
+					} else {
 						{ model.Thing.Name }
-					} 
+					}
 				</h1>
 			</div>
 		</div>
@@ -290,8 +290,8 @@ func editThingDetailType(l10n Localizer, model ThingDetailsViewModel) templ.Comp
 	}
 
 	switch thingType {
-	case "beach":
-		return ConnectOneSensor(l10n, model)
+	//	case "beach":
+	//		return ConnectOneSensor(l10n, model)
 	case "pointofinterest":
 		return templ.NopComponent
 	case "building":
@@ -302,20 +302,23 @@ func editThingDetailType(l10n Localizer, model ThingDetailsViewModel) templ.Comp
 		return EditSandStorage(l10n, model)
 	case "container":
 		return EditWasteContainer(l10n, model)
-	case "lifebuoy":
-		return ConnectOneSensor(l10n, model)
-	case "passage":
-		return ConnectOneSensor(l10n, model)
-	case "pumpingstation":
-		return ConnectOneSensor(l10n, model)
+		//	case "lifebuoy":
+		//		return ConnectOneSensor(l10n, model)
+		//	case "passage":
+		//		return ConnectOneSensor(l10n, model)
+		//	case "pumpingstation":
+		//		return ConnectOneSensor(l10n, model)
 	case "room":
+		return ConnectMultipleSensors(l10n, model)
+	case "combinedseweroverflow":
 		return ConnectMultipleSensors(l10n, model)
 	case "sewer":
 		return ConnectMultipleSensors(l10n, model)
-	case "watermeter":
-		return ConnectOneSensor(l10n, model)
+		//	case "watermeter":
+		//		return ConnectOneSensor(l10n, model)
 	}
-	return templ.NopComponent
+
+	return ConnectOneSensor(l10n, model)
 }
 
 templ EditSandStorage(l10n Localizer, model ThingDetailsViewModel) {
