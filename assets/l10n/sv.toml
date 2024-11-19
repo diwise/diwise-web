@@ -95,10 +95,10 @@ other = "grader"
 other = "Radera"
 
 [deletethingconfirm]
-other = "Vill du radera saken?"
+other = "Vill du radera"
 
 [deletethinginformation]
-other = "Saken och dess data kommer tas bort."
+other = "och dess data kommer tas bort."
 
 [description]
 other = "Beskrivning"

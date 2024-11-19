@@ -95,10 +95,10 @@ other = "degrees"
 other = "Delete"
 
 [deletethingconfirm]
-other = "Do you want to delete the thing?"
+other = "Do you want to delete"
 
 [deletethinginformation]
-other = "The thing and data related to the thing will be removed."
+other = "and data related to the thing will be removed."
 
 [description]
 other = "Description"

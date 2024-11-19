@@ -46,12 +46,18 @@ func NewThingDetailsComponentHandler(_ context.Context, l10n LocaleBundle, asset
 		if r.Method == http.MethodDelete {
 
 			id := r.PathValue("id")
+			name := r.URL.Query().Get("name")
+
 			if id == "" {
 				http.Error(w, "no ID found in url", http.StatusBadRequest)
 				return
 			}
 
-			c := components.DeleteThing(localizer, assets, id)
+			if name == "" {
+				name = id
+			}
+
+			c := components.DeleteThing(localizer, assets, id, name)
 			helpers.WriteComponentResponse(ctx, w, r, c, 1024, 0)
 			return
 		}
