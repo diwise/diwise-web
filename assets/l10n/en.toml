@@ -22,6 +22,9 @@ other = "Add new thing"
 [addtag]
 other = "Add new tag"
 
+[admin]
+other = "Admin"
+
 [alerts]
 other = "Alerts"
 

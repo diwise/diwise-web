@@ -22,6 +22,9 @@ other = "Lägg till ny sak"
 [addtag]
 other = "Lägg till ny tagg"
 
+[admin]
+other = "Admin"
+
 [alerts]
 other = "Larm"
 
