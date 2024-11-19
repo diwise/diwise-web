@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 
@@ -68,6 +69,30 @@ func NewErrorPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 
 		errorpage := components.ErrorPage(localizer, assets)
 		component := components.StartPage(version, localizer, assets, errorpage)
+
+		helpers.WriteComponentResponse(ctx, w, r, component, 30*1024, 0)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func NewAdminPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+	version := helpers.GetVersion(ctx)
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+
+		ctx = helpers.Decorate(
+			r.Context(),
+			components.CurrentComponent, "admin",
+		)
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		m := components.AdminViewModel{
+			Token: authz.Token(ctx),
+		}
+
+		adminpage := components.AdminPage(localizer, assets, m)
+		component := components.StartPage(version, localizer, assets, adminpage)
 
 		helpers.WriteComponentResponse(ctx, w, r, component, 30*1024, 0)
 	}

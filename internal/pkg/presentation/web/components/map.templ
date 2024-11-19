@@ -97,7 +97,8 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             });
 
             const m = document.getElementById('map');
-            m.innerHTML= "<div id='map2' class='w-full z-0' style='width: 100%; height: 100%;'></div>";
+            const mapContainerID = crypto.randomUUID();
+            m.innerHTML= "<div id='"+mapContainerID+"' class='w-full z-0' style='width: 100%; height: 100%;'></div>";
 
             const mapData = JSON.parse(m.getAttribute('data-map'));
             const geodata = JSON.parse(m.getAttribute('data-features'));
@@ -108,12 +109,15 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 
             let layers = {};
             
-            const map = L.map('map2').setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
+            const map = L.map(mapContainerID).setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
+            
+            /*
             map.on('load moveend zoomend', function(ev) {
                 let bounds = map.getBounds();
                 let southwest = bounds.getSouthWest();
                 let northeast = bounds.getNorthEast();
             });
+            */
 
             L.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
                                                                             

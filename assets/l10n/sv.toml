@@ -537,3 +537,9 @@ other = "Soptunna"
 
 [wastecontainer]
 other = "Soptunna"
+
+[choosefile]
+other = "Välj en fil"
+
+[upload]
+other = "Ladda upp"

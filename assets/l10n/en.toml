@@ -537,3 +537,9 @@ other = "Waste container"
 
 [wastecontainer]
 other = "Waste container"
+
+[choosefile]
+other = "Choose a file"
+
+[upload]
+other = "Upload"

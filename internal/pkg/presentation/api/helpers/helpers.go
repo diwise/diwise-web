@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -254,4 +255,58 @@ func GET(ctx context.Context, targetUrl string, headers map[string][]string, par
 	}
 
 	return b, nil
+}
+
+func FileUpload(ctx context.Context, targetUrl string, headers map[string][]string, f io.Reader) error {
+	log := logging.GetFromContext(ctx)
+
+	u, err := url.Parse(targetUrl)
+	if err != nil {
+		return fmt.Errorf("could not parse url: %s", err.Error())
+	}
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	fileWriter, err := writer.CreateFormFile("fileupload", "export.csv")
+	if err != nil {
+		log.Error("Error creating form file", "err", err.Error())
+		return err
+	}
+	_, err = io.Copy(fileWriter, f)
+	if err != nil {
+		log.Error("Error copying file content", "err", err.Error())
+		return err
+	}
+	writer.Close()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), &body)
+	if err != nil {
+		log.Error("failed to create http request", "err", err.Error())
+		return err
+	}
+
+	req.Header = headers
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	var httpClient = http.Client{
+		Transport: otelhttp.NewTransport(&http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		}),
+		Timeout: 60 * time.Second,
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		log.Error("failed to send post request", "err", err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf("request failed: %d", resp.StatusCode)
+	}
+
+	return nil
 }

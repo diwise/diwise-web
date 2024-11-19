@@ -3,14 +3,12 @@ package api
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"slices"
 	"strings"
 	"time"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/admin"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/home"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/sensors"
@@ -200,13 +198,8 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	// admin
 	r.Handle("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /error", admin.NewErrorPage(ctx, l10n, assetLoader.Load, app))
-	r.Handle("GET /admin/token", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log := logging.GetFromContext(r.Context())
-		token := authz.Token(r.Context())
-		log.Debug("current token", slog.String("token", token))
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(token))
-	}))
+	r.Handle("GET /admin", admin.NewAdminPage(ctx, l10n, assetLoader.Load, app))
+
 	r.HandleFunc("GET /admin/export", func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 
@@ -228,7 +221,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 			w.Write([]byte(""))
 			return
 		}
-		
+
 		b, err := app.Export(r.Context(), query)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -239,6 +232,35 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 		w.Header().Set("Content-Type", query.Get("accept"))
 		w.WriteHeader(http.StatusOK)
 		w.Write(b)
+	})
+	r.HandleFunc("POST /admin/import", func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		defer r.Body.Close()
+
+		contentType := r.Header.Get("Content-Type")
+		if !strings.Contains(contentType, "multipart/form-data") {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		f, _, err := r.FormFile("file")
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		t := r.FormValue("type")
+
+		err = app.Import(ctx, t, f)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		return
 	})
 
 	// TODO: Move this handler to a place of its own

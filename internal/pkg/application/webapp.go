@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/url"
 	"strings"
 	"time"
@@ -260,4 +261,26 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 	}
 
 	return b, nil
+}
+
+func (a *App) Import(ctx context.Context, t string, f io.Reader) error {
+	headers := map[string][]string{
+		"Authorization": {"Bearer " + authz.Token(ctx)},
+	}
+
+	targetUrl := ""
+
+	switch t {
+	case "devices":
+		targetUrl = a.deviceManagementURL
+	case "things":
+		targetUrl = a.thingManagementURL
+	}
+
+	err := helpers.FileUpload(ctx, targetUrl, headers, f)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
