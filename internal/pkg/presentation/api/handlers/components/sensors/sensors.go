@@ -75,7 +75,11 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			model.DeviceProfiles = append(model.DeviceProfiles, "unknown")
 		}
 
-		model.Statistics = getStatistics(ctx, app)
+		model.Statistics, err = getStatistics(ctx, app)
+		if err != nil {
+			http.Error(w, "could not fetch sensor statstics", http.StatusInternalServerError)
+			return
+		}
 
 		sensorList := components.SensorsList(localizer, model)
 		page := components.StartPage(version, localizer, assets, sensorList)
@@ -215,21 +219,22 @@ func NewSensorsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoader
 	return http.HandlerFunc(fn)
 }
 
-func getStatistics(ctx context.Context, app application.DeviceManagement) components.StatisticsViewModel {
+func getStatistics(ctx context.Context, app application.DeviceManagement) (components.StatisticsViewModel, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
-	sumOfStuff := app.GetStatistics(ctx)
-
-	stats := components.StatisticsViewModel{
-		Total:    sumOfStuff.Total,
-		Active:   sumOfStuff.Active,
-		Inactive: sumOfStuff.Inactive,
-		Online:   sumOfStuff.Online,
-		Unknown:  sumOfStuff.Unknown,
+	stats, err := app.GetStatistics(ctx)
+	if err != nil {
+		return components.StatisticsViewModel{}, err
 	}
 
-	return stats
+	return components.StatisticsViewModel{
+		Total:    stats.Total,
+		Active:   stats.Active,
+		Inactive: stats.Inactive,
+		Online:   stats.Online,
+		Unknown:  stats.Unknown,
+	}, nil
 }
 
 func getBatteryLevel(ctx context.Context, app application.DeviceManagement, sensor application.Sensor) int {

@@ -14,7 +14,7 @@ type DeviceManagement interface {
 	UpdateSensor(ctx context.Context, deviceID string, fields map[string]any) error
 	GetTenants(ctx context.Context) []string
 	GetDeviceProfiles(ctx context.Context) []DeviceProfile
-	GetStatistics(ctx context.Context) Statistics
+	GetStatistics(ctx context.Context) (Statistics, error)
 	GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error)
 	GetMeasurementData(ctx context.Context, id string, params ...InputParam) (MeasurementData, error)
 	GetAlarms(ctx context.Context, offset, limit int, args map[string][]string) (AlarmResult, error)
