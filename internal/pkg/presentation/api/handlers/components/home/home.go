@@ -2,6 +2,7 @@ package home
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -111,7 +112,16 @@ func NewOverviewCardsHandler(_ context.Context, l10n LocaleBundle, assets AssetL
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		ctx := r.Context()
-		stats := app.GetStatistics(ctx)
+		stats, err := app.GetStatistics(ctx)
+
+		if err != nil {
+			if errors.Is(err, application.ErrUnauthorized) {
+				http.Error(w, "not authorized", http.StatusUnauthorized)
+			} else {
+				http.Error(w, "could not compose view model", http.StatusInternalServerError)
+			}
+			return
+		}
 
 		component := components.OverviewCards(localizer, assets, components.StatisticsViewModel{
 			Total:    stats.Total,
@@ -135,7 +145,11 @@ func NewUsageHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFun
 
 		datasets, max, err := getUsageData(ctx, app)
 		if err != nil {
-			http.Error(w, "could not compose view model", http.StatusInternalServerError)
+			if errors.Is(err, application.ErrUnauthorized) {
+				http.Error(w, "not authorized", http.StatusUnauthorized)
+			} else {
+				http.Error(w, "could not compose view model", http.StatusInternalServerError)
+			}
 			return
 		}
 

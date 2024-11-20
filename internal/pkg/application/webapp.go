@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -112,13 +113,14 @@ func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
 	return deviceProfiles
 }
 
-func (a *App) GetStatistics(ctx context.Context) Statistics {
+func (a *App) GetStatistics(ctx context.Context) (Statistics, error) {
 
-	count := func(key, value string) <-chan int {
-		ch := make(chan int)
+	errs := make(chan error, 5)
 
+	count := func(key, value string, result *int) {
 		go func() {
-			defer close(ch)
+			var err error
+			defer func() { errs <- err }()
 
 			params := url.Values{}
 			params.Add("limit", "1")
@@ -127,24 +129,31 @@ func (a *App) GetStatistics(ctx context.Context) Statistics {
 				params.Add(key, value)
 			}
 
-			res, err := a.get(ctx, a.deviceManagementURL, "", params)
-			if err != nil || res.Meta == nil {
-				return
+			var res *ApiResponse
+			res, err = a.get(ctx, a.deviceManagementURL, "", params)
+
+			if err == nil && res.Meta != nil {
+				*result = int(res.Meta.TotalRecords)
+			} else {
+				*result = 0
 			}
-
-			ch <- int(res.Meta.TotalRecords)
 		}()
-
-		return ch
 	}
 
-	return Statistics{
-		Total:    <-count("", ""),
-		Online:   <-count("online", "true"),
-		Active:   <-count("active", "true"),
-		Inactive: <-count("active", "false"),
-		Unknown:  <-count("profilename", "unknown"),
+	stats := Statistics{}
+
+	count("", "", &stats.Total)
+	count("online", "true", &stats.Online)
+	count("active", "true", &stats.Active)
+	count("active", "false", &stats.Inactive)
+	count("profilename", "unknown", &stats.Unknown)
+
+	var err error
+	for range 5 {
+		err = errors.Join(err, <-errs)
 	}
+
+	return stats, err
 }
 
 func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error) {
