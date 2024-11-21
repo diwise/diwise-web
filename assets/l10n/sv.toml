@@ -196,11 +196,23 @@ other = "Karta"
 [maxfillingheight]
 other = "med en max fyllnadshöjd på"
 
-[maxheight]
+[maxcontainerheight]
 other = "Behållarens höjd"
+
+[maxdistancesewer]
+other = "Avstånd sensor till botten"
 
 [maxlevel]
 other = "Max fyllnadshöjd"
+
+[maxwaterlevel]
+other = "Max vattennivå"
+
+[maxwaterlevelheight]
+other = "med en max vattennivå på"
+
+[measurements]
+other = "Mått"
 
 [measurementperday]
 other = "Antal mätvärden per dag"
@@ -261,6 +273,12 @@ other = "Av"
 
 [offline]
 other = "Offline"
+
+[offset]
+other = "Offset"
+
+[offsetsetting]
+other = "Offset är satt till"
 
 [online]
 other = "Online"
@@ -348,6 +366,9 @@ other = "Sensortyp"
 
 [sensorsof]
 other = "sensorer av"
+
+[sewerheight]
+other = "Avstånd från sensor till botten är"
 
 [show]
 other = "Visar"

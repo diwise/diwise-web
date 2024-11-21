@@ -196,11 +196,23 @@ other = "Map"
 [maxfillingheight]
 other = "with a maximum filling height of"
 
-[maxheight]
+[maxcontainerheight]
 other = "Container height"
+
+[maxdistancesewer]
+other = "Distance sensor to bottom"
 
 [maxlevel]
 other = "Max filling height"
+
+[maxwaterlevel]
+other = "Max water level"
+
+[maxwaterlevelheight]
+other = "with a max water level of"
+
+[measurements]
+other = "Measurements"
 
 [measurementperday]
 other = "Measurements per day"
@@ -261,6 +273,12 @@ other = "Off"
 
 [offline]
 other = "Offline"
+
+[offset]
+other = "Offset"
+
+[offsetsetting]
+other = "Offset is set to"
 
 [online]
 other = "Online"
@@ -348,6 +366,9 @@ other = "Type of sensor"
 
 [sensorsof]
 other = "sensors out of"
+
+[sewerheight]
+other = "Distance from sensor to bottom is"
 
 [show]
 other = "Showing"
