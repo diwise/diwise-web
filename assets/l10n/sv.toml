@@ -209,7 +209,7 @@ other = "Max fyllnadshöjd"
 other = "Max vattennivå"
 
 [maxwaterlevelheight]
-other = "med en max vattennivå på"
+other = "Max vattennivå är"
 
 [measurements]
 other = "Mått"
@@ -278,7 +278,7 @@ other = "Offline"
 other = "Offset"
 
 [offsetsetting]
-other = "Offset är satt till"
+other = "med en offset på"
 
 [online]
 other = "Online"

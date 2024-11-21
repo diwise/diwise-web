@@ -209,7 +209,7 @@ other = "Max filling height"
 other = "Max water level"
 
 [maxwaterlevelheight]
-other = "with a max water level of"
+other = "Max water level is"
 
 [measurements]
 other = "Measurements"
@@ -278,7 +278,7 @@ other = "Offline"
 other = "Offset"
 
 [offsetsetting]
-other = "Offset is set to"
+other = "with an offset set to"
 
 [online]
 other = "Online"
