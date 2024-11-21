@@ -21,15 +21,20 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		if id == "" {
+			http.Error(w, "no id found in url", http.StatusBadRequest)
+			return
+		}
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		ctx := logging.NewContextWithLogger(r.Context(), log)
 
-		id := r.PathValue("id")
 		thingType := strings.ToLower(r.URL.Query().Get("type"))
-		if id == "" || thingType == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
-			return
+		thingSubType := strings.ToLower(r.URL.Query().Get("subType"))
+
+		if thingSubType != "" {
+			thingType += ":" + thingSubType
 		}
 
 		today := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC)
@@ -46,7 +51,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 
 		label := ""
 		switch thingType {
-		case "beach":
+		case "pointofinterest:beach":
 			fallthrough
 		case "pointofinterest":
 			q.Add("n", "3303/5700") //Temperature
@@ -54,7 +59,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		case "building":
 			q.Add("n", "3331/5700") // Energy
 			label = localizer.Get("3331-5700")
-		case "wastecontainer":
+		case "container:wastecontainer":
 			fallthrough
 		case "container":
 			q.Add("n", "3435/2") //FillingLevel/Percentage
@@ -71,7 +76,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			q.Del("options")
 			label = localizer.Get("10351-50")
 		case "pumpingstation":
-			q.Add("n", "3350/50") //Stopwatch/OnOff
+			q.Add("n", "3350/5850") //Stopwatch/OnOff
 			q.Add("timeunit", "hour")
 			q.Add("vb", "true")
 			q.Del("options")
@@ -81,6 +86,9 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		case "sewer":
 			q.Add("n", "3435/2") //FillingLevel/Percentage
 			label = localizer.Get("3435-2")
+		case "sewer:combinedseweroverflow":
+			q.Add("n", "3350/5850") //Stopwatch/OnOff
+			label = localizer.Get("3200-5500")
 		case "watermeter":
 			q.Add("n", "3424/1") //WaterMeter/CumulativeVolume
 			label = localizer.Get("3424-1")
@@ -102,28 +110,28 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		keepRatio := false
 
 		switch thingType {
-		case "beach":
-			fallthrough
-		case "pointofinterest":
-			component = components.MeasurementChart(datasets, keepRatio)
-		case "building":
-			component = components.MeasurementChart(datasets, keepRatio)
-		case "wastecontainer":
+		//case "beach":
+		//	fallthrough
+		//case "pointofinterest":
+		//	component = components.MeasurementChart(datasets, keepRatio)
+		//case "building":
+		//	component = components.MeasurementChart(datasets, keepRatio)
+		case "container:wastecontainer":
 			fallthrough
 		case "container":
 			component = components.WastecontainerChart(datasets)
-		case "lifebuoy":
-			component = components.MeasurementChart(datasets, keepRatio)
+		//case "lifebuoy":
+		//	component = components.MeasurementChart(datasets, keepRatio)
 		case "passage":
 			component = components.PassagesChart(datasets)
-		case "pumpingstation":
-			component = components.MeasurementChart(datasets, keepRatio)
+		//case "pumpingstation":
+		//	component = components.MeasurementChart(datasets, keepRatio)
 		case "room":
 			component = components.RoomChart(datasets)
-		case "sewer":
-			component = components.MeasurementChart(datasets, keepRatio)
-		case "watermeter":
-			component = components.MeasurementChart(datasets, keepRatio)
+		//case "sewer":
+		//	component = components.MeasurementChart(datasets, keepRatio)
+		//case "watermeter":
+		//	component = components.MeasurementChart(datasets, keepRatio)
 		default:
 			component = components.MeasurementChart(datasets, keepRatio)
 		}
