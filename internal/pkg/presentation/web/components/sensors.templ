@@ -233,7 +233,9 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel) {
 				</span>
 			</td>
 		}
+		/*
 		<td class="px-6 py-3"><span class="font-bold">{ sensor.DeviceID }</span></td>
+		*/
 		<td class="px-6 py-3"><span class="font-bold">{ sensor.Name }</span></td>
 		if sensor.Active {
 			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">{ l10n.Get("active") }</span></span></td>
@@ -276,7 +278,9 @@ templ SensorsTable(l10n Localizer, model SensorListViewModel) {
 			<thead class="border-b border-primary-dark dark:border-white">
 				<tr>
 					<th class="px-6 py-3">{ l10n.Get("online") }</th>
+					/*
 					<th class="px-6 py-3">{ l10n.Get("id") }</th>
+					*/
 					<th class="px-6 py-3">{ l10n.Get("name") }</th>
 					<th class="px-6 py-3">{ l10n.Get("status") }</th>
 					<th class="px-6 py-3">{ l10n.Get("type") }</th>

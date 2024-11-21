@@ -17,8 +17,8 @@ type ThingsListViewModel struct {
 }
 
 type TypeViewModel struct {
-	Type	string
-	Name	string
+	Type string
+	Name string
 }
 
 type ThingViewModel struct {
@@ -119,7 +119,7 @@ templ ThingsList(l10n Localizer, model ThingsListViewModel) {
 						Swap("innerHTML"))
 					<div class="relative group">
 						@Button(Secondary, "", "download-cloud",
-							HxUrl("get", "/admin/export?export=things&accept=text/csv"),							
+							HxUrl("get", "/admin/export?export=things&accept=text/csv"),
 							Trigger("click"),
 							Include(".filter"))
 						@Tooltip(l10n.Get("export"))
@@ -557,6 +557,8 @@ func ThingStatusCell(l10n Localizer, thing ThingViewModel) templ.Component {
 			return templ.NopComponent
 		case "lifebuoy":
 			return LifebuoyCell(l10n, thing)
+		case "desk":
+			return DeskCell(l10n, thing)
 		case "passage":
 			return PassageCell(thing)
 		case "pumpingstation":
@@ -587,6 +589,22 @@ templ BuildingCell(l10n Localizer, t ThingViewModel) {
 }
 
 func LifebuoyCell(l10n Localizer, t ThingViewModel) templ.Component {
+	vb, ok := t.Properties["presence"]
+	if !ok {
+		return Text(l10n.Get("nodata"))
+	}
+	b, ok := vb.(bool)
+	if !ok {
+		return Text(l10n.Get("nodata"))
+	}
+	if b {
+		return Text(l10n.Get("present"))
+	} else {
+		return Text(l10n.Get("notPresent"))
+	}
+}
+
+func DeskCell(l10n Localizer, t ThingViewModel) templ.Component {
 	vb, ok := t.Properties["presence"]
 	if !ok {
 		return Text(l10n.Get("nodata"))

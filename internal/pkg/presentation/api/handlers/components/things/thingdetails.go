@@ -239,6 +239,10 @@ func formToFields(form url.Values) map[string]any {
 			if f, ok := asFloat(v); ok {
 				fields["angle"] = f
 			}
+		case "offset":
+			if f, ok := asFloat(v); ok {
+				fields["offset"] = f
+			}
 		}
 	}
 
