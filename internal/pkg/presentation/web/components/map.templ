@@ -111,14 +111,6 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             
             const map = L.map(mapContainerID).setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
             
-            /*
-            map.on('load moveend zoomend', function(ev) {
-                let bounds = map.getBounds();
-                let southwest = bounds.getSouthWest();
-                let northeast = bounds.getNorthEast();
-            });
-            */
-
             L.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
                                                                             
             if (isDarkMode) {
@@ -128,6 +120,42 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             }
 
             addFeaturesToMap(geodata, map, isDarkMode, editMode);
+
+            var newMarker = null;
+
+            function onMapClick(e) {
+                if (editMode) {
+                    let latitude = document.getElementById('latitude');
+                    let longitude = document.getElementById('longitude');  
+                    
+                    if (newMarker) {
+                        newMarker.setLatLng(e.latlng);
+                    } else {
+                        if (latitude.value === "0.000000" && longitude.value === "0.000000") {
+                            newMarker = L.marker(e.latlng, { draggable: true }).addTo(map);
+
+                            newMarker.on('drag', function (event) {
+                                let position = event.target.getLatLng();
+                                latitude.value = position.lat.toFixed(6);
+                                longitude.value = position.lng.toFixed(6);
+                            });
+
+                            newMarker.on('dragend', function (event) {
+                                let position = event.target.getLatLng();
+                                latitude.value = position.lat.toFixed(6);
+                                longitude.value = position.lng.toFixed(6);
+                            });
+                        } else {
+                            return;
+                        }
+                    }
+
+                    latitude.value = e.latlng.lat.toFixed(6);
+                    longitude.value = e.latlng.lng.toFixed(6);
+                }
+            }
+
+            map.on('click', onMapClick);
                 
             function createMarker(latlng, icon, editMode = false, onDragCallback = null, zIndexOffset = 0) {
                 let marker = L.marker(latlng, {
