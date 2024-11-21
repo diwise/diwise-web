@@ -1,0 +1,60 @@
+package components
+
+import . "github.com/diwise/frontend-toolkit"
+
+type AdminViewModel struct {
+	Token string
+}
+
+var adminHandle = templ.NewOnceHandle()
+
+templ AdminPage(l10n Localizer, asset AssetLoaderFunc, model AdminViewModel) {
+	<div class="flex flex-col items-start gap-4 flex-[1_0_0] w-full dark:text-white">
+		<div class="flex flex-col items-start gap-6 self-stretch w-full">
+			<div class="flex items-center w-full justify-between">
+				<h1 class="text-2xl font-bold font-heading leading-loose">{ l10n.Get("Admin") }</h1>
+			</div>
+		</div>
+		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+		<div class="flex flex-col items-start w-full self-stretch gap-10">
+			<div class="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono shadow-md">
+				<pre class="whitespace-pre-wrap break-all">
+					<code id="code-block">
+						{ model.Token }
+					</code>
+				</pre>
+			</div>
+		</div>
+		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+		<div class="flex flex-col items-start w-full self-stretch gap-10">
+			<form action="/admin/import" method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow-lg w-96">
+				<h2 class="text-2xl font-bold mb-4">{ l10n.Get("sensors") }</h2>
+				<input type="hidden" name="type" value="devices"/>
+				<label for="file" class="block text-sm font-medium text-gray-700 mb-1">{ l10n.Get("choosefile") }</label>
+				<input type="file" id="file" name="file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-4" required/>
+				<button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-300">{ l10n.Get("upload") }</button>
+			</form>
+			<form action="/admin/import" method="POST" enctype="multipart/form-data" class="bg-white p-6 rounded-lg shadow-lg w-96">
+				<h2 class="text-2xl font-bold mb-4">{ l10n.Get("things") }</h2>
+				<input type="hidden" name="type" value="things"/>
+				<label for="file" class="block text-sm font-medium text-gray-700 mb-1">{ l10n.Get("choosefile") }</label>
+				<input type="file" id="file" name="file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-4" required/>
+				<button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-300">{ l10n.Get("upload") }</button>
+			</form>
+		</div>
+	</div>
+	@adminHandle.Once() {
+		<script nonce>  
+            document.getElementById("code-block").addEventListener("mouseup", () => {
+                const selection = window.getSelection().toString(); 
+                if (selection) {
+                    navigator.clipboard.writeText(selection).then(() => {
+                        console.log("Text copied to clipboard:", selection);
+                    }).catch(err => {
+                        console.error("Failed to copy text:", err);
+                    });
+                }
+            });
+        </script>
+	}
+}

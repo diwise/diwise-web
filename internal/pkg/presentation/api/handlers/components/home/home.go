@@ -2,6 +2,7 @@ package home
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -20,9 +21,6 @@ func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc,
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
-		w.WriteHeader(http.StatusOK)
 
 		ctx = helpers.Decorate(
 			r.Context(),
@@ -61,22 +59,18 @@ func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc,
 		model.Pageing = getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args)
 
 		home := components.Home(localizer, assets, model)
-
 		component := components.StartPage(version, localizer, assets, home)
 
-		component.Render(ctx, w)
+		helpers.WriteComponentResponse(ctx, w, r, component, 50*1024, 0)
 	}
 
 	return http.HandlerFunc(fn)
 }
 
-func NewAlarmsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewAlarmsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
-		w.WriteHeader(http.StatusOK)
 
-		ctx = helpers.Decorate(
+		ctx := helpers.Decorate(
 			r.Context(),
 			components.CurrentComponent, "home",
 		)
@@ -106,22 +100,28 @@ func NewAlarmsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 		model.Pageing = getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args)
 
 		component := components.AlarmsTable(localizer, model)
-		component.Render(ctx, w)
+
+		helpers.WriteComponentResponse(ctx, w, r, component, 5*1024, 0)
 	}
 
 	return http.HandlerFunc(fn)
 }
 
-func NewOverviewCardsHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewOverviewCardsHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "max-age=30")
-		w.Header().Add("Vary", "Accept-Language")
-		w.WriteHeader(http.StatusOK)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
-		ctx = r.Context()
-		stats := app.GetStatistics(ctx)
+		ctx := r.Context()
+		stats, err := app.GetStatistics(ctx)
+
+		if err != nil {
+			if errors.Is(err, application.ErrUnauthorized) {
+				http.Error(w, "not authorized", http.StatusUnauthorized)
+			} else {
+				http.Error(w, "could not compose view model", http.StatusInternalServerError)
+			}
+			return
+		}
 
 		component := components.OverviewCards(localizer, assets, components.StatisticsViewModel{
 			Total:    stats.Total,
@@ -131,29 +131,30 @@ func NewOverviewCardsHandler(ctx context.Context, l10n LocaleBundle, assets Asse
 			Unknown:  stats.Unknown,
 		})
 
-		component.Render(ctx, w)
+		helpers.WriteComponentResponse(ctx, w, r, component, 10*1024, 30*time.Second)
 	}
+
 	return http.HandlerFunc(fn)
 }
 
-func NewUsageHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewUsageHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "max-age=600")
-		w.WriteHeader(http.StatusOK)
 
 		//localizer := l10n.For(r.Header.Get("Accept-Language"))
-
-		ctx = r.Context()
+		ctx := r.Context()
 
 		datasets, max, err := getUsageData(ctx, app)
 		if err != nil {
-			http.Error(w, "could not compose view model", http.StatusInternalServerError)
+			if errors.Is(err, application.ErrUnauthorized) {
+				http.Error(w, "not authorized", http.StatusUnauthorized)
+			} else {
+				http.Error(w, "could not compose view model", http.StatusInternalServerError)
+			}
 			return
 		}
 
 		component := components.UsageChart(max, datasets)
-		component.Render(ctx, w)
+		helpers.WriteComponentResponse(ctx, w, r, component, 10*1024, 10*time.Minute)
 	}
 
 	return http.HandlerFunc(fn)

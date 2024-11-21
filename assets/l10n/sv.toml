@@ -1,3 +1,9 @@
+[30]
+other = ">30%"
+
+[50]
+other = ">50%"
+
 [activate]
 other = "Aktivera sensor"
 
@@ -16,11 +22,17 @@ other = "Lägg till ny sak"
 [addtag]
 other = "Lägg till ny tagg"
 
+[admin]
+other = "Admin"
+
 [alerts]
 other = "Larm"
 
 [all]
 other = "Alla"
+
+[alternativeName]
+other = "Alternativt namn"
 
 [angle]
 other = "Vinkel"
@@ -86,10 +98,10 @@ other = "grader"
 other = "Radera"
 
 [deletethingconfirm]
-other = "Vill du radera saken?"
+other = "Vill du radera"
 
 [deletethinginformation]
-other = "Saken och dess data kommer tas bort."
+other = "och dess data kommer tas bort."
 
 [description]
 other = "Beskrivning"
@@ -184,11 +196,23 @@ other = "Karta"
 [maxfillingheight]
 other = "med en max fyllnadshöjd på"
 
-[maxheight]
+[maxcontainerheight]
 other = "Behållarens höjd"
+
+[maxdistancesewer]
+other = "Avstånd sensor till botten"
 
 [maxlevel]
 other = "Max fyllnadshöjd"
+
+[maxwaterlevel]
+other = "Max vattennivå"
+
+[maxwaterlevelheight]
+other = "Max vattennivå är"
+
+[measurements]
+other = "Mått"
 
 [measurementperday]
 other = "Antal mätvärden per dag"
@@ -249,6 +273,12 @@ other = "Av"
 
 [offline]
 other = "Offline"
+
+[offset]
+other = "Offset"
+
+[offsetsetting]
+other = "med en offset på"
 
 [online]
 other = "Online"
@@ -334,6 +364,15 @@ other = "Sensorer"
 [sensortype]
 other = "Sensortyp"
 
+[sensorsof]
+other = "sensorer av"
+
+[sewerheight]
+other = "Avstånd från sensor till botten är"
+
+[show]
+other = "Visar"
+
 [size]
 other = "Storlek"
 
@@ -361,6 +400,9 @@ other = "Typ av sak"
 [things]
 other = "Saker"
 
+[thingsof]
+other = "saker av"
+
 [time]
 other = "Tid"
 
@@ -387,6 +429,9 @@ other = "Vattenmätare"
 
 [yes]
 other = "Ja"
+
+[10351-50]
+other = "Antal passager"
 
 [3-9]
 other = "Batterinivå (%)"
@@ -516,3 +561,9 @@ other = "Soptunna"
 
 [wastecontainer]
 other = "Soptunna"
+
+[choosefile]
+other = "Välj en fil"
+
+[upload]
+other = "Ladda upp"

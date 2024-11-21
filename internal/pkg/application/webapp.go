@@ -3,10 +3,15 @@ package application
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 )
 
 type App struct {
@@ -108,13 +113,14 @@ func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
 	return deviceProfiles
 }
 
-func (a *App) GetStatistics(ctx context.Context) Statistics {
+func (a *App) GetStatistics(ctx context.Context) (Statistics, error) {
 
-	count := func(key, value string) <-chan int {
-		ch := make(chan int)
+	errs := make(chan error, 5)
 
+	count := func(key, value string, result *int) {
 		go func() {
-			defer close(ch)
+			var err error
+			defer func() { errs <- err }()
 
 			params := url.Values{}
 			params.Add("limit", "1")
@@ -123,24 +129,31 @@ func (a *App) GetStatistics(ctx context.Context) Statistics {
 				params.Add(key, value)
 			}
 
-			res, err := a.get(ctx, a.deviceManagementURL, "", params)
-			if err != nil || res.Meta == nil {
-				return
+			var res *ApiResponse
+			res, err = a.get(ctx, a.deviceManagementURL, "", params)
+
+			if err == nil && res.Meta != nil {
+				*result = int(res.Meta.TotalRecords)
+			} else {
+				*result = 0
 			}
-
-			ch <- int(res.Meta.TotalRecords)
 		}()
-
-		return ch
 	}
 
-	return Statistics{
-		Total:    <-count("", ""),
-		Online:   <-count("online", "true"),
-		Active:   <-count("active", "true"),
-		Inactive: <-count("active", "false"),
-		Unknown:  <-count("profilename", "unknown"),
+	stats := Statistics{}
+
+	count("", "", &stats.Total)
+	count("online", "true", &stats.Online)
+	count("active", "true", &stats.Active)
+	count("active", "false", &stats.Inactive)
+	count("profilename", "unknown", &stats.Unknown)
+
+	var err error
+	for range 5 {
+		err = errors.Join(err, <-errs)
 	}
+
+	return stats, err
 }
 
 func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error) {
@@ -211,4 +224,72 @@ func (a *App) GetAlarms(ctx context.Context, offset, limit int, args map[string]
 		Limit:        int(*res.Meta.Limit),
 		Count:        len(alarms),
 	}, nil
+}
+
+func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
+	query, _ := url.ParseQuery(params.Encode())
+
+	export := query.Get("export")
+	if export == "" {
+		return nil, fmt.Errorf("export parameter is missing")
+	}
+
+	accept := query.Get("accept")
+	if accept == "" {
+		return nil, fmt.Errorf("accept parameter is missing")
+	}
+
+	targetUrl := ""
+
+	helpers.SanitizeParams(query, "limit", "offset", "mapview", "export", "accept", "redirected")
+
+	switch export {
+	case "devices":
+		targetUrl = a.deviceManagementURL
+	case "things":
+		if query.Has("type") {
+			t := query.Get("type")
+			if strings.Contains(t, "-") {
+				query.Set("type", strings.Split(t, "-")[0])
+				query.Set("subType", strings.Split(t, "-")[1])
+			}
+		}
+		targetUrl = a.thingManagementURL
+	default:
+		return nil, fmt.Errorf("export parameter is invalid")
+	}
+
+	headers := map[string][]string{
+		"Authorization": {"Bearer " + authz.Token(ctx)},
+		"Accept":        {accept},
+	}
+
+	b, err := helpers.GET(ctx, targetUrl, headers, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func (a *App) Import(ctx context.Context, t string, f io.Reader) error {
+	headers := map[string][]string{
+		"Authorization": {"Bearer " + authz.Token(ctx)},
+	}
+
+	targetUrl := ""
+
+	switch t {
+	case "devices":
+		targetUrl = a.deviceManagementURL
+	case "things":
+		targetUrl = a.thingManagementURL
+	}
+
+	err := helpers.FileUpload(ctx, targetUrl, headers, f)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -2,10 +2,9 @@ package components
 
 import (
 	"fmt"
+	. "github.com/diwise/frontend-toolkit"
 	"strings"
 	"time"
-
-	. "github.com/diwise/frontend-toolkit"
 )
 
 templ MissingData(l10n Localizer, model ThingDetailsViewModel) {
@@ -26,18 +25,18 @@ func ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsVi
 		switch thingType {
 		case "pointofinterest":
 			switch subType {
-				case "beach":
-					return thingTypeStatistics(StatisticsBeach(l10n, model))
+			case "beach":
+				return thingTypeStatistics(StatisticsBeach(l10n, model))
 			}
 			return templ.NopComponent
 		case "building":
 			return thingTypeStatistics(StatisticsBuilding(l10n, model))
 		case "container":
 			switch subType {
-				case "wastecontainer":
-					return thingTypeStatistics(StatisticsWasteContainer(l10n, model))
-				case "sandstorage":
-					return thingTypeStatistics(StatisticsSandStorage(l10n, model))
+			case "wastecontainer":
+				return thingTypeStatistics(StatisticsWasteContainer(l10n, model))
+			case "sandstorage":
+				return thingTypeStatistics(StatisticsSandStorage(l10n, model))
 			}
 		case "lifebuoy":
 			return thingTypeStatistics(StatisticsLifebuoy(l10n, model))
@@ -54,7 +53,7 @@ func ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsVi
 		}
 
 		return templ.NopComponent
-	}	
+	}
 }
 
 templ thingTypeStatistics(component templ.Component) {
@@ -150,12 +149,15 @@ templ StatisticsData(l10n Localizer, graphComponent, tableComponent templ.Compon
 }
 
 func RenderStatisticsGraph(l10n Localizer, model ThingDetailsViewModel) templ.Component {
-	startDate := time.Now().Add(-24 * time.Hour)
+	now := time.Now()
+	startDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	endDate := time.Now()
 
 	if len(model.Thing.Measurements) > 0 {
-		startDate = model.Thing.Measurements[0].Timestamp.Add(-24 * time.Hour)
-		endDate = model.Thing.Measurements[0].Timestamp
+		m := model.Thing.Measurements[len(model.Thing.Measurements)-1]
+		ts := m.Timestamp
+		startDate = time.Date(ts.Year(), ts.Month(), ts.Day(), 0, 0, 0, 0, ts.Location())
+		endDate = ts
 	}
 
 	return Graph(l10n, startDate, endDate)
@@ -767,6 +769,7 @@ func PassagesChart(datasets []ChartDataset) templ.Component {
 	cfg := NewChartConfiguration("bar", false, &minvalue, nil, &stepsize)
 	cfg.Timeseries(true)
 	cfg.Add(datasets...)
+	cfg.SetColor("#68686D")
 
 	return Chart("measurement-chart", "", cfg)
 }

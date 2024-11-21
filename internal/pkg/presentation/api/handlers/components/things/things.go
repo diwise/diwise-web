@@ -1,12 +1,14 @@
 package things
 
 import (
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
 	"math"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -14,17 +16,17 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
-	. "github.com/diwise/frontend-toolkit"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"github.com/google/uuid"
+
+	//lint:ignore ST1001 it is OK when we do it
+	. "github.com/diwise/frontend-toolkit"
 )
 
 func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
 
 		ctx = helpers.Decorate(
 			r.Context(),
@@ -48,6 +50,19 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 		tags, _ := app.GetTags(ctx)
 		types, _ := app.GetTypes(ctx)
 
+		typesViewModels := []components.TypeViewModel{}
+
+		for _, t := range types {
+			typesViewModels = append(typesViewModels, components.TypeViewModel{
+				Type: t,
+				Name: localizer.Get(t),
+			})
+		}
+
+		slices.SortFunc(typesViewModels, func(a, b components.TypeViewModel) int {
+			return cmp.Compare(a.Name, b.Name)
+		})
+
 		result, err := app.GetThings(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch things", http.StatusInternalServerError)
@@ -59,9 +74,9 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 
 		model := components.ThingsListViewModel{
 			Things:  make([]components.ThingViewModel, 0),
-			Pageing: getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			Pageing: getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			Tags:    tags,
-			Types:   types,
+			Types:   typesViewModels,
 			MapView: mapview,
 		}
 
@@ -80,14 +95,9 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 			components.PageSize, limit,
 		)
 
-		err = page.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-
+		helpers.WriteComponentResponse(ctx, w, r, page, 1024, 0)
 	}
+
 	return http.HandlerFunc(fn)
 }
 
@@ -109,16 +119,7 @@ func NewThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets Ass
 		newThingViewModel.Tags, _ = app.GetTags(ctx)
 
 		component := components.NewThing(localizer, assets, newThingViewModel)
-
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
-
-		err := component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, "could not render new thing page", http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
 
 	return http.HandlerFunc(fn)
@@ -184,12 +185,10 @@ func NewCreateThingComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 	return http.HandlerFunc(fn)
 }
 
-func NewThingsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
 
-		ctx = helpers.Decorate(
+		ctx := helpers.Decorate(
 			r.Context(),
 			components.CurrentComponent, "things",
 		)
@@ -219,7 +218,7 @@ func NewThingsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 
 		model := components.ThingsListViewModel{
 			Things:  make([]components.ThingViewModel, 0),
-			Pageing: getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			Pageing: getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			MapView: mapview,
 		}
 
@@ -246,23 +245,16 @@ func NewThingsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 			components.PageSize, limit,
 		)
 
-		err = component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
+
 	return http.HandlerFunc(fn)
 }
 
-func NewThingsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
 
-		ctx = helpers.Decorate(
+		ctx := helpers.Decorate(
 			r.Context(),
 			components.CurrentComponent, "things",
 		)
@@ -285,7 +277,7 @@ func NewThingsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 
 		model := components.ThingsListViewModel{
 			Things:  make([]components.ThingViewModel, 0),
-			Pageing: getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			Pageing: getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			MapView: false,
 		}
 
@@ -303,32 +295,28 @@ func NewThingsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			components.PageSize, limit,
 		)
 
-		err = component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
+
 	return http.HandlerFunc(fn)
 }
 
 func toViewModel(thing application.Thing) components.ThingViewModel {
 	tvm := components.ThingViewModel{
-		ID:           thing.ID,
-		Type:         thing.Type,
-		SubType:      thing.SubType,
-		Name:         thing.Name,
-		Description:  thing.Description,
-		Latitude:     thing.Location.Latitude,
-		Longitude:    thing.Location.Longitude,
-		Tenant:       thing.Tenant,
-		Tags:         thing.Tags,
-		ObservedAt:   thing.ObservedAt,
-		Measurements: make([]components.MeasurementViewModel, 0),
-		Properties:   make(map[string]any),
-		RefDevice:    make([]string, 0),
+		ID:              thing.ID,
+		Type:            thing.Type,
+		SubType:         thing.SubType,
+		Name:            thing.Name,
+		AlternativeName: thing.AlternativeName,
+		Description:     thing.Description,
+		Latitude:        thing.Location.Latitude,
+		Longitude:       thing.Location.Longitude,
+		Tenant:          thing.Tenant,
+		Tags:            thing.Tags,
+		ObservedAt:      thing.ObservedAt,
+		Measurements:    make([]components.MeasurementViewModel, 0),
+		Properties:      make(map[string]any),
+		RefDevice:       make([]string, 0),
 	}
 
 	for _, rd := range thing.RefDevices {
@@ -376,15 +364,17 @@ func toMap(v any) map[string]any {
 	return m
 }
 
-func getPaging(pageIndex, pageLast, pageSize, offset int, pages []int64, args url.Values) components.PagingViewModel {
+func getPaging(pageIndex, pageLast, pageSize, count, total, offset int, pages []int64, args url.Values) components.PagingViewModel {
 	return components.PagingViewModel{
-		PageIndex: pageIndex,
-		PageLast:  pageLast,
-		PageSize:  pageSize,
-		Offset:    offset,
-		Pages:     pages,
-		Query:     args.Encode(),
-		TargetURL: "/components/tables/things",
-		TargetID:  "#tableview",
+		PageIndex:  pageIndex,
+		PageLast:   pageLast,
+		PageSize:   pageSize,
+		Offset:     offset,
+		Count:      count,
+		TotalCount: total,
+		Pages:      pages,
+		Query:      args.Encode(),
+		TargetURL:  "/components/tables/things",
+		TargetID:   "#tableview",
 	}
 }

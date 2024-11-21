@@ -9,9 +9,11 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
+	//lint:ignore ST1001 it is OK when we do it
 	. "github.com/diwise/frontend-toolkit"
 )
 
@@ -19,17 +21,20 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.WriteHeader(http.StatusOK)
-
-		//localizer := l10n.For(r.Header.Get("Accept-Language"))
-		ctx := logging.NewContextWithLogger(r.Context(), log)
-
 		id := r.PathValue("id")
-		thingType := strings.ToLower(r.URL.Query().Get("type"))
-		if id == "" || thingType == "" {
+		if id == "" {
 			http.Error(w, "no id found in url", http.StatusBadRequest)
 			return
+		}
+
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		ctx := logging.NewContextWithLogger(r.Context(), log)
+
+		thingType := strings.ToLower(r.URL.Query().Get("type"))
+		thingSubType := strings.ToLower(r.URL.Query().Get("subType"))
+
+		if thingSubType != "" {
+			thingType += ":" + thingSubType
 		}
 
 		today := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC)
@@ -44,17 +49,21 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		q.Add("endTimeAt", endTimeAt.Format(time.RFC3339))
 		q.Add("options", "groupByRef")
 
+		label := ""
 		switch thingType {
-		case "beach":
+		case "pointofinterest:beach":
 			fallthrough
 		case "pointofinterest":
 			q.Add("n", "3303/5700") //Temperature
+			label = localizer.Get("3303-5700")
 		case "building":
 			q.Add("n", "3331/5700") // Energy
-		case "wastecontainer":
+			label = localizer.Get("3331-5700")
+		case "container:wastecontainer":
 			fallthrough
 		case "container":
 			q.Add("n", "3435/2") //FillingLevel/Percentage
+			label = localizer.Get("3435-2")
 		case "lifebuoy":
 			q.Add("n", "3302/5500") //Presence/State
 			q.Add("timeunit", "hour")
@@ -65,17 +74,24 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			q.Add("timeunit", "hour")
 			q.Add("vb", "true")
 			q.Del("options")
+			label = localizer.Get("10351-50")
 		case "pumpingstation":
-			q.Add("n", "3350/50") //Stopwatch/OnOff
+			q.Add("n", "3350/5850") //Stopwatch/OnOff
 			q.Add("timeunit", "hour")
 			q.Add("vb", "true")
 			q.Del("options")
 		case "room":
 			q.Add("n", "3303/5700") //Temperature
+			label = localizer.Get("3303-5700")
 		case "sewer":
 			q.Add("n", "3435/2") //FillingLevel/Percentage
+			label = localizer.Get("3435-2")
+		case "sewer:combinedseweroverflow":
+			q.Add("n", "3350/5850") //Stopwatch/OnOff
+			label = localizer.Get("3200-5500")
 		case "watermeter":
 			q.Add("n", "3424/1") //WaterMeter/CumulativeVolume
+			label = localizer.Get("3424-1")
 		}
 
 		thing, err := app.GetThing(ctx, id, q)
@@ -87,40 +103,40 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		datasets := []components.ChartDataset{}
 
 		for _, values := range thing.Values {
-			datasets = append(datasets, toDataset("", values))
+			datasets = append(datasets, toDataset(label, values))
 		}
 
 		var component templ.Component
 		keepRatio := false
 
 		switch thingType {
-		case "beach":
-			fallthrough
-		case "pointofinterest":
-			component = components.MeasurementChart(datasets, keepRatio)
-		case "building":
-			component = components.MeasurementChart(datasets, keepRatio)
-		case "wastecontainer":
+		//case "beach":
+		//	fallthrough
+		//case "pointofinterest":
+		//	component = components.MeasurementChart(datasets, keepRatio)
+		//case "building":
+		//	component = components.MeasurementChart(datasets, keepRatio)
+		case "container:wastecontainer":
 			fallthrough
 		case "container":
 			component = components.WastecontainerChart(datasets)
-		case "lifebuoy":
-			component = components.MeasurementChart(datasets, keepRatio)
+		//case "lifebuoy":
+		//	component = components.MeasurementChart(datasets, keepRatio)
 		case "passage":
 			component = components.PassagesChart(datasets)
-		case "pumpingstation":
-			component = components.MeasurementChart(datasets, keepRatio)
+		//case "pumpingstation":
+		//	component = components.MeasurementChart(datasets, keepRatio)
 		case "room":
 			component = components.RoomChart(datasets)
-		case "sewer":
-			component = components.MeasurementChart(datasets, keepRatio)
-		case "watermeter":
-			component = components.MeasurementChart(datasets, keepRatio)
+		//case "sewer":
+		//	component = components.MeasurementChart(datasets, keepRatio)
+		//case "watermeter":
+		//	component = components.MeasurementChart(datasets, keepRatio)
 		default:
 			component = components.MeasurementChart(datasets, keepRatio)
 		}
 
-		component.Render(ctx, w)
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
 
 	return http.HandlerFunc(fn)

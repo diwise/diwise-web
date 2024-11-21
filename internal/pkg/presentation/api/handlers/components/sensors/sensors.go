@@ -22,8 +22,6 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
 
 		ctx = helpers.Decorate(
 			r.Context(),
@@ -58,7 +56,7 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 
 		model := components.SensorListViewModel{
 			Sensors:        make([]components.SensorViewModel, 0),
-			Pageing:        getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			Pageing:        getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			MapView:        showMap,
 			DeviceProfiles: make([]string, 0),
 		}
@@ -77,7 +75,11 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			model.DeviceProfiles = append(model.DeviceProfiles, "unknown")
 		}
 
-		model.Statistics = getStatistics(ctx, app)
+		model.Statistics, err = getStatistics(ctx, app)
+		if err != nil {
+			http.Error(w, "could not fetch sensor statstics", http.StatusInternalServerError)
+			return
+		}
 
 		sensorList := components.SensorsList(localizer, model)
 		page := components.StartPage(version, localizer, assets, sensorList)
@@ -89,23 +91,16 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			components.PageSize, limit,
 		)
 
-		w.WriteHeader(http.StatusOK)
-
-		err = page.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
+		helpers.WriteComponentResponse(ctx, w, r, page, 10*1024, 0)
 	}
+
 	return http.HandlerFunc(fn)
 }
 
-func NewSensorsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
 
-		ctx = helpers.Decorate(
+		ctx := helpers.Decorate(
 			r.Context(),
 			components.CurrentComponent, "sensors",
 		)
@@ -129,7 +124,7 @@ func NewSensorsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderF
 		model := components.SensorListViewModel{
 			Statistics: components.StatisticsViewModel{},
 			Sensors:    make([]components.SensorViewModel, 0),
-			Pageing:    getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			Pageing:    getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 		}
 
 		for _, sensor := range result.Sensors {
@@ -147,23 +142,16 @@ func NewSensorsTable(ctx context.Context, l10n LocaleBundle, assets AssetLoaderF
 			components.PageSize, limit,
 		)
 
-		err = component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
+
 	return http.HandlerFunc(fn)
 }
 
-func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
 
-		ctx = helpers.Decorate(
+		ctx := helpers.Decorate(
 			r.Context(),
 			components.CurrentComponent, "sensors",
 		)
@@ -197,7 +185,7 @@ func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 		model := components.SensorListViewModel{
 			Statistics: components.StatisticsViewModel{},
 			Sensors:    make([]components.SensorViewModel, 0),
-			Pageing:    getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
+			Pageing:    getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			MapView:    showMap,
 		}
 
@@ -225,32 +213,28 @@ func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 			components.PageSize, limit,
 		)
 
-		err = component.Render(ctx, w)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("could not render things page - %s", err.Error()), http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
-
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
+
 	return http.HandlerFunc(fn)
 }
 
-func getStatistics(ctx context.Context, app application.DeviceManagement) components.StatisticsViewModel {
+func getStatistics(ctx context.Context, app application.DeviceManagement) (components.StatisticsViewModel, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
-	sumOfStuff := app.GetStatistics(ctx)
-
-	stats := components.StatisticsViewModel{
-		Total:    sumOfStuff.Total,
-		Active:   sumOfStuff.Active,
-		Inactive: sumOfStuff.Inactive,
-		Online:   sumOfStuff.Online,
-		Unknown:  sumOfStuff.Unknown,
+	stats, err := app.GetStatistics(ctx)
+	if err != nil {
+		return components.StatisticsViewModel{}, err
 	}
 
-	return stats
+	return components.StatisticsViewModel{
+		Total:    stats.Total,
+		Active:   stats.Active,
+		Inactive: stats.Inactive,
+		Online:   stats.Online,
+		Unknown:  stats.Unknown,
+	}, nil
 }
 
 func getBatteryLevel(ctx context.Context, app application.DeviceManagement, sensor application.Sensor) int {
@@ -299,15 +283,17 @@ func toViewModel(sensor application.Sensor) components.SensorViewModel {
 	return s
 }
 
-func getPaging(pageIndex, pageLast, pageSize, offset int, pages []int64, args url.Values) components.PagingViewModel {
+func getPaging(pageIndex, pageLast, pageSize, count, total, offset int, pages []int64, args url.Values) components.PagingViewModel {
 	return components.PagingViewModel{
-		PageIndex: pageIndex,
-		PageLast:  pageLast,
-		PageSize:  pageSize,
-		Offset:    offset,
-		Pages:     pages,
-		Query:     args.Encode(),
-		TargetURL: "/components/tables/sensors",
-		TargetID:  "#tableview",
+		PageIndex:  pageIndex,
+		PageLast:   pageLast,
+		PageSize:   pageSize,
+		Offset:     offset,
+		Count:      count,
+		TotalCount: total,
+		Pages:      pages,
+		Query:      args.Encode(),
+		TargetURL:  "/components/tables/sensors",
+		TargetID:   "#tableview",
 	}
 }

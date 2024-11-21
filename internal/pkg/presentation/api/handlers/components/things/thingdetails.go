@@ -14,6 +14,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 
+	//lint:ignore ST1001 it is OK when we do it
 	. "github.com/diwise/frontend-toolkit"
 )
 
@@ -31,50 +32,37 @@ func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoa
 		thingDetailsPage := components.ThingDetailsPage(localizer, assets, thingDetails)
 		page := components.StartPage(version, localizer, assets, thingDetailsPage)
 
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
-
-		err = page.Render(ctx, w)
-		if err != nil {
-			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
-		}
-
-		w.WriteHeader(http.StatusOK)
+		helpers.WriteComponentResponse(ctx, w, r, page, 1024, 0)
 	}
 
 	return http.HandlerFunc(fn)
 }
 
-func NewThingDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingDetailsComponentHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
-
-		w.Header().Add("Content-Type", "text/html; charset=utf-8")
-		w.Header().Add("Cache-Control", "no-cache")
+		ctx := r.Context()
 
 		if r.Method == http.MethodDelete {
-			ctx := r.Context()
 
 			id := r.PathValue("id")
+			name := r.URL.Query().Get("name")
+
 			if id == "" {
 				http.Error(w, "no ID found in url", http.StatusBadRequest)
 				return
 			}
 
-			c := components.DeleteThing(localizer, assets, id)
-
-			err := c.Render(ctx, w)
-			if err != nil {
-				http.Error(w, "could not render delete thing", http.StatusInternalServerError)
-				return
+			if name == "" {
+				name = id
 			}
 
-			w.WriteHeader(http.StatusOK)
+			c := components.DeleteThing(localizer, assets, id, name)
+			helpers.WriteComponentResponse(ctx, w, r, c, 1024, 0)
 			return
 		}
 
 		if r.Method == http.MethodPost {
-			ctx := r.Context()
 
 			id := r.PathValue("id")
 			if id == "" {
@@ -101,13 +89,7 @@ func NewThingDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, ass
 			return
 		}
 
-		err = thingDetails.Render(ctx, w)
-		if err != nil {
-			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
+		helpers.WriteComponentResponse(ctx, w, r, thingDetails, 1024, 0)
 	}
 
 	return http.HandlerFunc(fn)
@@ -229,6 +211,8 @@ func formToFields(form url.Values) map[string]any {
 			fields["tags"] = appendTag(fields["tags"], strings.Split(v, ","))
 		case "name":
 			fields["name"] = strings.TrimSpace(v)
+		case "alternativeName":
+			fields["alternativeName"] = strings.TrimSpace(v)
 		case "description":
 			fields["description"] = strings.TrimSpace(v)
 		case "currentDevice":
@@ -254,6 +238,10 @@ func formToFields(form url.Values) map[string]any {
 		case "angle":
 			if f, ok := asFloat(v); ok {
 				fields["angle"] = f
+			}
+		case "offset":
+			if f, ok := asFloat(v); ok {
+				fields["offset"] = f
 			}
 		}
 	}

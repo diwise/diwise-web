@@ -13,23 +13,29 @@ type ThingsListViewModel struct {
 	Pageing PagingViewModel
 	MapView bool
 	Tags    []string
-	Types   []string
+	Types   []TypeViewModel
+}
+
+type TypeViewModel struct {
+	Type string
+	Name string
 }
 
 type ThingViewModel struct {
-	ID           string
-	Type         string
-	SubType      string
-	Name         string
-	Description  string
-	Latitude     float64
-	Longitude    float64
-	RefDevice    []string
-	Tenant       string
-	Tags         []string
-	Measurements []MeasurementViewModel
-	ObservedAt   time.Time
-	Properties   map[string]any
+	ID              string
+	Type            string
+	SubType         string
+	Name            string
+	AlternativeName string
+	Description     string
+	Latitude        float64
+	Longitude       float64
+	RefDevice       []string
+	Tenant          string
+	Tags            []string
+	Measurements    []MeasurementViewModel
+	ObservedAt      time.Time
+	Properties      map[string]any
 }
 
 func (t ThingViewModel) HasWarning() bool {
@@ -105,18 +111,25 @@ templ ThingsList(l10n Localizer, model ThingsListViewModel) {
 		<div class="flex flex-col items-start gap-6 self-stretch w-full">
 			<div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
-				<div class="flex items-center text-white dark:text-primary-dark font-bold">
+				<div class="flex gap-4 items-center text-white dark:text-primary-dark font-bold">
 					@Button(Primary, l10n.Get("addthing"), "",
 						Target("#modalCreateThingContainer"),
 						HxUrl("get", "/components/things"),
 						Trigger("click"),
 						Swap("innerHTML"))
+					<div class="relative group">
+						@Button(Secondary, "", "download-cloud",
+							HxUrl("get", "/admin/export?export=things&accept=text/csv"),
+							Trigger("click"),
+							Include(".filter"))
+						@Tooltip(l10n.Get("export"))
+					</div>
 				</div>
 				<div id="modalCreateThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
 			</div>
 		</div>
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-		<div class="flex flex-col items-start self-stretch gap-10">
+		<div class="flex flex-col items-start self-stretch gap-4">
 			@ThingsFilter(l10n, model)
 			@DataList(l10n, ThingsTable(l10n, model), ThingsMap(l10n, model), model.MapView)
 		</div>
@@ -218,13 +231,13 @@ templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
 				<div class="flex items-center gap-6">
 					@CheckboxList(l10n.Get("type")) {
 						for _, t := range model.Types {
-							@CheckboxOption("type", t, "", l10n, templ.Attributes{
+							@CheckboxOption("type", t.Type, "", l10n, templ.Attributes{
 								"hx-get":     string(templ.SafeURL("/components/things/list")),
 								"hx-target":  "#tableOrMap",
 								"hx-swap":    "outerHTML",
 								"hx-include": "[name=type]:checked",
 								"onchange":   "updateSelectedFilters()",
-								"data-text":  l10n.Get(t),
+								"data-text":  t.Name,
 							})
 						}
 					}
@@ -298,12 +311,13 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 			}));
 
 			let selectedFillingLevel = [];
-			const fillingLevelFilter = document.querySelectorAll('input[name="fillinglevel"]:checked');
+			const fillingLevelFilter = document.querySelectorAll('input[name="v[percent]"]:checked');
+			
 			if (fillingLevelFilter.length > 0) {
 				selectedFillingLevel = Array.from(fillingLevelFilter).map(cb => ({
-					name: "fillinglevel",
+					name: "v[percent]",
 					value: cb.value,
-					text: cb.value,
+					text: cb.getAttribute('data-text'),
 				}));
 			}
 
@@ -377,7 +391,6 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 			}
 		}
 
-		document.addEventListener("DOMContentLoaded", updateSelectedFilters);
 		document.body.addEventListener('htmx:afterOnLoad', updateSelectedFilters);
 
 		function toggleFillinglevelVisibility() {
@@ -392,6 +405,9 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 			});
 
 			const fillinglevelFilter = document.getElementById('fillinglevelFilter');
+			if (!fillinglevelFilter) {
+				return;
+			}
 			if (isWastecontainerSelected) {
 				fillinglevelFilter.classList.remove('hidden');
 			} else {
@@ -399,7 +415,7 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 			}
 		}
 
-		document.addEventListener('DOMContentLoaded', function () {
+		document.addEventListener('htmx:load', function () {
 			const typeCheckboxes = document.querySelectorAll('input[name="type"]');
 			typeCheckboxes.forEach(checkbox => {
 				checkbox.addEventListener('change', toggleFillinglevelVisibility);
@@ -412,28 +428,35 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 }
 
 templ ThingsTableComponent(l10n Localizer, model ThingsListViewModel) {
-	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
-		<thead class="border-b border-dark-primary dark:border-white">
-			<tr>
-				<th class="px-6 py-3">{ l10n.Get("name") }</th>
-				<th class="px-6 py-3">{ l10n.Get("type") }</th>
-				<th class="px-6 py-3 min-w-[200px]">{ l10n.Get("status") }</th>
-				<th class="px-6 py-3">{ l10n.Get("tags") }</th>
-			</tr>
-		</thead>
-		<tbody>
-			for _, thing := range model.Things {
-				@ThingRow(l10n, thing)
-			}
-		</tbody>
-		<tfoot>
-			<tr>
-				<td colspan="4">
-					@Paging(l10n, model.Pageing)
-				</td>
-			</tr>
-		</tfoot>
-	</table>
+	<div class="flex flex-col gap-2">
+		<div class="flex flex-start items-center gap-2 self-stretch">
+			<div class="dark:text-white p-2 text-sm">
+				{ l10n.Get("show") } { fmt.Sprintf("%d", model.Pageing.Count) } { l10n.Get("thingsof") } { fmt.Sprintf("%d", model.Pageing.TotalCount) }
+			</div>
+		</div>
+		<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+			<thead class="border-b border-dark-primary dark:border-white">
+				<tr>
+					<th class="px-6 py-3">{ l10n.Get("name") }</th>
+					<th class="px-6 py-3">{ l10n.Get("type") }</th>
+					<th class="px-6 py-3 min-w-[200px]">{ l10n.Get("status") }</th>
+					<th class="px-6 py-3">{ l10n.Get("tags") }</th>
+				</tr>
+			</thead>
+			<tbody>
+				for _, thing := range model.Things {
+					@ThingRow(l10n, thing)
+				}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="4">
+						@Paging(l10n, model.Pageing)
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+	</div>
 }
 
 templ ThingRow(l10n Localizer, thing ThingViewModel) {
@@ -534,6 +557,8 @@ func ThingStatusCell(l10n Localizer, thing ThingViewModel) templ.Component {
 			return templ.NopComponent
 		case "lifebuoy":
 			return LifebuoyCell(l10n, thing)
+		case "desk":
+			return DeskCell(l10n, thing)
 		case "passage":
 			return PassageCell(thing)
 		case "pumpingstation":
@@ -564,6 +589,22 @@ templ BuildingCell(l10n Localizer, t ThingViewModel) {
 }
 
 func LifebuoyCell(l10n Localizer, t ThingViewModel) templ.Component {
+	vb, ok := t.Properties["presence"]
+	if !ok {
+		return Text(l10n.Get("nodata"))
+	}
+	b, ok := vb.(bool)
+	if !ok {
+		return Text(l10n.Get("nodata"))
+	}
+	if b {
+		return Text(l10n.Get("present"))
+	} else {
+		return Text(l10n.Get("notPresent"))
+	}
+}
+
+func DeskCell(l10n Localizer, t ThingViewModel) templ.Component {
 	vb, ok := t.Properties["presence"]
 	if !ok {
 		return Text(l10n.Get("nodata"))
@@ -798,15 +839,30 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 
 			fallthrough
 		case "combinedseweroverflow":
-			if overflow, ok := thing.GetBool("overflow"); ok {
+			if overflow, ok := thing.GetBool("overflowObserved"); ok {
 				if overflow {
-					feature.AddProperty("state", l10n.Get("overflow"))
+					feature.AddProperty("state", l10n.Get("yes"))
 				} else {
-					feature.AddProperty("state", l10n.Get("Ok"))
+					feature.AddProperty("state", l10n.Get("no"))
 				}
 			} else {
 				feature.AddProperty("state", "nil")
 			}
+
+			var l, p float64
+			l, levelOk := thing.GetFloat("currentLevel")
+			if !levelOk {
+				l = 0
+			}
+			p, percentOk := thing.GetFloat("percent")
+			if !percentOk {
+				p = 0
+			}
+			if levelOk || percentOk {
+				level := fmt.Sprintf("%0.fm (%0.f%%)", l, p)
+				feature.AddProperty("level", level)
+			}
+
 		case "lifebuoy":
 			if presence, ok := thing.GetBool("presence"); ok {
 				if presence {

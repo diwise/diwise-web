@@ -2,9 +2,8 @@ package components
 
 import (
 	"fmt"
-	"time"
-
 	. "github.com/diwise/frontend-toolkit"
+	"time"
 )
 
 type SensorListViewModel struct {
@@ -26,7 +25,7 @@ type SensorViewModel struct {
 	LastSeen     time.Time
 	HasAlerts    bool
 	Type         string
-	Online		 bool
+	Online       bool
 }
 
 type StatisticsViewModel struct {
@@ -51,23 +50,20 @@ templ SensorsList(l10n Localizer, model SensorListViewModel) {
 		<div class="flex flex-col items-start gap-6 w-full">
 			<div class="flex items-center justify-between w-full">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
-				<div class="flex flex-row items-center text-white dark:text-primary-dark font-bold gap-6">
-					<label class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 bg-primary-surface hover:bg-primary-surface-hover dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover">
-						{ l10n.Get("import") }
-						<input type="file" 
-							class="hidden" 
-							hx-post="/upload-file" 
-							hx-target="#uploadStatus">
-					</label>
-						
-					@Button(Primary, l10n.Get("export"), "")
+				<div class="flex flex-row items-center text-white dark:text-primary-dark font-bold gap-4">
+					<div class="relative group">
+						@Button(Secondary, "", "download-cloud",
+							HxUrl("get", "/admin/export?export=devices&accept=text/csv"),
+							Trigger("click"),
+							Include(".filter"))
+						@Tooltip(l10n.Get("export"))
+					</div>
 				</div>
 			</div>
 			@Statistics(l10n, model.Statistics)
 		</div>
-		
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-		<div class="flex flex-col items-start self-stretch gap-10">
+		<div class="flex flex-col items-start self-stretch gap-4">
 			@SensorsFilter(l10n, model)
 			@DataList(l10n, SensorsTable(l10n, model), SensorMap(l10n, model), model.MapView)
 		</div>
@@ -82,46 +78,46 @@ templ SensorsFilter(l10n Localizer, model SensorListViewModel) {
 					@CheckboxList(l10n.Get("type")) {
 						for _, t := range model.DeviceProfiles {
 							@CheckboxOption("type", t, "", l10n, templ.Attributes{
-								"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
-								"hx-target": "#tableOrMap",
-								"hx-swap":   "outerHTML",
+								"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+								"hx-target":  "#tableOrMap",
+								"hx-swap":    "outerHTML",
 								"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
-								"onchange":  "updateSelectedFilters()",
-								"data-text": l10n.Get(t),
-								"value": t,
+								"onchange":   "updateSelectedFilters()",
+								"data-text":  l10n.Get(t),
+								"value":      t,
 							})
 						}
 					}
 					@RadioList(l10n.Get("status")) {
 						@RadioOption("active", "true", l10n.Get("active"), l10n, templ.Attributes{
-							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
-							"hx-target": "#tableOrMap",
-							"hx-swap":   "outerHTML",
+							"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target":  "#tableOrMap",
+							"hx-swap":    "outerHTML",
 							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
-							"onchange":  "updateSelectedFilters()",
+							"onchange":   "updateSelectedFilters()",
 						})
 						@RadioOption("active", "false", l10n.Get("inactive"), l10n, templ.Attributes{
-							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
-							"hx-target": "#tableOrMap",
-							"hx-swap":   "outerHTML",
+							"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target":  "#tableOrMap",
+							"hx-swap":    "outerHTML",
 							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
-							"onchange":  "updateSelectedFilters()",
+							"onchange":   "updateSelectedFilters()",
 						})
 					}
 					@RadioList(l10n.Get("Online")) {
 						@RadioOption("online", "true", l10n.Get("online"), l10n, templ.Attributes{
-							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
-							"hx-target": "#tableOrMap",
-							"hx-swap":   "outerHTML",
+							"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target":  "#tableOrMap",
+							"hx-swap":    "outerHTML",
 							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
-							"onchange":  "updateSelectedFilters()",
+							"onchange":   "updateSelectedFilters()",
 						})
 						@RadioOption("online", "false", l10n.Get("offline"), l10n, templ.Attributes{
-							"hx-get":    string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
-							"hx-target": "#tableOrMap",
-							"hx-swap":   "outerHTML",
+							"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
+							"hx-target":  "#tableOrMap",
+							"hx-swap":    "outerHTML",
 							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
-							"onchange":  "updateSelectedFilters()",
+							"onchange":   "updateSelectedFilters()",
 						})
 					}
 				</div>
@@ -237,7 +233,9 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel) {
 				</span>
 			</td>
 		}
+		/*
 		<td class="px-6 py-3"><span class="font-bold">{ sensor.DeviceID }</span></td>
+		*/
 		<td class="px-6 py-3"><span class="font-bold">{ sensor.Name }</span></td>
 		if sensor.Active {
 			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">{ l10n.Get("active") }</span></span></td>
@@ -270,32 +268,41 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel) {
 }
 
 templ SensorsTable(l10n Localizer, model SensorListViewModel) {
-	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
-		<thead class="border-b border-primary-dark dark:border-white">
-			<tr>
-				<th class="px-6 py-3">{ l10n.Get("online") }</th>
-				<th class="px-6 py-3">{ l10n.Get("id") }</th>
-				<th class="px-6 py-3">{ l10n.Get("name") }</th>
-				<th class="px-6 py-3">{ l10n.Get("status") }</th>
-				<th class="px-6 py-3">{ l10n.Get("type") }</th>
-				<th class="px-6 py-3">{ l10n.Get("deveui") }</th>
-				<th class="px-6 py-3">{ l10n.Get("batterylevel") }</th>
-				<th class="px-6 py-3">{ l10n.Get("lastseen") }</th>
-			</tr>
-		</thead>
-		<tbody>
-			for _, sensor := range model.Sensors {
-				@SensorRow(l10n, sensor)
-			}
-		</tbody>
-		<tfoot>
-			<tr>
-				<td colspan="8">
-					@Paging(l10n, model.Pageing)
-				</td>
-			</tr>
-		</tfoot>
-	</table>
+	<div class="flex flex-col gap-2">
+		<div class="flex flex-start items-center gap-2 self-stretch">
+			<div class="dark:text-white p-2 text-sm">
+				{ l10n.Get("show") } { fmt.Sprintf("%d", model.Pageing.Count) } { l10n.Get("sensorsof") } { fmt.Sprintf("%d", model.Pageing.TotalCount) }
+			</div>
+		</div>
+		<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+			<thead class="border-b border-primary-dark dark:border-white">
+				<tr>
+					<th class="px-6 py-3">{ l10n.Get("online") }</th>
+					/*
+					<th class="px-6 py-3">{ l10n.Get("id") }</th>
+					*/
+					<th class="px-6 py-3">{ l10n.Get("name") }</th>
+					<th class="px-6 py-3">{ l10n.Get("status") }</th>
+					<th class="px-6 py-3">{ l10n.Get("type") }</th>
+					<th class="px-6 py-3">{ l10n.Get("deveui") }</th>
+					<th class="px-6 py-3">{ l10n.Get("batterylevel") }</th>
+					<th class="px-6 py-3">{ l10n.Get("lastseen") }</th>
+				</tr>
+			</thead>
+			<tbody>
+				for _, sensor := range model.Sensors {
+					@SensorRow(l10n, sensor)
+				}
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="8">
+						@Paging(l10n, model.Pageing)
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+	</div>
 }
 
 templ TableOrMap(l10n Localizer, hxGet string) {

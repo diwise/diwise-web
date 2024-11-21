@@ -228,13 +228,13 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 	flag.Parse()
 
 	if flags[devModeEnabled] != "true" {
-		flags[oauth2RealmURL] = env.GetVariableOrDie(ctx, "OAUTH2_REALM_URL", "a valid oauth2 realm URL")
-		flags[oauth2ClientID] = env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_ID", "a valid oauth2 client id")
-		flags[oauth2ClientSecret] = env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_SECRET", "a valid oauth2 client secret")
+		flags[oauth2RealmURL] = env.GetVariableOrDie(ctx, "OAUTH2_REALM_URL", "oauth2 realm URL")
+		flags[oauth2ClientID] = env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_ID", "oauth2 client id")
+		flags[oauth2ClientSecret] = env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_SECRET", "oauth2 client secret")
 
-		flags[devMgmtURL] = env.GetVariableOrDie(ctx, "DEV_MGMT_URL", "a valid device management URL")
-		flags[thingsURL] = env.GetVariableOrDie(ctx, "THINGS_URL", "a valid things URL")
-		flags[measurementsURL] = env.GetVariableOrDie(ctx, "MEASUREMENTS_URL", "a valid measurements URL")
+		flags[devMgmtURL] = env.GetVariableOrDie(ctx, "DEV_MGMT_URL", "device management URL")
+		flags[thingsURL] = env.GetVariableOrDie(ctx, "THINGS_URL", "things URL")
+		flags[measurementsURL] = env.GetVariableOrDie(ctx, "MEASUREMENTS_URL", "measurements URL")
 	} else {
 		appRoot := flags[appRoot]
 		flags[devMgmtURL] = appRoot + api.DevModePrefix + "/devices"

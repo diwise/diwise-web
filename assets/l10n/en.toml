@@ -1,3 +1,9 @@
+[30]
+other = ">30%"
+
+[50]
+other = ">50%"
+
 [activate]
 other = "Activate sensor"
 
@@ -16,11 +22,17 @@ other = "Add new thing"
 [addtag]
 other = "Add new tag"
 
+[admin]
+other = "Admin"
+
 [alerts]
 other = "Alerts"
 
 [all]
 other = "All"
+
+[alternativeName]
+other = "Alternative name"
 
 [angle]
 other = "Angle"
@@ -86,10 +98,10 @@ other = "degrees"
 other = "Delete"
 
 [deletethingconfirm]
-other = "Do you want to delete the thing?"
+other = "Do you want to delete"
 
 [deletethinginformation]
-other = "The thing and data related to the thing will be removed."
+other = "and data related to the thing will be removed."
 
 [description]
 other = "Description"
@@ -184,11 +196,23 @@ other = "Map"
 [maxfillingheight]
 other = "with a maximum filling height of"
 
-[maxheight]
+[maxcontainerheight]
 other = "Container height"
+
+[maxdistancesewer]
+other = "Distance sensor to bottom"
 
 [maxlevel]
 other = "Max filling height"
+
+[maxwaterlevel]
+other = "Max water level"
+
+[maxwaterlevelheight]
+other = "Max water level is"
+
+[measurements]
+other = "Measurements"
 
 [measurementperday]
 other = "Measurements per day"
@@ -249,6 +273,12 @@ other = "Off"
 
 [offline]
 other = "Offline"
+
+[offset]
+other = "Offset"
+
+[offsetsetting]
+other = "with an offset set to"
 
 [online]
 other = "Online"
@@ -334,6 +364,15 @@ other = "Sensors"
 [sensortype]
 other = "Type of sensor"
 
+[sensorsof]
+other = "sensors out of"
+
+[sewerheight]
+other = "Distance from sensor to bottom is"
+
+[show]
+other = "Showing"
+
 [size]
 other = "Size"
 
@@ -361,6 +400,9 @@ other = "Type of thing"
 [things]
 other = "Things"
 
+[thingsof]
+other = "things out of"
+
 [time]
 other = "Time"
 
@@ -387,6 +429,9 @@ other = "Water meter"
 
 [yes]
 other = "Yes"
+
+[10351-50]
+other = "Number of passages"
 
 [3-9]
 other = "Battery level (%)"
@@ -516,3 +561,9 @@ other = "Waste container"
 
 [wastecontainer]
 other = "Waste container"
+
+[choosefile]
+other = "Choose a file"
+
+[upload]
+other = "Upload"

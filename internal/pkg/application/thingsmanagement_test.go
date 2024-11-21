@@ -17,6 +17,14 @@ func TestUnmarshalThing(t *testing.T) {
 	is.NoErr(err)
 }
 
+func TestUnmarshalBuilding(t *testing.T) {
+	is := is.New(t)
+	thing := Thing{}
+	err := json.Unmarshal([]byte(buildingJson), &thing)
+	is.NoErr(err)
+	is.Equal(3, len(thing.ValidURNs))
+}
+
 const groupByRefThing = `
 {
 	"currentLevel": 0.24,
@@ -135,5 +143,28 @@ const flat string = `
 		}
 	]
     
+}
+`
+
+const buildingJson = `
+{
+  "energy": 0,
+  "id": "b698e074-0320",
+  "location": {
+    "latitude": 0,
+    "longitude": 0
+  },
+  "name": "byggnad-01",
+  "observedAt": "0001-01-01T00:00:00Z",
+  "power": 0,
+  "temperature": 0,
+  "tenant": "default",
+  "type": "Building",
+  "validURN": [
+    "urn:oma:lwm2m:ext:3331",
+    "urn:oma:lwm2m:ext:3328",
+    "urn:oma:lwm2m:ext:3303"
+  ],
+  "values": []
 }
 `

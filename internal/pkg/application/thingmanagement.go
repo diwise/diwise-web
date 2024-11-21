@@ -23,17 +23,18 @@ type ThingManagement interface {
 }
 
 type Thing struct {
-	ID          string    `json:"id"`
-	Type        string    `json:"type"`
-	SubType     string    `json:"subType,omitempty"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Location    Location  `json:"location,omitempty"`
-	RefDevices  []Device  `json:"refDevices,omitempty"`
-	Tags        []string  `json:"tags,omitempty"`
-	Tenant      string    `json:"tenant"`
-	ObservedAt  time.Time `json:"observedAt,omitempty"`
-	ValidURNs   []string  `json:"validURN,omitempty"`
+	ID              string    `json:"id"`
+	Type            string    `json:"type"`
+	SubType         string    `json:"subType,omitempty"`
+	Name            string    `json:"name"`
+	AlternativeName string    `json:"alternativeName,omitempty"`
+	Description     string    `json:"description"`
+	Location        Location  `json:"location,omitempty"`
+	RefDevices      []Device  `json:"refDevices,omitempty"`
+	Tags            []string  `json:"tags,omitempty"`
+	Tenant          string    `json:"tenant"`
+	ObservedAt      time.Time `json:"observedAt,omitempty"`
+	ValidURNs       []string  `json:"validURN,omitempty"`
 
 	Values     [][]Measurement `json:"-"`
 	TypeValues ThingTypeValues `json:"-"`
@@ -88,16 +89,18 @@ func (t *Thing) UnmarshalJSON(data []byte) error {
 	}
 
 	t2 := struct {
-		ID          string    `json:"id"`
-		Type        string    `json:"type"`
-		SubType     string    `json:"subType,omitempty"`
-		Name        string    `json:"name"`
-		Description string    `json:"description"`
-		Location    Location  `json:"location,omitempty"`
-		RefDevices  []Device  `json:"refDevices,omitempty"`
-		Tags        []string  `json:"tags,omitempty"`
-		Tenant      string    `json:"tenant"`
-		ObservedAt  time.Time `json:"observedAt,omitempty"`
+		ID              string    `json:"id"`
+		Type            string    `json:"type"`
+		SubType         string    `json:"subType,omitempty"`
+		Name            string    `json:"name"`
+		AlternativeName string    `json:"alternativeName,omitempty"`
+		Description     string    `json:"description"`
+		Location        Location  `json:"location,omitempty"`
+		RefDevices      []Device  `json:"refDevices,omitempty"`
+		Tags            []string  `json:"tags,omitempty"`
+		Tenant          string    `json:"tenant"`
+		ObservedAt      time.Time `json:"observedAt,omitempty"`
+		ValidURNs       []string  `json:"validURN,omitempty"`
 	}{}
 	err := json.Unmarshal(data, &t2)
 	if err != nil {
@@ -108,12 +111,14 @@ func (t *Thing) UnmarshalJSON(data []byte) error {
 	t.Type = t2.Type
 	t.SubType = t2.SubType
 	t.Name = t2.Name
+	t.AlternativeName = t2.AlternativeName
 	t.Description = t2.Description
 	t.Location = t2.Location
 	t.RefDevices = t2.RefDevices
 	t.Tags = t2.Tags
 	t.Tenant = t2.Tenant
 	t.ObservedAt = t2.ObservedAt
+	t.ValidURNs = t2.ValidURNs
 
 	typeValues := ThingTypeValues{}
 	if err := json.Unmarshal(data, &typeValues); err == nil {
@@ -272,6 +277,12 @@ func (a *App) ConnectSensor(ctx context.Context, thingID string, refDevices []st
 }
 
 func (a *App) NewThing(ctx context.Context, t Thing) error {
+	if strings.Contains(t.Type, "-") {
+		parts := strings.Split(t.Type, "-")
+		t.Type = parts[0]
+		t.SubType = parts[1]
+	}
+
 	b, err := json.Marshal(t)
 	if err != nil {
 		return err
