@@ -196,6 +196,9 @@ other = "Karta"
 [maxfillingheight]
 other = "med en max fyllnadshöjd på"
 
+[maxfillinglevel]
+other = "Max fyllnadsnivå"
+
 [maxcontainerheight]
 other = "Behållarens höjd"
 

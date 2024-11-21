@@ -196,6 +196,9 @@ other = "Map"
 [maxfillingheight]
 other = "with a maximum filling height of"
 
+[maxfillinglevel]
+other = "Max filling level"
+
 [maxcontainerheight]
 other = "Container height"
 
