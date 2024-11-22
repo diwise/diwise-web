@@ -25,6 +25,9 @@ other = "Lägg till ny tagg"
 [admin]
 other = "Admin"
 
+[air]
+other = "Luft"
+
 [alerts]
 other = "Larm"
 
@@ -313,6 +316,9 @@ other = "Välj ett alternativ"
 [picksensor]
 other = "Välj sensor"
 
+[placement]
+other = "Placering"
+
 [PointOfInterest]
 other = "Intressepunkt"
 
@@ -382,6 +388,9 @@ other = "Visar"
 [size]
 other = "Storlek"
 
+[soil]
+other = "Jord"
+
 [starttime]
 other = "Starttid"
 
@@ -429,6 +438,9 @@ other = "Okänd"
 
 [unknownsensors]
 other = "Okända sensorer"
+
+[water]
+other = "Vatten"
 
 [WaterMeter]
 other = "Vattenmätare"

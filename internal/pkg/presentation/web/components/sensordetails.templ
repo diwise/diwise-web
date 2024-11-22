@@ -25,6 +25,7 @@ type SensorDetailsViewModel struct {
 	MeasurementTypes  []string
 	Measurements      []MeasurementViewModel
 	ObservedAt        time.Time
+	Placement		  string
 }
 
 type DeviceProfile struct {
@@ -91,6 +92,15 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 							<div class="first-letter:uppercase">{ sensor.DeviceProfileName }</div>
 						</div>
 						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("placement") }</div>
+							if sensor.Placement != "" {
+								<div class="first-letter:uppercase">{ sensor.Placement }</div>
+							} else {
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
+							}
+							
+						</div>
+						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("organisation") }</div>
 							<div class="">{ sensor.Tenant }</div>
 						</div>
@@ -102,7 +112,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 						} else {
 							<div class="flex gap-2">
 								<div class="font-bold">{ l10n.Get("description") }</div>
-								<div class="">-</div>
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
 							</div>
 						}
 						<div class="flex flex-start gap-2">
@@ -256,6 +266,17 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 											{ l10n.Get("measurementtype") }
 										</label>
 										@MeasurementTypeCheckboxDropdown(l10n, asset, "measurementType", sensor)
+									</div>
+								</div>
+							</div>
+							<div class="flex flex-start gap-10 self-stretch">
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="font-bold">{ l10n.Get("placement") }</div>
+									<div class="border border-input-surface rounded-xl">
+										<label for="placement" class="hidden block text-sm font-medium text-gray-700">
+											{ l10n.Get("pickOption") }
+										</label>
+										@PlacementSelect(l10n, asset, "placement", sensor.Placement)
 									</div>
 								</div>
 							</div>
@@ -549,4 +570,33 @@ func MeasurementTypeCheckboxDropdown(l10n Localizer, asset AssetLoaderFunc, id s
 	})
 
 	return CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
+}
+
+func PlacementSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string) templ.Component {
+	viewModel := []OptionViewModel{
+        {
+            Value:    "",
+            Text:     l10n.Get("choose"),
+            Selected: selected == "",
+            Hidden:   true,
+            Disabled: true,
+        },
+        {
+            Value:    "soil",
+            Text:     l10n.Get("soil"),
+            Selected: selected == "soil",
+        },
+        {
+            Value:    "air",
+            Text:     l10n.Get("air"),
+            Selected: selected == "air",
+        },
+        {
+            Value:    "water",
+            Text:     l10n.Get("water"),
+            Selected: selected == "water",
+        },
+    }
+
+    return Select(id, false, "", "", viewModel)
 }

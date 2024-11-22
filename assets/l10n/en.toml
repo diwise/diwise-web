@@ -25,6 +25,9 @@ other = "Add new tag"
 [admin]
 other = "Admin"
 
+[air]
+other = "Air"
+
 [alerts]
 other = "Alerts"
 
@@ -313,6 +316,9 @@ other = "Pick an option"
 [picksensor]
 other = "Pick sensor"
 
+[placement]
+other = "Placement"
+
 [PointOfInterest]
 other = "Point of interest"
 
@@ -382,6 +388,9 @@ other = "Showing"
 [size]
 other = "Size"
 
+[soil]
+other = "Soil"
+
 [starttime]
 other = "Start time"
 
@@ -429,6 +438,9 @@ other = "Unknown"
 
 [unknownsensors]
 other = "Unknown sensors"
+
+[water]
+other = "Water"
 
 [WaterMeter]
 other = "Water meter"
