@@ -106,6 +106,9 @@ other = "och dess data kommer tas bort."
 [description]
 other = "Beskrivning"
 
+[Desk]
+other = "Skrivbord"
+
 [desk]
 other = "Skrivbord"
 
@@ -151,7 +154,7 @@ other = "Inaktiva sensorer"
 [information]
 other = "Information"
 
-[inplace]
+[present]
 other = "På plats"
 
 [lastseen]

@@ -106,6 +106,9 @@ other = "and data related to the thing will be removed."
 [description]
 other = "Description"
 
+[Desk]
+other = "Desk"
+
 [desk]
 other = "Desk"
 
@@ -151,8 +154,8 @@ other = "Inactive sensors"
 [information]
 other = "Information"
 
-[inplace]
-other = "In place"
+[present]
+other = "Present"
 
 [lastseen]
 other = "Last seen"

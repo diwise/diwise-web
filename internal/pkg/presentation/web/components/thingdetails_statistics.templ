@@ -680,7 +680,7 @@ templ StatisticsRoomTableRow(l10n Localizer, measurement MeasurementViewModel) {
 templ StatisticsLifebuoy(l10n Localizer, model ThingDetailsViewModel) {
 	<div class="flex items-center w-full justify-between">
 		<div class="flex flex-col gap-2 justify-start">
-			<div class="">{ l10n.Get("inplace") }</div>
+			<div class="">{ l10n.Get("present") }</div>
 			<div class="text-3xl font-bold">
 				if model.Thing.GetBoolOrDefault("presence", false) {
 					{ l10n.Get("yes") }
