@@ -121,6 +121,9 @@ other = "Uppgifter"
 [deveui]
 other = "DevEUI"
 
+[devicenotobservedafter]
+other = "Sensor registreras som ej observerad efter"
+
 [edit]
 other = "Redigera"
 
@@ -141,6 +144,9 @@ other = "Graf"
 
 [home]
 other = "Hem"
+
+[hours]
+other = "timmar"
 
 [id]
 other = "ID"

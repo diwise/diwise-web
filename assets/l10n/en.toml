@@ -121,6 +121,9 @@ other = "Details"
 [deveui]
 other = "DevEUI"
 
+[devicenotobservedafter]
+other = "Sensor is registered as not observed after"
+
 [edit]
 other = "Edit"
 
@@ -141,6 +144,9 @@ other = "Graph"
 
 [home]
 other = "Home"
+
+[hours]
+other = "hours"
 
 [id]
 other = "ID"
