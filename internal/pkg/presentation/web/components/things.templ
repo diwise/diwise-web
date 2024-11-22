@@ -688,7 +688,7 @@ func WasteContainerCell(l10n Localizer, t ThingViewModel) templ.Component {
 
 	colourClass := ""
 	switch {
-	case value >= 51:
+	case value >= 50:
 		colourClass = "bg-red-600 dark:bg-err-prim-surf"
 	case value <= 30:
 		colourClass = "bg-green-700 dark:bg-primary-surface-green-accent"
@@ -710,7 +710,7 @@ func SandStorageCell(l10n Localizer, t ThingViewModel) templ.Component {
 
 	colourClass := ""
 	switch {
-	case value <= 51:
+	case value <= 50:
 		colourClass = "bg-red-600 dark:bg-err-prim-surf"
 	case value >= 70:
 		colourClass = "bg-green-700 dark:bg-primary-surface-green-accent"
@@ -792,7 +792,7 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 			fl, ok := thing.GetFloat("percent")
 			if ok {
 				var state string
-				if fl >= 51 {
+				if fl >= 50 {
 					state = "red"
 				} else if fl > 31 {
 					state = "orange"
@@ -809,7 +809,7 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 			fl, ok := thing.GetFloat("percent")
 			if ok {
 				var state string
-				if fl >= 51 {
+				if fl >= 50 {
 					state = "green"
 				} else if fl > 31 {
 					state = "orange"
