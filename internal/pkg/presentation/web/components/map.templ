@@ -396,10 +396,10 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                 if (feature.properties.subtype.toLowerCase() == "wastecontainer") {
                                                     if (feature.properties.fillinglevel >= 50) {
                                                         colourClass = "bg-red-600 dark:bg-err-prim-surf";
-                                                    } else if (feature.properties.fillinglevel <= 30) {
-                                                        colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
-                                                    } else {
+                                                    } else if (feature.properties.fillinglevel >= 30) {
                                                         colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                                    } else {
+                                                        colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
                                                     }
                                                 }
                                                 else if (feature.properties.subtype.toLowerCase() == "sandstorage") {
