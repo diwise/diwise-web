@@ -116,8 +116,14 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 
 	thingDetailsViewModel := components.ThingDetailsViewModel{
 		Thing: toViewModel(thing),
+		Type:  thing.Type,
 	}
 
+	if thingDetailsViewModel.Thing.SubType != "" {
+		thingDetailsViewModel.Type += ":" + thingDetailsViewModel.Thing.SubType
+	}
+
+	thingDetailsViewModel.Type = strings.ToLower(thingDetailsViewModel.Type)
 	thingDetailsViewModel.Tenant = thingDetailsViewModel.Thing.Tenant
 
 	if editMode {

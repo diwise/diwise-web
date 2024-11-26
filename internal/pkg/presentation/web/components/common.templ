@@ -236,15 +236,17 @@ const (
 )
 
 templ Div(id string, contents ...templ.Component) {
-	<div
-		if id != "" {
-			id={ id }
-		}
-	>
+	<div id={ id }>
 		for _,c := range contents {
 			@c
 		}
 	</div>
+}
+
+templ Compose(components ...templ.Component) {
+	for _,c := range components {
+		@c
+	}
 }
 
 templ Canvas(id string) {

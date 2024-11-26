@@ -9,6 +9,7 @@ import (
 
 type ThingDetailsViewModel struct {
 	Thing         ThingViewModel
+	Type          string
 	Organisations []string
 	Tenant        string
 	TableView     bool
@@ -101,17 +102,7 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 								</div>
 							}
 						</div>
-						if strings.ToLower(model.Thing.Type) == "container" {
-							if strings.ToLower(model.Thing.SubType) == "wastecontainer" {
-								@WasteContainerProperties(l10n, model)
-							}
-							if strings.ToLower(model.Thing.SubType) == "sandstorage" {
-								@SandStorageProperties(l10n, model)
-							}
-						}
-						if strings.ToLower(model.Thing.Type) == "sewer" {
-							@SewerProperties(l10n, model)
-						}
+						@ThingsDetailsProperties(l10n, model)
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
 							if model.Thing.Description == "" {
@@ -181,6 +172,21 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 			</div>
 		</div>
 	</div>
+}
+
+func ThingsDetailsProperties(l10n Localizer, model ThingDetailsViewModel) templ.Component {
+	if strings.ToLower(model.Thing.Type) == "container" {
+		if strings.ToLower(model.Thing.SubType) == "wastecontainer" {
+			return WasteContainerProperties(l10n, model)
+		}
+		if strings.ToLower(model.Thing.SubType) == "sandstorage" {
+			return SandStorageProperties(l10n, model)
+		}
+	}
+	if strings.ToLower(model.Thing.Type) == "sewer" {
+		return SewerProperties(l10n, model)
+	}
+	return templ.NopComponent
 }
 
 templ DeleteThing(l10n Localizer, asset AssetLoaderFunc, thingID, thingName string) {
