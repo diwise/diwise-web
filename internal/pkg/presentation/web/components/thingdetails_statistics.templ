@@ -13,7 +13,7 @@ templ ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsV
 				{ l10n.Get("missingdata") }
 			</div>
 		} else {
-			if model.Type == "pointofintrest:beach" || model.Type == "room" {
+			if strings.HasSuffix(model.Type,":beach") || model.Type == "room" {
 				<div class="">{ l10n.Get("currenttemperature") }</div>
 				<div class="text-3xl font-bold">
 					{ fmt.Sprintf("%.1f °C", model.Thing.GetFloatOrDefault("temperature", 0)) }
