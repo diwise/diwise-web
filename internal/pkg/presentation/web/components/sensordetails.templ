@@ -284,12 +284,14 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("devicenotobservedafter") }</div>
 									<div class="flex items-center gap-2">
-										<input type="number" 
-												name="interval" 
-												step="1" 
-												value={ fmt.Sprintf("%.0f", sensor.Interval) } 
-												class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2" 
-												placeholder="Interval"/>
+										<input
+											type="number"
+											name="interval"
+											step="1"
+											value={ fmt.Sprintf("%.0f", sensor.Interval) }
+											class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2"
+											placeholder="Interval"
+										/>
 										<span>{ l10n.Get("hours") }</span>
 									</div>
 								</div>
@@ -588,31 +590,82 @@ func MeasurementTypeCheckboxDropdown(l10n Localizer, asset AssetLoaderFunc, id s
 
 func EnvironmentSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string) templ.Component {
 	viewModel := []OptionViewModel{
-        {
-            Value:    "",
-            Text:     l10n.Get("choose"),
-            Selected: selected == "",
-        },
-        {
-            Value:    "soil",
-            Text:     l10n.Get("soil"),
-            Selected: selected == "soil",
-        },
-        {
-            Value:    "air",
-            Text:     l10n.Get("air"),
-            Selected: selected == "air",
-        },
-        {
-            Value:    "water",
-            Text:     l10n.Get("water"),
-            Selected: selected == "water",
-        },
-    }
+		{
+			Value:    "",
+			Text:     l10n.Get("choose"),
+			Selected: selected == "",
+		},
+		{
+			Value:    "soil",
+			Text:     l10n.Get("soil"),
+			Selected: selected == "soil",
+		},
+		{
+			Value:    "air",
+			Text:     l10n.Get("air"),
+			Selected: selected == "air",
+		},
+		{
+			Value:    "water",
+			Text:     l10n.Get("water"),
+			Selected: selected == "water",
+		},
+	}
 
 	sort.Slice(viewModel[1:], func(i, j int) bool {
-        return viewModel[i+1].Text < viewModel[j+1].Text
-    })
+		return viewModel[i+1].Text < viewModel[j+1].Text
+	})
 
-    return Select(id, false, "", "", viewModel)
+	return Select(id, false, "", "", viewModel)
+}
+
+func RenderStatisticsGraph(l10n Localizer, model ThingDetailsViewModel) templ.Component {
+	now := time.Now()
+	startDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	endDate := time.Now()
+
+	if len(model.Thing.Measurements) > 0 {
+		m := model.Thing.Measurements[len(model.Thing.Measurements)-1]
+		ts := m.Timestamp
+		startDate = time.Date(ts.Year(), ts.Month(), ts.Day(), 0, 0, 0, 0, ts.Location())
+		endDate = ts
+	}
+
+	return Graph(l10n, startDate, endDate)
+}
+
+templ Graph(l10n Localizer, startDate, endDate time.Time) {
+	<div
+		id="graphView"
+		class="w-full"
+		style="height: 40vh; position: relative;"
+		data-start-date={ fmt.Sprintf("%s", startDate.Format("2006-01-02 15:04")) }
+		data-end-date={ fmt.Sprintf("%s", endDate.Format("2006-01-02 15:04")) }
+	>
+		<canvas id="measurement-chart"></canvas>
+		<div id="measurementCharts" style="display:none;"></div>
+	</div>
+	<script>
+		(() => {
+			const graphElement = document.getElementById('graphView');
+			if (graphElement) {
+				const startDateStr = graphElement.getAttribute('data-start-date');
+				const endDateStr = graphElement.getAttribute('data-end-date');
+				
+				const timeAtInput = document.getElementById("timeAt");
+				const endTimeAtInput = document.getElementById("endTimeAt");
+
+				var startDate = dateFns.startOfDay(new Date(startDateStr));
+  				var endDate = dateFns.endOfDay(new Date(endDateStr)); 
+
+				var formattedStartDate = dateFns.format(startDate, 'yyyy-MM-dd HH:mm');
+				var formattedEndDate = dateFns.format(endDate, 'yyyy-MM-dd HH:mm');
+
+				if (timeAtInput && endTimeAtInput) {
+					timeAtInput.value = formattedStartDate;
+					endTimeAtInput.value = formattedEndDate;
+				}
+			}
+		})();
+	</script>
 }
