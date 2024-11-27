@@ -322,8 +322,8 @@ other = "Välj ett alternativ"
 [picksensor]
 other = "Välj sensor"
 
-[placement]
-other = "Placering"
+[environment]
+other = "Miljö"
 
 [PointOfInterest]
 other = "Intressepunkt"

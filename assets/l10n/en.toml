@@ -322,8 +322,8 @@ other = "Pick an option"
 [picksensor]
 other = "Pick sensor"
 
-[placement]
-other = "Placement"
+[environment]
+other = "Environment"
 
 [PointOfInterest]
 other = "Point of interest"
