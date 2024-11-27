@@ -50,6 +50,9 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		q.Add("options", "groupByRef")
 
 		label := ""
+		datasets := []components.ChartDataset{}
+		var chart, table templ.Component
+
 		switch thingType {
 		case "pointofinterest:beach":
 			fallthrough
@@ -100,43 +103,49 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			return
 		}
 
-		datasets := []components.ChartDataset{}
-
 		for _, values := range thing.Values {
 			datasets = append(datasets, toDataset(label, values))
 		}
 
-		var component templ.Component
-		keepRatio := false
+		tsAt := timeAt.UTC().Format(time.RFC3339)
+		endTsAt := endTimeAt.UTC().Format(time.RFC3339)
 
 		switch thingType {
-		//case "beach":
-		//	fallthrough
 		//case "pointofinterest":
-		//	component = components.MeasurementChart(datasets, keepRatio)
+		//case "pointofinterest:beach":
 		//case "building":
-		//	component = components.MeasurementChart(datasets, keepRatio)
+		case "container":
+			fallthrough
 		case "container:wastecontainer":
 			fallthrough
-		case "container":
-			component = components.WastecontainerChart(datasets)
-		//case "lifebuoy":
-		//	component = components.MeasurementChart(datasets, keepRatio)
+		case "container:sandstorage":
+			maxvalue := uint(100)
+			stepsize := uint(10)
+			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, &maxvalue, false)
+
+		case "lifebuoy":
+			stepsize := uint(1)
+			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false)
+
 		case "passage":
-			component = components.PassagesChart(datasets)
+			minvalue := uint(0)
+			stepsize := uint(1)
+			chart = components.StatisticsChart(datasets, "bar", &stepsize, &minvalue, nil, false)
+
 		//case "pumpingstation":
-		//	component = components.MeasurementChart(datasets, keepRatio)
 		case "room":
-			component = components.RoomChart(datasets)
+			stepsize := uint(1)
+			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false)
+
 		//case "sewer":
-		//	component = components.MeasurementChart(datasets, keepRatio)
+		//case "sewer:combinedseweroverflow":
 		//case "watermeter":
-		//	component = components.MeasurementChart(datasets, keepRatio)
 		default:
-			component = components.MeasurementChart(datasets, keepRatio)
+			chart = components.StatisticsChart(datasets, "line", nil, nil, nil, false)
 		}
 
-		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
+		table = components.StatisticsTable(localizer, datasets[0], tsAt, endTsAt)
+		helpers.WriteComponentResponse(ctx, w, r, templ.Join(chart, table), 1024, 0)
 	}
 
 	return http.HandlerFunc(fn)
