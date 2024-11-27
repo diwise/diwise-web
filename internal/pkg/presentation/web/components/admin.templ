@@ -31,14 +31,14 @@ templ AdminPage(l10n Localizer, asset AssetLoaderFunc, model AdminViewModel) {
 				<h2 class="text-2xl font-bold mb-4">{ l10n.Get("sensors") }</h2>
 				<input type="hidden" name="type" value="devices"/>
 				<label for="file" class="block text-sm font-medium mb-1">{ l10n.Get("choosefile") }</label>
-				<input type="file" id="file" name="file" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-tertiary-surface dark:file:bg-primary-surface-white hover:dark:file:bg-white-30 file:text-primary-dark dark:file:text-white hover:file:bg-tertiary-surface-hover mb-4" required/>
+				<input type="file" id="file" name="file" class="block w-full file:cursor-pointer text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-tertiary-surface dark:file:bg-primary-surface-white hover:dark:file:bg-white-30 file:text-primary-dark dark:file:text-white hover:file:bg-tertiary-surface-hover mb-4" required/>
 				<button type="submit" class="w-full font-bold bg-primary-surface dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover text-white dark:text-primary-dark py-2 px-4 rounded-lg hover:bg-primary-surface-hover">{ l10n.Get("upload") }</button>
 			</form>
 			<form action="/admin/import" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 dark:text-zinc-200 rounded-2xl p-6 shadow-lg w-96">
 				<h2 class="text-2xl font-bold mb-4">{ l10n.Get("things") }</h2>
 				<input type="hidden" name="type" value="things"/>
 				<label for="file" class="block text-sm font-medium mb-1">{ l10n.Get("choosefile") }</label>
-				<input type="file" id="file" name="file" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-tertiary-surface dark:file:bg-primary-surface-white hover:dark:file:bg-white-30 file:text-primary-dark dark:file:text-white hover:file:bg-tertiary-surface-hover mb-4" required/>
+				<input type="file" id="file" name="file" class="block w-full file:cursor-pointer text-sm file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-tertiary-surface dark:file:bg-primary-surface-white hover:dark:file:bg-white-30 file:text-primary-dark dark:file:text-white hover:file:bg-tertiary-surface-hover mb-4" required/>
 				<button type="submit" class="w-full font-bold bg-primary-surface dark:bg-primary-surface-dark dark:hover:bg-primary-surface-dark-hover text-white dark:text-primary-dark py-2 px-4 rounded-lg hover:bg-primary-surface-hover">{ l10n.Get("upload") }</button>
 			</form>
 		</div>
