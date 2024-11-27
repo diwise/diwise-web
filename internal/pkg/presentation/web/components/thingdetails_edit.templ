@@ -342,13 +342,13 @@ templ EditHeightAndLevel(l10n Localizer, model ThingDetailsViewModel, thingtype 
 	<div class="flex flex-start gap-10 self-stretch">
 		<div class="flex flex-col gap-2 flex-1">
 			<div class="font-bold">
-			if thingtype == "wastecontainer" {
-				{ l10n.Get("maxcontainerheight") }
-			} else if thingtype == "sewer" || thingtype == "combinedseweroverflow"  {
-				{ l10n.Get("maxdistancesewer") }
-			} else {
-				{ l10n.Get("maxheight") }
-			}
+				if thingtype == "wastecontainer" {
+					{ l10n.Get("maxcontainerheight") }
+				} else if thingtype == "sewer" || thingtype == "combinedseweroverflow" {
+					{ l10n.Get("maxdistancesewer") }
+				} else {
+					{ l10n.Get("maxheight") }
+				}
 			</div>
 			<div class="flex items-center">
 				<input
@@ -366,11 +366,10 @@ templ EditHeightAndLevel(l10n Localizer, model ThingDetailsViewModel, thingtype 
 			<div class="font-bold">
 				if thingtype == "wastecontainer" {
 					{ l10n.Get("maxfillinglevel") }
-				}
-				else if thingtype == "sewer" || thingtype == "combinedseweroverflow"  {
+				} else if thingtype == "sewer" || thingtype == "combinedseweroverflow" {
 					{ l10n.Get("maxwaterlevel") }
-				} else { 
-					{ l10n.Get("maxheight") } 
+				} else {
+					{ l10n.Get("maxheight") }
 				}
 			</div>
 			<div class="flex items-center">

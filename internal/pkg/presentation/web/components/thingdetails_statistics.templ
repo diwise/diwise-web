@@ -81,31 +81,44 @@ templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 		</div>
 		<div id="statistics-data" class="w-full overflow-x-auto max-h-64"></div>
 	</div>
-	<script>
-		const showGraph = () => {
-			let tbl = document.getElementById('statistics-table');
-			let grp = document.getElementById('measurement-chart-wrapper');
+	<script>				
+		showGraph = () => {
+			const tbl = document.getElementById('statistics-table');
+			const grp = document.getElementById('measurement-chart-wrapper');
 			
-			if (tbl) {
+			if (tbl) {				
 				tbl.hidden = true;				
 			}
 
 			if (grp){
 				grp.hidden = false;
 			}
+
+			sessionStorage.setItem('showGraphOrTable', 'graph');
 		};
-		const showTable = () => {
-			let tbl = document.getElementById('statistics-table');
-			let grp = document.getElementById('measurement-chart-wrapper');
+		
+		showTable = () => {
+			const tbl = document.getElementById('statistics-table');
+			const grp = document.getElementById('measurement-chart-wrapper');
 			
-			if (tbl) {
+			if (tbl) {				
 				tbl.hidden = false;				
 			}
 
 			if (grp){
 				grp.hidden = true;
 			}
+
+			sessionStorage.setItem('showGraphOrTable', 'table');
 		};
+							
+		htmx.onLoad(() => {			
+			if (sessionStorage.getItem('showGraphOrTable') === 'table') {				
+				showTable();
+			} else {				
+				showGraph();
+			}
+		});
 	</script>
 }
 
