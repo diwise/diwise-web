@@ -3,6 +3,7 @@ package components
 import (
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
+	"slices"
 	"strings"
 )
 
@@ -172,7 +173,7 @@ templ StatisticsTable(l10n Localizer, dataset ChartDataset, timeAt, endTimeAt st
 			</tr>
 		</thead>
 		<tbody>
-			for _, v := range dataset.Data {
+			for _, v := range slices.Backward(dataset.Data) {
 				@StatisticsTableRow(l10n, v)
 			}
 		</tbody>
