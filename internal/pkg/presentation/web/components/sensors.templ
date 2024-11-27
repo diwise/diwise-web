@@ -75,9 +75,9 @@ templ SensorsFilter(l10n Localizer, model SensorListViewModel) {
 		<div class="flex h-12 justify-between items-center">
 			<div class="flex items-center dark:text-white">
 				<div class="flex items-center gap-6">
-					<div class="flex rounded-xl py-2 px-3 gap-2 w-56 border border-input-surface">
+					<div class="flex rounded-xl py-2 px-3 gap-2 w-56 border border-input-surface dark:border-white-30">
 						@SVG("search", Size(20))
-						<input class="filter w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark" 
+						<input class="filter w-full block focus:outline-none dark:bg-content-background" 
 							type="search"
 							name="search"
 							placeholder={ l10n.Get("search") }
