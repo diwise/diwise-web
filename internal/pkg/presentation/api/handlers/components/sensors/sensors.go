@@ -268,7 +268,7 @@ func toViewModel(sensor application.Sensor) components.SensorViewModel {
 		DevEUI:       sensor.SensorID,
 		Name:         sensor.Name,
 		BatteryLevel: 0,
-		LastSeen:     sensor.DeviceState.ObservedAt,
+		LastSeen:     sensor.DeviceStatus.ObservedAt,
 		Latitude:     sensor.Location.Latitude,
 		Longitude:    sensor.Location.Longitude,
 	}
