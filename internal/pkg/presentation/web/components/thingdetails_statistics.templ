@@ -76,7 +76,7 @@ templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 				@StatisticsFilter(l10n, model.Thing.ID, model.Thing.Type, model.Thing.SubType)
 			</div>
 		</div>
-		<div id="measurement-chart-wrapper" class={ "w-full", templ.KV("chart-wrapper", !model.TableView) } hidden?={ model.TableView }>
+		<div id="measurement-chart-wrapper" class={ "w-full", "chart-wrapper" } hidden?={ model.TableView }>
 			<canvas id="measurement-chart"></canvas>
 		</div>
 		<div id="statistics-data" class="w-full overflow-x-auto max-h-64"></div>
