@@ -366,24 +366,22 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 						const lastSeenInput = document.querySelector('input[name="lastseen"]');
 						if (lastSeenInput) {
 							lastSeenInput.value = ""; 
-							lastSeenInput.dispatchEvent(new Event('input'));
+							lastSeenInput.dispatchEvent(new Event('input')); 
 						}
 					} else {
 						const checkbox = document.querySelector(`input[name="${filter.name}"][value="${filter.value}"]`);
 						if (checkbox) {
-							checkbox.checked = false;
+							checkbox.checked = false; // Avmarkera
 							checkbox.dispatchEvent(new Event('change')); 
 						}
-					}n10!
+					}
 
 					const activeFilters = document.querySelectorAll('input:checked, input[name="lastseen"]:not([value=""])');
 					if (activeFilters.length > 0) {
-						console.log('Aktiva filter finns kvar, uppdaterar formuläret:', activeFilters);
 						if (form) {
 							form.dispatchEvent(new Event('submit', { cancelable: true }));
 						}
 					} else {
-						console.log('Inga aktiva filter kvar, uppdaterar tabellen med tom filtrering');
 						if (form) {
 							form.dispatchEvent(new Event('submit', { cancelable: true }));
 						}
@@ -413,7 +411,7 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 					}
 
 					lastSeenInput.value = ""; 
-					lastSeenInput.dispatchEvent(new Event('change'));
+					lastSeenInput.dispatchEvent(new Event('change')); 
 				});
 
 				selectedFiltersContainer.appendChild(clearAllDiv);
