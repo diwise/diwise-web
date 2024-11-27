@@ -334,14 +334,13 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 			}));
 
 			const lastSeenInput = document.querySelector('input[name="lastseen"]');
-			let selectedLastSeen = [];
-			if (lastSeenInput && lastSeenInput.value) {
-				selectedLastSeen = [{
+			const selectedLastSeen = lastSeenInput && lastSeenInput.value
+				? [{
 					name: "lastseen",
 					value: lastSeenInput.value,
 					text: `Senast sedd efter: ${lastSeenInput.value.replace('T', ' ').slice(0, 16)}`,
-				}];
-			}
+				}]
+				: [];
 
 			const selectedFilters = [...selectedTypes, ...selectedTags, ...selectedFillingLevel, ...selectedStatus, ...selectedOnline, ...selectedLastSeen];
 			
@@ -360,30 +359,18 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 				const removeIcon = document.createElement('span');
 				removeIcon.innerHTML = svgIcon;
 				removeIcon.addEventListener('click', function() {
-					const form = document.getElementById('filterForm');
-
 					if (filter.name === "lastseen") {
 						const lastSeenInput = document.querySelector('input[name="lastseen"]');
+						
 						if (lastSeenInput) {
 							lastSeenInput.value = ""; 
-							lastSeenInput.dispatchEvent(new Event('input')); 
+							lastSeenInput.dispatchEvent(new Event('change')); 
 						}
 					} else {
 						const checkbox = document.querySelector(`input[name="${filter.name}"][value="${filter.value}"]`);
 						if (checkbox) {
-							checkbox.checked = false; // Avmarkera
+							checkbox.checked = false;
 							checkbox.dispatchEvent(new Event('change')); 
-						}
-					}
-
-					const activeFilters = document.querySelectorAll('input:checked, input[name="lastseen"]:not([value=""])');
-					if (activeFilters.length > 0) {
-						if (form) {
-							form.dispatchEvent(new Event('submit', { cancelable: true }));
-						}
-					} else {
-						if (form) {
-							form.dispatchEvent(new Event('submit', { cancelable: true }));
 						}
 					}
 				});
