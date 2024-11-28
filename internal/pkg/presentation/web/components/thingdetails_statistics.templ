@@ -99,10 +99,12 @@ templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 		</div>
 		<div id="statistics-data" class="w-full overflow-x-auto max-h-64"></div>
 	</div>
-	<script>				
+	<script>
 		showGraph = () => {
 			const tbl = document.getElementById('statistics-table');
 			const grp = document.getElementById('measurement-chart-wrapper');
+			const tb = document.getElementById('tableButton');				
+			const gb = document.getElementById('graphButton'); 
 			
 			if (tbl) {				
 				tbl.hidden = true;				
@@ -113,11 +115,22 @@ templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 			}
 
 			sessionStorage.setItem('showGraphOrTable', 'graph');
+
+			if (gb != null) {
+				gb.classList.add('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');
+				gb.classList.remove('stroke-black', 'dark:stroke-white');
+			}
+			if (tb != null) {
+				tb.classList.add('fill-black', 'dark:fill-white', 'stroke-black');
+				tb.classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');
+			}
 		};
 		
 		showTable = () => {
 			const tbl = document.getElementById('statistics-table');
 			const grp = document.getElementById('measurement-chart-wrapper');
+			const tb = document.getElementById('tableButton');				
+			const gb = document.getElementById('graphButton'); 
 			
 			if (tbl) {				
 				tbl.hidden = false;				
@@ -128,6 +141,15 @@ templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 			}
 
 			sessionStorage.setItem('showGraphOrTable', 'table');
+			
+			if (tb != null) {
+				tb.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'dark:stroke-black', 'stroke-white' );
+				tb.classList.remove('dark:fill-white', 'dark:stroke-white');
+			}
+			if (gb != null) {
+				gb.classList.add('stroke-black', 'dark:stroke-white');
+				gb.classList.remove('bg-black', 'stroke-white', 'dark:bg-white', 'dark:stroke-black');
+			}
 		};
 							
 		htmx.onLoad(() => {			
