@@ -343,7 +343,7 @@ templ TableOrMap(l10n Localizer, hxGet string) {
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
 			<div class="relative group">
 				<button
-					id="tableButton"
+					id="tableviewButton"
 					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=false", hxGet))) }
 					hx-target="#tableOrMap"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
@@ -364,8 +364,8 @@ templ TableOrMap(l10n Localizer, hxGet string) {
 					hx-target="#tableOrMap"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
 					hx-on:click="this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white');
-					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black');
-					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
+					document.getElementById('tableviewButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black');
+					document.getElementById('tableviewButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
 				>
 					<svg class="w-[18px] h-[18px]">
 						@templ.Raw(iconSVG("map"))
