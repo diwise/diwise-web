@@ -645,9 +645,9 @@ func DeskCell(l10n Localizer, t ThingViewModel) templ.Component {
 		return Text(l10n.Get("nodata"))
 	}
 	if b {
-		return Text(l10n.Get("present"))
+		return Text(l10n.Get("occupied"))
 	} else {
-		return Text(l10n.Get("notPresent"))
+		return Text(l10n.Get("available"))
 	}
 }
 
@@ -914,9 +914,9 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		case "desk":
 			if presence, ok := thing.GetBool("presence"); ok {
 				if presence {
-					feature.AddProperty("present", l10n.Get("yes"))
+					feature.AddProperty("present", l10n.Get("occupied"))
 				} else {
-					feature.AddProperty("present", l10n.Get("no"))
+					feature.AddProperty("present", l10n.Get("available"))
 				}
 			} else {
 				feature.AddProperty("text_nodata", l10n.Get("nodata"))

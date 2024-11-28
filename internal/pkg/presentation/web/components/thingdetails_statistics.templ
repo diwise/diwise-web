@@ -37,9 +37,9 @@ templ ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsV
 				<div class="">{ l10n.Get("status") }</div>
 				<div class="text-3xl font-bold">
 					if model.Thing.GetBoolOrDefault("presence", false) {
-						{ l10n.Get("available") }
-					} else {
 						{ l10n.Get("occupied") }
+					} else {
+						{ l10n.Get("available") }
 					}
 				</div>
 			}
