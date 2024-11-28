@@ -2,6 +2,7 @@ package things
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -161,7 +162,7 @@ func toDataset(label string, measurements []application.Measurement) components.
 		}
 
 		if v.Value != nil {
-			dataset.Add(v.Timestamp.Format(time.DateTime), *v.Value)
+			dataset.Add(v.Timestamp.Format(time.DateTime), fmt.Sprintf("%.1f", *v.Value))
 		}
 
 		if v.Value == nil && v.Count != nil && *v.Count > 0 {

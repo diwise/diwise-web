@@ -163,6 +163,9 @@ other = "Inactive sensors"
 [information]
 other = "Information"
 
+[inplace]
+other = "In place"
+
 [present]
 other = "Present"
 

@@ -587,6 +587,10 @@ func ThingStatusCell(l10n Localizer, thing ThingViewModel) templ.Component {
 		case "room":
 			return TemperatureCell(thing)
 		case "sewer":
+			switch strings.ToLower(thing.SubType) {
+			case "combinedseweroverflow":
+				return CombinedSewerOverflowCell(l10n, thing)
+			}
 			return SewerCell(l10n, thing)
 		case "watermeter":
 			return WaterMeterCell(l10n, thing)
@@ -649,9 +653,7 @@ templ WaterMeterCell(l10n Localizer, t ThingViewModel) {
 
 func SewerCell(l10n Localizer, t ThingViewModel) templ.Component {
 	overflowObserved, okOverflow := t.Properties["overflowObserved"]
-	currentLevel, okLevel := t.Properties["currentLevel"]
-	percent, okPercent := t.Properties["percent"]
-
+	
 	var components []templ.Component
 
 	if okOverflow {
@@ -666,6 +668,15 @@ func SewerCell(l10n Localizer, t ThingViewModel) templ.Component {
 			components = append(components, Text(fmt.Sprintf("%s: %s, ", l10n.Get("overflow"), vbTranslation)))
 		}
 	}
+	
+	return Div("", components...)
+}
+
+func CombinedSewerOverflowCell(l10n Localizer, t ThingViewModel) templ.Component {
+	currentLevel, okLevel := t.Properties["currentLevel"]
+	percent, okPercent := t.Properties["percent"]
+
+	var components []templ.Component
 
 	if okLevel {
 		if v, ok := currentLevel.(float64); ok {

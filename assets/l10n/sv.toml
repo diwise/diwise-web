@@ -163,6 +163,9 @@ other = "Inaktiva sensorer"
 [information]
 other = "Information"
 
+[inplace]
+other = "På plats"
+
 [present]
 other = "På plats"
 

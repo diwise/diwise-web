@@ -52,10 +52,27 @@ templ ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsV
 					}
 				</div>
 			}
-			if model.Type =="passage" {
+			if model.Type == "passage" {
 				<div class="">{ l10n.Get("numberofpassagestoday") }</div>
 				<div class="text-3xl font-bold">
 					{ fmt.Sprintf("%0.f st", model.Thing.GetFloatOrDefault("passagesToday", 0)) }
+				</div>
+			}
+			if model.Type == "sewer" {
+				<div class="">{ l10n.Get("level") }</div>
+				<div class="text-3xl font-bold">
+					{ fmt.Sprintf("%0.fm (%0.f%%)", model.Thing.GetFloatOrDefault("currentLevel", 0), model.Thing.GetFloatOrDefault("percent", 0)) }
+				</div>
+			}
+
+			if strings.HasSuffix(model.Type,":combinedseweroverflow") {
+				<div class="">{ l10n.Get("overflowrightnow") }</div>
+				<div class="text-3xl font-bold">
+					if model.Thing.GetBoolOrDefault("overflowObserved", false) {
+						{ l10n.Get("yes") }
+					} else {
+						{ l10n.Get("no") }
+					}
 				</div>
 			}
 		}
