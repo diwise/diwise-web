@@ -68,10 +68,13 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		case "container":
 			q.Add("n", "3435/2") //FillingLevel/Percentage
 			label = localizer.Get("3435-2")
-		case "lifebuoy":
+		case "desk":
 			q.Add("n", "3302/5500") //Presence/State
 			q.Add("timeunit", "hour")
-			q.Add("vb", "false")
+			q.Add("vb", "true")
+			q.Del("options")
+		case "lifebuoy":
+			q.Add("n", "3302/5500") //Presence/State
 			q.Del("options")
 		case "passage":
 			q.Add("n", "10351/50") //Door/State
@@ -123,7 +126,9 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			maxvalue := uint(100)
 			stepsize := uint(10)
 			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, &maxvalue, false)
-
+		case "desk":
+			stepsize := uint(1)
+			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false)
 		case "lifebuoy":
 			stepsize := uint(1)
 			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false)

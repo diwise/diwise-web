@@ -32,6 +32,18 @@ templ ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsV
 					{ fmt.Sprintf("%0.f%%", model.Thing.GetFloatOrDefault("percent", 0)) }
 				</div>
 			}
+
+			if model.Type == "desk" {
+				<div class="">{ l10n.Get("status") }</div>
+				<div class="text-3xl font-bold">
+					if model.Thing.GetBoolOrDefault("presence", false) {
+						{ l10n.Get("available") }
+					} else {
+						{ l10n.Get("occupied") }
+					}
+				</div>
+			}
+
 			if model.Type == "pumpingstation" {
 				<div class="">{ l10n.Get("pumping") }</div>
 				<div class="text-3xl font-bold">

@@ -49,6 +49,9 @@ other = "Angle missing."
 [area]
 other = "Area"
 
+[available]
+other = "Available"
+
 [batterylevel]
 other = "Battery level"
 
@@ -291,6 +294,9 @@ other = "Number of passages today"
 
 [numberofsensors]
 other = "Number of sensors"
+
+[occupied]
+other = "Occupied"
 
 [off]
 other = "Off"

@@ -49,6 +49,9 @@ other = "Vinkel saknas."
 [area]
 other = "Område"
 
+[available]
+other = "Ledig"
+
 [batterylevel]
 other = "Batterinivå"
 
@@ -291,6 +294,9 @@ other = "Antal passager idag"
 
 [numberofsensors]
 other = "Antal sensorer"
+
+[occupied]
+other = "Upptagen"
 
 [off]
 other = "Av"
