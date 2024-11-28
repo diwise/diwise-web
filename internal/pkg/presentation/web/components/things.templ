@@ -652,27 +652,6 @@ templ WaterMeterCell(l10n Localizer, t ThingViewModel) {
 }
 
 func SewerCell(l10n Localizer, t ThingViewModel) templ.Component {
-	overflowObserved, okOverflow := t.Properties["overflowObserved"]
-	
-	var components []templ.Component
-
-	if okOverflow {
-
-		if vb, ok := overflowObserved.(bool); ok {
-			var vbTranslation string
-			if vb {
-				vbTranslation = l10n.Get("yes")
-			} else {
-				vbTranslation = l10n.Get("no")
-			}
-			components = append(components, Text(fmt.Sprintf("%s: %s, ", l10n.Get("overflow"), vbTranslation)))
-		}
-	}
-	
-	return Div("", components...)
-}
-
-func CombinedSewerOverflowCell(l10n Localizer, t ThingViewModel) templ.Component {
 	currentLevel, okLevel := t.Properties["currentLevel"]
 	percent, okPercent := t.Properties["percent"]
 
@@ -690,6 +669,27 @@ func CombinedSewerOverflowCell(l10n Localizer, t ThingViewModel) templ.Component
 		}
 	}
 
+	return Div("", components...)
+}
+
+func CombinedSewerOverflowCell(l10n Localizer, t ThingViewModel) templ.Component {
+	overflowObserved, okOverflow := t.Properties["overflowObserved"]
+	
+	var components []templ.Component
+
+	if okOverflow {
+
+		if vb, ok := overflowObserved.(bool); ok {
+			var vbTranslation string
+			if vb {
+				vbTranslation = l10n.Get("yes")
+			} else {
+				vbTranslation = l10n.Get("no")
+			}
+			components = append(components, Text(fmt.Sprintf("%s: %s", l10n.Get("overflow"), vbTranslation)))
+		}
+	}
+	
 	return Div("", components...)
 }
 
