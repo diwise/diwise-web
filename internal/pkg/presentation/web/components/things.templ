@@ -280,17 +280,25 @@ templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
 }
 
 templ SelectedFilters(l10n Localizer, hxget string) {
-	<div class="flex items-start gap-2 self-stretch">
+	<div class="flex items-center gap-2 self-stretch">
 		<div class="font-bold self-start whitespace-nowrap dark:text-white p-2">
 			{ l10n.Get("selectedfilters") }
 		</div>
 		<form id="filterForm" hx-get={ hxget } hx-target="#tableOrMap" hx-swap="outerHTML">
 			<div id="selectedFilters" class="flex flex-wrap items-center gap-2 self-stretch text-sm dark:text-white"></div>
 		</form>
+		<div id="clearAllFilters" class="hidden flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border cursor-pointer text-sm">
+			{ l10n.Get("clearall") }
+		</div>
+		<div id="noFilters" class="flex items-center py-2 justify-center gap-1 rounded-full italic text-sm">
+			{ l10n.Get("nofilterselected") }
+		</div>
 	</div>
 	<script>
 		function updateSelectedFilters() {
 			const selectedFiltersContainer = document.getElementById('selectedFilters');
+			const clearAllButton = document.getElementById('clearAllFilters');
+			const noFiltersDiv = document.getElementById('noFilters');
 			
 			if (!selectedFiltersContainer) {
 				return;
@@ -380,35 +388,13 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 			});
 
 			if (selectedFilters.length > 0) {
-				const clearAllDiv = document.createElement('div');
-				clearAllDiv.className = "flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border cursor-pointer";
-				clearAllDiv.textContent = "Rensa alla";
-
-				clearAllDiv.addEventListener('click', function() {
-					const allCheckedCheckboxes = document.querySelectorAll('input:checked');
-					allCheckedCheckboxes.forEach(cb => {
-						cb.checked = false;
-					});
-
-					document.getElementById('filterForm').dispatchEvent(new Event('submit', {cancelable: true}));
-
-					const fillinglevelFilter = document.getElementById('fillinglevelFilter');
-					if (fillinglevelFilter) {
-						fillinglevelFilter.classList.add('hidden');
-					}
-
-					lastSeenInput.value = ""; 
-					lastSeenInput.dispatchEvent(new Event('change')); 
-				});
-
-				selectedFiltersContainer.appendChild(clearAllDiv);
-			}
-
-			if (selectedFilters.length === 0) {
-				const noFilterDiv = document.createElement('div');
-				noFilterDiv.className = "flex items-center p-2 justify-center gap-1 rounded-full italic";
-				noFilterDiv.textContent = "Inga filter valda";
-				selectedFiltersContainer.appendChild(noFilterDiv);
+				clearAllButton.classList.remove('hidden');
+				clearAllButton.addEventListener('click', clearAllFilters);
+				noFiltersDiv.classList.add('hidden');
+			} else {
+				clearAllButton.classList.add('hidden');
+				clearAllButton.removeEventListener('click', clearAllFilters);
+				noFiltersDiv.classList.remove('hidden');
 			}
 		}
 
@@ -433,6 +419,26 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 				fillinglevelFilter.classList.remove('hidden');
 			} else {
 				fillinglevelFilter.classList.add('hidden');
+			}
+		}
+
+		function clearAllFilters() {
+			const allCheckedCheckboxes = document.querySelectorAll('input:checked');
+			allCheckedCheckboxes.forEach(cb => {
+				cb.checked = false;
+			});
+
+			document.getElementById('filterForm').dispatchEvent(new Event('submit', { cancelable: true }));
+
+			const fillinglevelFilter = document.getElementById('fillinglevelFilter');
+			if (fillinglevelFilter) {
+				fillinglevelFilter.classList.add('hidden');
+			}
+
+			const lastSeenInput = document.querySelector('input[name="lastseen"]');
+			if (lastSeenInput) {
+				lastSeenInput.value = "";
+				lastSeenInput.dispatchEvent(new Event('change'));
 			}
 		}
 

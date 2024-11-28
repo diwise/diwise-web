@@ -76,6 +76,9 @@ other = "Ange mättyp"
 [choosetags]
 other = "Välj taggar"
 
+[clearall]
+other = "Rensa alla"
+
 [consumption]
 other = "Förbrukning"
 
@@ -270,6 +273,9 @@ other = "Nej"
 
 [nodata]
 other = "-"
+
+[nofilterselected]
+other = "Inga filter valda"
 
 [notloggedin]
 other = "Du behöver logga in"

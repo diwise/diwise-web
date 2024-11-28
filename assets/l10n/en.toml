@@ -76,6 +76,9 @@ other = "Pick measurement type"
 [choosetags]
 other = "Choose tags"
 
+[clearall]
+other = "Clear all"
+
 [consumption]
 other = "Consumption"
 
@@ -270,6 +273,9 @@ other = "No"
 
 [nodata]
 other = "-"
+
+[nofilterselected]
+other = "No filter selected"
 
 [notloggedin]
 other = "Please log in"
