@@ -66,7 +66,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 			}
 			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#sensor-view"), HxUrl("get", fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)))
 		</div>
-		<div class="w-full flex py-6 gap-10">
+		<div class="w-full flex flex-col lg:flex-row py-6 gap-10">
 			//Yttersta diven
 			<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 				//Uppgifter och larm
@@ -123,7 +123,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 				</div>
 				//Larmlista, inte med i MVP
 				//@AlarmList(l10n)
-				<div class="flex flex-col items-start self-stretch">
+				<div class="flex flex-col items-start">
 					// Mätvärden
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik Mätvärden
@@ -173,7 +173,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 				</div>
 			</div>
 			<div class="border-l border-gray-30 dark:border-white-30 h-auto"></div> //Vertikal gray-30 mellan uppgifter och position
-			<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+			<div class="flex flex-col items-start gap-20 w-full lg:flex-[1_0_0]">
 				<div class="flex flex-col items-start self-stretch">
 					//Karta
 					<div class="flex items-center gap-3 self-stretch">
