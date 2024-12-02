@@ -239,13 +239,24 @@ templ MenuSegment(title, slug string, icon templ.Component, asset AssetLoaderFun
 
 templ NewDarkModeToggle(isOn bool, asset AssetLoaderFunc) {
 	<div id="NewDarkModeToggle" class="flex items-center bg-tertiary-surface dark:bg-primary-surface-white gap-2 rounded-full p-1.5 text-sm font-bold cursor-pointer">
-		<div id="toggle-light" class="flex items-center bg-primary-surface dark:bg-transparent rounded-full text-white dark:text-white py-2 px-3.5 gap-2">
+		<div id="toggle-light" class="flex items-center bg-primary-surface dark:bg-transparent rounded-full dark:hover:bg-white-30 text-white dark:text-white py-2 px-3 gap-2">
 			@SVG("sun-medium", Size(24), Box(24, 24), FillColor("white", "primary-dark"))
 			Ljust
 		</div>
-		<div id="toggle-dark" class="flex items-center py-2 px-3.5 gap-2 dark:bg-primary-surface-dark rounded-full dark:text-black">
+		<div id="toggle-dark" class="flex items-center py-2 px-3.5 gap-2 dark:bg-primary-surface-dark hover:bg-tertiary-surface-hover rounded-full dark:text-black">
 			@SVG("moon", Size(20), Box(20, 20), FillColor("primary-dark", "primary-dark"))
 			Mörkt
+		</div>
+	</div>	
+}
+
+templ NewDarkModeToggleMdMenu(isOn bool, asset AssetLoaderFunc) {
+	<div id="NewDarkModeToggle" class="flex flex-col items-center bg-tertiary-surface dark:bg-primary-surface-white gap-2 rounded-full p-1.5 text-sm font-bold cursor-pointer">
+		<div id="toggle-light-md" class="flex items-center p-2 gap-2 bg-primary-surface dark:bg-transparent rounded-full dark:hover:bg-white-30 text-white dark:text-white">
+			@SVG("sun-medium", Size(24), Box(24, 24), FillColor("white", "primary-dark"))
+		</div>
+		<div id="toggle-dark-md" class="flex items-center p-2 gap-2 dark:bg-primary-surface-dark hover:bg-tertiary-surface-hover rounded-full dark:text-black">
+			@SVG("moon", Size(20), Box(20, 20), FillColor("primary-dark", "primary-dark"))
 		</div>
 	</div>	
 }
@@ -362,7 +373,7 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 					<div class="font-bold">
 						@MenuSegment(l10n.Get("logout"), "/logout", SVG("log-out"), asset, false)
 					</div>
-					@DarkModeToggle(false, asset)
+					@NewDarkModeToggleMdMenu(false, asset)
 				</div>
 			</div>
 			//Md menu end
@@ -418,6 +429,8 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 
 			document.getElementById('toggle-light').addEventListener('click', () => setTheme('light'));
 			document.getElementById('toggle-dark').addEventListener('click', () => setTheme('dark'));
+			document.getElementById('toggle-light-md').addEventListener('click', () => setTheme('light'));
+			document.getElementById('toggle-dark-md').addEventListener('click', () => setTheme('dark'));
 		}
 
 		onPageLoad()
