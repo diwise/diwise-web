@@ -100,6 +100,9 @@ other = "Current level"
 [currenttemperature]
 other = "Current temperature"
 
+[dark]
+other = "Dark"
+
 [degrees]
 other = "degrees"
 
@@ -189,6 +192,9 @@ other = "Lifebuoy"
 
 [Lifebuoy]
 other = "Lifebuoy"
+
+[light]
+other = "Light"
 
 [list]
 other = "List"

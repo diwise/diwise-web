@@ -100,6 +100,9 @@ other = "Aktuell nivå"
 [currenttemperature]
 other = "Nuvarande temperatur"
 
+[dark]
+other = "Mörkt"
+
 [degrees]
 other = "grader"
 
@@ -192,6 +195,9 @@ other = "Livboj"
 
 [Lifebuoy]
 other = "Livboj"
+
+[light]
+other = "Ljust"
 
 [location]
 other = "Position"
