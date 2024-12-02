@@ -262,26 +262,6 @@ templ NewDarkModeToggleMdMenu(isOn bool, asset AssetLoaderFunc) {
 	</div>	
 }
 
-templ Switch(id string, isOn bool) {
-	<div id={ id } class="hidden lg:flex h-8 w-14 min-w-14 p-1.5 items-end dark:flex-col-reverse gap-1 rounded-[56px] bg-gray-900 bg-opacity-20 dark:bg-white dark:bg-opacity-30">
-		<div class="flex h-5 w-5 p-[3.33px] bg-gray-900 bg-opacity-60 dark:bg-white dark:bg-opacity-90 rounded-full justify-center items-center">
-			<div class="w-[13.33px] h-[13.33px] px-[1.67px] pt-[2.78px] pb-[3.33px] justify-center items-center inline-flex">
-				<svg class="h-[14px] min-w-[14px] fill-zinc-50 dark:fill-neutral-800">
-					<path fill-rule="evenodd" d="M11.837 3.274a.556.556 0 0 1 0 .786l-6.11 6.11a.555.555 0 0 1-.787 0L2.163 7.394a.556.556 0 1 1 .785-.786l2.385 2.385 5.719-5.718a.556.556 0 0 1 .785 0Z" clip-rule="evenodd"></path>
-				</svg>
-			</div>
-		</div>
-	</div>
-}
-
-templ DarkModeToggle(isOn bool, asset AssetLoaderFunc) {
-	<div class="hidden lg:flex px-3.5 justify-start items-center gap-3 inline-flex">
-		@SVG("sun-medium", Size(24), Box(24, 24))
-		@Switch("darkmode-toggle", isOn)
-		@SVG("moon", Size(20), Box(20, 20))
-	</div>
-}
-
 templ Badge(count string) {
 	<div class="w-5 h-5 bg-gray-900 dark:bg-white bg-opacity-95 rounded-lg justify-center items-center flex">
 		<div class="w-6 h-6 text-center text-white dark:text-neutral-800 text-sm font-bold font-sans leading-6">
