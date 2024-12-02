@@ -46,6 +46,7 @@ var icons = map[string]string{
 	"log-out":          "<path fill-rule=\"evenodd\" d=\"M4.167 3.333a.833.833 0 0 0-.834.834v11.666a.833.833 0 0 0 .834.834H7.5a.833.833 0 0 1 0 1.666H4.167a2.5 2.5 0 0 1-2.5-2.5V4.167a2.5 2.5 0 0 1 2.5-2.5H7.5a.833.833 0 1 1 0 1.666H4.167ZM12.744 5.244a.833.833 0 0 1 1.179 0l4.166 4.167a.833.833 0 0 1 0 1.178l-4.166 4.167a.833.833 0 0 1-1.179-1.178L16.322 10l-3.578-3.577a.833.833 0 0 1 0-1.179Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M6.667 10c0-.46.373-.833.833-.833h10a.833.833 0 0 1 0 1.666h-10A.833.833 0 0 1 6.667 10Z\" clip-rule=\"evenodd\"/>",
 	"map":              "<path fill-rule=\"evenodd\" d=\"M16.144 1.612a.75.75 0 0 1 .356.638V13.5a.75.75 0 0 1-.415.67l-4.5 2.25a.75.75 0 0 1-.67 0L6.75 14.339l-4.165 2.083A.75.75 0 0 1 1.5 15.75V4.5a.75.75 0 0 1 .415-.67l4.5-2.25a.75.75 0 0 1 .67 0L11.25 3.66l4.165-2.082a.75.75 0 0 1 .73.033ZM3 4.964v9.572l3.415-1.707a.75.75 0 0 1 .67 0l4.165 2.082L15 13.037V3.463L11.585 5.17a.75.75 0 0 1-.67 0L6.75 3.089 3 4.964Z\" clip-rule=\"evenodd\"/><path fill-rule=\"evenodd\" d=\"M6.75 1.5a.75.75 0 0 1 .75.75V13.5a.75.75 0 0 1-1.5 0V2.25a.75.75 0 0 1 .75-.75ZM11.25 3.75a.75.75 0 0 1 .75.75v11.25a.75.75 0 0 1-1.5 0V4.5a.75.75 0 0 1 .75-.75Z\" clip-rule=\"evenodd\"/>",
 	"map-pin":          "<path d=\"M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z\" /><circle cx=\"12\" cy=\"10\" r=\"3\" />",
+	"menu": 			"<path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M3 12C3 11.4477 3.44772 11 4 11H20C20.5523 11 21 11.4477 21 12C21 12.5523 20.5523 13 20 13H4C3.44772 13 3 12.5523 3 12Z\" /><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M3 6C3 5.44772 3.44772 5 4 5H20C20.5523 5 21 5.44772 21 6C21 6.55228 20.5523 7 20 7H4C3.44772 7 3 6.55228 3 6Z\"/><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M3 18C3 17.4477 3.44772 17 4 17H20C20.5523 17 21 17.4477 21 18C21 18.5523 20.5523 19 20 19H4C3.44772 19 3 18.5523 3 18Z\"/>",
 	"moon":             "<path fill-rule=\"evenodd\" d=\"M8.228 3.573a6.667 6.667 0 1 0 8.199 8.2 6.136 6.136 0 0 1-8.199-8.2ZM5.37 3.071A8.333 8.333 0 0 1 10 1.667a.833.833 0 0 1 .59 1.422 4.47 4.47 0 0 0 6.32 6.322.833.833 0 0 1 1.423.59A8.333 8.333 0 1 1 5.37 3.07Z\" clip-rule=\"evenodd\"/>",
 	"pen":              "<path d=\"M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z\"/>",
 	"pencil":           "<path fill=\"none\" d=\"M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z\" /><path fill=\"none\" d=\"m15 5 4 4\" />",
@@ -239,11 +240,11 @@ templ MenuSegment(title, slug string, icon templ.Component, asset AssetLoaderFun
 
 templ NewDarkModeToggle(isOn bool, asset AssetLoaderFunc, l10n Localizer) {
 	<div id="NewDarkModeToggle" class="flex items-center bg-tertiary-surface dark:bg-primary-surface-white gap-2 rounded-full p-1.5 text-sm font-bold cursor-pointer">
-		<div id="toggle-light" class="flex items-center bg-primary-surface dark:bg-transparent rounded-full dark:hover:bg-white-30 text-white dark:text-white py-2 px-3 gap-2">
+		<div class="toggle-light flex items-center bg-primary-surface dark:bg-transparent rounded-full dark:hover:bg-white-30 text-white dark:text-white py-2 px-3 gap-2">
 			@SVG("sun-medium", Size(24), Box(24, 24), FillColor("white", "primary-dark"))
 			{ l10n.Get("light") }
 		</div>
-		<div id="toggle-dark" class="flex items-center py-2 px-3.5 gap-2 dark:bg-primary-surface-dark hover:bg-tertiary-surface-hover rounded-full dark:text-black">
+		<div class="toggle-dark flex items-center py-2 px-3.5 gap-2 dark:bg-primary-surface-dark hover:bg-tertiary-surface-hover rounded-full dark:text-black">
 			@SVG("moon", Size(20), Box(20, 20), FillColor("primary-dark", "primary-dark"))
 			{ l10n.Get("dark") }
 		</div>
@@ -252,10 +253,10 @@ templ NewDarkModeToggle(isOn bool, asset AssetLoaderFunc, l10n Localizer) {
 
 templ NewDarkModeToggleMdMenu(isOn bool, asset AssetLoaderFunc) {
 	<div id="NewDarkModeToggle" class="flex flex-col items-center bg-tertiary-surface dark:bg-primary-surface-white gap-2 rounded-full p-1.5 text-sm font-bold cursor-pointer">
-		<div id="toggle-light-md" class="flex items-center p-2 gap-2 bg-primary-surface dark:bg-transparent rounded-full dark:hover:bg-white-30 text-white dark:text-white">
+		<div class="toggle-light flex items-center p-2 gap-2 bg-primary-surface dark:bg-transparent rounded-full dark:hover:bg-white-30 text-white dark:text-white">
 			@SVG("sun-medium", Size(24), Box(24, 24), FillColor("white", "primary-dark"))
 		</div>
-		<div id="toggle-dark-md" class="flex items-center p-2 gap-2 dark:bg-primary-surface-dark hover:bg-tertiary-surface-hover rounded-full dark:text-black">
+		<div class="toggle-dark flex items-center p-2 gap-2 dark:bg-primary-surface-dark hover:bg-tertiary-surface-hover rounded-full dark:text-black">
 			@SVG("moon", Size(20), Box(20, 20), FillColor("primary-dark", "primary-dark"))
 		</div>
 	</div>	
@@ -325,7 +326,7 @@ func isCurrent(ctx context.Context, expect string) bool {
 templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent templ.Component) {
 	<body id="body" hx-ext="sse" sse-connect={ "/events/" + version } sse-close="goodbye">
 		<div id="sse" class="hidden" sse-swap="upgrade,hello,tick"></div>
-		<div class="flex w-full items-start bg-white dark:bg-content-background">
+		<div class="flex w-full flex-col md:flex-row lg:flex-row items-start bg-white dark:bg-content-background">
 			<div class="hidden lg:flex flex-col px-3 py-8 items-start shrink-0 self-stretch h-screen w-64 sticky top-0 border-r border-gray-30 dark:border-white dark:border-opacity-30">
 				<div class="flex flex-col items-start self-stretch gap-14">
 					@SVG("diwiselogo", Box(135, 51), Size(51), FillColor("primary-dark", "white"))
@@ -359,7 +360,7 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 			</div>
 
 			//Md menu
-			<div class="h-screen w-20 lg:hidden block flex flex-col px-3 py-8 justify-between items-start shrink-0 self-stretch sticky top-0 border-r border-gray-30 dark:border-white dark:border-opacity-30">
+			<div class="h-screen w-20 hidden md:flex lg:hidden flex-col px-3 py-8 justify-between items-start shrink-0 self-stretch sticky top-0 border-r border-gray-30 dark:border-white dark:border-opacity-30">
 				<div class="flex flex-col items-start self-stretch gap-14">
 					@SVG("diwise", Box(24, 24), Size(51))
 					<div class="flex flex-col items-start gap-6">
@@ -377,6 +378,26 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 				</div>
 			</div>
 			//Md menu end
+
+			//Sm menu
+			<div class="md:hidden flex flex-row px-6 py-4 justify-between items-center sticky top-0 w-full bg-white dark:bg-gray-900 border-b border-gray-30 dark:border-white dark:border-opacity-30 z-50">
+				<div class="flex items-center gap-4">
+					@SVG("diwise", Box(24, 24), Size(51))
+					<div class="flex flex-row items-center gap-8">
+						@MenuSegment(l10n.Get("home"), "/home", SVG("home", SelectedIcon(isCurrent(ctx, "home"))), asset, isCurrent(ctx, "home"))
+						@MenuSegment(l10n.Get("sensors"), "/sensors", SVG("rss", SelectedIcon(isCurrent(ctx, "sensors"))), asset, isCurrent(ctx, "sensors"))
+						@MenuSegment(l10n.Get("things"), "/things", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "things"))), asset, isCurrent(ctx, "things"))
+						@MenuSegment(l10n.Get("admin"), "/admin", SVG("hammer", NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "admin"))), asset, isCurrent(ctx, "admin"))
+					</div>
+				</div>
+				<div class="flex flex-row items-center gap-6">
+					<div class="font-bold">
+						@MenuSegment(l10n.Get("logout"), "/logout", SVG("log-out"), asset, false)
+					</div>
+					@NewDarkModeToggleMdMenu(false, asset)
+				</div>
+			</div>
+			//Sm menu end
 
 			<div class="flex flex-col flex-1 items-start py-8 px-10 gap-20" id="main-content">
 				@mainContent
@@ -426,11 +447,12 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 			} else {
 				document.body.classList.remove('dark')
 			}
-
-			document.getElementById('toggle-light').addEventListener('click', () => setTheme('light'));
-			document.getElementById('toggle-dark').addEventListener('click', () => setTheme('dark'));
-			document.getElementById('toggle-light-md').addEventListener('click', () => setTheme('light'));
-			document.getElementById('toggle-dark-md').addEventListener('click', () => setTheme('dark'));
+			document.querySelectorAll('.toggle-light').forEach(element => {
+				element.addEventListener('click', () => setTheme('light'));
+			});
+			document.querySelectorAll('.toggle-dark').forEach(element => {
+				element.addEventListener('click', () => setTheme('dark'));
+			});
 		}
 
 		onPageLoad()
