@@ -59,6 +59,7 @@ var icons = map[string]string{
 	"sun-medium":       "<path fill-rule=\"evenodd\" d=\"M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-5 3a5 5 0 1 1 10 0 5 5 0 0 1-10 0ZM12 2a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1ZM12 19a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0v-1a1 1 0 0 1 1-1ZM2 12a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1ZM19 12a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2h-1a1 1 0 0 1-1-1ZM19.071 4.929a1 1 0 0 1 0 1.414l-.707.707a1 1 0 1 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0ZM7.05 16.95a1 1 0 0 1 0 1.414l-.707.707a1 1 0 0 1-1.414-1.414l.707-.707a1 1 0 0 1 1.414 0ZM4.929 4.929a1 1 0 0 1 1.414 0l.707.707A1 1 0 0 1 5.636 7.05l-.707-.707a1 1 0 0 1 0-1.414ZM16.95 16.95a1 1 0 0 1 1.414 0l.707.707a1 1 0 0 1-1.414 1.414l-.707-.707a1 1 0 0 1 0-1.414Z\" clip-rule=\"evenodd\"/>",
 	"table":            "<path fill-rule=\"evenodd\" d=\"M12 3v18\" /><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M3 9h18\" /><path d=\"M3 15h18\" />",
 	"tip":              "<g fill-rule=\"evenodd\" id=\"Tip\" clip-path=\"url(#clip0_1424_3946)\"><rect id=\"Rectangle 1\" x=\"6.5\" y=\"16\" width=\"20\" height=\"20\" transform=\"rotate(-45 6.5 16)\"></g><defs><clipPath id=\"clip0_1424_3946\"><rect width=\"40\" height=\"8\" transform=\"translate(0.5)\"/></clipPath></defs>",
+	"tipside":			"<g clip-path=\"url(#clip0_2030_10288)\"><rect x=\"8\" y=\"6.5\" width=\"20\" height=\"20\" transform=\"rotate(135 8 6.5)\" /></g><defs><clipPath id=\"clip0_2030_10288\"><rect width=\"40\" height=\"8\" fill=\"white\" transform=\"translate(0.5)\"/></clipPath></defs>",
 	"trashcan":         "<path d=\"M3 6h18\" /><path d=\"M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6\" /><path d=\"M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2\" />",
 }
 
@@ -252,7 +253,7 @@ templ NewDarkModeToggle(isOn bool, asset AssetLoaderFunc, l10n Localizer) {
 }
 
 templ NewDarkModeToggleMdMenu(isOn bool, asset AssetLoaderFunc) {
-	<div id="NewDarkModeToggle" class="flex flex-col items-center bg-tertiary-surface dark:bg-primary-surface-white gap-2 rounded-full p-1.5 text-sm font-bold cursor-pointer">
+	<div id="NewDarkModeToggle" class="flex md:flex-col items-center bg-tertiary-surface dark:bg-primary-surface-white gap-2 rounded-full p-1.5 text-sm font-bold cursor-pointer">
 		<div class="toggle-light flex items-center p-2 gap-2 bg-primary-surface dark:bg-transparent rounded-full dark:hover:bg-white-30 text-white dark:text-white">
 			@SVG("sun-medium", Size(24), Box(24, 24), FillColor("white", "primary-dark"))
 		</div>
@@ -344,15 +345,28 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 				<div class="flex flex-col items-start self-stretch gap-14">
 					@SVG("diwise", Box(24, 24), Size(51))
 					<div class="flex flex-col items-start gap-6">
-						@MenuSegment(l10n.Get("home"), "/home", SVG("home", SelectedIcon(isCurrent(ctx, "home"))), asset, isCurrent(ctx, "home"))
-						@MenuSegment(l10n.Get("sensors"), "/sensors", SVG("rss", SelectedIcon(isCurrent(ctx, "sensors"))), asset, isCurrent(ctx, "sensors"))
-						@MenuSegment(l10n.Get("things"), "/things", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "things"))), asset, isCurrent(ctx, "things"))
-						@MenuSegment(l10n.Get("admin"), "/admin", SVG("hammer", NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "admin"))), asset, isCurrent(ctx, "admin"))
+						<div class="relative group">
+							@MenuSegment(l10n.Get("home"), "/home", SVG("home", SelectedIcon(isCurrent(ctx, "home"))), asset, isCurrent(ctx, "home"))
+							@TooltipSide(l10n.Get("home"))
+						</div>
+						<div class="relative group">
+							@MenuSegment(l10n.Get("sensors"), "/sensors", SVG("rss", SelectedIcon(isCurrent(ctx, "sensors"))), asset, isCurrent(ctx, "sensors"))
+							@TooltipSide(l10n.Get("sensors"))
+						</div>
+						<div class="relative group">
+							@MenuSegment(l10n.Get("things"), "/things", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "things"))), asset, isCurrent(ctx, "things"))
+							@TooltipSide(l10n.Get("things"))
+						</div>
+						<div class="relative group">
+							@MenuSegment(l10n.Get("admin"), "/admin", SVG("hammer", NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "admin"))), asset, isCurrent(ctx, "admin"))
+							@TooltipSide(l10n.Get("admin"))
+						</div>
 					</div>
 				</div>
 				<div class="flex flex-col flex-1 items-start justify-end self-stretch gap-10">
-					<div class="font-bold">
+					<div class="relative group">
 						@MenuSegment(l10n.Get("logout"), "/logout", SVG("log-out"), asset, false)
+						@TooltipSide(l10n.Get("logout"))
 					</div>
 					@NewDarkModeToggleMdMenu(false, asset)
 				</div>
@@ -360,19 +374,29 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 			//Md menu end
 
 			//Sm menu
-			<div class="md:hidden flex flex-row px-6 py-4 justify-between items-center sticky top-0 w-full bg-white dark:bg-gray-900 border-b border-gray-30 dark:border-white dark:border-opacity-30 z-50">
-				<div class="flex items-center gap-4">
-					@SVG("diwise", Box(24, 24), Size(51))
-					<div class="flex flex-row items-center gap-8">
-						@MenuSegment(l10n.Get("home"), "/home", SVG("home", SelectedIcon(isCurrent(ctx, "home"))), asset, isCurrent(ctx, "home"))
-						@MenuSegment(l10n.Get("sensors"), "/sensors", SVG("rss", SelectedIcon(isCurrent(ctx, "sensors"))), asset, isCurrent(ctx, "sensors"))
-						@MenuSegment(l10n.Get("things"), "/things", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "things"))), asset, isCurrent(ctx, "things"))
-						@MenuSegment(l10n.Get("admin"), "/admin", SVG("hammer", NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "admin"))), asset, isCurrent(ctx, "admin"))
+			<div class="md:hidden flex flex-row px-6 py-4 shadow-md sticky top-0 w-full bg-white dark:bg-gray-900 z-50 items-center gap-6">
+				<div class="flex items-center self-stretch gap-6">
+					<div class="flex items-center gap-6">
+						<div class="relative group">
+							@MenuSegment(l10n.Get("home"), "/home", SVG("home", SelectedIcon(isCurrent(ctx, "home"))), asset, isCurrent(ctx, "home"))
+							@Tooltip(l10n.Get("home"))
+						</div>
+						<div class="relative group">
+							@MenuSegment(l10n.Get("sensors"), "/sensors", SVG("rss", SelectedIcon(isCurrent(ctx, "sensors"))), asset, isCurrent(ctx, "sensors"))
+							@Tooltip(l10n.Get("sensors"))
+						</div>
+						<div class="relative group">
+							@MenuSegment(l10n.Get("things"), "/things", SVG("shapes", NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "things"))), asset, isCurrent(ctx, "things"))
+							@Tooltip(l10n.Get("things"))
+						</div>
+						<div class="relative group">
+							@MenuSegment(l10n.Get("admin"), "/admin", SVG("hammer", NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), SelectedIconNoFill(isCurrent(ctx, "admin"))), asset, isCurrent(ctx, "admin"))
+							@Tooltip(l10n.Get("admin"))
+						</div>
 					</div>
-				</div>
-				<div class="flex flex-row items-center gap-6">
-					<div class="font-bold">
+					<div class="relative group">
 						@MenuSegment(l10n.Get("logout"), "/logout", SVG("log-out"), asset, false)
+						@Tooltip(l10n.Get("logout"))
 					</div>
 					@NewDarkModeToggleMdMenu(false, asset)
 				</div>
