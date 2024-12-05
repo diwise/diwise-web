@@ -280,12 +280,12 @@ templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
 }
 
 templ SelectedFilters(l10n Localizer, hxget string) {
-	<div class="flex items-center gap-2 self-stretch">
+	<div class="flex items-center gap-2 self-stretch dark:text-white">
 		<div class="font-bold self-start whitespace-nowrap dark:text-white p-2">
 			{ l10n.Get("selectedfilters") }
 		</div>
 		<form id="filterForm" hx-get={ hxget } hx-target="#tableOrMap" hx-swap="outerHTML">
-			<div id="selectedFilters" class="flex flex-wrap items-center gap-2 self-stretch text-sm dark:text-white"></div>
+			<div id="selectedFilters" class="flex flex-wrap items-center gap-2 self-stretch text-sm"></div>
 		</form>
 		<div id="clearAllFilters" class="hidden flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border cursor-pointer text-sm">
 			{ l10n.Get("clearall") }
