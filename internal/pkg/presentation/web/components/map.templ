@@ -482,7 +482,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     '</div>' +
                                                                     moreinformation +
                                                                 outro;
-                                            } else if (cv === "thing" && feature.properties.subtype.toLowerCase() === "beach" || feature.properties.type.toLowerCase() === "room") {
+                                            } else if (cv === "thing" && feature.properties.subtype.toLowerCase() === "beach" || feature.properties.type.toLowerCase() === "room" || feature.properties.type.toLowerCase() === "pointofinterest") {
                                                 const thingdata = feature.properties.missingdata
                                                 ? '<div class="">' + feature.properties.text_missingdata + '</div>'
                                                 : '<div class="">' + feature.properties.temperature + '</div>'
