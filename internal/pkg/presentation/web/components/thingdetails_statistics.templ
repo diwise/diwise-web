@@ -287,12 +287,12 @@ templ StatisticsTable(l10n Localizer, dataset ChartDataset, timeAt, endTimeAt st
 			if (graphElement) {
 				const startDateStr = graphElement.getAttribute('data-timeAt');
 				const endDateStr = graphElement.getAttribute('data-endTimeAt');
-				
+
 				const timeAtInput = document.getElementById("timeAt");
 				const endTimeAtInput = document.getElementById("endTimeAt");
 
-				var startDate = dateFns.startOfDay(new Date(startDateStr));
-  				var endDate = dateFns.endOfDay(new Date(endDateStr)); 
+				const startDate = startDateStr.replace("Z", "");
+				const endDate = endDateStr.replace("Z", "");
 
 				var formattedStartDate = dateFns.format(startDate, 'yyyy-MM-dd HH:mm');
 				var formattedEndDate = dateFns.format(endDate, 'yyyy-MM-dd HH:mm');
