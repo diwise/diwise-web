@@ -8,13 +8,14 @@ import (
 )
 
 type ThingDetailsViewModel struct {
-	Thing         ThingViewModel
-	Type          string
-	Organisations []string
-	Tenant        string
-	TableView     bool
-	ValidSensors  []ValidSensorViewModel
-	Tags          []string
+	Thing         	 ThingViewModel
+	Type          	 string
+	Organisations  	 []string
+	Tenant        	 string
+	TableView     	 bool
+	ValidSensors  	 []ValidSensorViewModel
+	Tags          	 []string
+	Tabs			 []string
 }
 
 type ValidSensorViewModel struct {
@@ -60,7 +61,7 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 		// Contents
 		<div class="flex flex-col items-start gap-10">
 			// Stats, chart or table
-			<div class="flex flex-col items-start self-stretch pt-6">
+			<div class="flex flex-col items-start self-stretch pt-6 gap-6">
 				// Header for stats
 				<div class="flex items-center gap-3 self-stretch">
 					@SVG("chartline", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))

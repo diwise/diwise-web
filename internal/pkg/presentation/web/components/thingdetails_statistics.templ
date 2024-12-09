@@ -91,13 +91,58 @@ templ ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsV
 	}
 }
 
+templ Tab(tab string, firstTab bool, model ThingDetailsViewModel, l10n Localizer) {
+	if firstTab == true {
+		<button 
+			class="flex flex-col items-center px-4 py-2 border-b-4 border-primary-dark dark:border-white active-tab"
+			hx-get={ fmt.Sprintf("/components/things/measurements/%s?type=%s&subType=%s&tab=%s", model.Thing.ID, model.Thing.Type, model.Thing.SubType, tab) }
+			hx-target="#statistics-data"
+			hx-include="#endTimeAt,#tableButton,#graphButton"
+			hx-on:click="document.querySelectorAll('.active-tab').forEach(el => {
+					el.classList.remove('border-b-4', 'border-primary-dark', 'dark:border-white', 'active-tab');
+					el.classList.add('hover:border-b-4', 'hover:border-gray-200', 'dark:hover:border-white-30');
+				});
+				this.classList.remove('hover:border-b-4', 'hover:border-gray-200', 'dark:hover:border-white-30');
+				this.classList.add('border-b-4', 'border-primary-dark', 'dark:border-white', 'active-tab');">
+			@SVG("thermometer", Box(24, 24), Size(24), FillColor("primary-dark", "white"), StrokeColor("primary-dark", "white"))
+			{ l10n.Get(tab) }
+		</button>
+	} else {
+		<button 
+			class="flex flex-col items-center px-4 py-2 hover:border-b-4 hover:border-gray-200 dark:hover:border-white-30"
+			hx-get={ fmt.Sprintf("/components/things/measurements/%s?type=%s&subType=%s&tab=%s", model.Thing.ID, model.Thing.Type, model.Thing.SubType, tab) }
+			hx-target="#statistics-data"
+			hx-include="#endTimeAt,#tableButton,#graphButton"
+			hx-on:click="document.querySelectorAll('.active-tab').forEach(el => {
+					el.classList.remove('border-b-4', 'border-primary-dark', 'dark:border-white', 'active-tab');
+					el.classList.add('hover:border-b-4', 'hover:border-gray-200', 'dark:hover:border-white-30');
+				});
+				this.classList.remove('hover:border-b-4', 'hover:border-gray-200', 'dark:hover:border-white-30');
+				this.classList.add('border-b-4', 'border-primary-dark', 'dark:border-white', 'active-tab');">
+			@SVG("thermometer", Box(24, 24), Size(24), FillColor("primary-dark", "white"), StrokeColor("primary-dark", "white"))
+			{ l10n.Get(tab) }
+		</button>
+	}
+}
+
+templ Tabs(model ThingDetailsViewModel, l10n Localizer) {
+	<div class="flex gap-4">
+		for i, tab := range model.Tabs {
+			@Tab(tab, i == 0, model, l10n)
+		}
+	</div>
+}
+
 templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 	<style type="text/css">
 		.chart-wrapper {
 			height: 40vh; position: relative;
 		}
 	</style>
-	<div id="statistics-wrapper" class="flex flex-col items-start self-stretch gap-6 py-6 pl-9 text-secondary-dark dark:text-secondary">
+	<div id="statistics-wrapper" class="flex flex-col items-start self-stretch gap-6 pl-9 text-secondary-dark dark:text-secondary">
+		<div class="flex gap-4 text-secondary-dark dark:text-secondary border-b border-gray-30 dark:border-white-30 w-full">
+			@Tabs(model, l10n)
+		</div>
 		<div class="flex items-center w-full justify-between">
 			<div class="flex flex-col gap-2">
 				{ children... }

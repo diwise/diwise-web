@@ -117,6 +117,11 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 	thingDetailsViewModel := components.ThingDetailsViewModel{
 		Thing: toViewModel(thing),
 		Type:  thing.Type,
+		Tabs: []string{
+			"3303-5700",
+			"3304-5700",
+			"3428-17",
+		},
 	}
 
 	if thingDetailsViewModel.Thing.SubType != "" {

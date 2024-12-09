@@ -33,6 +33,11 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 
 		thingType := strings.ToLower(r.URL.Query().Get("type"))
 		thingSubType := strings.ToLower(r.URL.Query().Get("subType"))
+		activeTab := strings.ToLower(r.URL.Query().Get("tab"))
+
+		if activeTab == "" {
+			activeTab = ""
+		}
 
 		if thingSubType != "" {
 			thingType += ":" + thingSubType
