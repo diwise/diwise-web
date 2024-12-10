@@ -484,6 +484,9 @@ other = "Battery level (%)"
 [3-7]
 other = "Battery level (mV)"
 
+[3301-5700]
+other = "Illuminance"
+
 [3303-5700]
 other = "Temperature"
 

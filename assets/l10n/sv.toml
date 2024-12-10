@@ -484,6 +484,9 @@ other = "Batterinivå (%)"
 [3-7]
 other = "Batterinivå (mV)"
 
+[3301-5700]
+other = "Belysningsstyrka"
+
 [3303-5700]
 other = "Temperatur"
 
