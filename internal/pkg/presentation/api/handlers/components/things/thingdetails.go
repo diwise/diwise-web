@@ -118,9 +118,9 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 		Thing: toViewModel(thing),
 		Type:  thing.Type,
 		Tabs: []string{
-			"3303-5700",
-			"3304-5700",
-			"3428-17",
+			"oma-lwm2m-ext-3303",
+			"oma-lwm2m-ext-3304",
+			"oma-lwm2m-ext-3428",
 		},
 	}
 

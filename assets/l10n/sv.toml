@@ -529,6 +529,9 @@ other = "Distans"
 [3331-5700]
 other = "Total energiförbrukning"
 
+[oma-lwm2m-ext-10351]
+other = "Passager"
+
 [oma-lwm2m-ext-3]
 other = "Sensor"
 
