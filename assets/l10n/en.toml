@@ -484,6 +484,12 @@ other = "Battery level (%)"
 [3-7]
 other = "Battery level (mV)"
 
+[3200-5500]
+other = "Digital Input State"
+
+[3200-5501]
+other = "Digital input counter"
+
 [3301-5700]
 other = "Illuminance"
 
@@ -510,12 +516,6 @@ other = "Actual filling level"
 
 [3304-5700]
 other = "Relative humidity"
-
-[3200-5500]
-other = "Digital Input State"
-
-[3200-5501]
-other = "Digital input counter"
 
 [3428-17]
 other = "Carbon dioxide"

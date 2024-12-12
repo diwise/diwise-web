@@ -121,6 +121,7 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 			"oma-lwm2m-ext-3303",
 			"oma-lwm2m-ext-3304",
 			"oma-lwm2m-ext-3428",
+			"oma-lwm2m-ext-10351",
 		},
 	}
 

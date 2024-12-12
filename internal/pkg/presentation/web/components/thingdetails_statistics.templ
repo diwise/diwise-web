@@ -106,7 +106,6 @@ templ Tab(tab string, firstTab bool, model ThingDetailsViewModel, l10n Localizer
 			this.classList.remove('hover:border-b-4', 'hover:border-gray-200', 'dark:hover:border-white-30');
 			this.classList.add('border-b-4', 'border-primary-dark', 'dark:border-white', 'active-tab');">
 		@SVG(omaToTabIcon(tab), Box(24, 24), Size(24), FillColor("primary-dark", "white"), StrokeColor("primary-dark", "white"))
-		//TODO: Byt ut hårdkodad sträng mot mättyp ovan.
 		{ l10n.Get(tab) }
 	</button>
 }

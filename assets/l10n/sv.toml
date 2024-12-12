@@ -484,6 +484,12 @@ other = "Batterinivå (%)"
 [3-7]
 other = "Batterinivå (mV)"
 
+[3200-5500]
+other = "Digital Input State"
+
+[3200-5501]
+other = "Digital räknare"
+
 [3301-5700]
 other = "Belysningsstyrka"
 
@@ -511,12 +517,6 @@ other = "Fyllnadsnivå (cm)"
 [3304-5700]
 other = "Luftfuktighet"
 
-[3200-5500]
-other = "Digital Input State"
-
-[3200-5501]
-other = "Digital räknare"
-
 [3428-17]
 other = "Koldioxid"
 
@@ -530,7 +530,7 @@ other = "Distans"
 other = "Total energiförbrukning"
 
 [oma-lwm2m-ext-10351]
-other = "Passager"
+other = "Passage"
 
 [oma-lwm2m-ext-3]
 other = "Sensor"
