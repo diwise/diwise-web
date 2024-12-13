@@ -12,6 +12,7 @@ import (
 type ThingManagement interface {
 	NewThing(ctx context.Context, t Thing) error
 	GetThing(ctx context.Context, id string, params map[string][]string) (Thing, error)
+	GetLatestValues(ctx context.Context, thingID string) ([]Measurement, error)
 	GetThings(ctx context.Context, offset, limit int, params map[string][]string) (ThingResult, error)
 	UpdateThing(ctx context.Context, thingID string, fields map[string]any) error
 	DeleteThing(ctx context.Context, thingID string) error
@@ -197,6 +198,25 @@ func (a *App) GetThing(ctx context.Context, id string, args map[string][]string)
 	}
 
 	return thing, nil
+}
+
+func (a *App) GetLatestValues(ctx context.Context, thingID string) ([]Measurement, error) {
+	params := url.Values{}
+	params.Add("thingid", thingID)
+	params.Add("latest", "true")
+
+	res, err := a.get(ctx, a.thingManagementURL, "values", params)
+	if err != nil {
+		return []Measurement{}, err
+	}
+
+	measurements := []Measurement{}
+	err = json.Unmarshal(res.Data, &measurements)
+	if err != nil {
+		return []Measurement{}, err
+	}
+
+	return measurements, nil
 }
 
 func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string][]string) (ThingResult, error) {

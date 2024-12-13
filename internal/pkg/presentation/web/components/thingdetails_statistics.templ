@@ -14,77 +14,17 @@ templ ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsV
 				{ l10n.Get("missingdata") }
 			</div>
 		} else {
-			if strings.HasSuffix(model.Type,":beach") || model.Type == "room" {
-				<div class="">{ l10n.Get("currenttemperature") }</div>
-				<div class="text-3xl font-bold">
-					{ fmt.Sprintf("%.1f °C", model.Thing.GetFloatOrDefault("temperature", 0)) }
-				</div>
-			}
-			if model.Type == "building" {
-				<div class="">{ l10n.Get("consumption") }</div>
-				<div class="text-3xl font-bold">
-					{ fmt.Sprintf("%.1f kWh", model.Thing.GetFloatOrDefault("power", 0)) } / { fmt.Sprintf("%.1f kW", model.Thing.GetFloatOrDefault("energy", 0)) }
-				</div>
-			}
-			if strings.HasPrefix(model.Type, "container:") {
-				<div class="">{ l10n.Get("currentlevel") }</div>
-				<div class="text-3xl font-bold">
-					{ fmt.Sprintf("%0.f%%", model.Thing.GetFloatOrDefault("percent", 0)) }
-				</div>
-			}
-
-			if model.Type == "desk" {
-				<div class="">{ l10n.Get("status") }</div>
-				<div class="text-3xl font-bold">
-					if model.Thing.GetBoolOrDefault("presence", false) {
-						{ l10n.Get("occupied") }
-					} else {
-						{ l10n.Get("available") }
-					}
-				</div>
-			}
-
-			if model.Type == "pumpingstation" {
-				<div class="">{ l10n.Get("pumping") }</div>
-				<div class="text-3xl font-bold">
-					if model.Thing.GetBoolOrDefault("pumpingObserved", false) {
-						{ l10n.Get("yes") }
-					} else {
-						{ l10n.Get("no") }
-					}
-				</div>
-			}
-			if model.Type == "lifebuoy" {
-				<div class="">{ l10n.Get("inplace") }</div>
-				<div class="text-3xl font-bold">
-					if model.Thing.GetBoolOrDefault("presence", false) {
-						{ l10n.Get("yes") }
-					} else {
-						{ l10n.Get("no") }
-					}
-				</div>
-			}
-			if model.Type == "passage" {
-				<div class="">{ l10n.Get("numberofpassagestoday") }</div>
-				<div class="text-3xl font-bold">
-					{ fmt.Sprintf("%0.f st", model.Thing.GetFloatOrDefault("passagesToday", 0)) }
-				</div>
-			}
-			if model.Type == "sewer" {
-				<div class="">{ l10n.Get("level") }</div>
-				<div class="text-3xl font-bold">
-					{ fmt.Sprintf("%0.fm (%0.f%%)", model.Thing.GetFloatOrDefault("currentLevel", 0), model.Thing.GetFloatOrDefault("percent", 0)) }
-				</div>
-			}
-
-			if strings.HasSuffix(model.Type,":combinedseweroverflow") {
-				<div class="">{ l10n.Get("overflowrightnow") }</div>
-				<div class="text-3xl font-bold">
-					if model.Thing.GetBoolOrDefault("overflowObserved", false) {
-						{ l10n.Get("yes") }
-					} else {
-						{ l10n.Get("no") }
-					}
+			for k, v := range model.Thing.Latest {
+				<div id={ fmt.Sprintf("latest-%s", k) } data-tab={ k } hidden?={ k != model.Tabs[0] }>
+					<div class="">{ l10n.Get(k) }</div>
+					<div class="text-3xl font-bold">
+						if v.Value != nil {
+							{ fmt.Sprintf("%.1f %s", *v.Value, v.Unit) }
+						}
+						if v.BoolValue != nil {
+							{ fmt.Sprintf("%t", *v.BoolValue) }
+						}
+					</div>
 				</div>
 			}
 		}
@@ -92,52 +32,44 @@ templ ThingStatistics(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsV
 }
 
 templ Tab(tab string, firstTab bool, model ThingDetailsViewModel, l10n Localizer) {
-	<button 
+	<button
 		class={ "flex flex-col items-center px-4 py-2",
 			templ.KV("border-b-4 border-primary-dark dark:border-white active-tab", firstTab),
 			templ.KV("hover:border-b-4 hover:border-gray-200 dark:hover:border-white-30", !firstTab) }
-		hx-get={ fmt.Sprintf("/components/things/measurements/%s?type=%s&subType=%s&tab=%s", model.Thing.ID, model.Thing.Type, model.Thing.SubType, tab) }
-		hx-target="#statistics-data"
-		hx-include="#endTimeAt,#tableButton,#graphButton"
-		hx-on:click="document.querySelectorAll('.active-tab').forEach(el => {
-				el.classList.remove('border-b-4', 'border-primary-dark', 'dark:border-white', 'active-tab');
-				el.classList.add('hover:border-b-4', 'hover:border-gray-200', 'dark:hover:border-white-30');
-			});
-			this.classList.remove('hover:border-b-4', 'hover:border-gray-200', 'dark:hover:border-white-30');
-			this.classList.add('border-b-4', 'border-primary-dark', 'dark:border-white', 'active-tab');">
+		data-tab={ tab }
+	>
 		@SVG(omaToTabIcon(tab), Box(24, 24), Size(24), FillColor("primary-dark", "white"), StrokeColor("primary-dark", "white"))
 		{ l10n.Get(tab) }
 	</button>
 }
 
-func omaToTabIcon (oma string) string {
-	mymap := map[string]string {
-		"oma-lwm2m-ext-10351": "door-open",			//Passager
-		"oma-lwm2m-ext-3": "rss", 					//Sensor
-		"oma-lwm2m-ext-3200": "file-digit",			//Digital ingång
-		"oma-lwm2m-ext-3301": "lightbulb",			//Belysningsstyrka
-		"oma-lwm2m-ext-3302": "ghost", 				//Närvaro
-		"oma-lwm2m-ext-3303": "thermometer", 		//Temperatur
-		"oma-lwm2m-ext-3304": "droplet", 			//Luftfuktighet
-		"oma-lwm2m-ext-332": "gauge", 				//Tryck
-		"oma-lwm2m-ext-3327": "shuffle", 			//Ledningsförmåga
-		"oma-lwm2m-ext-3328": "battery-charging", 	//Effekt
-		"oma-lwm2m-ext-3330": "distance",			//Distans
-		"oma-lwm2m-ext-3331": "zap",				//Energiförbrukning
-		"oma-lwm2m-ext-3350": "timer", 				//Tidtagning
-		"oma-lwm2m-ext-3411": "battery", 			//Batteri
-		"oma-lwm2m-ext-3424": "drop",				//Vattenmätning
-		"oma-lwm2m-ext-3428": "cloud-sun",			//Luftkvalitet
-		"oma-lwm2m-ext-3434": "person-plus",		//Personräknare
-		"oma-lwm2m-ext-3435": "fillinglevel",		//Fyllnadsnivå
+func omaToTabIcon(oma string) string {
+	oma = oma[:strings.Index(oma, "-")]
+	mymap := map[string]string{
+		"3":    "rss",              //Sensor
+		"3200": "file-digit",       //Digital ingång
+		"3301": "lightbulb",        //Belysningsstyrka
+		"3302": "ghost",            //Närvaro
+		"3303": "thermometer",      //Temperatur
+		"3304": "droplet",          //Luftfuktighet
+		"3323": "gauge",            //Tryck
+		"3327": "shuffle",          //Ledningsförmåga
+		"3328": "battery-charging", //Effekt
+		"3330": "distance",         //Distans
+		"3331": "zap",              //Energiförbrukning
+		"3350": "timer",            //Tidtagning
+		"3411": "battery",          //Batteri
+		"3424": "drop",             //Vattenmätning
+		"3428": "cloud-sun",        //Luftkvalitet
+		"3434": "person-plus",      //Personräknare
+		"3435": "fillinglevel",     //Fyllnadsnivå
 	}
 
-	if icon, ok := mymap[oma];ok {
+	if icon, ok := mymap[oma]; ok {
 		return icon
 	}
 	return ""
 }
-
 
 templ Tabs(model ThingDetailsViewModel, l10n Localizer) {
 	<div class="flex gap-4">
@@ -145,6 +77,35 @@ templ Tabs(model ThingDetailsViewModel, l10n Localizer) {
 			@Tab(tab, i == 0, model, l10n)
 		}
 	</div>
+	<script>
+		(()=>{
+			const buttons = document.querySelectorAll('button[data-tab]');
+			buttons.forEach(button => {
+				button.addEventListener('click', (event) => {        
+					const tabValue = event.currentTarget.getAttribute('data-tab');        
+
+					document.querySelectorAll('button[data-tab]').forEach(el => {
+						el.classList.remove('border-b-4', 'border-primary-dark', 'dark:border-white', 'active-tab');
+						el.classList.add('hover:border-b-4', 'hover:border-gray-200', 'dark:hover:border-white-30');
+					});
+
+					document.querySelectorAll('div[data-tab]').forEach(el => {
+						v = el.getAttribute('data-tab');
+						el.hidden = v !== tabValue;						
+					});
+
+					event.currentTarget.classList.remove('hover:border-b-4', 'hover:border-gray-200', 'dark:hover:border-white-30');
+					event.currentTarget.classList.add('border-b-4', 'border-primary-dark', 'dark:border-white', 'active-tab');
+        			
+        			const tabEl = document.getElementById('tab');
+					tabEl.value = tabValue;
+
+					const changeEvent = new Event('change');
+					tabEl.dispatchEvent(changeEvent);
+				});
+			});
+		})()
+	</script>
 }
 
 templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
@@ -174,7 +135,7 @@ templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 							Include(".filter"))
 					</div>
 				</div>
-				@StatisticsFilter(l10n, model.Thing.ID, model.Thing.Type, model.Thing.SubType)
+				@StatisticsFilter(l10n, model.Thing.ID, model.Thing.Type, model.Thing.SubType, model.Tabs[0])
 			</div>
 		</div>
 		<div id="measurement-chart-wrapper" class={ "w-full", "chart-wrapper" } hidden?={ model.TableView }>
@@ -245,18 +206,30 @@ templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 	</script>
 }
 
-templ StatisticsFilter(l10n Localizer, thingID, thingType, thingSubType string) {
+templ StatisticsFilter(l10n Localizer, thingID, thingType, thingSubType, tab string) {
 	<div class="flex flex-col items-start gap-2">
 		<div class="font-bold">
 			{ l10n.Get("timeinterval") }
 		</div>
 		<div class="">
 			<input
+				type="hidden"
+				id="tab"
+				class="filter"
+				name="tab"
+				value={ tab }
+				hx-trigger="change"
+				hx-include="#timeAt,#endTimeAt,#tableButton,#graphButton,#tab"
+				hx-target="#statistics-data"
+				hx-get={ fmt.Sprintf("/components/things/measurements/%s?type=%s&subType=%s", thingID, thingType, thingSubType) }
+				hx-params="*"
+			/>
+			<input
 				name="timeAt"
 				type="datetime-local"
 				id="timeAt"
 				hx-trigger="change, load"
-				hx-include="#endTimeAt,#tableButton,#graphButton"
+				hx-include="#endTimeAt,#tableButton,#graphButton,#tab"
 				hx-target="#statistics-data"
 				hx-get={ fmt.Sprintf("/components/things/measurements/%s?type=%s&subType=%s", thingID, thingType, thingSubType) }
 				hx-params="*"
@@ -268,7 +241,7 @@ templ StatisticsFilter(l10n Localizer, thingID, thingType, thingSubType string) 
 				type="datetime-local"
 				id="endTimeAt"
 				hx-trigger="change"
-				hx-include="#timeAt,#tableButton,#graphButton"
+				hx-include="#timeAt,#tableButton,#graphButton,#tab"
 				hx-target="#statistics-data"
 				hx-get={ fmt.Sprintf("/components/things/measurements/%s?type=%s&subType=%s", thingID, thingType, thingSubType) }
 				hx-params="*"
