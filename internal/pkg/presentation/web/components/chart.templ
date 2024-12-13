@@ -10,6 +10,8 @@ func NewChartConfiguration(chartType string, keepRatio bool, min, max, stepSize 
 	if chartType == "bar" {
 		borderRadius := 8
 		cfg.Options.BarBorderRadius = &borderRadius
+		cfg.Options.BackgroundColor = "#68686D"
+		cfg.Options.BorderColor = "#68686D"
 	}
 
 	return cfg
@@ -43,22 +45,22 @@ func NewChartDataset(label string) ChartDataset {
 		PointRadius:          1,
 		PointHoverRadius:     6,
 		MaintainAspectRatio:  true,
-		Tension:			  0.2,
+		Tension:              0.2,
 	}
 }
 
 type ChartDataset struct {
 	Label                string       `json:"label"`
 	Data                 []ChartValue `json:"data"`
-	BackgroundColor		 string		  `json:"backgroundColor"`
+	BackgroundColor      string       `json:"backgroundColor"`
 	BorderColor          string       `json:"borderColor"`
 	BorderWidth          int          `json:"borderWidth"`
 	PointBackgroundColor string       `json:"pointBackgroundColor"`
 	PointBorderColor     string       `json:"pointBorderColor"`
 	PointRadius          int          `json:"pointRadius"`
 	PointHoverRadius     int          `json:"pointHoverRadius"`
-	MaintainAspectRatio  bool		  `json:"maintainAspectRatio"`
-	Tension				 float32	  `json:"tension"`
+	MaintainAspectRatio  bool         `json:"maintainAspectRatio"`
+	Tension              float32      `json:"tension"`
 }
 
 func (dataset *ChartDataset) Append(data ChartValue) {
@@ -79,7 +81,7 @@ func NewChartOptions(keepRatio bool, min, max, stepSize *uint) ChartOptions {
 	t := true
 	return ChartOptions{
 		BackgroundColor: "#1F1F25",
-		BorderColor: "#1F1F25",
+		BorderColor:     "#1F1F25",
 		Scales: ChartOptionsScales{
 			X: ChartOptionsScale{
 				Ticks: ChartOptionsTicks{
@@ -87,11 +89,11 @@ func NewChartOptions(keepRatio bool, min, max, stepSize *uint) ChartOptions {
 				},
 			},
 			Y: ChartOptionsScale{
-				Min: min,
-                Max: max,
+				Min:         min,
+				Max:         max,
 				BeginAtZero: &t,
 				Ticks: ChartOptionsTicks{
-					Color: "#444450",
+					Color:    "#444450",
 					StepSize: stepSize,
 				},
 			},
@@ -101,8 +103,8 @@ func NewChartOptions(keepRatio bool, min, max, stepSize *uint) ChartOptions {
 }
 
 type ChartOptions struct {
-	BackgroundColor		string			   `json:"backgroundColor,omitempty"`
-	BorderColor			string			   `json:"borderColor,omitempty"`
+	BackgroundColor     string             `json:"backgroundColor,omitempty"`
+	BorderColor         string             `json:"borderColor,omitempty"`
 	BarBorderRadius     *int               `json:"borderRadius,omitempty"`
 	MaintainAspectRatio *bool              `json:"maintainAspectRatio,omitempty"`
 	Responsive          *bool              `json:"responsive,omitempty"`
@@ -197,7 +199,7 @@ templ Chart(id, className string, cfg ChartConfiguration) {
 									
 				try {
 					var existing_chart = Chart.getChart(chartID);
-					existing_chart.destroy();				
+					existing_chart.destroy();							
 				} catch(e) {				
 				}
 

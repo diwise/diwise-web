@@ -8,12 +8,14 @@ import (
 )
 
 type ThingDetailsViewModel struct {
-	Thing         ThingViewModel
-	Organisations []string
-	Tenant        string
-	TableView     bool
-	ValidSensors  []ValidSensorViewModel
-	Tags          []string
+	Thing         	 ThingViewModel
+	Type          	 string
+	Organisations  	 []string
+	Tenant        	 string
+	TableView     	 bool
+	ValidSensors  	 []ValidSensorViewModel
+	Tags          	 []string
+	Tabs			 []string
 }
 
 type ValidSensorViewModel struct {
@@ -59,7 +61,7 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 		// Contents
 		<div class="flex flex-col items-start gap-10">
 			// Stats, chart or table
-			<div class="flex flex-col items-start self-stretch pt-6">
+			<div class="flex flex-col items-start self-stretch pt-6 gap-6">
 				// Header for stats
 				<div class="flex items-center gap-3 self-stretch">
 					@SVG("chartline", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
@@ -69,9 +71,9 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 				@ThingStatistics(l10n, asset, model)
 			</div>
 			//Uppgifter och position
-			<div class="flex items-start self-stretch py-6 gap-10">
+			<div class="flex flex-col lg:flex-row items-start self-stretch py-6 gap-10">
 				//Uppgifter och larm
-				<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
+				<div class="flex flex-col items-start gap-6 w-full lg:flex-[1_0_0]">
 					//Uppgifter
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik
@@ -101,17 +103,7 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 								</div>
 							}
 						</div>
-						if strings.ToLower(model.Thing.Type) == "container" {
-							if strings.ToLower(model.Thing.SubType) == "wastecontainer" {
-								@WasteContainerProperties(l10n, model)
-							}
-							if strings.ToLower(model.Thing.SubType) == "sandstorage" {
-								@SandStorageProperties(l10n, model)
-							}
-						}
-						if strings.ToLower(model.Thing.Type) == "sewer" {
-							@SewerProperties(l10n, model)
-						}
+						@ThingsDetailsProperties(l10n, model)
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("description") }</div>
 							if model.Thing.Description == "" {
@@ -124,7 +116,7 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 						</div>
 						<div class="flex flex-start gap-2">
 							<div class="font-bold text-nowrap">{ l10n.Get("sensorconnected") }</div>
-							if len(model.Thing.RefDevice) == 0 {
+							if len(model.Thing.RefDevice) == 0 || model.Thing.RefDevice[0] == "" {
 								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
 							} else {
 								for _, r := range model.Thing.RefDevice {
@@ -155,7 +147,7 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 				//Vertikal gray-30 mellan uppgifter och position
 				<div class="flex flex-col items-start self-stretch gap-2 border-l border-gray-30 dark:border-white-30 h-auto"></div>
 				//Position
-				<div class="flex flex-col items-start gap-6 flex-[1_0_0]">
+				<div class="flex flex-col items-start gap-6 w-full lg:flex-[1_0_0]">
 					<div class="flex flex-col items-start self-stretch">
 						//Karta
 						<div class="flex items-center gap-3 self-stretch">
@@ -181,6 +173,21 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 			</div>
 		</div>
 	</div>
+}
+
+func ThingsDetailsProperties(l10n Localizer, model ThingDetailsViewModel) templ.Component {
+	if strings.ToLower(model.Thing.Type) == "container" {
+		if strings.ToLower(model.Thing.SubType) == "wastecontainer" {
+			return WasteContainerProperties(l10n, model)
+		}
+		if strings.ToLower(model.Thing.SubType) == "sandstorage" {
+			return SandStorageProperties(l10n, model)
+		}
+	}
+	if strings.ToLower(model.Thing.Type) == "sewer" {
+		return SewerProperties(l10n, model)
+	}
+	return templ.NopComponent
 }
 
 templ DeleteThing(l10n Localizer, asset AssetLoaderFunc, thingID, thingName string) {
@@ -234,6 +241,11 @@ templ WasteContainerProperties(l10n Localizer, model ThingDetailsViewModel) {
 				<div>
 					{ l10n.Get("maxfillingheight") }
 					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+				</div>
+			}
+			if model.Thing.GetFloatOrDefault("maxd", 0) == 0 && model.Thing.GetFloatOrDefault("maxl", 0) == 0 {
+				<div class="italic text-secondary-outline-hover dark:text-secondary">
+					{ l10n.Get("missing") }
 				</div>
 			}
 		</div>
@@ -290,6 +302,11 @@ templ SewerProperties(l10n Localizer, model ThingDetailsViewModel) {
 				<div>
 					{ l10n.Get("maxwaterlevelheight") }
 					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+				</div>
+			}
+			if model.Thing.GetFloatOrDefault("maxd", 0) == 0 && model.Thing.GetFloatOrDefault("maxl", 0) == 0 && model.Thing.GetFloatOrDefault("offset", 0) == 0 {
+				<div class="italic text-secondary-outline-hover dark:text-secondary">
+					{ l10n.Get("missing") }
 				</div>
 			}
 		</div>

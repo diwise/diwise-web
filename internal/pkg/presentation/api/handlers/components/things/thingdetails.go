@@ -63,7 +63,6 @@ func NewThingDetailsComponentHandler(_ context.Context, l10n LocaleBundle, asset
 		}
 
 		if r.Method == http.MethodPost {
-
 			id := r.PathValue("id")
 			if id == "" {
 				http.Error(w, "no ID found in url", http.StatusBadRequest)
@@ -114,10 +113,40 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 		return ctx, nil, fmt.Errorf("could not compose view model")
 	}
 
-	thingDetailsViewModel := components.ThingDetailsViewModel{
-		Thing: toViewModel(thing),
+	latestValues, err := app.GetLatestValues(ctx, id)
+	if err != nil {
+		return ctx, nil, fmt.Errorf("could not compose view model")
 	}
 
+	thingDetailsViewModel := components.ThingDetailsViewModel{
+		Thing: toViewModel(thing),
+		Type:  thing.Type,
+	}
+
+	for _, lv := range latestValues {
+		tabName := strings.ReplaceAll(strings.Replace(lv.ID, id, "", 1)[1:], "/", "-")
+		thingDetailsViewModel.Tabs = append(thingDetailsViewModel.Tabs, tabName)
+
+		thingDetailsViewModel.Thing.Latest[tabName] = components.MeasurementViewModel{
+			ID:        lv.ID,
+			Timestamp: lv.Timestamp,
+			Value:     lv.Value,
+			Urn:       lv.Urn,
+			//StringValue: lv.StringValue,
+			BoolValue: lv.BoolValue,
+			Unit:      lv.Unit,
+		}
+	}
+
+	if len(thingDetailsViewModel.Tabs) == 0 {
+		thingDetailsViewModel.Tabs = append(thingDetailsViewModel.Tabs, "")
+	}
+
+	if thingDetailsViewModel.Thing.SubType != "" {
+		thingDetailsViewModel.Type += ":" + thingDetailsViewModel.Thing.SubType
+	}
+
+	thingDetailsViewModel.Type = strings.ToLower(thingDetailsViewModel.Type)
 	thingDetailsViewModel.Tenant = thingDetailsViewModel.Thing.Tenant
 
 	if editMode {

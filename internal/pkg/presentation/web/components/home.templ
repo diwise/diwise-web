@@ -2,9 +2,8 @@ package components
 
 import (
 	"fmt"
-	"time"
-
 	. "github.com/diwise/frontend-toolkit"
+	"time"
 )
 
 templ OverviewCards(l10n Localizer, asset AssetLoaderFunc, stats StatisticsViewModel) {
@@ -43,7 +42,7 @@ type AlarmViewModel struct {
 
 templ Home(l10n Localizer, asset AssetLoaderFunc, viewModel HomeViewModel) {
 	<div class="flex flex-col items-start self-stretch gap-14">
-		<div class="flex items-start self-stretch gap-14">
+		<div class="flex flex-col lg:flex-row items-start self-stretch gap-14">
 			<div class="flex flex-col flex-[1_0_0] justify-center items-start gap-6">
 				<div class="flex items-center gap-3 self-stretch">
 					@SVG("map-pin", Size(32), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))

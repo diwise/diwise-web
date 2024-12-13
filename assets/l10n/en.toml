@@ -25,6 +25,9 @@ other = "Add new tag"
 [admin]
 other = "Admin"
 
+[air]
+other = "Air"
+
 [alerts]
 other = "Alerts"
 
@@ -45,6 +48,9 @@ other = "Angle missing."
 
 [area]
 other = "Area"
+
+[available]
+other = "Available"
 
 [batterylevel]
 other = "Battery level"
@@ -73,6 +79,9 @@ other = "Pick measurement type"
 [choosetags]
 other = "Choose tags"
 
+[clearall]
+other = "Clear all"
+
 [consumption]
 other = "Consumption"
 
@@ -91,6 +100,9 @@ other = "Current level"
 [currenttemperature]
 other = "Current temperature"
 
+[dark]
+other = "Dark"
+
 [degrees]
 other = "degrees"
 
@@ -106,6 +118,9 @@ other = "and data related to the thing will be removed."
 [description]
 other = "Description"
 
+[Desk]
+other = "Desk"
+
 [desk]
 other = "Desk"
 
@@ -114,6 +129,9 @@ other = "Details"
 
 [deveui]
 other = "DevEUI"
+
+[devicenotobservedafter]
+other = "Sensor is registered as not observed after"
 
 [edit]
 other = "Edit"
@@ -136,6 +154,9 @@ other = "Graph"
 [home]
 other = "Home"
 
+[hours]
+other = "hours"
+
 [id]
 other = "ID"
 
@@ -154,6 +175,9 @@ other = "Information"
 [inplace]
 other = "In place"
 
+[present]
+other = "Present"
+
 [lastseen]
 other = "Last seen"
 
@@ -168,6 +192,9 @@ other = "Lifebuoy"
 
 [Lifebuoy]
 other = "Lifebuoy"
+
+[light]
+other = "Light"
 
 [list]
 other = "List"
@@ -195,6 +222,9 @@ other = "Map"
 
 [maxfillingheight]
 other = "with a maximum filling height of"
+
+[maxfillinglevel]
+other = "Max filling level"
 
 [maxcontainerheight]
 other = "Container height"
@@ -253,6 +283,9 @@ other = "No"
 [nodata]
 other = "-"
 
+[nofilterselected]
+other = "No filter selected"
+
 [notloggedin]
 other = "Please log in"
 
@@ -267,6 +300,9 @@ other = "Number of passages today"
 
 [numberofsensors]
 other = "Number of sensors"
+
+[occupied]
+other = "Occupied"
 
 [off]
 other = "Off"
@@ -306,6 +342,9 @@ other = "Pick an option"
 
 [picksensor]
 other = "Pick sensor"
+
+[environment]
+other = "Environment"
 
 [PointOfInterest]
 other = "Point of interest"
@@ -376,6 +415,9 @@ other = "Showing"
 [size]
 other = "Size"
 
+[soil]
+other = "Soil"
+
 [starttime]
 other = "Start time"
 
@@ -424,6 +466,9 @@ other = "Unknown"
 [unknownsensors]
 other = "Unknown sensors"
 
+[water]
+other = "Water"
+
 [WaterMeter]
 other = "Water meter"
 
@@ -439,6 +484,15 @@ other = "Battery level (%)"
 [3-7]
 other = "Battery level (mV)"
 
+[3200-5500]
+other = "Digital Input State"
+
+[3200-5501]
+other = "Digital input counter"
+
+[3301-5700]
+other = "Illuminance"
+
 [3303-5700]
 other = "Temperature"
 
@@ -451,23 +505,23 @@ other = "Actual number of persons"
 [3434-2]	
 other = "Daily number of persons"
 
+[3434-5]
+other = "Daily number of passages"
+
+[3434-6]
+other = "Total amout of passages"
+
 [3435-1]
 other = "Container height"
 
 [3435-2]
-other = "Actual filling percentage"
+other = "Actual filling percentage (%)"
 
 [3435-3]
-other = "Actual filling level"
+other = "Actual filling level (m)"
 
 [3304-5700]
 other = "Relative humidity"
-
-[3200-5500]
-other = "Digital Input State"
-
-[3200-5501]
-other = "Digital input counter"
 
 [3428-17]
 other = "Carbon dioxide"

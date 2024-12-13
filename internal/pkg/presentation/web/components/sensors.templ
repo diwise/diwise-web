@@ -75,13 +75,25 @@ templ SensorsFilter(l10n Localizer, model SensorListViewModel) {
 		<div class="flex h-12 justify-between items-center">
 			<div class="flex items-center dark:text-white">
 				<div class="flex items-center gap-6">
+					<div class="flex rounded-xl py-2 px-3 gap-2 w-56 border border-input-surface dark:border-white-30">
+						@SVG("search", Size(20))
+						<input class="filter w-full block focus:outline-none dark:bg-content-background" 
+							type="search"
+							name="search"
+							placeholder={ l10n.Get("search") }
+							hx-get="/components/sensors/list"
+							hx-trigger="input changed delay:500ms, search"
+							hx-target="#tableOrMap"
+							hx-include="[name=type]:checked, [name=active]:checked, [name=online]:checked, [name=lastseen], [name=search]"
+						/>
+					</div>
 					@CheckboxList(l10n.Get("type")) {
 						for _, t := range model.DeviceProfiles {
 							@CheckboxOption("type", t, "", l10n, templ.Attributes{
 								"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 								"hx-target":  "#tableOrMap",
 								"hx-swap":    "outerHTML",
-								"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
+								"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked, [name=lastseen], [name=search]",
 								"onchange":   "updateSelectedFilters()",
 								"data-text":  l10n.Get(t),
 								"value":      t,
@@ -93,14 +105,14 @@ templ SensorsFilter(l10n Localizer, model SensorListViewModel) {
 							"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 							"hx-target":  "#tableOrMap",
 							"hx-swap":    "outerHTML",
-							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
+							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked, [name=lastseen], [name=search]",
 							"onchange":   "updateSelectedFilters()",
 						})
 						@RadioOption("active", "false", l10n.Get("inactive"), l10n, templ.Attributes{
 							"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 							"hx-target":  "#tableOrMap",
 							"hx-swap":    "outerHTML",
-							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
+							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked, [name=lastseen], [name=search]",
 							"onchange":   "updateSelectedFilters()",
 						})
 					}
@@ -109,17 +121,38 @@ templ SensorsFilter(l10n Localizer, model SensorListViewModel) {
 							"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 							"hx-target":  "#tableOrMap",
 							"hx-swap":    "outerHTML",
-							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
+							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked, [name=lastseen], [name=search]",
 							"onchange":   "updateSelectedFilters()",
 						})
 						@RadioOption("online", "false", l10n.Get("offline"), l10n, templ.Attributes{
 							"hx-get":     string(templ.SafeURL(fmt.Sprintf("/components/sensors/list"))),
 							"hx-target":  "#tableOrMap",
 							"hx-swap":    "outerHTML",
-							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked",
+							"hx-include": "[name=type]:checked, [name=active]:checked, [name=online]:checked, [name=lastseen], [name=search]",
 							"onchange":   "updateSelectedFilters()",
 						})
 					}
+					<div class="relative inline-block group">
+						<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg"
+							onclick="document.getElementById('lastseen').focus();">
+							{ l10n.Get("lastseen") } 
+							@SVG("chevron-down", Size(20))
+						</button>
+						<div class="hidden absolute bg-gray-100 min-w-max rounded-md shadow-lg z-10 p-4 group-hover:block group-focus-within:block">
+							<input
+								name="lastseen"
+								type="datetime-local"
+								id="lastseen"
+								class="filter border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
+								hx-get="/components/sensors/list"
+								hx-target="#tableOrMap"
+								hx-include="[name=type]:checked, [name=active]:checked, [name=online]:checked, [name=lastseen], [name=search]"
+								hx-swap="outerHTML"
+								onclick="this.showPicker()"
+								onchange="updateSelectedFilters()"
+							/>
+						</div>
+					</div>
 				</div>
 			</div>
 			@TableOrMap(l10n, "/components/sensors/list")
@@ -310,7 +343,7 @@ templ TableOrMap(l10n Localizer, hxGet string) {
 		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
 			<div class="relative group">
 				<button
-					id="tableButton"
+					id="tableviewButton"
 					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=false", hxGet))) }
 					hx-target="#tableOrMap"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
@@ -331,8 +364,8 @@ templ TableOrMap(l10n Localizer, hxGet string) {
 					hx-target="#tableOrMap"
 					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
 					hx-on:click="this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white');
-					document.getElementById('tableButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black');
-					document.getElementById('tableButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
+					document.getElementById('tableviewButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black');
+					document.getElementById('tableviewButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
 				>
 					<svg class="w-[18px] h-[18px]">
 						@templ.Raw(iconSVG("map"))

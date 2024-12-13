@@ -25,6 +25,9 @@ other = "Lägg till ny tagg"
 [admin]
 other = "Admin"
 
+[air]
+other = "Luft"
+
 [alerts]
 other = "Larm"
 
@@ -45,6 +48,9 @@ other = "Vinkel saknas."
 
 [area]
 other = "Område"
+
+[available]
+other = "Ledig"
 
 [batterylevel]
 other = "Batterinivå"
@@ -73,6 +79,9 @@ other = "Ange mättyp"
 [choosetags]
 other = "Välj taggar"
 
+[clearall]
+other = "Rensa alla"
+
 [consumption]
 other = "Förbrukning"
 
@@ -91,6 +100,9 @@ other = "Aktuell nivå"
 [currenttemperature]
 other = "Nuvarande temperatur"
 
+[dark]
+other = "Mörkt"
+
 [degrees]
 other = "grader"
 
@@ -106,6 +118,9 @@ other = "och dess data kommer tas bort."
 [description]
 other = "Beskrivning"
 
+[Desk]
+other = "Skrivbord"
+
 [desk]
 other = "Skrivbord"
 
@@ -114,6 +129,9 @@ other = "Uppgifter"
 
 [deveui]
 other = "DevEUI"
+
+[devicenotobservedafter]
+other = "Sensor registreras som ej observerad efter"
 
 [edit]
 other = "Redigera"
@@ -136,6 +154,9 @@ other = "Graf"
 [home]
 other = "Hem"
 
+[hours]
+other = "timmar"
+
 [id]
 other = "ID"
 
@@ -152,6 +173,9 @@ other = "Inaktiva sensorer"
 other = "Information"
 
 [inplace]
+other = "På plats"
+
+[present]
 other = "På plats"
 
 [lastseen]
@@ -171,6 +195,9 @@ other = "Livboj"
 
 [Lifebuoy]
 other = "Livboj"
+
+[light]
+other = "Ljust"
 
 [location]
 other = "Position"
@@ -195,6 +222,9 @@ other = "Karta"
 
 [maxfillingheight]
 other = "med en max fyllnadshöjd på"
+
+[maxfillinglevel]
+other = "Max fyllnadsnivå"
 
 [maxcontainerheight]
 other = "Behållarens höjd"
@@ -253,6 +283,9 @@ other = "Nej"
 [nodata]
 other = "-"
 
+[nofilterselected]
+other = "Inga filter valda"
+
 [notloggedin]
 other = "Du behöver logga in"
 
@@ -267,6 +300,9 @@ other = "Antal passager idag"
 
 [numberofsensors]
 other = "Antal sensorer"
+
+[occupied]
+other = "Upptagen"
 
 [off]
 other = "Av"
@@ -306,6 +342,9 @@ other = "Välj ett alternativ"
 
 [picksensor]
 other = "Välj sensor"
+
+[environment]
+other = "Miljö"
 
 [PointOfInterest]
 other = "Intressepunkt"
@@ -376,6 +415,9 @@ other = "Visar"
 [size]
 other = "Storlek"
 
+[soil]
+other = "Jord"
+
 [starttime]
 other = "Starttid"
 
@@ -424,6 +466,9 @@ other = "Okänd"
 [unknownsensors]
 other = "Okända sensorer"
 
+[water]
+other = "Vatten"
+
 [WaterMeter]
 other = "Vattenmätare"
 
@@ -439,6 +484,15 @@ other = "Batterinivå (%)"
 [3-7]
 other = "Batterinivå (mV)"
 
+[3200-5500]
+other = "Digital Input State"
+
+[3200-5501]
+other = "Digital räknare"
+
+[3301-5700]
+other = "Belysningsstyrka"
+
 [3303-5700]
 other = "Temperatur"
 
@@ -451,6 +505,12 @@ other = "Antal personer"
 [3434-2]	
 other = "Antal personer per dag"
 
+[3434-5]
+other = "Antal passager per dag"
+
+[3434-6]
+other = "Totalt antal passager"
+
 [3435-1]
 other = "Höjd"
 
@@ -458,16 +518,10 @@ other = "Höjd"
 other = "Fyllnadsnivå (%)"
 
 [3435-3]
-other = "Fyllnadsnivå (cm)"
+other = "Fyllnadsnivå (m)"
 
 [3304-5700]
 other = "Luftfuktighet"
-
-[3200-5500]
-other = "Digital Input State"
-
-[3200-5501]
-other = "Digital räknare"
 
 [3428-17]
 other = "Koldioxid"
@@ -480,6 +534,9 @@ other = "Distans"
 
 [3331-5700]
 other = "Total energiförbrukning"
+
+[oma-lwm2m-ext-10351]
+other = "Passage"
 
 [oma-lwm2m-ext-3]
 other = "Sensor"

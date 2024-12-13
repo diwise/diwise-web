@@ -157,6 +157,10 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 					fields["deviceProfile"] = v
 				case "organisation":
 					fields["tenant"] = v
+				case "environment":
+					fields["environment"] = v
+				case "interval":
+					fields["interval"] = v
 				case "measurementType-option[]":
 					fields["types"] = r.Form[k]
 				default:
@@ -240,7 +244,13 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		DeviceProfiles:    dp,
 		MeasurementTypes:  m,
 		Measurements:      mv,
+		Interval:          float32(sensor.DeviceProfile.Interval),
 		ObservedAt:        sensor.ObservedAt(),
 	}
+
+	if sensor.Environment != nil {
+		detailsViewModel.Environment = *sensor.Environment
+	}
+
 	return &detailsViewModel, nil
 }

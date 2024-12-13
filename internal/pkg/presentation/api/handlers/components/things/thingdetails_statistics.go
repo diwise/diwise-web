@@ -2,6 +2,7 @@ package things
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -15,6 +16,10 @@ import (
 
 	//lint:ignore ST1001 it is OK when we do it
 	. "github.com/diwise/frontend-toolkit"
+)
+
+const (
+	DoorState = "10351/50"
 )
 
 func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
@@ -32,6 +37,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 
 		thingType := strings.ToLower(r.URL.Query().Get("type"))
 		thingSubType := strings.ToLower(r.URL.Query().Get("subType"))
+		activeTab := strings.ToLower(r.URL.Query().Get("tab"))
 
 		if thingSubType != "" {
 			thingType += ":" + thingSubType
@@ -50,48 +56,58 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		q.Add("options", "groupByRef")
 
 		label := ""
+		datasets := []components.ChartDataset{}
+		var chart, table templ.Component
+
+		n := strings.ReplaceAll(activeTab, "-", "/")
+
 		switch thingType {
 		case "pointofinterest:beach":
 			fallthrough
 		case "pointofinterest":
-			q.Add("n", "3303/5700") //Temperature
-			label = localizer.Get("3303-5700")
+			q.Add("n", n) //Temperature
+			label = localizer.Get(activeTab)
 		case "building":
-			q.Add("n", "3331/5700") // Energy
-			label = localizer.Get("3331-5700")
+			q.Add("n", n) // Energy
+			label = localizer.Get(activeTab)
 		case "container:wastecontainer":
 			fallthrough
 		case "container":
-			q.Add("n", "3435/2") //FillingLevel/Percentage
-			label = localizer.Get("3435-2")
-		case "lifebuoy":
-			q.Add("n", "3302/5500") //Presence/State
-			q.Add("timeunit", "hour")
-			q.Add("vb", "false")
-			q.Del("options")
-		case "passage":
-			q.Add("n", "10351/50") //Door/State
+			q.Add("n", n) //FillingLevel/Percentage
+			label = localizer.Get(activeTab)
+		case "desk":
+			q.Add("n", n) //Presence/State
 			q.Add("timeunit", "hour")
 			q.Add("vb", "true")
 			q.Del("options")
-			label = localizer.Get("10351-50")
+		case "lifebuoy":
+			q.Add("n", n) //Presence/State
+			q.Del("options")
+		case "passage":
+			q.Add("n", n) //Door/State = 10351/50
+			if n == DoorState {
+				q.Add("timeunit", "hour")
+				q.Add("vb", "true")
+				q.Del("options")
+			}
+			label = localizer.Get(activeTab)
 		case "pumpingstation":
-			q.Add("n", "3350/5850") //Stopwatch/OnOff
+			q.Add("n", n) //Stopwatch/OnOff
 			q.Add("timeunit", "hour")
 			q.Add("vb", "true")
 			q.Del("options")
 		case "room":
-			q.Add("n", "3303/5700") //Temperature
-			label = localizer.Get("3303-5700")
+			q.Add("n", n) //Temperature
+			label = localizer.Get(activeTab)
 		case "sewer":
-			q.Add("n", "3435/2") //FillingLevel/Percentage
-			label = localizer.Get("3435-2")
+			q.Add("n", n) //FillingLevel/Percentage
+			label = localizer.Get(activeTab)
 		case "sewer:combinedseweroverflow":
-			q.Add("n", "3350/5850") //Stopwatch/OnOff
-			label = localizer.Get("3200-5500")
+			q.Add("n", n) //Stopwatch/OnOff
+			label = localizer.Get(activeTab)
 		case "watermeter":
-			q.Add("n", "3424/1") //WaterMeter/CumulativeVolume
-			label = localizer.Get("3424-1")
+			q.Add("n", n) //WaterMeter/CumulativeVolume
+			label = localizer.Get(activeTab)
 		}
 
 		thing, err := app.GetThing(ctx, id, q)
@@ -100,43 +116,60 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			return
 		}
 
-		datasets := []components.ChartDataset{}
-
 		for _, values := range thing.Values {
 			datasets = append(datasets, toDataset(label, values))
 		}
 
-		var component templ.Component
-		keepRatio := false
-
-		switch thingType {
-		//case "beach":
-		//	fallthrough
-		//case "pointofinterest":
-		//	component = components.MeasurementChart(datasets, keepRatio)
-		//case "building":
-		//	component = components.MeasurementChart(datasets, keepRatio)
-		case "container:wastecontainer":
-			fallthrough
-		case "container":
-			component = components.WastecontainerChart(datasets)
-		//case "lifebuoy":
-		//	component = components.MeasurementChart(datasets, keepRatio)
-		case "passage":
-			component = components.PassagesChart(datasets)
-		//case "pumpingstation":
-		//	component = components.MeasurementChart(datasets, keepRatio)
-		case "room":
-			component = components.RoomChart(datasets)
-		//case "sewer":
-		//	component = components.MeasurementChart(datasets, keepRatio)
-		//case "watermeter":
-		//	component = components.MeasurementChart(datasets, keepRatio)
-		default:
-			component = components.MeasurementChart(datasets, keepRatio)
+		if len(datasets) == 0 {
+			datasets = append(datasets, components.NewChartDataset(label))
 		}
 
-		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
+		tsAt := timeAt.UTC().Format(time.RFC3339)
+		endTsAt := endTimeAt.UTC().Format(time.RFC3339)
+
+		switch thingType {
+		//case "pointofinterest":
+		//case "pointofinterest:beach":
+		//case "building":
+		case "container":
+			fallthrough
+		case "container:wastecontainer":
+			fallthrough
+		case "container:sandstorage":
+			maxvalue := uint(100)
+			stepsize := uint(10)
+			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, &maxvalue, false)
+		case "desk":
+			stepsize := uint(1)
+			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false)
+		case "lifebuoy":
+			stepsize := uint(1)
+			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false)
+
+		case "passage":
+			if n == DoorState {
+				minvalue := uint(0)
+				stepsize := uint(1)
+				chart = components.StatisticsChart(datasets, "bar", &stepsize, &minvalue, nil, false)
+			} else {
+				stepsize := uint(1)
+				chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false)
+			}
+
+		//case "pumpingstation":
+		case "room":
+			stepsize := uint(1)
+			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false)
+
+		//case "sewer":
+		//case "sewer:combinedseweroverflow":
+		//case "watermeter":
+		default:
+			chart = components.StatisticsChart(datasets, "line", nil, nil, nil, false)
+		}
+
+		table = components.StatisticsTable(localizer, datasets[0], tsAt, endTsAt)
+		helpers.WriteComponentResponse(ctx, w, r, templ.Join(chart, table), 1024, 0)
 	}
 
 	return http.HandlerFunc(fn)
@@ -152,7 +185,7 @@ func toDataset(label string, measurements []application.Measurement) components.
 		}
 
 		if v.Value != nil {
-			dataset.Add(v.Timestamp.Format(time.DateTime), *v.Value)
+			dataset.Add(v.Timestamp.Format(time.DateTime), fmt.Sprintf("%.1f", *v.Value))
 		}
 
 		if v.Value == nil && v.Count != nil && *v.Count > 0 {

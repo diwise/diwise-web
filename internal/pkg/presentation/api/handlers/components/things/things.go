@@ -317,6 +317,7 @@ func toViewModel(thing application.Thing) components.ThingViewModel {
 		Measurements:    make([]components.MeasurementViewModel, 0),
 		Properties:      make(map[string]any),
 		RefDevice:       make([]string, 0),
+		Latest:          make(map[string]components.MeasurementViewModel),
 	}
 
 	for _, rd := range thing.RefDevices {
