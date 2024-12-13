@@ -122,7 +122,19 @@ templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 			<div class="flex flex-col gap-2">
 				{ children... }
 			</div>
-			<div class="flex items-center gap-6">
+			<div class="flex items-start gap-6">
+				<div class="flex flex-col items-start gap-2">
+					<div class="font-bold">
+						{ l10n.Get("export") }
+					</div>
+					<div class="">
+						@Button(Secondary, "", "download-cloud",
+							HxUrl("get", "/admin/export?export=things&accept=text/csv"),
+							//TODO: Byt ut till en annan export-url
+							Trigger("click"),
+							Include(".filter"))
+					</div>
+				</div>
 				@StatisticsFilter(l10n, model.Thing.ID, model.Thing.Type, model.Thing.SubType, model.Tabs[0])
 			</div>
 		</div>

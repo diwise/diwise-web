@@ -10,6 +10,8 @@ func NewChartConfiguration(chartType string, keepRatio bool, min, max, stepSize 
 	if chartType == "bar" {
 		borderRadius := 8
 		cfg.Options.BarBorderRadius = &borderRadius
+		cfg.Options.BackgroundColor = "#68686D"
+		cfg.Options.BorderColor = "#68686D"
 	}
 
 	return cfg
