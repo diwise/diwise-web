@@ -34,6 +34,7 @@ type ThingViewModel struct {
 	Tenant          string
 	Tags            []string
 	Measurements    []MeasurementViewModel
+	Latest          map[string]MeasurementViewModel
 	ObservedAt      time.Time
 	Properties      map[string]any
 }
@@ -680,7 +681,7 @@ func SewerCell(l10n Localizer, t ThingViewModel) templ.Component {
 
 func CombinedSewerOverflowCell(l10n Localizer, t ThingViewModel) templ.Component {
 	overflowObserved, okOverflow := t.Properties["overflowObserved"]
-	
+
 	var components []templ.Component
 
 	if okOverflow {
@@ -695,7 +696,7 @@ func CombinedSewerOverflowCell(l10n Localizer, t ThingViewModel) templ.Component
 			components = append(components, Text(fmt.Sprintf("%s: %s", l10n.Get("overflow"), vbTranslation)))
 		}
 	}
-	
+
 	return Div("", components...)
 }
 
