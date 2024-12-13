@@ -505,14 +505,20 @@ other = "Actual number of persons"
 [3434-2]	
 other = "Daily number of persons"
 
+[3434-5]
+other = "Daily number of passages"
+
+[3434-6]
+other = "Total amout of passages"
+
 [3435-1]
 other = "Container height"
 
 [3435-2]
-other = "Actual filling percentage"
+other = "Actual filling percentage (%)"
 
 [3435-3]
-other = "Actual filling level"
+other = "Actual filling level (m)"
 
 [3304-5700]
 other = "Relative humidity"

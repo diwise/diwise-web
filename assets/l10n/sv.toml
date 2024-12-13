@@ -505,6 +505,12 @@ other = "Antal personer"
 [3434-2]	
 other = "Antal personer per dag"
 
+[3434-5]
+other = "Antal passager per dag"
+
+[3434-6]
+other = "Totalt antal passager"
+
 [3435-1]
 other = "Höjd"
 
@@ -512,7 +518,7 @@ other = "Höjd"
 other = "Fyllnadsnivå (%)"
 
 [3435-3]
-other = "Fyllnadsnivå (cm)"
+other = "Fyllnadsnivå (m)"
 
 [3304-5700]
 other = "Luftfuktighet"

@@ -3,7 +3,7 @@ testdata_dir = "testdata"
 tmp_dir = ".tmp"
 
 [build]
-  args_bin = ["-devmode", "-csp", "off", "-web-assets", "$PWD/assets"]
+  args_bin = ["-csp", "off", "-web-assets", "$PWD/assets"]
   bin = "./.tmp/main"
   cmd = "tailwindcss -c ./internal/pkg/presentation/web/css/tailwind.config.js -i ./internal/pkg/presentation/web/css/input.css -o ./assets/css/diwise.css && templ generate && go build -race -o ./.tmp/main ./cmd/diwise-web"
   delay = 1000
