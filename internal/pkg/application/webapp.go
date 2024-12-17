@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -278,6 +280,9 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 		}
 		if query.Has("timeAt") && query.Has("endTimeAt") {
 			query.Set("timerel", "between")
+		}
+		if !query.Has("limit") {
+			query.Set("limit", strconv.Itoa(math.MaxInt32))
 		}
 
 		targetUrl = a.thingManagementURL + "/values"
