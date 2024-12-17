@@ -134,6 +134,17 @@ func UsageChart(xScaleMax uint, datasets []ChartDataset) templ.Component {
 	cfg.Options.Scales.X.Max = &xScaleMax
 	cfg.Options.Scales.X.Ticks.StepSize = &xScaleTicksStepSize
 
+	var colors = []string{ 
+        "#1F1F25", // Standardgrå
+        "#C24E18", // Diwise-orange
+    }
+
+    for i := range datasets {
+        datasets[i].BackgroundColor = colors[i%len(colors)] // Dynamisk färgsättning
+        datasets[i].BorderColor = colors[i%len(colors)]
+        datasets[i].BorderWidth = 1
+    }
+
 	cfg.Add(datasets...)
 
 	return Chart("usage-chart", "", cfg)

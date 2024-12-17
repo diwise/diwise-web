@@ -142,6 +142,9 @@ other = "Sluttid"
 [export]
 other = "Exportera"
 
+[false]
+other = "Nej"
+
 [fillinglevel]
 other = "Fyllnadsnivå"
 
@@ -457,6 +460,9 @@ other = "Totalt"
 [totaltime]
 other = "Total tid"
 
+[true]
+other = "Ja"
+
 [type]
 other = "Typ"
 
@@ -496,6 +502,21 @@ other = "Belysningsstyrka"
 [3303-5700]
 other = "Temperatur"
 
+[3304-5700]
+other = "Luftfuktighet"
+
+[3330-5700]
+other = "Distans"
+
+[3331-5700]
+other = "Total energiförbrukning"
+
+[3350-5850]
+other = "Bräddar just nu"
+
+[3350-5544]
+other = "Total tid"
+
 [3424-1]
 other = "Total vattenförbrukning"
 
@@ -520,20 +541,10 @@ other = "Fyllnadsnivå (%)"
 [3435-3]
 other = "Fyllnadsnivå (m)"
 
-[3304-5700]
-other = "Luftfuktighet"
-
 [3428-17]
 other = "Koldioxid"
 
-[3350-5544]
-other = "Total tid"
 
-[3330-5700]
-other = "Distans"
-
-[3331-5700]
-other = "Total energiförbrukning"
 
 [oma-lwm2m-ext-10351]
 other = "Passage"
