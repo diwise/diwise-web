@@ -44,6 +44,10 @@ templ Tab(tab string, firstTab bool, model ThingDetailsViewModel, l10n Localizer
 }
 
 func omaToTabIcon(oma string) string {
+	if oma == "" {
+		return ""
+	}
+
 	oma = oma[:strings.Index(oma, "-")]
 	mymap := map[string]string{
 		"3":    "rss",              //Sensor
@@ -129,10 +133,9 @@ templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 					</div>
 					<div class="">
 						@Button(Secondary, "", "download-cloud",
-							HxUrl("get", "/admin/export?export=things&accept=text/csv"),
-							//TODO: Byt ut till en annan export-url
+							HxUrl("get", fmt.Sprintf("/admin/export?export=thing&accept=text/csv&thingid=%s", model.Thing.ID)),
 							Trigger("click"),
-							Include(".filter"))
+							Include("#timeAt,#endTimeAt,#tab"))
 					</div>
 				</div>
 				@StatisticsFilter(l10n, model.Thing.ID, model.Thing.Type, model.Thing.SubType, model.Tabs[0])
