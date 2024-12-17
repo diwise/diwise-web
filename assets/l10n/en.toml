@@ -142,6 +142,9 @@ other = "End time"
 [export]
 other = "Export"
 
+[false]
+other = "No"
+
 [fillinglevel]
 other = "Filling level"
 
@@ -457,6 +460,9 @@ other = "Total"
 [totaltime]
 other = "Total time"
 
+[true]
+other = "Yes"
+
 [type]
 other = "Type"
 
@@ -496,6 +502,21 @@ other = "Illuminance"
 [3303-5700]
 other = "Temperature"
 
+[3304-5700]
+other = "Relative humidity"
+
+[3330-5700]
+other = "Distance"
+
+[3331-5700]
+other = "Cumulated energy consumption"
+
+[3350-5850]
+other = "Overflow right now"
+
+[3350-5544]
+other = "Cumulative time"
+
 [3424-1]
 other = "Cumulated water consumption"
 
@@ -520,20 +541,8 @@ other = "Actual filling percentage (%)"
 [3435-3]
 other = "Actual filling level (m)"
 
-[3304-5700]
-other = "Relative humidity"
-
 [3428-17]
 other = "Carbon dioxide"
-
-[3350-5544]
-other = "Cumulative time"
-
-[3330-5700]
-other = "Distance"
-
-[3331-5700]
-other = "Cumulated energy consumption"
 
 [oma-lwm2m-ext-3]
 other = "Device"

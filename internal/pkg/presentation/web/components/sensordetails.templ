@@ -25,8 +25,8 @@ type SensorDetailsViewModel struct {
 	MeasurementTypes  []string
 	Measurements      []MeasurementViewModel
 	ObservedAt        time.Time
-	Environment		  string
-	Interval		  float32
+	Environment       string
+	Interval          float32
 }
 
 type DeviceProfile struct {
@@ -444,24 +444,28 @@ func sensorMapFeature(sensor SensorDetailsViewModel) FeatureCollection {
 }
 
 func SensorMeasurementSelect(l10n Localizer, asset AssetLoaderFunc, id, target string, sensorViewModel SensorDetailsViewModel) templ.Component {
-	viewModel := []OptionViewModel{
-		{
-			Value:    "",
-			Text:     l10n.Get("choose"),
-			Selected: true,
-			Hidden:   true,
-			Disabled: true,
-		},
-	}
+	/*
+		viewModel := []OptionViewModel{
+			{
+				Value:    "",
+				Text:     l10n.Get("choose"),
+				Selected: true,
+				Hidden:   true,
+				Disabled: true,
+			},
+		}
+	*/
+	viewModel := []OptionViewModel{}
 
-	for _, t := range sensorViewModel.MeasurementTypes {
+	for i, t := range sensorViewModel.MeasurementTypes {
 
 		parts := strings.Split(t, "/")
 		text := strings.Join(parts[1:], "-")
 
 		viewModel = append(viewModel, OptionViewModel{
-			Value: t,
-			Text:  l10n.Get(text),
+			Value:    t,
+			Text:     l10n.Get(text),
+			Selected: i == 0,
 		})
 	}
 

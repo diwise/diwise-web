@@ -192,23 +192,38 @@ templ Chart(id, className string, cfg ChartConfiguration) {
 	<div id="chart-data" data-chart-id={ templ.JSONString(id) } data-chart-cfg={ templ.JSONString(cfg) } style="display:none;"></div>
 	@chartHandle.Once() {
 		<script>
-			(() => {			
+			(() => {	
 				const c = document.getElementById('chart-data');
-				const chartID = JSON.parse(c.getAttribute('data-chart-id'));	
-				window.chartConfig = JSON.parse(c.getAttribute('data-chart-cfg'));			
-									
-				try {
-					var existing_chart = Chart.getChart(chartID);
-					existing_chart.destroy();							
-				} catch(e) {				
-				}
+				const chartID = JSON.parse(c.getAttribute('data-chart-id'));
+				window.chartConfig = JSON.parse(c.getAttribute('data-chart-cfg'));
 
 				const ctx = document.getElementById(chartID);
-				window.myChart = new Chart(ctx, window.chartConfig);
 
+				if (ctx) {
+					// Initiera global lagring för charts om den inte redan finns
+					if (!window.chartInstances) {
+						window.chartInstances = {};
+					}
+
+					// Kontrollera om en befintlig chart existerar
+					if (window.chartInstances[chartID]) {
+						window.chartInstances[chartID].destroy();
+
+						ctx.removeAttribute('width');
+						ctx.removeAttribute('height');
+						ctx.style.width = '';
+						ctx.style.height = '';
+					} else {
+						
+					}
+					window.chartInstances[chartID] = new Chart(ctx, window.chartConfig);
+				} else {
+					console.error(`Canvas with ID "${chartID}" not found.`);
+				}
+
+				// Hantera mörkt läge
 				const isDarkMode = localStorage.theme === 'dark' || 
 					(!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
 				updateChartForTheme(isDarkMode);
 			})();
 

@@ -6,7 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -255,6 +257,35 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 			}
 		}
 		targetUrl = a.thingManagementURL
+	case "thing":
+		if query.Has("tab") {
+			query.Set("n", strings.ReplaceAll(query.Get("tab"), "-", "/"))
+			query.Del("tab")
+		}
+		if query.Has("timeAt") {
+			timeAt := query.Get("timeAt")
+			if len(timeAt) == len("0000-00-00T00:00") {
+				timeAt += ":00Z"
+				query.Set("timeAt", timeAt)
+			}
+			query.Set("timerel", "after")
+		}
+		if query.Has("endTimeAt") {
+			endTimeAt := query.Get("endTimeAt")
+			if len(endTimeAt) == len("0000-00-00T00:00") {
+				endTimeAt += ":59Z"
+				query.Set("endTimeAt", endTimeAt)
+			}
+			query.Set("timerel", query.Get("before"))
+		}
+		if query.Has("timeAt") && query.Has("endTimeAt") {
+			query.Set("timerel", "between")
+		}
+		if !query.Has("limit") {
+			query.Set("limit", strconv.Itoa(math.MaxInt32))
+		}
+
+		targetUrl = a.thingManagementURL + "/values"
 	default:
 		return nil, fmt.Errorf("export parameter is invalid")
 	}
