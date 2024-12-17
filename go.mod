@@ -2,10 +2,12 @@ module github.com/diwise/diwise-web
 
 go 1.23.2
 
+toolchain go1.23.3
+
 require (
 	github.com/a-h/templ v0.2.793
 	github.com/diwise/frontend-toolkit v0.0.0-20241030110809-b5b3775c784c
-	github.com/diwise/service-chassis v0.0.0-20241111144035-fc0fd331700b
+	github.com/diwise/service-chassis v0.0.0-20241217122325-27b614ffdb7f
 	github.com/google/uuid v1.6.0
 	github.com/matryer/is v1.4.1
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.57.0
@@ -42,11 +44,11 @@ require (
 	go.opentelemetry.io/otel/sdk/metric v1.32.0 // indirect
 	go.opentelemetry.io/otel/trace v1.32.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.3.1 // indirect
-	golang.org/x/crypto v0.29.0 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/net v0.31.0 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
-	golang.org/x/sys v0.27.0 // indirect
-	golang.org/x/text v0.20.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241118233622-e639e219e697 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241118233622-e639e219e697 // indirect
 	google.golang.org/grpc v1.68.0 // indirect
