@@ -310,3 +310,12 @@ func FileUpload(ctx context.Context, targetUrl string, headers map[string][]stri
 
 	return nil
 }
+
+func IsDarkMode(r *http.Request) bool {
+	cookie, err := r.Cookie("theme")
+	if err != nil {
+		return true
+	}
+
+	return cookie.Value == "dark"
+}

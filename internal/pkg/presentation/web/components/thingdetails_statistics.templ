@@ -316,10 +316,37 @@ templ StatisticsTableRow(l10n Localizer, value ChartValue) {
 	</tr>
 }
 
-func StatisticsChart(datasets []ChartDataset, chartType string, stepsize, minvalue, maxvalue *uint, keepRatio bool) templ.Component {
-	cfg := NewChartConfiguration(chartType, keepRatio, minvalue, maxvalue, stepsize)
+func StatisticsChart(datasets []ChartDataset, chartType string, stepsize, minvalue, maxvalue *uint, keepRatio, isDark bool) templ.Component {
+	cfg := NewChartConfiguration(chartType, keepRatio, isDark, minvalue, maxvalue, stepsize)
 	cfg.Timeseries(true)
+
+	datasets = setChartColors(datasets, chartType, isDark)
+
 	cfg.Add(datasets...)
 
 	return Chart("measurement-chart", "", cfg)
+}
+
+func setChartColors(datasets []ChartDataset, chartType string, isDark bool) []ChartDataset {
+    for i := range datasets {
+        if chartType == "bar" {
+            if isDark {
+                datasets[i].BackgroundColor = "#FFFFFF" // Bakgrundsfärg i dark mode
+                datasets[i].BorderColor = "#FFFFFF"     // Kantfärg i dark mode
+				
+            } else {
+                datasets[i].BackgroundColor = "#68686D" // Bakgrundsfärg i light mode
+                datasets[i].BorderColor = "#68686D"     // Kantfärg i light mode
+            }
+        } else { // Standardfärger för andra typer av diagram
+            if isDark {
+                datasets[i].BackgroundColor = "#FFFFFF" // Transparent vit
+                datasets[i].BorderColor = "#FFFFFF"
+            } else {
+                datasets[i].BackgroundColor = "#1F1F25" // Transparent mörk
+                datasets[i].BorderColor = "#1F1F25"
+            }
+        }
+    }
+    return datasets
 }

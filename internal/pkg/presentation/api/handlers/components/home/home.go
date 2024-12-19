@@ -143,7 +143,9 @@ func NewUsageHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFun
 		//localizer := l10n.For(r.Header.Get("Accept-Language"))
 		ctx := r.Context()
 
-		datasets, max, err := getUsageData(ctx, app)
+		isDark := helpers.IsDarkMode(r)
+
+		datasets, max, err := getUsageData(isDark, ctx, app)
 		if err != nil {
 			if errors.Is(err, application.ErrUnauthorized) {
 				http.Error(w, "not authorized", http.StatusUnauthorized)
@@ -153,14 +155,14 @@ func NewUsageHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFun
 			return
 		}
 
-		component := components.UsageChart(max, datasets)
+		component := components.UsageChart(isDark, max, datasets)
 		helpers.WriteComponentResponse(ctx, w, r, component, 10*1024, 10*time.Minute)
 	}
 
 	return http.HandlerFunc(fn)
 }
 
-func getUsageData(ctx context.Context, app application.DeviceManagement) ([]components.ChartDataset, uint, error) {
+func getUsageData(isDark bool, ctx context.Context, app application.DeviceManagement) ([]components.ChartDataset, uint, error) {
 	daysInMonth := func(ts time.Time) int {
 		return time.Date(ts.Year(), ts.Month()+1, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -1).Day()
 	}
@@ -186,7 +188,7 @@ func getUsageData(ctx context.Context, app application.DeviceManagement) ([]comp
 		m := fmt.Sprintf("%d-%02d", v.Timestamp.Year(), v.Timestamp.Month())
 		ds, ok := sets[m]
 		if !ok {
-			ds = components.NewChartDataset(m)
+			ds = components.NewChartDataset(m, isDark)
 			ds.BorderColor = ""
 		}
 		ds.Add(strconv.Itoa(v.Timestamp.Day()), v.Count)

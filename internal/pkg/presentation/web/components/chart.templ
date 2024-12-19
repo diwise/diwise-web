@@ -1,17 +1,15 @@
 package components
 
-func NewChartConfiguration(chartType string, keepRatio bool, min, max, stepSize *uint) ChartConfiguration {
+func NewChartConfiguration(chartType string, keepRatio, isDark bool, min, max, stepSize *uint) ChartConfiguration {
 	cfg := ChartConfiguration{
 		Type:    chartType,
 		Data:    NewChartData(),
-		Options: NewChartOptions(keepRatio, min, max, stepSize),
+		Options: NewChartOptions(keepRatio, isDark, min, max, stepSize),
 	}
 
 	if chartType == "bar" {
 		borderRadius := 8
 		cfg.Options.BarBorderRadius = &borderRadius
-		cfg.Options.BackgroundColor = "#68686D"
-		cfg.Options.BorderColor = "#68686D"
 	}
 
 	return cfg
@@ -34,14 +32,23 @@ type ChartData struct {
 	Labels   []string       `json:"labels,omitempty"`
 }
 
-func NewChartDataset(label string) ChartDataset {
+func NewChartDataset(label string, isDark bool) ChartDataset {
+	var pointColor, borderColor string
+	if isDark {
+		pointColor = "#FFFFFF"
+		borderColor = "#FFFFFF"
+	} else {
+		pointColor = "#1F1F25"
+		borderColor = "#1F1F25"
+	}
+	
 	return ChartDataset{
 		Label:                label,
 		Data:                 make([]ChartValue, 0),
-		BorderColor:          "#1F1F25",
+		BorderColor:          borderColor,
 		BorderWidth:          2,
-		PointBackgroundColor: "#1F1F25",
-		PointBorderColor:     "#1F1F25",
+		PointBackgroundColor: pointColor,
+		PointBorderColor:     pointColor,
 		PointRadius:          1,
 		PointHoverRadius:     6,
 		MaintainAspectRatio:  true,
@@ -77,15 +84,28 @@ type ChartValue struct {
 	Y any    `json:"y"`
 }
 
-func NewChartOptions(keepRatio bool, min, max, stepSize *uint) ChartOptions {
+func NewChartOptions(keepRatio, isDark bool, min, max, stepSize *uint) ChartOptions {
 	t := true
+
+	var tickColor, gridColor, borderColor string
+	if isDark {
+		borderColor = "#FFFFFF"
+ 		tickColor = "#FFFFFF"
+		gridColor = "#FFFFFF4D"
+	} else {
+		borderColor = "#1F1F25"
+		tickColor = "#444450"
+	}
 	return ChartOptions{
-		BackgroundColor: "#1F1F25",
-		BorderColor:     "#1F1F25",
+		BackgroundColor: borderColor,
+		BorderColor:     borderColor,
 		Scales: ChartOptionsScales{
 			X: ChartOptionsScale{
 				Ticks: ChartOptionsTicks{
-					Color: "#444450",
+					Color: tickColor,
+				},
+				Grid: ChartOptionsGrid{
+					Color: gridColor, // Sätt rutnätsfärgen för x-axeln
 				},
 			},
 			Y: ChartOptionsScale{
@@ -93,8 +113,11 @@ func NewChartOptions(keepRatio bool, min, max, stepSize *uint) ChartOptions {
 				Max:         max,
 				BeginAtZero: &t,
 				Ticks: ChartOptionsTicks{
-					Color:    "#444450",
+					Color:    tickColor,
 					StepSize: stepSize,
+				},
+				Grid: ChartOptionsGrid{
+					Color: gridColor, // Sätt rutnätsfärgen för y-axeln
 				},
 			},
 		},
@@ -126,12 +149,17 @@ type ChartOptionsScale struct {
 	Max          *uint                  `json:"max,omitempty"`
 	BeginAtZero  *bool                  `json:"beginAtZero,omitempty"`
 	Ticks        ChartOptionsTicks      `json:"ticks"`
+	Grid         ChartOptionsGrid		`json:"grid"`
 	Time         *ChartOptionsScaleTime `json:"time,omitempty"`
 }
 
 type ChartOptionsTicks struct {
 	StepSize *uint  `json:"stepSize,omitempty"`
 	Color    string `json:"color"`
+}
+
+type ChartOptionsGrid struct {
+	Color string `json:"color,omitempty"`
 }
 
 type ChartOptionsScaleTime struct {
@@ -196,7 +224,6 @@ templ Chart(id, className string, cfg ChartConfiguration) {
 				const c = document.getElementById('chart-data');
 				const chartID = JSON.parse(c.getAttribute('data-chart-id'));
 				window.chartConfig = JSON.parse(c.getAttribute('data-chart-cfg'));
-
 				const ctx = document.getElementById(chartID);
 
 				if (ctx) {
@@ -221,51 +248,7 @@ templ Chart(id, className string, cfg ChartConfiguration) {
 					console.error(`Canvas with ID "${chartID}" not found.`);
 				}
 
-				// Hantera mörkt läge
-				const isDarkMode = localStorage.theme === 'dark' || 
-					(!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-				updateChartForTheme(isDarkMode);
 			})();
-
-			function updateChartForTheme(isDarkMode) {
-				
-				if (!window.myChart) {
-					return;
-				}
-				
-				const chartColors = isDarkMode ? {
-					backgroundColor: 'rgba(255, 255, 255, 255)',  // Dark mode bakgrundsfärg
-					borderColor: 'rgba(255, 255, 255, 255)',       // Dark mode kantfärg
-					pointBackgroundColor: 'rgba(255, 255, 255, 1)', // Dark mode point-färg (vit)
-					pointBorderColor: 'rgba(255, 255, 255, 1)',
-					ticksColor: 'rgba(255, 255, 255, 1)',
-					gridColor: 'rgba(255, 255, 255, 0.3)',
-				} : {
-					backgroundColor: window.chartConfig.options.backgroundColor,  // Light mode bakgrundsfärg
-					borderColor: window.chartConfig.options.borderColor,        // Light mode kantfärg
-					pointBackgroundColor: 'rgba(31, 31, 37, 1)',
-					pointBorderColor: 'rgba(31, 31, 37, 1)',
-					ticksColor: 'rgba(31, 31, 37, 1)',
-					gridColor: 'rgba(229, 229, 229, 1)',
-				};
-
-				// Kontrollera om myChart är initierad och uppdatera färgerna
-				if (window.myChart) {
-					const datasets = window.myChart.data.datasets[0];
-					datasets.backgroundColor = chartColors.backgroundColor;
-					datasets.borderColor = chartColors.borderColor;
-					datasets.pointBackgroundColor = chartColors.pointBackgroundColor;
-					datasets.pointBorderColor = chartColors.pointBorderColor;
-					
-					window.myChart.options.scales.x.ticks.color = chartColors.ticksColor;
-					window.myChart.options.scales.y.ticks.color = chartColors.ticksColor;
-
-					window.myChart.options.scales.x.grid.color = chartColors.gridColor;
-					window.myChart.options.scales.y.grid.color = chartColors.gridColor;
-					
-					window.myChart.update();
-				}
-			}
 		</script>
 	}
 }

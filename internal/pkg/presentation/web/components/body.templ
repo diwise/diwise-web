@@ -436,14 +436,12 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 				localStorage.theme = 'light';
 			}
 
-			const isDarkMode = document.body.classList.contains('dark');
+			document.cookie = `theme=${theme}; path=/; max-age=31536000;`;
 
-			if (typeof updateChartForTheme === 'function' && window.myChart) {
-				updateChartForTheme(isDarkMode);
-			}
+			const isDark = document.body.classList.contains('dark');
 
 			if (typeof updateMapForTheme === 'function') {
-				updateMapForTheme(isDarkMode);  
+				updateMapForTheme(isDark);  
 			}
 		}
 

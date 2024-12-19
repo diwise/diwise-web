@@ -117,9 +117,9 @@ templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
 	</tr>
 }
 
-func UsageChart(xScaleMax uint, datasets []ChartDataset) templ.Component {
+func UsageChart(isDark bool, xScaleMax uint, datasets []ChartDataset) templ.Component {
 	stepsize := uint(20000)
-	cfg := NewChartConfiguration("bar", true, nil, nil, &stepsize)
+	cfg := NewChartConfiguration("bar", true, isDark, nil, nil, &stepsize)
 
 	var (
 		xScaleType          string = "linear"
@@ -128,16 +128,28 @@ func UsageChart(xScaleMax uint, datasets []ChartDataset) templ.Component {
 		xScaleTicksStepSize uint   = 1
 	)
 
+	borderRadius := 8
+
 	cfg.Options.Scales.X.Type = &xScaleType
 	cfg.Options.Scales.X.Position = &xScalePosition
 	cfg.Options.Scales.X.Min = &xScaleMin
 	cfg.Options.Scales.X.Max = &xScaleMax
 	cfg.Options.Scales.X.Ticks.StepSize = &xScaleTicksStepSize
+	cfg.Options.BarBorderRadius = &borderRadius
 
-	var colors = []string{ 
-        "#1F1F25", // Standardgrå
-        "#C24E18", // Diwise-orange
-    }
+	var colors []string
+
+	if isDark {
+		colors = []string{
+			"#FFFFFF", // Vit
+        	"#C24E18", // Diwise-orange
+		}
+	} else {
+		colors = []string{
+			"#1F1F25", // Standardgrå
+        	"#C24E18", // Diwise-orange
+		}
+	}
 
     for i := range datasets {
         datasets[i].BackgroundColor = colors[i%len(colors)] // Dynamisk färgsättning
