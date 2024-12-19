@@ -271,28 +271,48 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 							</div>
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
-									<div class="font-bold">{ l10n.Get("environment") }</div>
-									<div class="border border-input-surface rounded-xl">
-										<label for="environment" class="hidden block text-sm font-medium text-gray-700">
-											{ l10n.Get("pickOption") }
-										</label>
-										@EnvironmentSelect(l10n, asset, "environment", sensor.Environment)
+									<div class="relative">
+										<div class="flex items-center gap-2">
+											<span class="font-bold">{ l10n.Get("environment") }</span>
+											<div class="group relative cursor-pointer">
+												@SVG("info", Size(20), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))										
+												<div class="absolute top-1/2 left-full -translate-y-1/2 ml-2 hidden group-hover:block bg-gray-700 text-white text-xs font-medium rounded px-2 py-1 shadow-lg z-50 whitespace-nowrap">
+													{ l10n.Get("located") }
+													<div class="absolute w-2 h-2 bg-gray-700 transform rotate-45 -left-1 top-1/2 -translate-y-1/2"></div>
+												</div>
+											</div>
+										</div>
+										<div class="border border-input-surface rounded-xl">
+											<label for="environment" class="hidden block text-sm font-medium text-gray-700">
+												{ l10n.Get("pickOption") }
+											</label>
+											@EnvironmentSelect(l10n, asset, "environment", sensor.Environment)
+										</div>
 									</div>
 								</div>
-							</div>
-							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
-									<div class="font-bold">{ l10n.Get("devicenotobservedafter") }</div>
-									<div class="flex items-center gap-2">
-										<input
-											type="number"
-											name="interval"
-											step="1"
-											value={ fmt.Sprintf("%.0f", sensor.Interval) }
-											class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2"
-											placeholder="Interval"
-										/>
-										<span>{ l10n.Get("hours") }</span>
+									<div class="relative">
+										<div class="flex items-center gap-2">
+											<span class="font-bold">{ l10n.Get("observationinterval") }</span>
+											<div class="group relative cursor-pointer">
+												@SVG("info", Size(20), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))										
+												<div class="absolute top-1/2 left-full -translate-y-1/2 ml-2 hidden group-hover:block bg-gray-700 text-white text-xs font-medium rounded px-2 py-1 shadow-lg z-50 whitespace-nowrap">
+													{ l10n.Get("devicenotobservedafter") }
+													<div class="absolute w-2 h-2 bg-gray-700 transform rotate-45 -left-1 top-1/2 -translate-y-1/2"></div>
+												</div>
+											</div>
+										</div>
+										<div class="flex items-center gap-2">
+											<input
+												type="number"
+												name="interval"
+												step="1"
+												value={ fmt.Sprintf("%.0f", sensor.Interval) }
+												class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2"
+												placeholder="Interval"
+											/>
+											<span>{ l10n.Get("hours") }</span>
+										</div>
 									</div>
 								</div>
 							</div>
@@ -327,7 +347,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 									</div>
 								</div>
 							</label>
-							<div class="w-full">Om du inaktiverar sensorn kommer den inte längre spara mätvärden.</div>
+							<div class="w-full">{ l10n.Get("activatesensorinformation") }</div>
 						</div>
 					</div>
 				</div>

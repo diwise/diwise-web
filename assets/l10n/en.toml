@@ -7,6 +7,9 @@ other = ">50%"
 [activate]
 other = "Activate sensor"
 
+[activatesensorinformation]
+other = "If you disable the sensor, it will no longer save measured values."
+
 [active]
 other = "Active"
 
@@ -131,7 +134,7 @@ other = "Details"
 other = "DevEUI"
 
 [devicenotobservedafter]
-other = "Sensor is registered as not observed after"
+other = "Sensor is registered as not observed after this long time"
 
 [edit]
 other = "Edit"
@@ -201,6 +204,9 @@ other = "Light"
 
 [list]
 other = "List"
+
+[located]
+other = "Where is the sensor located?"
 
 [location]
 other = "Location"
@@ -303,6 +309,9 @@ other = "Number of passages today"
 
 [numberofsensors]
 other = "Number of sensors"
+
+[observationinterval]
+other = "Observation interval"
 
 [occupied]
 other = "Occupied"

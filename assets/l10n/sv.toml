@@ -7,6 +7,9 @@ other = ">50%"
 [activate]
 other = "Aktivera sensor"
 
+[activatesensorinformation]
+other = "Om du inaktiverar sensorn kommer den inte längre spara mätvärden."
+
 [active]
 other = "Aktiv"
 
@@ -131,7 +134,7 @@ other = "Uppgifter"
 other = "DevEUI"
 
 [devicenotobservedafter]
-other = "Sensor registreras som ej observerad efter"
+other = "Sensor registreras som ej observerad efter så här lång tid"
 
 [edit]
 other = "Redigera"
@@ -201,6 +204,9 @@ other = "Livboj"
 
 [light]
 other = "Ljust"
+
+[located]
+other = "Var är sensorn placerad?"
 
 [location]
 other = "Position"
@@ -303,6 +309,9 @@ other = "Antal passager idag"
 
 [numberofsensors]
 other = "Antal sensorer"
+
+[observationinterval]
+other = "Observationsintervall"
 
 [occupied]
 other = "Upptagen"
