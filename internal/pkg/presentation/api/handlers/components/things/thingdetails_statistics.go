@@ -116,12 +116,14 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			return
 		}
 
+		isDark := helpers.IsDarkMode(r)
+
 		for _, values := range thing.Values {
-			datasets = append(datasets, toDataset(label, values))
+			datasets = append(datasets, toDataset(label, isDark, values))
 		}
 
 		if len(datasets) == 0 {
-			datasets = append(datasets, components.NewChartDataset(label))
+			datasets = append(datasets, components.NewChartDataset(label, isDark))
 		}
 
 		tsAt := timeAt.UTC().Format(time.RFC3339)
@@ -138,34 +140,34 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		case "container:sandstorage":
 			maxvalue := uint(100)
 			stepsize := uint(10)
-			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, &maxvalue, false)
+			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, &maxvalue, false, isDark)
 		case "desk":
 			stepsize := uint(1)
-			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false)
+			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false, isDark)
 		case "lifebuoy":
 			stepsize := uint(1)
-			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false)
+			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false, isDark)
 
 		case "passage":
 			if n == DoorState {
 				minvalue := uint(0)
 				stepsize := uint(1)
-				chart = components.StatisticsChart(datasets, "bar", &stepsize, &minvalue, nil, false)
+				chart = components.StatisticsChart(datasets, "bar", &stepsize, &minvalue, nil, false, isDark)
 			} else {
 				stepsize := uint(1)
-				chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false)
+				chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false, isDark)
 			}
 
 		//case "pumpingstation":
 		case "room":
 			stepsize := uint(1)
-			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false)
+			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false, isDark)
 
 		//case "sewer":
 		//case "sewer:combinedseweroverflow":
 		//case "watermeter":
 		default:
-			chart = components.StatisticsChart(datasets, "line", nil, nil, nil, false)
+			chart = components.StatisticsChart(datasets, "line", nil, nil, nil, false, isDark)
 		}
 
 		table = components.StatisticsTable(localizer, datasets[0], tsAt, endTsAt)
@@ -175,8 +177,8 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 	return http.HandlerFunc(fn)
 }
 
-func toDataset(label string, measurements []application.Measurement) components.ChartDataset {
-	dataset := components.NewChartDataset(label)
+func toDataset(label string, isDark bool, measurements []application.Measurement) components.ChartDataset {
+	dataset := components.NewChartDataset(label, isDark)
 	previousValue := 0
 
 	for _, v := range measurements {

@@ -89,7 +89,9 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			return
 		}
 
-		dataset := components.NewChartDataset("")
+		isDark := helpers.IsDarkMode(r)
+
+		dataset := components.NewChartDataset("", isDark)
 
 		previousValue := 0
 		for _, v := range measurements.Values {
@@ -117,7 +119,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			}
 		}
 
-		component := components.MeasurementChart([]components.ChartDataset{dataset}, true)
+		component := components.MeasurementChart([]components.ChartDataset{dataset}, true, isDark)
 		helpers.WriteComponentResponse(ctx, w, r, component, 20*1024, 5*time.Minute)
 	}
 

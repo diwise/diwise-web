@@ -468,8 +468,8 @@ func SensorMeasurementSelect(l10n Localizer, asset AssetLoaderFunc, id, target s
 	return SelectMultipleInputs(id, false, "/components/measurements", "#"+target, "#timeAt,#endTimeAt", viewModel)
 }
 
-func MeasurementChart(datasets []ChartDataset, keepRatio bool) templ.Component {
-	cfg := NewChartConfiguration("line", keepRatio, nil, nil, nil)
+func MeasurementChart(datasets []ChartDataset, keepRatio, isDark bool) templ.Component {
+	cfg := NewChartConfiguration("line", keepRatio, isDark, nil, nil, nil)
 	cfg.Timeseries(true)
 	cfg.Add(datasets...)
 
