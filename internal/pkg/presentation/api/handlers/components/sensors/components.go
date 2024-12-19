@@ -81,12 +81,18 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			log.Error("failed to parse endTimeAt")
 		}
 
-		//now := time.Now()
-		//today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-		measurements, err := app.GetMeasurementData(ctx, id, application.WithLastN(true), application.WithTimeRel("between", startTime, endTime), application.WithLimit(100), application.WithReverse(true))
-		if err != nil {
-			http.Error(w, "could not fetch measurement data", http.StatusBadRequest)
-			return
+		measurements := application.MeasurementData{
+			Values: []application.MeasurementValue{},
+		}
+
+		if id != "" {
+			//now := time.Now()
+			//today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+			measurements, err = app.GetMeasurementData(ctx, id, application.WithLastN(true), application.WithTimeRel("between", startTime, endTime), application.WithLimit(100), application.WithReverse(true))
+			if err != nil {
+				http.Error(w, "could not fetch measurement data", http.StatusBadRequest)
+				return
+			}
 		}
 
 		isDark := helpers.IsDarkMode(r)
