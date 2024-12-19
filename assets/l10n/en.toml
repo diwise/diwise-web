@@ -7,6 +7,9 @@ other = ">50%"
 [activate]
 other = "Activate sensor"
 
+[activatesensorinformation]
+other = "If you disable the sensor, it will no longer save measured values."
+
 [active]
 other = "Active"
 
