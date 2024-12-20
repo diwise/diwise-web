@@ -95,7 +95,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("environment") }</div>
 							if sensor.Environment != "" {
-								<div class="first-letter:uppercase">{ sensor.Environment }</div>
+								<div class="first-letter:uppercase">{ l10n.Get(sensor.Environment) }</div>
 							} else {
 								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
 							}
