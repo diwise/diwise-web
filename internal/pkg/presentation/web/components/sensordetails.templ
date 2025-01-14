@@ -95,7 +95,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 						<div class="flex flex-start gap-2">
 							<div class="font-bold">{ l10n.Get("environment") }</div>
 							if sensor.Environment != "" {
-								<div class="first-letter:uppercase">{ sensor.Environment }</div>
+								<div class="first-letter:uppercase">{ l10n.Get(sensor.Environment) }</div>
 							} else {
 								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
 							}
@@ -275,7 +275,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 										<div class="flex items-center gap-2">
 											<span class="font-bold">{ l10n.Get("environment") }</span>
 											<div class="group relative cursor-pointer">
-												@SVG("info", Size(20), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))										
+												@SVG("help-circle", Size(20), Box(24, 24))										
 												<div class="absolute top-1/2 left-full -translate-y-1/2 ml-2 hidden group-hover:block bg-gray-700 text-white text-xs font-medium rounded px-2 py-1 shadow-lg z-50 whitespace-nowrap">
 													{ l10n.Get("located") }
 													<div class="absolute w-2 h-2 bg-gray-700 transform rotate-45 -left-1 top-1/2 -translate-y-1/2"></div>
@@ -295,7 +295,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 										<div class="flex items-center gap-2">
 											<span class="font-bold">{ l10n.Get("observationinterval") }</span>
 											<div class="group relative cursor-pointer">
-												@SVG("info", Size(20), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))										
+												@SVG("help-circle", Size(20), Box(24, 24))										
 												<div class="absolute top-1/2 left-full -translate-y-1/2 ml-2 hidden group-hover:block bg-gray-700 text-white text-xs font-medium rounded px-2 py-1 shadow-lg z-50 whitespace-nowrap">
 													{ l10n.Get("devicenotobservedafter") }
 													<div class="absolute w-2 h-2 bg-gray-700 transform rotate-45 -left-1 top-1/2 -translate-y-1/2"></div>

@@ -56,7 +56,7 @@ templ Home(l10n Localizer, asset AssetLoaderFunc, viewModel HomeViewModel) {
 			<div class="border-l border-gray-30 dark:border-white-30 h-auto self-stretch"></div>
 			<div class="flex flex-col flex-[1_0_0] items-start gap-6">
 				<div class="flex items-center gap-3 self-stretch">
-					@SVG("chartline", Size(32), NoFill(), Box(20, 20), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					@SVG("chartline", Size(80), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					<h2 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose whitespace-nowrap">{ l10n.Get("measurementperday") }</h2>
 					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 				</div>
