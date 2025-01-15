@@ -72,6 +72,8 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			label = localizer.Get(activeTab)
 		case "container:wastecontainer":
 			fallthrough
+		case "container:sandstorage":
+			fallthrough
 		case "container":
 			q.Add("n", n) //FillingLevel/Percentage
 			label = localizer.Get(activeTab)
