@@ -72,6 +72,8 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			label = localizer.Get(activeTab)
 		case "container:wastecontainer":
 			fallthrough
+		case "container:sandstorage":
+			fallthrough
 		case "container":
 			q.Add("n", n) //FillingLevel/Percentage
 			label = localizer.Get(activeTab)
@@ -93,8 +95,14 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			label = localizer.Get(activeTab)
 		case "pumpingstation":
 			q.Add("n", n) //Stopwatch/OnOff
-			q.Add("timeunit", "hour")
-			q.Add("vb", "true")
+			if n == "3350/5544" {
+				q.Add("op","gt")
+				q.Add("value","0")
+			}
+			if n == "3350/5850" {
+				q.Add("timeunit", "hour")
+				q.Add("vb", "true")
+			}
 			q.Del("options")
 		case "room":
 			q.Add("n", n) //Temperature
@@ -133,11 +141,11 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		//case "pointofinterest":
 		//case "pointofinterest:beach":
 		//case "building":
-		case "container":
+		case "container:sandstorage":
 			fallthrough
 		case "container:wastecontainer":
 			fallthrough
-		case "container:sandstorage":
+		case "container":
 			maxvalue := uint(100)
 			stepsize := uint(10)
 			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, &maxvalue, false, isDark)
@@ -158,7 +166,19 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 				chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false, isDark)
 			}
 
-		//case "pumpingstation":
+		case "pumpingstation":
+
+			if n == "3350/5544" {
+				minvalue := uint(0)
+				stepsize := uint(1)
+				chart = components.StatisticsChart(datasets, "bar", &stepsize, &minvalue, nil, false, isDark)
+			}
+			if n == "3350/5850" {
+				minvalue := uint(0)
+				stepsize := uint(1)
+				chart = components.StatisticsChart(datasets, "bar", &stepsize, &minvalue, nil, false, isDark)
+			}
+
 		case "room":
 			stepsize := uint(1)
 			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false, isDark)
