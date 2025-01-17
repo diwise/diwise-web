@@ -3,6 +3,7 @@ package things
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"strings"
@@ -96,8 +97,8 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		case "pumpingstation":
 			q.Add("n", n) //Stopwatch/OnOff
 			if n == "3350/5544" {
-				q.Add("op","gt")
-				q.Add("value","0")
+				q.Add("op", "gt")
+				q.Add("value", "0")
 			}
 			if n == "3350/5850" {
 				q.Add("timeunit", "hour")
@@ -148,6 +149,11 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		case "container":
 			maxvalue := uint(100)
 			stepsize := uint(10)
+
+			if strings.HasSuffix(n, "/3") && thing.TypeValues.MaxDistance != nil && *thing.TypeValues.MaxDistance > 0 {
+				maxvalue = uint(math.Ceil(*thing.TypeValues.MaxDistance))
+			}
+
 			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, &maxvalue, false, isDark)
 		case "desk":
 			stepsize := uint(1)
