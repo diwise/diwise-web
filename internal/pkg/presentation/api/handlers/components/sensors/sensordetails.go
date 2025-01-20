@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
@@ -55,8 +56,11 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, as
 			return
 		}
 
+		ctx, cancel := context.WithDeadline(r.Context(), time.Now().Add(600*time.Second))
+		defer cancel()
+
 		mode := r.URL.Query().Get("mode")
-		ctx := helpers.Decorate(r.Context(),
+		ctx = helpers.Decorate(ctx,
 			components.CurrentComponent, "sensors",
 		)
 
@@ -182,13 +186,20 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 }
 
 func composeViewModel(ctx context.Context, id string, app application.DeviceManagement) (*components.SensorDetailsViewModel, error) {
+	log := logging.GetFromContext(ctx)
+	
+	log.Debug("begin get sensor")
 	sensor, err := app.GetSensor(ctx, id)
+	log.Debug("end get sensor")
+
 	if err != nil {
 		return nil, err
 	}
 
+	log.Debug("begin get tenants and device profiles")
 	tenants := app.GetTenants(ctx)
 	deviceProfiles := app.GetDeviceProfiles(ctx)
+	log.Debug("end get tenants and device profiles")
 
 	dp := []components.DeviceProfile{}
 	for _, p := range deviceProfiles {
@@ -209,10 +220,12 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		types = append(types, tp.URN)
 	}
 
+	log.Debug("begin get measurement info")
 	measurements, err := app.GetMeasurementInfo(ctx, id)
 	if err != nil {
 		return nil, err
 	}
+	log.Debug("end get measurement info")
 
 	m := make([]string, 0)
 	for _, md := range measurements.Values {
