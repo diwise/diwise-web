@@ -168,8 +168,11 @@ func getUsageData(isDark bool, ctx context.Context, app application.DeviceManage
 	}
 
 	now := time.Now().UTC()
-	timeAt := time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, time.UTC)
-	endTimeAt := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, time.UTC).Add(-1 * time.Second)
+	//	timeAt := time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, time.UTC)
+	//	endTimeAt := time.Date(now.Year(), now.Month()+1, 1, 0, 0, 0, 0, time.UTC).Add(-1 * time.Second)
+
+	timeAt := time.Date(now.Year(), now.Month(), now.Day()-3, 0, 0, 0, 0, time.UTC)
+	endTimeAt := time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, time.UTC).Add(-1 * time.Second)
 
 	max := daysInMonth(timeAt)
 	if daysInMonth(endTimeAt) > max {
