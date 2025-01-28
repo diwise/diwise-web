@@ -19,10 +19,6 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-const (
-	DoorState = "10351/50"
-)
-
 func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
@@ -36,87 +32,83 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		ctx := logging.NewContextWithLogger(r.Context(), log)
 
-		thingType := strings.ToLower(r.URL.Query().Get("type"))
-		thingSubType := strings.ToLower(r.URL.Query().Get("subType"))
 		activeTab := strings.ToLower(r.URL.Query().Get("tab"))
-
-		if thingSubType != "" {
-			thingType += ":" + thingSubType
-		}
 
 		today := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.UTC)
 		timeAt := getTime(r, "timeAt", today)
 		endOfDay := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 23, 59, 59, 0, time.UTC)
 		endTimeAt := getTime(r, "endTimeAt", endOfDay)
 
-		q := url.Values{}
+		var chart, table templ.Component
+		datasets := []components.ChartDataset{}
 
+		label := localizer.Get(activeTab)
+		isDark := helpers.IsDarkMode(r)
+
+		var maxvalue *uint
+		var stepsize *uint
+		var minvalue *uint
+
+		chartType := "line"
+		keepRatio := false
+		zero := uint(0)
+		one := uint(1)
+		ten := uint(10)
+		hundred := uint(100)
+
+		n := strings.ReplaceAll(activeTab, "-", "/")
+
+		q := url.Values{}
 		q.Add("timerel", "between")
 		q.Add("timeat", timeAt.Format(time.RFC3339))
 		q.Add("endTimeAt", endTimeAt.Format(time.RFC3339))
 		q.Add("options", "groupByRef")
+		q.Add("n", n)
 
-		label := ""
-		datasets := []components.ChartDataset{}
-		var chart, table templ.Component
+		// FillingLevel (2 = percentage, 3 = meter)
+		if strings.HasPrefix(n, "3435/") {
+			minvalue = &zero
+			maxvalue = &hundred
+			stepsize = &ten
+		}
 
-		n := strings.ReplaceAll(activeTab, "-", "/")
-
-		switch thingType {
-		case "pointofinterest:beach":
-			fallthrough
-		case "pointofinterest":
-			q.Add("n", n) //Temperature
-			label = localizer.Get(activeTab)
-		case "building":
-			q.Add("n", n) // Energy
-			label = localizer.Get(activeTab)
-		case "container:wastecontainer":
-			fallthrough
-		case "container:sandstorage":
-			fallthrough
-		case "container":
-			q.Add("n", n) //FillingLevel/Percentage
-			label = localizer.Get(activeTab)
-		case "desk":
-			q.Add("n", n) //Presence/State
+		// Door 10351 (50 = state)
+		if strings.HasPrefix(n, "10351/") {
 			q.Add("timeunit", "hour")
 			q.Add("vb", "true")
 			q.Del("options")
-		case "lifebuoy":
-			q.Add("n", n) //Presence/State
+
+			minvalue = &zero
+			stepsize = &one
+			chartType = "bar"
+		}
+
+		// Precense (presence = 5500)
+		if strings.HasPrefix(n, "3302/") {
+			q.Add("timeunit", "hour")
+			q.Add("vb", "true")
 			q.Del("options")
-		case "passage":
-			q.Add("n", n) //Door/State = 10351/50
-			if n == DoorState {
-				q.Add("timeunit", "hour")
-				q.Add("vb", "true")
-				q.Del("options")
-			}
-			label = localizer.Get(activeTab)
-		case "pumpingstation":
-			q.Add("n", n) //Stopwatch/OnOff
+
+			stepsize = &one
+		}
+
+		// Stopwatch (5850 = OnOff, 5544 = cumulative time)
+		if strings.HasPrefix(n, "3350/") {
 			if n == "3350/5544" {
 				q.Add("op", "gt")
 				q.Add("value", "0")
+
+				stepsize = &one
 			}
 			if n == "3350/5850" {
 				q.Add("timeunit", "hour")
 				q.Add("vb", "true")
+
+				minvalue = &zero
+				stepsize = &one
+				chartType = "bar"
 			}
 			q.Del("options")
-		case "room":
-			q.Add("n", n) //Temperature
-			label = localizer.Get(activeTab)
-		case "sewer":
-			q.Add("n", n) //FillingLevel/Percentage
-			label = localizer.Get(activeTab)
-		case "sewer:combinedseweroverflow":
-			q.Add("n", n) //Stopwatch/OnOff
-			label = localizer.Get(activeTab)
-		case "watermeter":
-			q.Add("n", n) //WaterMeter/CumulativeVolume
-			label = localizer.Get(activeTab)
 		}
 
 		thing, err := app.GetThing(ctx, id, q)
@@ -124,8 +116,6 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			http.Error(w, "could not fetch thing", http.StatusInternalServerError)
 			return
 		}
-
-		isDark := helpers.IsDarkMode(r)
 
 		for _, values := range thing.Values {
 			datasets = append(datasets, toDataset(label, isDark, values))
@@ -135,66 +125,16 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			datasets = append(datasets, components.NewChartDataset(label, isDark))
 		}
 
+		if strings.HasSuffix(n, "/3") && thing.TypeValues.MaxDistance != nil && *thing.TypeValues.MaxDistance > 0 {
+			m := uint(math.Ceil(*thing.TypeValues.MaxDistance))
+			maxvalue = &m
+			stepsize = &one
+		}
+
+		chart = components.StatisticsChart(datasets, chartType, stepsize, minvalue, maxvalue, keepRatio, isDark)
+
 		tsAt := timeAt.UTC().Format(time.RFC3339)
 		endTsAt := endTimeAt.UTC().Format(time.RFC3339)
-
-		switch thingType {
-		//case "pointofinterest":
-		//case "pointofinterest:beach":
-		//case "building":
-		case "container:sandstorage":
-			fallthrough
-		case "container:wastecontainer":
-			fallthrough
-		case "container":
-			maxvalue := uint(100)
-			stepsize := uint(10)
-
-			if strings.HasSuffix(n, "/3") && thing.TypeValues.MaxDistance != nil && *thing.TypeValues.MaxDistance > 0 {
-				maxvalue = uint(math.Ceil(*thing.TypeValues.MaxDistance))
-			}
-
-			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, &maxvalue, false, isDark)
-		case "desk":
-			stepsize := uint(1)
-			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false, isDark)
-		case "lifebuoy":
-			stepsize := uint(1)
-			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false, isDark)
-
-		case "passage":
-			if n == DoorState {
-				minvalue := uint(0)
-				stepsize := uint(1)
-				chart = components.StatisticsChart(datasets, "bar", &stepsize, &minvalue, nil, false, isDark)
-			} else {
-				stepsize := uint(1)
-				chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false, isDark)
-			}
-
-		case "pumpingstation":
-
-			if n == "3350/5544" {
-				minvalue := uint(0)
-				stepsize := uint(1)
-				chart = components.StatisticsChart(datasets, "bar", &stepsize, &minvalue, nil, false, isDark)
-			}
-			if n == "3350/5850" {
-				minvalue := uint(0)
-				stepsize := uint(1)
-				chart = components.StatisticsChart(datasets, "bar", &stepsize, &minvalue, nil, false, isDark)
-			}
-
-		case "room":
-			stepsize := uint(1)
-			chart = components.StatisticsChart(datasets, "line", &stepsize, nil, nil, false, isDark)
-
-		//case "sewer":
-		//case "sewer:combinedseweroverflow":
-		//case "watermeter":
-		default:
-			chart = components.StatisticsChart(datasets, "line", nil, nil, nil, false, isDark)
-		}
 
 		table = components.StatisticsTable(localizer, datasets[0], tsAt, endTsAt)
 		helpers.WriteComponentResponse(ctx, w, r, templ.Join(chart, table), 1024, 0)
