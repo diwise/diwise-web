@@ -106,35 +106,20 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             const showPopup = m.getAttribute('data-show-popup') === 'true';
             const editMode = m.getAttribute('data-edit-mode') === 'true';
             const map = L.map(mapContainerID).setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
+            const isDarkMode = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
             let layers = {};
+            var newMarker = null;
             
             L.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
 
-            const isDarkMode = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
             updateMapForTheme(isDarkMode);
-
-            function updateMapForTheme(isDarkMode) {
-                if (!map) {
-                    return;
-                }
-
-                if (isDarkMode) {
-                    if (map.hasLayer(lightModeTileLayer)) {
-                        map.removeLayer(lightModeTileLayer);
-                    }
-                    darkModeTileLayer.addTo(map);
-                } else {
-                    if (map.hasLayer(darkModeTileLayer)) {
-                        map.removeLayer(darkModeTileLayer);
-                    }
-                    lightModeTileLayer.addTo(map);
-                }
-            }
             
             addFeaturesToMap(geodata, map, isDarkMode, editMode);
+            
+            map.on('click', onMapClick);
 
-            var newMarker = null;
+
 
             function onMapClick(e) {
                 if (editMode) {
@@ -168,8 +153,24 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                 }
             }
 
-            map.on('click', onMapClick);
-                
+            function updateMapForTheme(isDarkMode) {
+                if (!map) {
+                    return;
+                }
+
+                if (isDarkMode) {
+                    if (map.hasLayer(lightModeTileLayer)) {
+                        map.removeLayer(lightModeTileLayer);
+                    }
+                    darkModeTileLayer.addTo(map);
+                } else {
+                    if (map.hasLayer(darkModeTileLayer)) {
+                        map.removeLayer(darkModeTileLayer);
+                    }
+                    lightModeTileLayer.addTo(map);
+                }
+            }
+
             function createMarker(latlng, icon, editMode = false, onDragCallback = null, zIndexOffset = 0) {
                 let marker = L.marker(latlng, {
                     icon: icon,
@@ -337,8 +338,10 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                 return popup;
             }
             
-            function addFeaturesToMap(gd, m, isDarkMode, editMode) {
+            function addFeaturesToMap(gd, m, isDarkMode, editMode) {                                        
                 if (gd && Array.isArray(gd)) {
+                    var bounds = L.latLngBounds();
+                    
                     gd.forEach(data => {
                         data.features.forEach(feature => {
                                 const type = feature.properties.type.toLowerCase();
@@ -379,6 +382,8 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                         });
 
                                         const marker = createMarker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], divIcon, editMode);
+                                        bounds.extend(marker.getLatLng());
+
                                         return marker;
                                     },
                                     onEachFeature: function(feature, layer) {
@@ -614,6 +619,8 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                 }).addTo(m);
                         });
                     });
+
+                    m.fitBounds(bounds);
                 }
             }
             })();
