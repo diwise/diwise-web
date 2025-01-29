@@ -811,14 +811,9 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 			feature.AddProperty("tags", nil)
 		}
 
-		thingPropsType := thingType
-		if thingSubType != "" {
-			thingPropsType = thingSubType
-		}
-
 		feature.AddProperty("missingdata", thing.HasWarning())
 
-		switch thingPropsType {
+		switch thingType {
 		case "pointofinterest":
 			fallthrough
 		case "beach":
@@ -826,25 +821,6 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		case "room":
 			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetFloatOrDefault("temperature", 0)))
 		case "container":
-			fallthrough
-		case "wastecontainer":
-			fl, ok := thing.GetFloat("percent")
-			if ok {
-				var state string
-				if fl >= 50 {
-					state = "red"
-				} else if fl > 30 {
-					state = "orange"
-				} else {
-					state = "green"
-				}
-				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
-				feature.AddProperty("state", state)
-			} else {
-				feature.AddProperty("fillinglevel", "")
-				feature.AddProperty("state", "black")
-			}
-		case "sandstorage":
 			fl, ok := thing.GetFloat("percent")
 			if ok {
 				var state string
@@ -862,22 +838,6 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 				feature.AddProperty("state", "black")
 			}
 		case "sewer":
-			var l, p float64
-			l, levelOk := thing.GetFloat("currentLevel")
-			if !levelOk {
-				l = 0
-			}
-			p, percentOk := thing.GetFloat("percent")
-			if !percentOk {
-				p = 0
-			}
-			if levelOk || percentOk {
-				level := fmt.Sprintf("%0.fm (%0.f%%)", l, p)
-				feature.AddProperty("level", level)
-			}
-
-			fallthrough
-		case "combinedseweroverflow":
 			if overflow, ok := thing.GetBool("overflowObserved"); ok {
 				if overflow {
 					feature.AddProperty("state", l10n.Get("yes"))
@@ -885,23 +845,15 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 					feature.AddProperty("state", l10n.Get("no"))
 				}
 			} else {
-				feature.AddProperty("state", "nil")
+				feature.AddProperty("state", "black")
 			}
 
-			var l, p float64
-			l, levelOk := thing.GetFloat("currentLevel")
-			if !levelOk {
-				l = 0
+			if p, ok := thing.GetFloat("percent"); ok {
+				if p > 0 {
+					level := fmt.Sprintf("%0.f", p)
+					feature.AddProperty("fillinglevel", level)
+				}
 			}
-			p, percentOk := thing.GetFloat("percent")
-			if !percentOk {
-				p = 0
-			}
-			if levelOk || percentOk {
-				level := fmt.Sprintf("%0.fm (%0.f%%)", l, p)
-				feature.AddProperty("level", level)
-			}
-
 		case "lifebuoy":
 			if presence, ok := thing.GetBool("presence"); ok {
 				if presence {
