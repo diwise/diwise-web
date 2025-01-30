@@ -659,21 +659,26 @@ templ WaterMeterCell(l10n Localizer, t ThingViewModel) {
 }
 
 func SewerCell(l10n Localizer, t ThingViewModel) templ.Component {
-	currentLevel, okLevel := t.Properties["currentLevel"]
-	percent, okPercent := t.Properties["percent"]
-
 	var components []templ.Component
+	level := ""
 
-	if okLevel {
+	if currentLevel, ok := t.Properties["currentLevel"]; ok {
 		if v, ok := currentLevel.(float64); ok {
-			if okPercent {
-				if p, ok := percent.(float64); ok {
-					components = append(components, Text(fmt.Sprintf("%s: %0.fm (%0.f%%)", l10n.Get("level"), v, p)))
-				}
-			} else {
-				components = append(components, Text(fmt.Sprintf("%s: %0.fm", l10n.Get("level"), v)))
-			}
+			level += fmt.Sprintf("%0.1fm", v)
 		}
+	}
+
+	if percent, ok := t.Properties["percent"]; ok {
+		if p, ok := percent.(float64); ok {
+			if len(level) > 0 {
+				level += " / "
+			}
+			level += fmt.Sprintf("%0.f%%", p)
+		}
+	}
+
+	if len(level) > 0 {
+		components = append(components, Text(fmt.Sprintf("%s: %s", l10n.Get("level"), level)))
 	}
 
 	return Div("", components...)
