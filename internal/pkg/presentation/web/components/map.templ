@@ -410,7 +410,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                 const sensorpopup = createSensorPopup(feature, intro, location, moreinformation, outro);
                                                 popupContent = sensorpopup;
                                             } else if (cv === "thing" && feature.properties.type.toLowerCase() === "container") {
-                                            var colourClass = "bg-background-200";
+                                                var colourClass = "bg-background-200";
                                                 if (feature.properties.subtype.toLowerCase() == "wastecontainer") {
                                                     if (feature.properties.fillinglevel >= 50) {
                                                         colourClass = "bg-red-600 dark:bg-err-prim-surf";
@@ -484,6 +484,45 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     moreinformation +
                                                                 outro;
                                             } else if (cv === "thing" && feature.properties.type.toLowerCase() === "sewer") {
+
+
+                                                var colourClass = "bg-background-200";                                                
+                                                
+                                                if (feature.properties.fillinglevel >= 80) {
+                                                    colourClass = "bg-red-600 dark:bg-err-prim-surf";
+                                                } else if (feature.properties.fillinglevel >= 50) {
+                                                    colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                                } else {
+                                                    colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
+                                                }
+                                                
+
+                                                const thingdata = feature.properties.missingdata
+                                                ? '<div class="">' + feature.properties.text_missingdata + '</div>'
+                                                : '<div class="flex w-full items-center gap-2 text-sm">' +
+                                                    '<div class="w-[75%] bg-background-200 dark:bg-primary-surface-white rounded-lg">' +
+                                                        '<div class="' + colourClass + ' rounded-lg" style="width: ' + feature.properties.fillinglevel + '%; height: 6px;"></div>' +
+                                                    '</div>' +
+                                                    '<div class="text-sm text-right w-auto">' + feature.properties.fillinglevel + '%</div>' +
+                                                '</div>';
+
+                                                    popupContent = intro +
+                                                                        '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                            name +
+                                                                            '<div class="flex flex-col items-start justify-center gap-2 self-stretch">' +
+                                                                                '<div class="font-bold">' + feature.properties.text_fillinglevel + '</div>' +
+                                                                                thingdata +
+                                                                            '</div>' +
+                                                                            location +
+                                                                            tagList +
+                                                                        '</div>' +
+                                                                        moreinformation +
+                                                                    outro;
+
+
+
+
+                                            /*
                                                 const thingdatalevel = feature.properties.missingdata
                                                 ? '<div class="">' + feature.properties.text_missingdata + '</div>'
                                                 : '<div class="">' + feature.properties.level + '</div>'
@@ -500,6 +539,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     '</div>' +
                                                                     moreinformation +
                                                                 outro;
+                                            */
                                             } else if (cv === "thing" && feature.properties.subtype.toLowerCase() === "beach" || feature.properties.type.toLowerCase() === "room" || feature.properties.type.toLowerCase() === "pointofinterest") {
                                                 const thingdata = feature.properties.missingdata
                                                 ? '<div class="">' + feature.properties.text_missingdata + '</div>'
@@ -517,6 +557,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     '</div>' +
                                                                     moreinformation +
                                                                 outro;
+                                                
                                             } else if (cv === "thing" && feature.properties.type.toLowerCase() === "lifebuoy") {
                                                 const thingdata = feature.properties.missingdata
                                                 ? '<div class="">' + feature.properties.text_missingdata + '</div>'
