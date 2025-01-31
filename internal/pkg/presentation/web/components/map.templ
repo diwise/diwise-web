@@ -660,8 +660,9 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                 }).addTo(m);
                         });
                     });
-
-                    m.fitBounds(bounds);
+                    if (bounds && bounds.isValid()) {
+                        m.fitBounds(bounds);
+                    }
                 }
             }
             })();
