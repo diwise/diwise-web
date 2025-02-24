@@ -89,11 +89,11 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
         (()=> {
 
             const lightModeTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                maxZoom: 19,
+                maxZoom: 16, // 200 meters
             });
 
             const darkModeTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                maxZoom: 19,
+                maxZoom: 16,
             });
 
             const m = document.getElementById('map');
@@ -118,8 +118,6 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             addFeaturesToMap(geodata, map, isDarkMode, editMode);
             
             map.on('click', onMapClick);
-
-
 
             function onMapClick(e) {
                 if (editMode) {
@@ -411,7 +409,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                 popupContent = sensorpopup;
                                             } else if (cv === "thing" && feature.properties.type.toLowerCase() === "container") {
                                                 var colourClass = "bg-background-200";
-                                                if (feature.properties.subtype.toLowerCase() == "wastecontainer") {
+                                                if (feature.properties.subtype.toLowerCase() == "wastecontainer") {                                                    
                                                     if (feature.properties.fillinglevel >= 50) {
                                                         colourClass = "bg-red-600 dark:bg-err-prim-surf";
                                                     } else if (feature.properties.fillinglevel >= 30) {

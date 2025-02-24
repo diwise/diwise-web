@@ -829,13 +829,17 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 			fl, ok := thing.GetFloat("percent")
 			if ok {
 				var state string
-				if fl >= 50 {
-					state = "green"
-				} else if fl > 31 {
-					state = "orange"
+
+				if thingSubType == "wastecontainer" {
+					if fl > 49 { state = "red" }
+					if fl > 30 && fl <= 49 { state = "orange" }
+					if fl <= 30 { state = "green" }
 				} else {
-					state = "red"
+					if fl > 70 { state = "green" }
+					if fl > 50 && fl <= 70 { state = "orange" }
+					if fl <= 50 { state = "red" }
 				}
+
 				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
 				feature.AddProperty("state", state)
 			} else {
