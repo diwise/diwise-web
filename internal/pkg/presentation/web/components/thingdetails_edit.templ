@@ -316,6 +316,8 @@ func editThingDetailType(l10n Localizer, model ThingDetailsViewModel) templ.Comp
 		return EditSewer(l10n, model, thingType)
 		//	case "watermeter":
 		//		return ConnectOneSensor(l10n, model)
+	case "sink":
+		return ConnectMultipleSensors(l10n, model)
 	}
 
 	return ConnectOneSensor(l10n, model)

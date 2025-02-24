@@ -97,16 +97,16 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			if n == "3350/5544" {
 				q.Add("op", "gt")
 				q.Add("value", "0")
+				chartType = "bar"
 
 				stepsize = &one
 			}
 			if n == "3350/5850" {
-				q.Add("timeunit", "hour")
-				q.Add("vb", "true")
+				q.Add("distinct", "vb")
 
 				minvalue = &zero
 				stepsize = &one
-				chartType = "bar"
+				chartType = "line"
 			}
 			q.Del("options")
 		}
