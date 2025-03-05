@@ -29,6 +29,7 @@ const (
 	oauth2RealmURL
 	oauth2ClientID
 	oauth2ClientSecret
+	oauth2SkipVerify
 
 	contentSecurityPolicy
 )
