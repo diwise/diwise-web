@@ -98,11 +98,17 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 				}
 
 				if !devModeEnabled {
-					svcCfg.pte, err = authn.NewPhantomTokenExchange(
+					opts := append(
+						make([]authn.PhantomTokenOption, 0, 5),
 						authn.WithAppRoot(flags[appRoot]),
 						authn.WithClientCredentials(flags[oauth2ClientID], flags[oauth2ClientSecret]),
-						authn.WithLogger(logging.GetFromContext(ctx)),
-					)
+						authn.WithLogger(logging.GetFromContext(ctx)))
+
+					if flags[oauth2SkipVerify] == "true" {
+						opts = append(opts, authn.WithInsecureSkipVerify())
+					}
+
+					svcCfg.pte, err = authn.NewPhantomTokenExchange(opts...)
 					if err != nil {
 						return fmt.Errorf("failed to create phantom token exchange: %s", err.Error())
 					}
@@ -231,6 +237,7 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 		flags[oauth2RealmURL] = env.GetVariableOrDie(ctx, "OAUTH2_REALM_URL", "oauth2 realm URL")
 		flags[oauth2ClientID] = env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_ID", "oauth2 client id")
 		flags[oauth2ClientSecret] = env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_SECRET", "oauth2 client secret")
+		flags[oauth2SkipVerify] = env.GetVariableOrDefault(ctx, "OAUTH2_REALM_INSECURE", "false")
 
 		flags[devMgmtURL] = env.GetVariableOrDie(ctx, "DEV_MGMT_URL", "device management URL")
 		flags[thingsURL] = env.GetVariableOrDie(ctx, "THINGS_URL", "things URL")
