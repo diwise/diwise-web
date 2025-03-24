@@ -14,7 +14,11 @@ import (
 
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
+	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer("diwise-web/app")
 
 type App struct {
 	deviceManagementURL string
@@ -86,7 +90,12 @@ func WithBoolValue(boolValue bool) InputParam {
 }
 
 func (a *App) GetTags(ctx context.Context) ([]string, error) {
-	res, err := a.get(ctx, a.thingManagementURL, "tags", url.Values{})
+	var err error
+	ctx, span := tracer.Start(ctx, "get-tags")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	var res *ApiResponse
+	res, err = a.get(ctx, a.thingManagementURL, "tags", url.Values{})
 	if err != nil {
 		return []string{}, err
 	}
@@ -101,7 +110,12 @@ func (a *App) GetTags(ctx context.Context) ([]string, error) {
 }
 
 func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
-	res, err := a.get(ctx, a.adminURL, "deviceprofiles", url.Values{})
+	var err error
+	ctx, span := tracer.Start(ctx, "get-deviceprofiles")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	var res *ApiResponse
+	res, err = a.get(ctx, a.adminURL, "deviceprofiles", url.Values{})
 	if err != nil {
 		return []DeviceProfile{}
 	}
@@ -116,6 +130,9 @@ func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
 }
 
 func (a *App) GetStatistics(ctx context.Context) (Statistics, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-statistics")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
 	errs := make(chan error, 5)
 
@@ -150,7 +167,6 @@ func (a *App) GetStatistics(ctx context.Context) (Statistics, error) {
 	count("active", "false", &stats.Inactive)
 	count("profilename", "unknown", &stats.Unknown)
 
-	var err error
 	for range 5 {
 		err = errors.Join(err, <-errs)
 	}
@@ -159,8 +175,12 @@ func (a *App) GetStatistics(ctx context.Context) (Statistics, error) {
 }
 
 func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-measurementinfo")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
-	resp, err := a.get(ctx, a.measurementURL, id, url.Values{})
+	var resp *ApiResponse
+	resp, err = a.get(ctx, a.measurementURL, id, url.Values{})
 	if err != nil {
 		return MeasurementData{}, err
 	}
@@ -175,6 +195,10 @@ func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurementDat
 }
 
 func (a *App) GetMeasurementData(ctx context.Context, id string, params ...InputParam) (MeasurementData, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-measurementdata")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	q := url.Values{}
 	if id != "" {
 		q.Add("id", id)
@@ -184,7 +208,8 @@ func (a *App) GetMeasurementData(ctx context.Context, id string, params ...Input
 		p(&q)
 	}
 
-	resp, err := a.get(ctx, a.measurementURL, "", q)
+	var resp *ApiResponse
+	resp, err = a.get(ctx, a.measurementURL, "", q)
 	if err != nil {
 		return MeasurementData{}, err
 	}
@@ -199,6 +224,10 @@ func (a *App) GetMeasurementData(ctx context.Context, id string, params ...Input
 }
 
 func (a *App) GetAlarms(ctx context.Context, offset, limit int, args map[string][]string) (AlarmResult, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-alarms")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	params := url.Values{}
 	params.Add("limit", fmt.Sprintf("%d", limit))
 	params.Add("offset", fmt.Sprintf("%d", offset))
@@ -208,7 +237,8 @@ func (a *App) GetAlarms(ctx context.Context, offset, limit int, args map[string]
 		params[k] = v
 	}
 
-	res, err := a.get(ctx, a.alarmsURL, "", params)
+	var res *ApiResponse
+	res, err = a.get(ctx, a.alarmsURL, "", params)
 	if err != nil {
 		return AlarmResult{}, err
 	}
@@ -229,6 +259,10 @@ func (a *App) GetAlarms(ctx context.Context, offset, limit int, args map[string]
 }
 
 func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "export")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	query, _ := url.ParseQuery(params.Encode())
 
 	export := query.Get("export")
@@ -295,7 +329,8 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 		"Accept":        {accept},
 	}
 
-	b, err := helpers.GET(ctx, targetUrl, headers, query)
+	var b []byte
+	b, err = helpers.GET(ctx, targetUrl, headers, query)
 	if err != nil {
 		return nil, err
 	}
@@ -304,6 +339,10 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 }
 
 func (a *App) Import(ctx context.Context, t string, f io.Reader) error {
+	var err error
+	ctx, span := tracer.Start(ctx, "import")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	headers := map[string][]string{
 		"Authorization": {"Bearer " + authz.Token(ctx)},
 	}
@@ -317,10 +356,6 @@ func (a *App) Import(ctx context.Context, t string, f io.Reader) error {
 		targetUrl = a.thingManagementURL
 	}
 
-	err := helpers.FileUpload(ctx, targetUrl, headers, f)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	err = helpers.FileUpload(ctx, targetUrl, headers, f)
+	return err
 }

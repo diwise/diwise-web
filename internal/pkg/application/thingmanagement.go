@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 )
 
 type ThingManagement interface {
@@ -178,6 +180,10 @@ type ThingResult struct {
 }
 
 func (a *App) GetThing(ctx context.Context, id string, args map[string][]string) (Thing, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-thing")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	params := url.Values{}
 	params.Add("timerel", "after")
 	params.Add("timeat", time.Now().Add(-24*time.Hour).Format(time.RFC3339))
@@ -186,7 +192,8 @@ func (a *App) GetThing(ctx context.Context, id string, args map[string][]string)
 		params[k] = v
 	}
 
-	res, err := a.get(ctx, a.thingManagementURL, id, params)
+	var res *ApiResponse
+	res, err = a.get(ctx, a.thingManagementURL, id, params)
 	if err != nil {
 		return Thing{}, err
 	}
@@ -201,11 +208,16 @@ func (a *App) GetThing(ctx context.Context, id string, args map[string][]string)
 }
 
 func (a *App) GetLatestValues(ctx context.Context, thingID string) ([]Measurement, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-latest-values")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	params := url.Values{}
 	params.Add("thingid", thingID)
 	params.Add("latest", "true")
 
-	res, err := a.get(ctx, a.thingManagementURL, "values", params)
+	var res *ApiResponse
+	res, err = a.get(ctx, a.thingManagementURL, "values", params)
 	if err != nil {
 		return []Measurement{}, err
 	}
@@ -220,6 +232,10 @@ func (a *App) GetLatestValues(ctx context.Context, thingID string) ([]Measuremen
 }
 
 func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string][]string) (ThingResult, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-things")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	params := url.Values{}
 	params.Add("limit", fmt.Sprintf("%d", limit))
 	params.Add("offset", fmt.Sprintf("%d", offset))
@@ -235,7 +251,8 @@ func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string]
 		}
 	}
 
-	res, err := a.get(ctx, a.thingManagementURL, "", params)
+	var res *ApiResponse
+	res, err = a.get(ctx, a.thingManagementURL, "", params)
 	if err != nil {
 		return ThingResult{}, err
 	}
@@ -270,7 +287,12 @@ func (a *App) GetThings(ctx context.Context, offset, limit int, args map[string]
 }
 
 func (a *App) ConnectSensor(ctx context.Context, thingID string, refDevices []string) error {
-	t, err := a.GetThing(ctx, thingID, nil)
+	var err error
+	ctx, span := tracer.Start(ctx, "connect-sensor")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	var t Thing
+	t, err = a.GetThing(ctx, thingID, nil)
 	if err != nil {
 		return err
 	}
@@ -289,33 +311,40 @@ func (a *App) ConnectSensor(ctx context.Context, thingID string, refDevices []st
 	}
 
 	err = a.patch(ctx, a.thingManagementURL, t.ID, b)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (a *App) NewThing(ctx context.Context, t Thing) error {
+	var err error
+	ctx, span := tracer.Start(ctx, "new-thing")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	if strings.Contains(t.Type, "-") {
 		parts := strings.Split(t.Type, "-")
 		t.Type = parts[0]
 		t.SubType = parts[1]
 	}
 
-	b, err := json.Marshal(t)
+	var b []byte
+	b, err = json.Marshal(t)
 	if err != nil {
 		return err
 	}
 
-	return a.post(ctx, a.thingManagementURL, b)
+	err = a.post(ctx, a.thingManagementURL, b)
+	return err
 }
 
 func (a *App) GetValidSensors(ctx context.Context, types []string) ([]SensorIdentifier, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-valid-sensors")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	params := url.Values{
 		"urn": types,
 	}
-	res, err := a.get(ctx, a.deviceManagementURL, "", params)
+	var res *ApiResponse
+	res, err = a.get(ctx, a.deviceManagementURL, "", params)
 	if err != nil {
 		return []SensorIdentifier{}, err
 	}
@@ -339,26 +368,42 @@ func (a *App) GetValidSensors(ctx context.Context, types []string) ([]SensorIden
 }
 
 func (a *App) UpdateThing(ctx context.Context, thingID string, fields map[string]any) error {
-	b, err := json.Marshal(fields)
+	var err error
+	ctx, span := tracer.Start(ctx, "update-thing")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	var b []byte
+	b, err = json.Marshal(fields)
 	if err != nil {
 		return err
 	}
 
-	return a.patch(ctx, a.thingManagementURL, thingID, b)
-
+	err = a.patch(ctx, a.thingManagementURL, thingID, b)
+	return err
 }
 
 func (a *App) DeleteThing(ctx context.Context, thingID string) error {
-	u, err := url.Parse(fmt.Sprintf("%s/%s", strings.TrimSuffix(a.thingManagementURL, "/"), thingID))
+	var err error
+	ctx, span := tracer.Start(ctx, "delete-thing")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	var u *url.URL
+	u, err = url.Parse(fmt.Sprintf("%s/%s", strings.TrimSuffix(a.thingManagementURL, "/"), thingID))
 	if err != nil {
 		return err
 	}
 
-	return a.delete(ctx, u.String())
+	err = a.delete(ctx, u.String())
+	return err
 }
 
 func (a *App) GetTypes(ctx context.Context) ([]string, error) {
-	res, err := a.get(ctx, a.thingManagementURL, "types", url.Values{})
+	var err error
+	ctx, span := tracer.Start(ctx, "get-types")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	var res *ApiResponse
+	res, err = a.get(ctx, a.thingManagementURL, "types", url.Values{})
 	if err != nil {
 		return []string{}, err
 	}

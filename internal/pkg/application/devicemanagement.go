@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/url"
 	"time"
+
+	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 )
 
 type DeviceManagement interface {
@@ -125,7 +127,12 @@ type MeasurementValue struct {
 }
 
 func (a *App) GetSensor(ctx context.Context, id string) (Sensor, error) {
-	res, err := a.get(ctx, a.deviceManagementURL, id, url.Values{})
+	var err error
+	ctx, span := tracer.Start(ctx, "get-sensor")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	var res *ApiResponse
+	res, err = a.get(ctx, a.deviceManagementURL, id, url.Values{})
 	if err != nil {
 		return Sensor{}, err
 	}
@@ -140,6 +147,10 @@ func (a *App) GetSensor(ctx context.Context, id string) (Sensor, error) {
 }
 
 func (a *App) GetSensors(ctx context.Context, offset, limit int, args map[string][]string) (SensorResult, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-sensors")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	params := url.Values{}
 	params.Add("limit", fmt.Sprintf("%d", limit))
 	params.Add("offset", fmt.Sprintf("%d", offset))
@@ -148,7 +159,8 @@ func (a *App) GetSensors(ctx context.Context, offset, limit int, args map[string
 		params[k] = v
 	}
 
-	res, err := a.get(ctx, a.deviceManagementURL, "", params)
+	var res *ApiResponse
+	res, err = a.get(ctx, a.deviceManagementURL, "", params)
 	if err != nil {
 		return SensorResult{}, err
 	}
@@ -169,16 +181,27 @@ func (a *App) GetSensors(ctx context.Context, offset, limit int, args map[string
 }
 
 func (a *App) UpdateSensor(ctx context.Context, deviceID string, fields map[string]any) error {
-	b, err := json.Marshal(fields)
+	var err error
+	ctx, span := tracer.Start(ctx, "update-sensor")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	var b []byte
+	b, err = json.Marshal(fields)
 	if err != nil {
 		return err
 	}
 
-	return a.patch(ctx, a.deviceManagementURL, deviceID, b)
+	err = a.patch(ctx, a.deviceManagementURL, deviceID, b)
+	return err
 }
 
 func (a *App) GetTenants(ctx context.Context) []string {
-	res, err := a.get(ctx, a.adminURL, "tenants", url.Values{})
+	var err error
+	ctx, span := tracer.Start(ctx, "get-tenants")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	var res *ApiResponse
+	res, err = a.get(ctx, a.adminURL, "tenants", url.Values{})
 	if err != nil {
 		return []string{}
 	}
