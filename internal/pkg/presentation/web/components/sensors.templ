@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	. "github.com/diwise/frontend-toolkit"
 	"time"
 )
@@ -52,11 +53,13 @@ templ SensorsList(l10n Localizer, model SensorListViewModel) {
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("sensors") }</h1>
 				<div class="flex flex-row items-center text-white dark:text-primary-dark font-bold gap-4">
 					<div class="relative group">
-						@Button(Secondary, "", "download-cloud",
-							HxUrl("get", "/admin/export?export=devices&accept=text/csv"),
-							Trigger("click"),
-							Include(".filter"))
-						@Tooltip(l10n.Get("export"))
+						if authz.IsInRole(ctx, authz.RoleAdmin) {
+							@Button(Secondary, "", "download-cloud",
+								HxUrl("get", "/admin/export?export=devices&accept=text/csv"),
+								Trigger("click"),
+								Include(".filter"))
+							@Tooltip(l10n.Get("export"))
+						}
 					</div>
 				</div>
 			</div>
@@ -77,7 +80,8 @@ templ SensorsFilter(l10n Localizer, model SensorListViewModel) {
 				<div class="flex items-center gap-6">
 					<div class="flex rounded-xl py-2 px-3 gap-2 w-56 border border-input-surface dark:border-white-30">
 						@SVG("search", Size(20))
-						<input class="filter w-full block focus:outline-none dark:bg-content-background" 
+						<input
+							class="filter w-full block focus:outline-none dark:bg-content-background"
 							type="search"
 							name="search"
 							placeholder={ l10n.Get("search") }
@@ -133,9 +137,11 @@ templ SensorsFilter(l10n Localizer, model SensorListViewModel) {
 						})
 					}
 					<div class="relative inline-block group">
-						<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg"
-							onclick="document.getElementById('lastseen').focus();">
-							{ l10n.Get("lastseen") } 
+						<button
+							class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg"
+							onclick="document.getElementById('lastseen').focus();"
+						>
+							{ l10n.Get("lastseen") }
 							@SVG("chevron-down", Size(20))
 						</button>
 						<div class="hidden absolute bg-gray-100 min-w-max rounded-md shadow-lg z-10 p-4 group-hover:block group-focus-within:block">

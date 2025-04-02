@@ -5,3 +5,4 @@ diwise.css
 .vscode/
 air.log
 __debug_bin*
+.env

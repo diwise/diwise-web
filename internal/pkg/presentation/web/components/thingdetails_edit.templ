@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	. "github.com/diwise/frontend-toolkit"
 	"strings"
 )
@@ -183,21 +184,25 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 			</div>
 			<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
 			<div class="flex items-center justify-between py-6">
-				@Button(Error, l10n.Get("delete"), "trashcan",
-					Target("#modalDeleteThingContainer"),
-					HxUrl("delete", "/components/things/"+model.Thing.ID),
-					Trigger("click"),
-					Swap("innerHTML"))
+				if authz.IsInRole(ctx, authz.RoleDeleteThing) {
+					@Button(Error, l10n.Get("delete"), "trashcan",
+						Target("#modalDeleteThingContainer"),
+						HxUrl("delete", "/components/things/"+model.Thing.ID),
+						Trigger("click"),
+						Swap("innerHTML"))
+				}
 				<div class="flex items-center gap-4">
 					@Button(Secondary, l10n.Get("cancel"), "close",
 						Name("cancel"),
 						HxUrl("get", fmt.Sprintf("/components/things/%s", model.Thing.ID)),
 						Target("#things-view"))
-					@Button(Primary, l10n.Get("save"), "check",
-						Name("save"),
-						BtnType("submit"),
-						Target("#things-view"),
-						HxUrl("post", fmt.Sprintf("/components/things/%s", model.Thing.ID)))
+					if authz.IsInRole(ctx, authz.RoleUpdateThing) {
+						@Button(Primary, l10n.Get("save"), "check",
+							Name("save"),
+							BtnType("submit"),
+							Target("#things-view"),
+							HxUrl("post", fmt.Sprintf("/components/things/%s", model.Thing.ID)))
+					}
 				</div>
 				<div id="modalDeleteThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
 				<script>

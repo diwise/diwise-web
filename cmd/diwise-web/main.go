@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -154,6 +155,30 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 
 				middlewares = append(middlewares, authz.Middleware)
 
+				policy := `
+				package example.authz
+				
+				default allow := false
+				
+				allow = response {					
+					response := {
+						"tenants": token.payload.tenants,
+						"roles": ["create_sensor", "create_thing", "update_sensor", "update_thing", "delete_sensor", "delete_thing", "admin"]
+					}
+				}
+					
+				token := {"payload": payload} {
+    				[_, payload, _] := io.jwt.decode(input.token)
+				}				
+				`
+
+				authenticator, err := authz.NewAuthenticator(ctx, logging.GetFromContext(ctx), strings.NewReader(policy))
+				if err != nil {
+					return fmt.Errorf("failed to create authenticator: %s", err.Error())
+				}
+
+				middlewares = append(middlewares, authenticator)
+
 				err = api.RegisterHandlers(ctx, mux, middlewares, svcCfg.app, flags[webAssetPath])
 				if err != nil {
 					return fmt.Errorf("failed to create new api handler: %s", err.Error())
@@ -205,9 +230,35 @@ func changeURLPortNumbers(_ context.Context, flags FlagMap, from, to string) Fla
 }
 
 func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, FlagMap) {
+	envMap := map[string]string{}
+
+	if envFile, err := os.Open(".env"); err == nil {
+		defer envFile.Close()
+		if b, err := io.ReadAll(envFile); err == nil {
+			for line := range strings.SplitSeq(string(b), "\n") {
+				if strings.Contains(line, "=") {
+					parts := strings.Split(line, "=")
+					envMap[parts[0]] = parts[1]
+				}
+			}
+		}
+	}
 
 	// Allow environment variables to override certain defaults
-	envOrDef := env.GetVariableOrDefault
+	envOrDef := func(ctx context.Context, envVar string, defaultValue string) string {
+		if envValue, ok := envMap[envVar]; ok {
+			return envValue
+		}
+		return env.GetVariableOrDefault(ctx, envVar, defaultValue)
+	}
+
+	envOrDie := func(ctx context.Context, envVar string, description string) string {
+		if envValue, ok := envMap[envVar]; ok {
+			return envValue
+		}
+		return env.GetVariableOrDie(ctx, envVar, description)
+	}
+
 	flags[servicePort] = envOrDef(ctx, "SERVICE_PORT", flags[servicePort])
 	flags[controlPort] = envOrDef(ctx, "CONTROL_PORT", flags[controlPort])
 	flags[webAssetPath] = envOrDef(ctx, "DIWISEWEB_ASSET_PATH", "/opt/diwise/assets")
@@ -234,14 +285,14 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 	flag.Parse()
 
 	if flags[devModeEnabled] != "true" {
-		flags[oauth2RealmURL] = env.GetVariableOrDie(ctx, "OAUTH2_REALM_URL", "oauth2 realm URL")
-		flags[oauth2ClientID] = env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_ID", "oauth2 client id")
-		flags[oauth2ClientSecret] = env.GetVariableOrDie(ctx, "OAUTH2_CLIENT_SECRET", "oauth2 client secret")
-		flags[oauth2SkipVerify] = env.GetVariableOrDefault(ctx, "OAUTH2_REALM_INSECURE", "false")
+		flags[oauth2RealmURL] = envOrDie(ctx, "OAUTH2_REALM_URL", "oauth2 realm URL")
+		flags[oauth2ClientID] = envOrDie(ctx, "OAUTH2_CLIENT_ID", "oauth2 client id")
+		flags[oauth2ClientSecret] = envOrDie(ctx, "OAUTH2_CLIENT_SECRET", "oauth2 client secret")
+		flags[oauth2SkipVerify] = envOrDef(ctx, "OAUTH2_REALM_INSECURE", "false")
 
-		flags[devMgmtURL] = env.GetVariableOrDie(ctx, "DEV_MGMT_URL", "device management URL")
-		flags[thingsURL] = env.GetVariableOrDie(ctx, "THINGS_URL", "things URL")
-		flags[measurementsURL] = env.GetVariableOrDie(ctx, "MEASUREMENTS_URL", "measurements URL")
+		flags[devMgmtURL] = envOrDie(ctx, "DEV_MGMT_URL", "device management URL")
+		flags[thingsURL] = envOrDie(ctx, "THINGS_URL", "things URL")
+		flags[measurementsURL] = envOrDie(ctx, "MEASUREMENTS_URL", "measurements URL")
 	} else {
 		appRoot := flags[appRoot]
 		flags[devMgmtURL] = appRoot + api.DevModePrefix + "/devices"

@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 )
 
 type SensorDetailsViewModel struct {
@@ -64,7 +66,9 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 					@statusActive(sensor.Active, l10n)
 				</div>
 			}
-			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#sensor-view"), HxUrl("get", fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)))
+			if authz.IsInRole(ctx, authz.RoleUpdateSensor) {
+				@Button(Tertiary, l10n.Get("edit"), "pen", Target("#sensor-view"), HxUrl("get", fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)))
+			}
 		</div>
 		<div class="w-full flex flex-col lg:flex-row py-6 gap-10">
 			//Yttersta diven
@@ -275,7 +279,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 										<div class="flex items-center gap-2">
 											<span class="font-bold">{ l10n.Get("environment") }</span>
 											<div class="group relative cursor-pointer">
-												@SVG("help-circle", Size(20), Box(24, 24))										
+												@SVG("help-circle", Size(20), Box(24, 24))
 												<div class="absolute top-1/2 left-full -translate-y-1/2 ml-2 hidden group-hover:block bg-gray-700 text-white text-xs font-medium rounded px-2 py-1 shadow-lg z-50 whitespace-nowrap">
 													{ l10n.Get("located") }
 													<div class="absolute w-2 h-2 bg-gray-700 transform rotate-45 -left-1 top-1/2 -translate-y-1/2"></div>
@@ -295,7 +299,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 										<div class="flex items-center gap-2">
 											<span class="font-bold">{ l10n.Get("observationinterval") }</span>
 											<div class="group relative cursor-pointer">
-												@SVG("help-circle", Size(20), Box(24, 24))										
+												@SVG("help-circle", Size(20), Box(24, 24))
 												<div class="absolute top-1/2 left-full -translate-y-1/2 ml-2 hidden group-hover:block bg-gray-700 text-white text-xs font-medium rounded px-2 py-1 shadow-lg z-50 whitespace-nowrap">
 													{ l10n.Get("devicenotobservedafter") }
 													<div class="absolute w-2 h-2 bg-gray-700 transform rotate-45 -left-1 top-1/2 -translate-y-1/2"></div>
@@ -403,7 +407,9 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 				//@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"))
 				<div class="flex items-center gap-4">
 					@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"))
-					@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
+					if authz.IsInRole(ctx, authz.RoleUpdateSensor) {
+						@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
+					}
 				</div>
 			</div>
 		</form>

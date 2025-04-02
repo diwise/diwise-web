@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	. "github.com/diwise/frontend-toolkit"
 	"sort"
 	"strings"
@@ -113,17 +114,21 @@ templ ThingsList(l10n Localizer, model ThingsListViewModel) {
 			<div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
 				<div class="flex gap-4 items-center text-white dark:text-primary-dark font-bold">
-					@Button(Primary, l10n.Get("addthing"), "",
-						Target("#modalCreateThingContainer"),
-						HxUrl("get", "/components/things"),
-						Trigger("click"),
-						Swap("innerHTML"))
-					<div class="relative group">
-						@Button(Secondary, "", "download-cloud",
-							HxUrl("get", "/admin/export?export=things&accept=text/csv"),
+					if authz.IsInRole(ctx, authz.RoleCreateThing) {
+						@Button(Primary, l10n.Get("addthing"), "",
+							Target("#modalCreateThingContainer"),
+							HxUrl("get", "/components/things"),
 							Trigger("click"),
-							Include(".filter"))
-						@Tooltip(l10n.Get("export"))
+							Swap("innerHTML"))
+					}
+					<div class="relative group">
+						if authz.IsInRole(ctx, authz.RoleAdmin) {
+							@Button(Secondary, "", "download-cloud",
+								HxUrl("get", "/admin/export?export=things&accept=text/csv"),
+								Trigger("click"),
+								Include(".filter"))
+							@Tooltip(l10n.Get("export"))
+						}
 					</div>
 				</div>
 				<div id="modalCreateThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
@@ -831,13 +836,25 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 				var state string
 
 				if thingSubType == "wastecontainer" {
-					if fl > 49 { state = "red" }
-					if fl > 30 && fl <= 49 { state = "orange" }
-					if fl <= 30 { state = "green" }
+					if fl > 49 {
+						state = "red"
+					}
+					if fl > 30 && fl <= 49 {
+						state = "orange"
+					}
+					if fl <= 30 {
+						state = "green"
+					}
 				} else {
-					if fl > 70 { state = "green" }
-					if fl > 50 && fl <= 70 { state = "orange" }
-					if fl <= 50 { state = "red" }
+					if fl > 70 {
+						state = "green"
+					}
+					if fl > 50 && fl <= 70 {
+						state = "orange"
+					}
+					if fl <= 50 {
+						state = "red"
+					}
 				}
 
 				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))

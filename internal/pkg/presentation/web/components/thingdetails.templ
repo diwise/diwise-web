@@ -2,20 +2,21 @@ package components
 
 import (
 	"fmt"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	. "github.com/diwise/frontend-toolkit"
 	"sort"
 	"strings"
 )
 
 type ThingDetailsViewModel struct {
-	Thing         	 ThingViewModel
-	Type          	 string
-	Organisations  	 []string
-	Tenant        	 string
-	TableView     	 bool
-	ValidSensors  	 []ValidSensorViewModel
-	Tags          	 []string
-	Tabs			 []string
+	Thing         ThingViewModel
+	Type          string
+	Organisations []string
+	Tenant        string
+	TableView     bool
+	ValidSensors  []ValidSensorViewModel
+	Tags          []string
+	Tabs          []string
 }
 
 type ValidSensorViewModel struct {
@@ -56,7 +57,9 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ID }</h1>
 				</div>
 			}
-			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/%s?mode=edit", model.Thing.ID))))
+			if authz.IsInRole(ctx, authz.RoleUpdateThing) {
+				@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/%s?mode=edit", model.Thing.ID))))
+			}
 		</div>
 		// Contents
 		<div class="flex flex-col items-start gap-10">
@@ -212,9 +215,11 @@ templ DeleteThing(l10n Localizer, asset AssetLoaderFunc, thingID, thingName stri
 						<div id="cancelButton">
 							@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"), BtnType("button"))
 						</div>
-						@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"),
-							HxUrl("delete", "/things/"+thingID+"?confirmed=true"),
-							Target("#body"))
+						if authz.IsInRole(ctx, authz.RoleDeleteThing) {
+							@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"),
+								HxUrl("delete", "/things/"+thingID+"?confirmed=true"),
+								Target("#body"))
+						}
 					</div>
 				</div>
 				<script>
