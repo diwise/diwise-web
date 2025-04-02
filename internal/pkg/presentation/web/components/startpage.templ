@@ -14,10 +14,10 @@ templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, main
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<link href={ asset("/css/diwise.css").Path() } rel="stylesheet"/>
 			<link href={ asset("/css/leaflet.css").Path() } rel="stylesheet"/>
-			<script src="https://cdn.jsdelivr.net/npm/chart.js" nonce={ csp.Nonce(ctx) }></script>
-			<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js" nonce={ csp.Nonce(ctx) }></script>
-			<script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js" nonce={ csp.Nonce(ctx) }></script>
-			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" nonce={ csp.Nonce(ctx) }></script>
+			<script src={ asset("/js/chart.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+			<script src={ asset("/js/chartjs-adapter-date-fns.bundle.min.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+			<script src={ asset("/js/date-fns.min.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+			<script src={ asset("/js/alpinejs.min.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 			<script src={ asset("/js/htmx.min.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 			<script src={ asset("/js/htmx-ext-sse.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 			<script src={ asset("/js/leaflet.js").Path() } nonce={ csp.Nonce(ctx) }></script>
