@@ -38,6 +38,8 @@ func DefaultFlags() FlagMap {
 
 		devModeEnabled:        "false",
 		contentSecurityPolicy: "strict",
+
+		policyfile: "/opt/diwise/assets/authz/authz.rego",
 	}
 }
 
@@ -155,24 +157,13 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 
 				middlewares = append(middlewares, authz.Middleware)
 
-				policy := `
-				package example.authz
-				
-				default allow := false
-				
-				allow = response {					
-					response := {
-						"tenants": token.payload.tenants,
-						"roles": ["create_sensor", "create_thing", "update_sensor", "update_thing", "delete_sensor", "delete_thing", "admin"]
-					}
+				policies, err := os.Open(flags[policyfile])
+				if err != nil {
+					return fmt.Errorf("failed to open policy file: %s", err.Error())
 				}
-					
-				token := {"payload": payload} {
-    				[_, payload, _] := io.jwt.decode(input.token)
-				}				
-				`
+				defer policies.Close()
 
-				authenticator, err := authz.NewAuthenticator(ctx, logging.GetFromContext(ctx), strings.NewReader(policy))
+				authenticator, err := authz.NewAuthenticator(ctx, logging.GetFromContext(ctx), policies)
 				if err != nil {
 					return fmt.Errorf("failed to create authenticator: %s", err.Error())
 				}
@@ -263,6 +254,7 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 	flags[controlPort] = envOrDef(ctx, "CONTROL_PORT", flags[controlPort])
 	flags[webAssetPath] = envOrDef(ctx, "DIWISEWEB_ASSET_PATH", "/opt/diwise/assets")
 	flags[contentSecurityPolicy] = envOrDef(ctx, "CONTENT_SECURITY_POLICY", flags[contentSecurityPolicy])
+	flags[policyfile] = envOrDef(ctx, "POLICY_FILE", flags[policyfile])
 
 	defaultAppRoot := fmt.Sprintf("http://localhost:%s", flags[servicePort])
 	flags[appRoot] = envOrDef(ctx, "APP_ROOT", defaultAppRoot)
@@ -282,6 +274,7 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 	flag.BoolFunc("devmode", "enable devmode with fake backend data", apply(devModeEnabled))
 	flag.Func("csp", "set content security policy to strict, report or off", apply(contentSecurityPolicy))
 	flag.Func("web-assets", "path to web assets folder", apply(webAssetPath))
+	flag.Func("policies", "path to policy file", apply(policyfile))
 	flag.Parse()
 
 	if flags[devModeEnabled] != "true" {

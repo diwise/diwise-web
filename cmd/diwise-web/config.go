@@ -32,6 +32,8 @@ const (
 	oauth2SkipVerify
 
 	contentSecurityPolicy
+
+	policyfile
 )
 
 type AppConfig struct {
