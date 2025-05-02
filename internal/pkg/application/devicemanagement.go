@@ -84,7 +84,7 @@ func (s Sensor) ObservedAt() time.Time {
 type Alarm struct {
 	DeviceID   string    `json:"deviceID"`
 	ObservedAt time.Time `json:"observedAt"`
-	Types      []string  `json:"types"`
+	Types      []string  `json:"alarms"`
 }
 
 type SensorResult struct {
