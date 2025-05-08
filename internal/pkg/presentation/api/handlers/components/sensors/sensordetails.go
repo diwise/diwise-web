@@ -59,7 +59,58 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, as
 		ctx, cancel := context.WithDeadline(r.Context(), time.Now().Add(600*time.Second))
 		defer cancel()
 
-		mode := r.URL.Query().Get("mode")
+		ctx = helpers.Decorate(ctx,
+			components.CurrentComponent, "sensors",
+		)
+
+		sensor, err := app.GetSensor(ctx, id)
+		if err != nil {
+			http.Error(w, "could not compose view model", http.StatusInternalServerError)
+			return
+		}
+
+		viewModel := components.SensorDetailsViewModel{
+			DeviceID:          sensor.DeviceID,
+			DevEUI:            sensor.SensorID,
+			Name:              sensor.Name,
+			Latitude:          sensor.Location.Latitude,
+			Longitude:         sensor.Location.Longitude,
+			DeviceProfileName: sensor.DeviceProfile.Decoder,
+			Tenant:            sensor.Tenant,
+			Description:       sensor.Description,
+			Active:            sensor.Active,
+			ObservedAt:        sensor.ObservedAt(),
+		}
+
+		if sensor.Environment != nil {
+			viewModel.Environment = *sensor.Environment
+		}
+
+		for _, t := range sensor.Types {
+			viewModel.Types = append(viewModel.Types, t.URN)
+		}
+
+		component := components.SensorDetails(localizer, assets, viewModel)
+
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func NewEditSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			http.Error(w, "no id found in url", http.StatusBadRequest)
+			return
+		}
+
+		ctx, cancel := context.WithDeadline(r.Context(), time.Now().Add(600*time.Second))
+		defer cancel()
+
 		ctx = helpers.Decorate(ctx,
 			components.CurrentComponent, "sensors",
 		)
@@ -72,31 +123,27 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, as
 
 		var component templ.Component
 
-		if mode == "edit" {
-			tenants := app.GetTenants(ctx)
-			deviceProfiles := app.GetDeviceProfiles(ctx)
+		tenants := app.GetTenants(ctx)
+		deviceProfiles := app.GetDeviceProfiles(ctx)
 
-			dp := []components.DeviceProfile{}
-			for _, p := range deviceProfiles {
-				types := []string{}
-				if p.Types != nil {
-					types = *p.Types
-				}
-				dp = append(dp, components.DeviceProfile{
-					Name:     p.Name,
-					Decoder:  p.Decoder,
-					Interval: p.Interval,
-					Types:    types,
-				})
+		dp := []components.DeviceProfile{}
+		for _, p := range deviceProfiles {
+			types := []string{}
+			if p.Types != nil {
+				types = *p.Types
 			}
-
-			detailsViewModel.Organisations = tenants
-			detailsViewModel.DeviceProfiles = dp
-
-			component = components.EditSensorDetails(localizer, assets, *detailsViewModel)
-		} else {
-			component = components.SensorDetails(localizer, assets, *detailsViewModel)
+			dp = append(dp, components.DeviceProfile{
+				Name:     p.Name,
+				Decoder:  p.Decoder,
+				Interval: p.Interval,
+				Types:    types,
+			})
 		}
+
+		detailsViewModel.Organisations = tenants
+		detailsViewModel.DeviceProfiles = dp
+
+		component = components.EditSensorDetails(localizer, assets, *detailsViewModel)
 
 		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
@@ -186,20 +233,14 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 }
 
 func composeViewModel(ctx context.Context, id string, app application.DeviceManagement) (*components.SensorDetailsViewModel, error) {
-	log := logging.GetFromContext(ctx)
-	
-	log.Debug("begin get sensor")
 	sensor, err := app.GetSensor(ctx, id)
-	log.Debug("end get sensor")
 
 	if err != nil {
 		return nil, err
 	}
 
-	log.Debug("begin get tenants and device profiles")
 	tenants := app.GetTenants(ctx)
 	deviceProfiles := app.GetDeviceProfiles(ctx)
-	log.Debug("end get tenants and device profiles")
 
 	dp := []components.DeviceProfile{}
 	for _, p := range deviceProfiles {
@@ -220,12 +261,10 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		types = append(types, tp.URN)
 	}
 
-	log.Debug("begin get measurement info")
 	measurements, err := app.GetMeasurementInfo(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-	log.Debug("end get measurement info")
 
 	m := make([]string, 0)
 	for _, md := range measurements.Values {

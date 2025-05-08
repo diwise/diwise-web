@@ -166,6 +166,48 @@ func SanitizeParams(params url.Values, keys ...string) {
 	}
 }
 
+func WriteResponse(ctx context.Context, w http.ResponseWriter, r *http.Request, b []byte, sizeHint int, cacheTime time.Duration) {
+	var writer io.Writer
+	var gzipWriter *gzip.Writer
+
+	writeBuffer := bytes.NewBuffer(make([]byte, 0, sizeHint))
+	writer = writeBuffer
+
+	isGzipAccepted := func() bool {
+		for _, enc := range r.Header["Accept-Encoding"] {
+			if strings.Contains(enc, "gzip") {
+				return true
+			}
+		}
+		return false
+	}()
+
+	if isGzipAccepted && sizeHint > 2000 {
+		gzipWriter = gzip.NewWriter(writeBuffer)
+		writer = gzipWriter
+	}
+
+	writer.Write(b)
+
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
+	if gzipWriter != nil {
+		w.Header().Set("Content-Encoding", "gzip")
+		gzipWriter.Flush()
+	}
+
+	if cacheTime.Seconds() > 1.0 {
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d", int(math.Round(cacheTime.Seconds()))))
+		w.Header().Add("Vary", "Accept-Language")
+	} else {
+		w.Header().Set("Cache-Control", "no-cache")
+	}
+
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", writeBuffer.Len()))
+	w.WriteHeader(http.StatusOK)
+
+	w.Write(writeBuffer.Bytes())
+}
+
 func WriteComponentResponse(ctx context.Context, w http.ResponseWriter, r *http.Request, component templ.Component, sizeHint int, cacheTime time.Duration) {
 	var writer io.Writer
 	var gzipWriter *gzip.Writer

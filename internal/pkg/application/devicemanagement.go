@@ -13,12 +13,14 @@ import (
 type DeviceManagement interface {
 	GetSensor(ctx context.Context, id string) (Sensor, error)
 	GetSensors(ctx context.Context, offset, limit int, args map[string][]string) (SensorResult, error)
+	GetSensorStatus(ctx context.Context, id string) ([]DeviceStatus, error)
 	UpdateSensor(ctx context.Context, deviceID string, fields map[string]any) error
 	GetTenants(ctx context.Context) []string
 	GetDeviceProfiles(ctx context.Context) []DeviceProfile
 	GetStatistics(ctx context.Context) (Statistics, error)
 	GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error)
 	GetMeasurementData(ctx context.Context, id string, params ...InputParam) (MeasurementData, error)
+	GetMeasurementsForSensor(ctx context.Context, id string, params ...InputParam) (map[string][]MeasurementValue, error)
 	GetAlarms(ctx context.Context, offset, limit int, args map[string][]string) (AlarmResult, error)
 }
 
@@ -48,14 +50,19 @@ type DeviceProfile struct {
 }
 
 type DeviceStatus struct {
-	BatteryLevel int       `json:"batteryLevel,omitempty"`
-	ObservedAt   time.Time `json:"observedAt,omitempty"`
+	BatteryLevel    int       `json:"batteryLevel,omitzero"`
+	RSSI            *float64  `json:"rssi,omitempty"`
+	LoRaSNR         *float64  `json:"loRaSNR,omitempty"`
+	Frequency       *int64    `json:"frequency,omitempty"`
+	SpreadingFactor *float64  `json:"spreadingFactor,omitempty"`
+	DR              *int      `json:"dr,omitempty"`
+	ObservedAt      time.Time `json:"observedAt"`
 }
 
 type DeviceState struct {
-	Online     bool      `json:"online,omitempty"`
-	State      int       `json:"state,omitempty"`
-	ObservedAt time.Time `json:"observedAt,omitempty"`
+	Online     bool      `json:"online"`
+	State      int       `json:"state"`
+	ObservedAt time.Time `json:"observedAt"`
 }
 
 type Sensor struct {
@@ -65,7 +72,7 @@ type Sensor struct {
 	Tenant        string         `json:"tenant,omitempty"`
 	Name          string         `json:"name,omitempty"`
 	Description   string         `json:"description,omitempty"`
-	Location      Location       `json:"location,omitempty"`
+	Location      Location       `json:"location"`
 	Environment   *string        `json:"environment,omitempty"`
 	Types         []Type         `json:"types,omitempty"`
 	DeviceProfile *DeviceProfile `json:"deviceProfile,omitempty"`
@@ -75,8 +82,8 @@ type Sensor struct {
 }
 
 func (s Sensor) ObservedAt() time.Time {
-	if s.DeviceState != nil {
-		return s.DeviceState.ObservedAt
+	if s.DeviceStatus != nil {
+		return s.DeviceStatus.ObservedAt
 	}
 	return time.Time{}
 }
@@ -178,6 +185,26 @@ func (a *App) GetSensors(ctx context.Context, offset, limit int, args map[string
 		Limit:        int(*res.Meta.Limit),
 		Count:        len(sensors),
 	}, nil
+}
+
+func (a *App) GetSensorStatus(ctx context.Context, id string) ([]DeviceStatus, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-sensors")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	var res *ApiResponse
+	res, err = a.get(ctx, a.deviceManagementURL, fmt.Sprintf("/%s/status", id), url.Values{})
+	if err != nil {
+		return []DeviceStatus{}, err
+	}
+
+	var statuses []DeviceStatus
+	err = json.Unmarshal(res.Data, &statuses)
+	if err != nil {
+		return []DeviceStatus{}, err
+	}
+
+	return statuses, nil
 }
 
 func (a *App) UpdateSensor(ctx context.Context, deviceID string, fields map[string]any) error {

@@ -2,8 +2,10 @@ package sensors
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
@@ -43,6 +45,296 @@ func NewBatteryLevelComponentHandler(ctx context.Context, l10n LocaleBundle, ass
 	}
 
 	return http.HandlerFunc(fn)
+}
+
+func NewStatusChartsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+	log := logging.GetFromContext(ctx)
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		id := r.PathValue("id")
+
+		result, err := app.GetSensorStatus(ctx, id)
+		if err != nil {
+			log.Error("could not fetch status for sensor", "device_id", id, "err", err)
+			http.Error(w, "could not fetch status for sensor", http.StatusInternalServerError)
+			return
+		}
+
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		datasets := []chartDataset{}
+		timeAt, endTimeAt := time.Now(), time.Time{}
+
+		batteryLevel := chartDataset{
+			Label:   localizer.Get("batteryLevel"),
+			YAxisID: "yBatteryLevel",
+			Data:    make([]chartPoint, 0),
+		}
+		dr := chartDataset{
+			Label:   localizer.Get("dr"),
+			YAxisID: "yDR",
+			Data:    make([]chartPoint, 0),
+		}
+		frequency := chartDataset{
+			Label:   localizer.Get("frequency"),
+			YAxisID: "yFrequency",
+			Data:    make([]chartPoint, 0),
+		}
+		loRaSNR := chartDataset{
+			Label:   localizer.Get("loraSNR"),
+			YAxisID: "yLoRaSNR",
+			Data:    make([]chartPoint, 0),
+		}
+		rssi := chartDataset{
+			Label:   localizer.Get("rssi"),
+			YAxisID: "yRSSI",
+			Data:    make([]chartPoint, 0),
+		}
+		spreadingFactor := chartDataset{
+			Label:   localizer.Get("spreadingFactor"),
+			YAxisID: "ySpreadingFactor",
+			Data:    make([]chartPoint, 0),
+		}
+
+		for _, s := range result {
+			if s.BatteryLevel > 0 {
+				batteryLevel.Data = append(batteryLevel.Data, chartPoint{
+					X: s.ObservedAt.Format(time.RFC3339),
+					Y: float64(s.BatteryLevel),
+				})
+			}
+			if s.DR != nil {
+				dr.Data = append(dr.Data, chartPoint{
+					X: s.ObservedAt.Format(time.RFC3339),
+					Y: float64(*s.DR),
+				})
+			}
+			if s.Frequency != nil {
+				frequency.Data = append(frequency.Data, chartPoint{
+					X: s.ObservedAt.Format(time.RFC3339),
+					Y: float64(*s.Frequency),
+				})
+			}
+			if s.LoRaSNR != nil {
+				loRaSNR.Data = append(loRaSNR.Data, chartPoint{
+					X: s.ObservedAt.Format(time.RFC3339),
+					Y: float64(*s.LoRaSNR),
+				})
+			}
+			if s.RSSI != nil {
+				rssi.Data = append(rssi.Data, chartPoint{
+					X: s.ObservedAt.Format(time.RFC3339),
+					Y: float64(*s.RSSI),
+				})
+			}
+			if s.SpreadingFactor != nil && *s.SpreadingFactor > 0 {
+				spreadingFactor.Data = append(spreadingFactor.Data, chartPoint{
+					X: s.ObservedAt.Format(time.RFC3339),
+					Y: float64(*s.SpreadingFactor),
+				})
+			}
+		}
+
+		if len(dr.Data) > 0 {
+			datasets = append(datasets, dr)
+		}
+		if len(frequency.Data) > 0 {
+			datasets = append(datasets, frequency)
+		}
+		if len(loRaSNR.Data) > 0 {
+			datasets = append(datasets, loRaSNR)
+		}
+		if len(rssi.Data) > 0 {
+			datasets = append(datasets, rssi)
+		}
+		if len(spreadingFactor.Data) > 0 {
+			datasets = append(datasets, spreadingFactor)
+		}
+		if len(batteryLevel.Data) > 0 {
+			datasets = append(datasets, batteryLevel)
+		}
+
+		scales := make(map[string]chartScale)
+		for i := range datasets {
+			switch datasets[i].YAxisID {
+			case "yBatteryLevel":
+				scales[datasets[i].YAxisID] = newChartScale(datasets[i].Label, "right", 0, 100)
+			case "yDR":	
+				scales[datasets[i].YAxisID] = newChartScale(datasets[i].Label, "left", 0, 7)
+			case "yFrequency":
+				scales[datasets[i].YAxisID] = newChartScale(datasets[i].Label, "left", 863_000_000, 870_000_000)
+			case "yLoRaSNR":
+				scales[datasets[i].YAxisID] = newChartScale(datasets[i].Label, "left", -20, 10)
+			case "yRSSI":
+				scales[datasets[i].YAxisID] = newChartScale(datasets[i].Label, "left", -120, -30)
+			case "ySpreadingFactor":
+				scales[datasets[i].YAxisID] = newChartScale(datasets[i].Label, "left", 0, 12)
+			default:
+				scales[datasets[i].YAxisID] = newChartScale(datasets[i].Label, "left", 0, 0)	
+			}												
+		}
+
+		b, _ := json.Marshal(chartResponse{
+			Datasets:  datasets,
+			Scales:    scales,
+			TimeAt:    timeAt.Format(time.DateTime),
+			EndTimeAt: endTimeAt.Format(time.DateTime),
+		})
+
+		helpers.WriteResponse(ctx, w, r, b, 1024, 10*time.Second)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func NewMeasurementChartsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+	log := logging.GetFromContext(ctx)
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		id := r.PathValue("id")
+
+		parms := make([]application.InputParam, 0)
+
+		getTime := func(p string) (time.Time, bool) {
+			param := r.URL.Query().Get(p)
+
+			const layout = "2006-01-02T15:04"
+			loc, _ := time.LoadLocation("Europe/Stockholm")
+			ts, err := time.ParseInLocation(layout, param, loc)
+			if err != nil {
+				ts2, err := time.Parse("2006-01-02T15:04:05", param)
+				if err == nil {
+					return ts2, true
+				}
+				return time.Time{}, false
+			}
+
+			return ts, true
+		}
+
+		if timeAt, ok := getTime("timeAt"); ok {
+			if endTimeAt, ok := getTime("endTimeAt"); ok {
+				parms = append(parms, application.WithTimeRel("between", timeAt, endTimeAt))
+			} else {
+				parms = append(parms, application.WithAfter(timeAt))
+			}
+		}
+
+		result, err := app.GetMeasurementsForSensor(ctx, id, parms...)
+		if err != nil {
+			log.Error("could not fetch measurements for sensor", "device_id", id, "err", err)
+			http.Error(w, "could not fetch measurements for sensor", http.StatusInternalServerError)
+			return
+		}
+
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		datasets := []chartDataset{}
+		y := 1
+		timeAt, endTimeAt := time.Now(), time.Time{}
+
+		for n, values := range result {
+			ds := chartDataset{
+				Label:   localizer.Get(strings.ReplaceAll(n, "/", "-")),
+				YAxisID: fmt.Sprintf("y%d", y),
+				Data:    make([]chartPoint, len(values)),
+			}
+
+			for i, v := range values {
+				p := chartPoint{
+					X: v.Timestamp.Format(time.RFC3339),
+					Y: *v.Value,
+				}
+				ds.Data[i] = p
+
+				if v.Timestamp.Before(timeAt) {
+					timeAt = v.Timestamp
+				}
+
+				if v.Timestamp.After(endTimeAt) {
+					endTimeAt = v.Timestamp
+				}
+			}
+
+			datasets = append(datasets, ds)
+			y++
+		}
+
+		scales := make(map[string]chartScale)
+		for i := range datasets {
+			scales[datasets[i].YAxisID] = newChartScale(datasets[i].Label, "left", 0, 0)
+		}
+
+		b, _ := json.Marshal(chartResponse{
+			Datasets:  datasets,
+			Scales:    scales,
+			TimeAt:    timeAt.Format(time.DateTime),
+			EndTimeAt: endTimeAt.Format(time.DateTime),
+		})
+
+		helpers.WriteResponse(ctx, w, r, b, 1024, 10*time.Minute)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+type chartPoint struct {
+	X string  `json:"x"`
+	Y float64 `json:"y"`
+}
+
+type chartDataset struct {
+	Label   string       `json:"label"`
+	Data    []chartPoint `json:"data"`
+	YAxisID string       `json:"yAxisID"`
+}
+
+func newChartScale(label, position string, min, max float64) chartScale {
+	return chartScale{
+		Type: "linear",
+		Grid: scaleGrid{DrawOnChartArea: false},
+		Label: scaleLabel{
+			Display: true,
+			Label:   label,
+		},
+		ScaleTime: scaleTime{
+			TooltipFormat: "DD T",
+		},
+		Position: position,
+		Max:      max,
+		Min:      min,
+	}
+}
+
+type chartScale struct {
+	Type      string     `json:"type"`
+	Grid      scaleGrid  `json:"grid"`
+	Label     scaleLabel `json:"title"`
+	ScaleTime scaleTime  `json:"time"`
+	Position  string     `json:"position,omitempty"`
+	Max       float64    `json:"suggestedMax,omitzero"`
+	Min       float64    `json:"suggestedMin,omitzero"`
+}
+
+type scaleLabel struct {
+	Display bool   `json:"display"`
+	Label   string `json:"text"`
+}
+type scaleTime struct {
+	TooltipFormat string `json:"tooltipFormat"`
+}
+type scaleGrid struct {
+	DrawOnChartArea bool `json:"drawOnChartArea"`
+	DrawTicks       bool `json:"drawTicks"`
+}
+
+type chartResponse struct {
+	Datasets  []chartDataset        `json:"datasets"`
+	Scales    map[string]chartScale `json:"scales"`
+	TimeAt    string                `json:"timeAt"`
+	EndTimeAt string                `json:"endTimeAt"`
 }
 
 func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {

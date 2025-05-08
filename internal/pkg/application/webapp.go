@@ -174,6 +174,33 @@ func (a *App) GetStatistics(ctx context.Context) (Statistics, error) {
 	return stats, err
 }
 
+func (a *App) GetMeasurementsForSensor(ctx context.Context, id string, params ...InputParam) (map[string][]MeasurementValue, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-measurement-for-sensor")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	q := url.Values{}
+
+	for _, p := range params {
+		p(&q)
+	}
+
+	var resp *ApiResponse
+	resp, err = a.get(ctx, a.measurementURL, id, q)
+	if err != nil {
+		return map[string][]MeasurementValue{}, err
+	}
+
+	var measurements map[string][]MeasurementValue
+
+	err = json.Unmarshal(resp.Data, &measurements)
+	if err != nil {
+		return map[string][]MeasurementValue{}, err
+	}
+
+	return measurements, nil
+}
+
 func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error) {
 	var err error
 	ctx, span := tracer.Start(ctx, "get-measurementinfo")
