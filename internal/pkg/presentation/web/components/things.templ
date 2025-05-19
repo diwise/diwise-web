@@ -61,6 +61,29 @@ func (t ThingViewModel) GetFloatOrDefault(key string, defaultValue float64) floa
 	return defaultValue
 }
 
+func (t ThingViewModel) GetMeasurementValue(key string) float64 {
+	if t.Properties[key] == nil {
+		return 0.0
+	}
+
+	var m map[string]any
+	var ok bool
+	var v float64
+
+	v, ok = t.Properties[key].(float64)
+	if !ok {
+		if m, ok = t.Properties[key].(map[string]any); ok {
+			v, ok = m["v"].(float64)
+		}
+	}
+
+	if !ok {
+		return 0.0
+	}
+
+	return v
+}
+
 func (t ThingViewModel) GetFloat(key string) (float64, bool) {
 	if v, ok := t.Properties[key]; ok {
 		if f, ok := v.(float64); ok {
@@ -850,9 +873,9 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		case "pointofinterest":
 			fallthrough
 		case "beach":
-			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetFloatOrDefault("temperature", 0)))
+			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetMeasurementValue("temperature")))
 		case "room":
-			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetFloatOrDefault("temperature", 0)))
+			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetMeasurementValue("temperature")))
 		case "container":
 			fl, ok := thing.GetFloat("percent")
 			if ok {
