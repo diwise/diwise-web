@@ -52,7 +52,7 @@ type ThingTypeValues struct {
 	Presence *bool `json:"presence"`
 
 	// room
-	Temperature *float64 `json:"temperature"`
+	Temperature *Measurement `json:"temperature"`
 
 	// container
 	MaxDistance  *float64 `json:"maxd,omitempty"`
@@ -163,6 +163,7 @@ type Measurement struct {
 	Value       *float64  `json:"v,omitempty"`
 	Count       *float64  `json:"count,omitempty"`
 	RefDevice   string    `json:"ref,omitempty"`
+	Source      *string   `json:"source,omitzero"`
 }
 
 type SensorIdentifier struct {

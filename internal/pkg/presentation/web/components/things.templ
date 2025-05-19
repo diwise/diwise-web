@@ -771,11 +771,39 @@ templ PassageCell(t ThingViewModel) {
 	</div>
 }
 
+func TemperatureCell(t ThingViewModel) templ.Component {
+
+	if t.Properties["temperature"] == nil {
+		return templ.NopComponent
+	}
+
+	var m map[string]any
+	var ok bool
+	var temp float64
+
+	temp, ok = t.Properties["temperature"].(float64)
+	if !ok {
+		if m, ok = t.Properties["temperature"].(map[string]any);ok {
+			temp,ok = m["v"].(float64)
+		}
+	}
+
+	if !ok {
+		return templ.NopComponent
+	}
+
+	return Div("", Text(fmt.Sprintf("%0.1f °C", temp)))
+}
+
+/*
+
 templ TemperatureCell(t ThingViewModel) {
 	<div>
 		{ fmt.Sprintf("%0.1f °C", t.Properties["temperature"]) }
 	</div>
 }
+
+*/
 
 func ThingsMap(l10n Localizer, model ThingsListViewModel) templ.Component {
 	if !model.MapView {
@@ -831,13 +859,25 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 				var state string
 
 				if thingSubType == "wastecontainer" {
-					if fl > 49 { state = "red" }
-					if fl > 30 && fl <= 49 { state = "orange" }
-					if fl <= 30 { state = "green" }
+					if fl > 49 {
+						state = "red"
+					}
+					if fl > 30 && fl <= 49 {
+						state = "orange"
+					}
+					if fl <= 30 {
+						state = "green"
+					}
 				} else {
-					if fl > 70 { state = "green" }
-					if fl > 50 && fl <= 70 { state = "orange" }
-					if fl <= 50 { state = "red" }
+					if fl > 70 {
+						state = "green"
+					}
+					if fl > 50 && fl <= 70 {
+						state = "orange"
+					}
+					if fl <= 50 {
+						state = "red"
+					}
 				}
 
 				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
