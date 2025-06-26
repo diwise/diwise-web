@@ -61,6 +61,29 @@ func (t ThingViewModel) GetFloatOrDefault(key string, defaultValue float64) floa
 	return defaultValue
 }
 
+func (t ThingViewModel) GetMeasurementValue(key string) float64 {
+	if t.Properties[key] == nil {
+		return 0.0
+	}
+
+	var m map[string]any
+	var ok bool
+	var v float64
+
+	v, ok = t.Properties[key].(float64)
+	if !ok {
+		if m, ok = t.Properties[key].(map[string]any); ok {
+			v, ok = m["v"].(float64)
+		}
+	}
+
+	if !ok {
+		return 0.0
+	}
+
+	return v
+}
+
 func (t ThingViewModel) GetFloat(key string) (float64, bool) {
 	if v, ok := t.Properties[key]; ok {
 		if f, ok := v.(float64); ok {
@@ -771,11 +794,39 @@ templ PassageCell(t ThingViewModel) {
 	</div>
 }
 
+func TemperatureCell(t ThingViewModel) templ.Component {
+
+	if t.Properties["temperature"] == nil {
+		return templ.NopComponent
+	}
+
+	var m map[string]any
+	var ok bool
+	var temp float64
+
+	temp, ok = t.Properties["temperature"].(float64)
+	if !ok {
+		if m, ok = t.Properties["temperature"].(map[string]any);ok {
+			temp,ok = m["v"].(float64)
+		}
+	}
+
+	if !ok {
+		return templ.NopComponent
+	}
+
+	return Div("", Text(fmt.Sprintf("%0.1f °C", temp)))
+}
+
+/*
+
 templ TemperatureCell(t ThingViewModel) {
 	<div>
 		{ fmt.Sprintf("%0.1f °C", t.Properties["temperature"]) }
 	</div>
 }
+
+*/
 
 func ThingsMap(l10n Localizer, model ThingsListViewModel) templ.Component {
 	if !model.MapView {
@@ -822,22 +873,34 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		case "pointofinterest":
 			fallthrough
 		case "beach":
-			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetFloatOrDefault("temperature", 0)))
+			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetMeasurementValue("temperature")))
 		case "room":
-			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetFloatOrDefault("temperature", 0)))
+			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetMeasurementValue("temperature")))
 		case "container":
 			fl, ok := thing.GetFloat("percent")
 			if ok {
 				var state string
 
 				if thingSubType == "wastecontainer" {
-					if fl > 49 { state = "red" }
-					if fl > 30 && fl <= 49 { state = "orange" }
-					if fl <= 30 { state = "green" }
+					if fl > 49 {
+						state = "red"
+					}
+					if fl > 30 && fl <= 49 {
+						state = "orange"
+					}
+					if fl <= 30 {
+						state = "green"
+					}
 				} else {
-					if fl > 70 { state = "green" }
-					if fl > 50 && fl <= 70 { state = "orange" }
-					if fl <= 50 { state = "red" }
+					if fl > 70 {
+						state = "green"
+					}
+					if fl > 50 && fl <= 70 {
+						state = "orange"
+					}
+					if fl <= 50 {
+						state = "red"
+					}
 				}
 
 				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
