@@ -122,8 +122,9 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 				}
 
 				mux := http.NewServeMux()
-				middlewares := append(
-					make([]func(http.Handler) http.Handler, 0, 10),
+				middlewares := make([]func(http.Handler) http.Handler, 0, 10)
+
+				middlewares = append(middlewares,
 					api.VersionReloader(helpers.GetVersion(ctx)),
 					api.Logger(ctx),
 				)
@@ -150,6 +151,10 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 						svcCfg.pte.Middleware,
 						middleware.StrictTransportSecurity(24*time.Hour),
 					)
+				}
+
+				if flags[grafanaURL] != "" {
+					middlewares = append(middlewares, api.GrafanaProxy(flags[grafanaURL]))
 				}
 
 				middlewares = append(middlewares, authz.Middleware)
@@ -212,6 +217,7 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 	flags[controlPort] = envOrDef(ctx, "CONTROL_PORT", flags[controlPort])
 	flags[webAssetPath] = envOrDef(ctx, "DIWISEWEB_ASSET_PATH", "/opt/diwise/assets")
 	flags[contentSecurityPolicy] = envOrDef(ctx, "CONTENT_SECURITY_POLICY", flags[contentSecurityPolicy])
+	flags[grafanaURL] = envOrDef(ctx, "GRAFANA_URL", flags[grafanaURL])
 
 	defaultAppRoot := fmt.Sprintf("http://localhost:%s", flags[servicePort])
 	flags[appRoot] = envOrDef(ctx, "APP_ROOT", defaultAppRoot)
@@ -230,6 +236,7 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 	// Allow command line arguments to override defaults and environment variables
 	flag.BoolFunc("devmode", "enable devmode with fake backend data", apply(devModeEnabled))
 	flag.Func("csp", "set content security policy to strict, report or off", apply(contentSecurityPolicy))
+	flag.Func("grafana", "url to embedded grafana instance", apply(grafanaURL))
 	flag.Func("web-assets", "path to web assets folder", apply(webAssetPath))
 	flag.Parse()
 

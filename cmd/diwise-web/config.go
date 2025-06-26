@@ -26,6 +26,8 @@ const (
 	thingsURL
 	measurementsURL
 
+	grafanaURL
+
 	oauth2RealmURL
 	oauth2ClientID
 	oauth2ClientSecret

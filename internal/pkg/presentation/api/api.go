@@ -260,7 +260,6 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 		}
 
 		http.Redirect(w, r, "/admin", http.StatusSeeOther)
-		return
 	})
 
 	// TODO: Move this handler to a place of its own
