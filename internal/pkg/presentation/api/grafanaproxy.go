@@ -37,8 +37,19 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 		defer clientConnection.Close()
 
 		wsURL := "ws" + grafanaURL[strings.Index(grafanaURL, ":"):] + r.URL.Path
+		wsHeaders := http.Header{}
+
+		for _, hdr := range []string{
+			"Accept-Encoding", "Accept-Language", "Origin", "User-Agent", "X-JWT-Assertion",
+			"X-Real-IP", "X-Forwarded-For",
+		} {
+			if value, ok := r.Header[hdr]; ok {
+				wsHeaders[hdr] = value
+			}
+		}
+
 		logger.Info("connecting to ws endpoint", "url", wsURL)
-		grafanaConnection, _, err := websocket.DefaultDialer.Dial(wsURL, r.Header)
+		grafanaConnection, _, err := websocket.DefaultDialer.Dial(wsURL, wsHeaders)
 		if err != nil {
 			logger.Error("failed to connect to grafana instance", "url", wsURL, "err", err.Error())
 			return
