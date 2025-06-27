@@ -40,7 +40,8 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 		wsHeaders := http.Header{}
 
 		for _, hdr := range []string{
-			"Accept-Encoding", "Accept-Language", "Origin", "User-Agent", "X-JWT-Assertion",
+			"Accept-Encoding", "Accept-Language", "Cookie", "Origin", "User-Agent",
+			//"X-JWT-Assertion",
 			"X-Real-IP", "X-Forwarded-For",
 		} {
 			if value, ok := r.Header[hdr]; ok {
@@ -48,10 +49,14 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 			}
 		}
 
-		logger.Info("connecting to ws endpoint", "url", wsURL)
-		grafanaConnection, _, err := websocket.DefaultDialer.Dial(wsURL, wsHeaders)
+		logger.Info("connecting to ws endpoint", "url", wsURL, "headers", wsHeaders)
+		grafanaConnection, response, err := websocket.DefaultDialer.Dial(wsURL, wsHeaders)
 		if err != nil {
 			logger.Error("failed to connect to grafana instance", "url", wsURL, "err", err.Error())
+			if response != nil {
+				respb, _ := httputil.DumpResponse(response, true)
+				logger.Error("bad response", "response", string(respb))
+			}
 			return
 		}
 		defer grafanaConnection.Close()
@@ -123,8 +128,6 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 			}
 
 			if strings.HasPrefix(r.URL.Path, "/api/live") {
-				reqb, _ := httputil.DumpRequest(r, true)
-				logging.GetFromContext(r.Context()).Info("handling ws request", "request", string(reqb))
 				webSocketHandler(w, r)
 			} else {
 				proxyHandler(w, r)
