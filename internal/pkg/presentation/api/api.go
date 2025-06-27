@@ -109,7 +109,7 @@ func Logger(ctx context.Context) func(http.Handler) http.Handler {
 			duration := time.Since(start)
 
 			if wmw.statusCode < http.StatusBadRequest {
-				log.Info("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
+				log.Debug("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
 			} else if wmw.statusCode < http.StatusInternalServerError {
 				log.Warn("served http request", "method", r.Method, "path", r.URL.Path, "status", wmw.statusCode, "duration", duration.String())
 			} else {
