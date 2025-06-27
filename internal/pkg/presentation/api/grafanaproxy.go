@@ -5,6 +5,10 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+
+	"github.com/gorilla/websocket"
+
+	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
 func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
@@ -24,6 +28,35 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 		}
 	}
 
+	webSocketUpgrader := websocket.Upgrader{} // use default options
+
+	webSocketHandler := func(w http.ResponseWriter, r *http.Request) {
+		logger := logging.GetFromContext(r.Context())
+
+		clientConnection, err := webSocketUpgrader.Upgrade(w, r, nil)
+		if err != nil {
+			logger.Error("failed to upgrade ws connection", "err", err.Error())
+			return
+		}
+		defer clientConnection.Close()
+
+		for {
+			msgType, message, err := clientConnection.ReadMessage()
+			if err != nil {
+				logger.Error("failed to read ws message", "err", err.Error())
+				break
+			}
+
+			logger.Info("received ws message", "msg", string(message))
+
+			err = clientConnection.WriteMessage(msgType, message)
+			if err != nil {
+				logger.Error("failed to write ws message", "err", err.Error())
+				break
+			}
+		}
+	}
+
 	proxy := httputil.NewSingleHostReverseProxy(remote)
 
 	return func(next http.Handler) http.Handler {
@@ -38,7 +71,13 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 
 			r.URL.Path = r.URL.Path[8:]
 
-			proxyHandler(w, r)
+			if strings.HasPrefix(r.URL.Path, "/api/live") {
+				reqb, _ := httputil.DumpRequest(r, true)
+				logging.GetFromContext(r.Context()).Info("handling ws request", "request", string(reqb))
+				webSocketHandler(w, r)
+			} else {
+				proxyHandler(w, r)
+			}
 		})
 	}
 }
