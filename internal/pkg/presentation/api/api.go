@@ -1,8 +1,11 @@
 package api
 
 import (
+	"bufio"
 	"context"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"slices"
 	"strings"
@@ -49,6 +52,14 @@ func (w *writerMiddleware) Flush() {
 
 func (w *writerMiddleware) Header() http.Header {
 	return w.rw.Header()
+}
+
+func (w *writerMiddleware) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	h, ok := w.rw.(http.Hijacker)
+	if !ok {
+		return nil, nil, errors.New("writer middleware does not implement http.Hijacker")
+	}
+	return h.Hijack()
 }
 
 func (w *writerMiddleware) Write(data []byte) (int, error) {
