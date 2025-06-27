@@ -31,11 +31,8 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 
 		wsHeaders := http.Header{}
 
-		reqb, _ := httputil.DumpRequest(r, true)
-		logger.Info("copying headers from ws request", "request", string(reqb))
-
 		for _, hdr := range []string{
-			"Accept-Encoding", "Accept-Language", "Cookie", "Origin", "User-Agent",
+			"Accept-Encoding", "Accept-Language", "Origin", "User-Agent",
 			"X-JWT-Assertion",
 			"X-Real-IP", "X-Forwarded-For",
 		} {
@@ -54,7 +51,7 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 
 		wsURL := "ws" + grafanaURL[strings.Index(grafanaURL, ":"):] + r.URL.Path
 
-		logger.Info("connecting to ws endpoint", "url", wsURL, "headers", wsHeaders)
+		logger.Debug("connecting to ws endpoint", "url", wsURL, "headers", wsHeaders)
 		grafanaConnection, response, err := websocket.DefaultDialer.Dial(wsURL, wsHeaders)
 		if err != nil {
 			logger.Error("failed to connect to grafana instance", "url", wsURL, "err", err.Error())
