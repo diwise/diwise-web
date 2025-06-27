@@ -29,15 +29,10 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 	webSocketHandler := func(w http.ResponseWriter, r *http.Request) {
 		logger := logging.GetFromContext(r.Context())
 
-		clientConnection, err := webSocketUpgrader.Upgrade(w, r, nil)
-		if err != nil {
-			logger.Error("failed to upgrade ws connection", "err", err.Error())
-			return
-		}
-		defer clientConnection.Close()
-
-		wsURL := "ws" + grafanaURL[strings.Index(grafanaURL, ":"):] + r.URL.Path
 		wsHeaders := http.Header{}
+
+		reqb, _ := httputil.DumpRequest(r, true)
+		logger.Info("copying headers from ws request", "request", string(reqb))
 
 		for _, hdr := range []string{
 			"Accept-Encoding", "Accept-Language", "Cookie", "Origin", "User-Agent",
@@ -48,6 +43,15 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 				wsHeaders[hdr] = value
 			}
 		}
+
+		clientConnection, err := webSocketUpgrader.Upgrade(w, r, nil)
+		if err != nil {
+			logger.Error("failed to upgrade ws connection", "err", err.Error())
+			return
+		}
+		defer clientConnection.Close()
+
+		wsURL := "ws" + grafanaURL[strings.Index(grafanaURL, ":"):] + r.URL.Path
 
 		logger.Info("connecting to ws endpoint", "url", wsURL, "headers", wsHeaders)
 		grafanaConnection, response, err := websocket.DefaultDialer.Dial(wsURL, wsHeaders)
