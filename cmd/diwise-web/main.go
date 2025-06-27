@@ -102,7 +102,9 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 						make([]authn.PhantomTokenOption, 0, 5),
 						authn.WithAppRoot(flags[appRoot]),
 						authn.WithClientCredentials(flags[oauth2ClientID], flags[oauth2ClientSecret]),
-						authn.WithLogger(logging.GetFromContext(ctx)))
+						authn.WithLogger(logging.GetFromContext(ctx)),
+						authn.WithCookieName("diwise"),
+					)
 
 					if flags[oauth2SkipVerify] == "true" {
 						opts = append(opts, authn.WithInsecureSkipVerify())
