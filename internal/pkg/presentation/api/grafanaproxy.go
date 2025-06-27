@@ -41,7 +41,7 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 
 		for _, hdr := range []string{
 			"Accept-Encoding", "Accept-Language", "Cookie", "Origin", "User-Agent",
-			//"X-JWT-Assertion",
+			"X-JWT-Assertion",
 			"X-Real-IP", "X-Forwarded-For",
 		} {
 			if value, ok := r.Header[hdr]; ok {
