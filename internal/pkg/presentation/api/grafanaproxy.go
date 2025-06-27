@@ -129,7 +129,7 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 				r.Header.Set("X-JWT-Assertion", authHeader)
 			}
 
-			if strings.HasPrefix(r.URL.Path, "/api/live") {
+			if strings.HasPrefix(r.URL.Path, "/api/live/ws") {
 				webSocketHandler(w, r)
 			} else {
 				proxyHandler(w, r)
