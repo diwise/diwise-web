@@ -20,10 +20,6 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 	handler := func(p *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
 		return func(w http.ResponseWriter, r *http.Request) {
 			r.Host = remote.Host
-			authHeader := r.Header.Get("Authorization")
-			if authHeader != "" {
-				r.Header.Set("X-JWT-Assertion", authHeader)
-			}
 			p.ServeHTTP(w, r)
 		}
 	}
@@ -40,19 +36,58 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 		}
 		defer clientConnection.Close()
 
+		wsURL := "ws" + grafanaURL[strings.Index(grafanaURL, ":"):] + r.URL.Path
+		logger.Info("connecting to ws endpoint", "url", wsURL)
+		grafanaConnection, _, err := websocket.DefaultDialer.Dial(wsURL, r.Header)
+		if err != nil {
+			logger.Error("failed to connect to grafana instance", "url", wsURL, "err", err.Error())
+			return
+		}
+		defer grafanaConnection.Close()
+
+		type msg struct {
+			Type int
+			Data []byte
+		}
+
+		messages := func(c *websocket.Conn) <-chan msg {
+			ch := make(chan msg, 32)
+			go func() {
+				defer close(ch)
+
+				for {
+					msgType, payload, err := c.ReadMessage()
+					if err != nil {
+						return
+					}
+
+					ch <- msg{Type: msgType, Data: payload}
+				}
+			}()
+			return ch
+		}
+
+		clientMessages := messages(clientConnection)
+		grafanaMessages := messages(grafanaConnection)
+
 		for {
-			msgType, message, err := clientConnection.ReadMessage()
-			if err != nil {
-				logger.Error("failed to read ws message", "err", err.Error())
-				break
-			}
+			select {
+			case clientMessage, ok := <-clientMessages:
+				if !ok {
+					return
+				}
 
-			logger.Info("received ws message", "msg", string(message))
+				logger.Debug("ws: client -> grafana", "payload", string(clientMessage.Data))
 
-			err = clientConnection.WriteMessage(msgType, message)
-			if err != nil {
-				logger.Error("failed to write ws message", "err", err.Error())
-				break
+				grafanaConnection.WriteMessage(clientMessage.Type, clientMessage.Data)
+			case grafanaMessage, ok := <-grafanaMessages:
+				if !ok {
+					return
+				}
+
+				logger.Debug("ws: grafana -> client", "payload", string(grafanaMessage.Data))
+
+				clientConnection.WriteMessage(grafanaMessage.Type, grafanaMessage.Data)
 			}
 		}
 	}
@@ -70,6 +105,11 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 			}
 
 			r.URL.Path = r.URL.Path[8:]
+
+			authHeader := r.Header.Get("Authorization")
+			if authHeader != "" {
+				r.Header.Set("X-JWT-Assertion", authHeader)
+			}
 
 			if strings.HasPrefix(r.URL.Path, "/api/live") {
 				reqb, _ := httputil.DumpRequest(r, true)
