@@ -39,6 +39,7 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 			"X-JWT-Assertion",
 			"X-Real-IP", "X-Forwarded-For",
 		} {
+			hdr = http.CanonicalHeaderKey(hdr)
 			if value, ok := r.Header[hdr]; ok {
 				wsHeaders[hdr] = value
 			}
