@@ -32,7 +32,7 @@ func GrafanaProxy(grafanaURL string) func(http.Handler) http.Handler {
 		wsHeaders := http.Header{}
 
 		for _, hdr := range []string{
-			"Accept-Encoding", "Accept-Language", "Origin", "User-Agent",
+			"Accept-Encoding", "Accept-Language", "User-Agent",
 			"X-JWT-Assertion",
 			"X-Real-IP", "X-Forwarded-For",
 		} {
