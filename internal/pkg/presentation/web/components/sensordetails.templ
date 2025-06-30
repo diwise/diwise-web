@@ -74,6 +74,15 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 						<button
 							class={ "flex flex-col items-center px-4 py-2", 
 					templ.KV("border-b-4 border-primary-dark dark:border-white active-tab", true),
+					templ.KV("hover:border-b-4 hover:border-gray-200 dark:hover:border-white-30", false) }
+							data-tab={ "details-tab" }
+						>
+							@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							Uppgifter
+						</button>
+						<button
+							class={ "flex flex-col items-center px-4 py-2", 
+					templ.KV("border-b-4 border-primary-dark dark:border-white active-tab", false),
 					templ.KV("hover:border-b-4 hover:border-gray-200 dark:hover:border-white-30", true) }
 							data-tab={ "measurements-tab" }
 						>
@@ -89,18 +98,77 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 							@SVG("graph", Size(24))
 							Status
 						</button>
-						<button
-							class={ "flex flex-col items-center px-4 py-2", 
-					templ.KV("border-b-4 border-primary-dark dark:border-white active-tab", false),
-					templ.KV("hover:border-b-4 hover:border-gray-200 dark:hover:border-white-30", false) }
-							data-tab={ "details-tab" }
-						>
-							@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-							Uppgifter
-						</button>
 					</div>
 				</div>
-				<div class="flex flex-col items-start self-stretch" data-tab="measurements-tab">
+				<div class="flex flex-col items-start self-stretch" data-tab="details-tab">
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
+						//Innehåll Uppgifter
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("deveui") }</div>
+							<div class="break-all">{ sensor.DevEUI }</div>
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("id") }</div>
+							<div class="break-all">{ sensor.DeviceID }</div>
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("sensortype") }</div>
+							<div class="first-letter:uppercase">{ sensor.DeviceProfileName }</div>
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("environment") }</div>
+							if sensor.Environment != "" {
+								<div class="first-letter:uppercase">{ l10n.Get(sensor.Environment) }</div>
+							} else {
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
+							}
+						</div>
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("organisation") }</div>
+							<div class="">{ sensor.Tenant }</div>
+						</div>
+						if sensor.Description != "" {
+							<div class="flex flex-col gap-2">
+								<div class="font-bold">{ l10n.Get("description") }</div>
+								<div class="">{ sensor.Description }</div>
+							</div>
+						} else {
+							<div class="flex gap-2">
+								<div class="font-bold">{ l10n.Get("description") }</div>
+								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
+							</div>
+						}
+						<div class="flex flex-start gap-2">
+							<div class="font-bold">{ l10n.Get("lastseen") }</div>
+							<div class="">{ sensor.ObservedAt.Format("2006-01-02, 15:04") }</div>
+						</div>
+					</div>
+					<div class="border-l border-gray-30 dark:border-white-30 h-auto"></div>
+					<div class="flex flex-col items-start gap-20 w-full lg:flex-[1_0_0]">
+						<div class="flex flex-col items-start self-stretch">
+							//Karta
+							<div class="flex items-center gap-3 self-stretch">
+								//Position rubrik
+								@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+								<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("location") }</h2>
+								<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+							</div>
+							<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
+								//
+								<div class="flex flex-start gap-2">
+									<div class="font-bold">{ l10n.Get("latitude") }</div>
+									<div class="">{ fmt.Sprintf("%f", sensor.Latitude) }</div>
+								</div>
+								<div class="flex flex-start gap-2">
+									<div class="font-bold">{ l10n.Get("longitude") }</div>
+									<div class="">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
+								</div>
+								@Map("medium", false, false, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="flex flex-col items-start self-stretch hidden" data-tab="measurements-tab">
 					<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-8 pr-2">
 						<div class="flex flex-col items-start gap-2">
 							<div class="text-primary-dark font-bold dark:text-secondary">
@@ -150,80 +218,13 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 						})
 					</div>
 				</div>
-				<div class="flex flex-col items-start self-stretch hidden" data-tab="details-tab">
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
-						//Innehåll Uppgifter
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("deveui") }</div>
-							<div class="break-all">{ sensor.DevEUI }</div>
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("id") }</div>
-							<div class="break-all">{ sensor.DeviceID }</div>
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("sensortype") }</div>
-							<div class="first-letter:uppercase">{ sensor.DeviceProfileName }</div>
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("environment") }</div>
-							if sensor.Environment != "" {
-								<div class="first-letter:uppercase">{ l10n.Get(sensor.Environment) }</div>
-							} else {
-								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
-							}
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("organisation") }</div>
-							<div class="">{ sensor.Tenant }</div>
-						</div>
-						if sensor.Description != "" {
-							<div class="flex flex-col gap-2">
-								<div class="font-bold">{ l10n.Get("description") }</div>
-								<div class="">{ sensor.Description }</div>
-							</div>
-						} else {
-							<div class="flex gap-2">
-								<div class="font-bold">{ l10n.Get("description") }</div>
-								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
-							</div>
-						}
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("lastseen") }</div>
-							<div class="">{ sensor.ObservedAt.Format("2006-01-02, 15:04") }</div>
-						</div>
-					</div>
-					<div class="flex flex-col items-start gap-20 w-full lg:flex-[1_0_0]">
-						<div class="flex flex-col items-start self-stretch">
-							//Karta
-							<div class="flex items-center gap-3 self-stretch">
-								//Position rubrik
-								@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-								<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("location") }</h2>
-								<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-							</div>
-							<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
-								//
-								<div class="flex flex-start gap-2">
-									<div class="font-bold">{ l10n.Get("latitude") }</div>
-									<div class="">{ fmt.Sprintf("%f", sensor.Latitude) }</div>
-								</div>
-								<div class="flex flex-start gap-2">
-									<div class="font-bold">{ l10n.Get("longitude") }</div>
-									<div class="">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
-								</div>
-								@Map("medium", false, false, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
-							</div>
-						</div>
-					</div>
-				</div>
 			</div>
 		</div>
 	</div>
 	<script>
 		(()=>{
 			document.body.addEventListener("htmx:afterSwap", function(event) {		
-				if (event && event.detail&&  event.detail.target && event.detail.target.classList && event.detail.target.classList.contains("chart-data")) {
+				if (event && event.detail && event.detail.target && event.detail.target.classList && event.detail.target.classList.contains("chart-data")) {
 					let chartId = event.detail.target.dataset.chart;										
 					let data = JSON.parse(event.detail.target.textContent);
 					let ctx = document.getElementById(chartId).getContext('2d');
@@ -243,13 +244,9 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 						}
 					};
 
-					let timeat = document.getElementById('timeAt');
-					if (timeat) {
-						timeat.value = data.timeAt;
-					}
-
 					let endtimeat = document.getElementById('endTimeAt');
-					if (endtimeat) {
+					if (endtimeat && data.endTimeAt && data.endTimeAt !== "0001-01-01 00:00:00") {
+						console.log("Setting endTimeAt to:", data.endTimeAt);
 						endtimeat.value = data.endTimeAt;
 					}
 					
