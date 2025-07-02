@@ -109,7 +109,7 @@ templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
 		<td class="px-6 py-3">
 			for _, t := range alarm.Types {
 				<span class="px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
-					{ t }
+					{ l10n.Get(t) }
 				</span>
 			}
 		</td>
@@ -142,20 +142,20 @@ func UsageChart(isDark bool, xScaleMax uint, datasets []ChartDataset) templ.Comp
 	if isDark {
 		colors = []string{
 			"#FFFFFF", // Vit
-        	"#C24E18", // Diwise-orange
+			"#C24E18", // Diwise-orange
 		}
 	} else {
 		colors = []string{
 			"#1F1F25", // Standardgrå
-        	"#C24E18", // Diwise-orange
+			"#C24E18", // Diwise-orange
 		}
 	}
 
-    for i := range datasets {
-        datasets[i].BackgroundColor = colors[i%len(colors)] // Dynamisk färgsättning
-        datasets[i].BorderColor = colors[i%len(colors)]
-        datasets[i].BorderWidth = 1
-    }
+	for i := range datasets {
+		datasets[i].BackgroundColor = colors[i%len(colors)] // Dynamisk färgsättning
+		datasets[i].BorderColor = colors[i%len(colors)]
+		datasets[i].BorderWidth = 1
+	}
 
 	cfg.Add(datasets...)
 
