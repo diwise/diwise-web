@@ -21,12 +21,23 @@ type SensorDetailsViewModel struct {
 	Description       string
 	Active            bool
 	Organisations     []string
+	DeviceStatus      DeviceStatus
 	DeviceProfiles    []DeviceProfile
 	MeasurementTypes  []string
 	Measurements      []MeasurementViewModel
 	ObservedAt        time.Time
 	Environment       string
 	Interval          float32
+}
+
+type DeviceStatus struct {
+	BatteryLevel    int       `json:"batteryLevel,omitzero"`
+	RSSI            *float64  `json:"rssi,omitempty"`
+	LoRaSNR         *float64  `json:"loRaSNR,omitempty"`
+	Frequency       *int64    `json:"frequency,omitempty"`
+	SpreadingFactor *float64  `json:"spreadingFactor,omitempty"`
+	DR              *int      `json:"dr,omitempty"`
+	ObservedAt      time.Time `json:"observedAt"`
 }
 
 type DeviceProfile struct {
@@ -121,9 +132,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 						</div>
 					</div>
 				</div>
-				//Larmlista, inte med i MVP
-				//@AlarmList(l10n)
-				<div class="flex flex-col items-start">
+				<div class="flex flex-col items-start self-stretch">
 					// Mätvärden
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik Mätvärden
@@ -195,9 +204,110 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 						@Map("medium", false, false, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
 					</div>
 				</div>
+				<div class="flex flex-col items-start self-stretch">
+					//Status
+					<div class="flex items-center gap-3 self-stretch">
+						//Rubrik
+						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						<h2 class="font-heading text-xl font-bold dark:text-white">{ fmt.Sprintf("%s", l10n.Get("Status")) }</h2>
+						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+					</div>
+					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
+						if sensor.DeviceStatus.BatteryLevel > 0 {
+							<div class="flex flex-start gap-2">
+								<div class="font-bold">{ l10n.Get("batterylevel") }</div>
+								if sensor.DeviceStatus.BatteryLevel > 0 && sensor.DeviceStatus.BatteryLevel <= 100 {
+									<div class="break-all">{ fmt.Sprintf("%d%%", sensor.DeviceStatus.BatteryLevel) }</div>
+								} else if sensor.DeviceStatus.BatteryLevel > 100 {
+									<div class="break-all">{ fmt.Sprintf("%d mV", sensor.DeviceStatus.BatteryLevel) }</div>
+								}
+							</div>
+						}
+						if sensor.DeviceStatus.DR != nil && *sensor.DeviceStatus.DR > 0 {
+							<div class="flex flex-start gap-2">
+								<div class="font-bold">{ l10n.Get("dr") }</div>
+								<div class="break-all">{ fmt.Sprintf("%d", *sensor.DeviceStatus.DR) }</div>
+							</div>
+						}
+						if sensor.DeviceStatus.Frequency != nil {
+							<div class="flex flex-start gap-2">
+								<div class="font-bold">{ l10n.Get("frequency") }</div>
+								<div class="break-all">{ fmt.Sprintf("%d MHz", *sensor.DeviceStatus.Frequency / 1000000) }</div>
+							</div>
+						}
+						if sensor.DeviceStatus.LoRaSNR != nil {
+							<div class="flex flex-start gap-2">
+								<div class="font-bold">{ l10n.Get("loraSNR") }</div>
+								<div class="break-all">{ fmt.Sprintf("%.2f", *sensor.DeviceStatus.LoRaSNR) }</div>
+							</div>
+						}
+						if sensor.DeviceStatus.RSSI != nil {
+							<div class="flex flex-start gap-2">
+								<div class="font-bold">{ l10n.Get("rssi") }</div>
+								<div class="break-all">{ fmt.Sprintf("%.2f", *sensor.DeviceStatus.RSSI) }</div>
+							</div>
+						}
+						if sensor.DeviceStatus.SpreadingFactor != nil && *sensor.DeviceStatus.SpreadingFactor > 0 {
+							<div class="flex flex-start gap-2">
+								<div class="font-bold">{ l10n.Get("spreadingFactor") }</div>
+								<div class="break-all">{ fmt.Sprintf("%.2f", *sensor.DeviceStatus.SpreadingFactor) }</div>
+							</div>
+						}
+						if !sensor.DeviceStatus.ObservedAt.IsZero() {
+							<div class="flex flex-start gap-2">
+								<div class="font-bold">{ l10n.Get("lastseen") }</div>
+								<div class="break-all">{ fmt.Sprintf("%s", sensor.DeviceStatus.ObservedAt.Format("2006-01-02, 15:04")) }</div>
+							</div>
+						}
+						@SensorMeasurementCharts(SensorMeasurementChartsProps{
+							ID:     "lora-status-chart",
+							Url:    fmt.Sprintf("/components/sensors/status/%s", sensor.DeviceID),
+							Width:  600,
+							Height: 300,
+						})
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
+	<script>
+		(()=>{
+			document.body.addEventListener("htmx:afterSwap", function(event) {		
+				if (event && event.detail && event.detail.target && event.detail.target.classList && event.detail.target.classList.contains("chart-data")) {
+					let chartId = event.detail.target.dataset.chart;										
+					let data = JSON.parse(event.detail.target.textContent);
+					let ctx = document.getElementById(chartId).getContext('2d');
+
+					const existingChart = Chart.getChart(chartId); // <canvas> id
+					if (existingChart) {
+						existingChart.destroy();
+					}
+					
+					let defaultScales = {
+						...data.scales,
+						x: {
+							type: 'time',
+							time: {
+								unit: 'hour',
+							}
+						}
+					};
+					
+					return new Chart(ctx, {
+						type: 'line',
+						data: {						
+							datasets: data.datasets
+						},
+						options: {
+							responsive: true,
+							animation: false,
+							scales: defaultScales,
+						}
+					});
+				}
+			});			
+		})()
+	</script>
 }
 
 func RenderMeasurementGraph(l10n Localizer, model SensorDetailsViewModel) templ.Component {
@@ -275,7 +385,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 										<div class="flex items-center gap-2">
 											<span class="font-bold">{ l10n.Get("environment") }</span>
 											<div class="group relative cursor-pointer">
-												@SVG("help-circle", Size(20), Box(24, 24))										
+												@SVG("help-circle", Size(20), Box(24, 24))
 												<div class="absolute top-1/2 left-full -translate-y-1/2 ml-2 hidden group-hover:block bg-gray-700 text-white text-xs font-medium rounded px-2 py-1 shadow-lg z-50 whitespace-nowrap">
 													{ l10n.Get("located") }
 													<div class="absolute w-2 h-2 bg-gray-700 transform rotate-45 -left-1 top-1/2 -translate-y-1/2"></div>
@@ -295,7 +405,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 										<div class="flex items-center gap-2">
 											<span class="font-bold">{ l10n.Get("observationinterval") }</span>
 											<div class="group relative cursor-pointer">
-												@SVG("help-circle", Size(20), Box(24, 24))										
+												@SVG("help-circle", Size(20), Box(24, 24))
 												<div class="absolute top-1/2 left-full -translate-y-1/2 ml-2 hidden group-hover:block bg-gray-700 text-white text-xs font-medium rounded px-2 py-1 shadow-lg z-50 whitespace-nowrap">
 													{ l10n.Get("devicenotobservedafter") }
 													<div class="absolute w-2 h-2 bg-gray-700 transform rotate-45 -left-1 top-1/2 -translate-y-1/2"></div>
@@ -692,4 +802,27 @@ templ Graph(l10n Localizer, startDate, endDate time.Time) {
 			}
 		})();
 	</script>
+}
+
+type SensorMeasurementChartsProps struct {
+	ID     string
+	Url    string
+	Width  int
+	Height int
+}
+
+templ SensorMeasurementCharts(props SensorMeasurementChartsProps) {
+	<div class="relative w-full h-[600px]">
+		<canvas
+			id={ props.ID }
+			class="absolute inset-0 w-full h-full"
+		></canvas>
+	</div>
+	<div
+		class="chart-data hidden"
+		id={ fmt.Sprintf("%s-data", props.ID) }
+		data-chart={ props.ID }
+		hx-get={ string(templ.SafeURL(props.Url)) }
+		hx-trigger="load"
+	></div>
 }

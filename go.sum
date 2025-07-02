@@ -14,6 +14,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/diwise/frontend-toolkit v0.0.0-20250210124930-8bf51e19f548 h1:pUOcHC+i1MPQwPSPCRLGqWopu0OBqMYGGg1r1mZ0iZw=
 github.com/diwise/frontend-toolkit v0.0.0-20250210124930-8bf51e19f548/go.mod h1:xXVh/HNhVOLZpPGAykZG/Mg0/r9nelBmB0Nl/GI63Bk=
+github.com/diwise/iot-device-mgmt v0.0.0-20250630131210-96d4deff62d6 h1:P1DvIRBLl3CpKx8Dyxu7KY1kC6GVZ3s/U1/IMIUkMl8=
+github.com/diwise/iot-device-mgmt v0.0.0-20250630131210-96d4deff62d6/go.mod h1:ypxGvck0I1HM3gmKqfEOPVhBvZOhEgXtzVC5GvG/2us=
 github.com/diwise/service-chassis v0.0.0-20250627122433-0f345f210769 h1:S9OuWyJo0lzsydTgsVt4R2i3JqNrjAq5spOo0cmgXw0=
 github.com/diwise/service-chassis v0.0.0-20250627122433-0f345f210769/go.mod h1:Meq0CX6TEFQ5ededqNWVyZry8afJZSOhuhmHKkf/8Ds=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
