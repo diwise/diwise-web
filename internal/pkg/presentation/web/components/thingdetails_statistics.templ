@@ -3,6 +3,7 @@ package components
 import (
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	"slices"
 	"strings"
 )
@@ -82,7 +83,7 @@ templ Tabs(model ThingDetailsViewModel, l10n Localizer) {
 			@Tab(tab, i == 0, model, l10n)
 		}
 	</div>
-	<script>
+	<script nonce={ csp.Nonce(ctx) }>
 		(()=>{
 			const buttons = document.querySelectorAll('button[data-tab]');
 			buttons.forEach(button => {
@@ -147,7 +148,7 @@ templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 		</div>
 		<div id="statistics-data" class="w-full overflow-x-auto max-h-64"></div>
 	</div>
-	<script>
+	<script nonce={ csp.Nonce(ctx) }>
 		showGraph = () => {
 			const tbl = document.getElementById('statistics-table');
 			const grp = document.getElementById('measurement-chart-wrapper');
@@ -225,7 +226,7 @@ templ StatisticsFilter(l10n Localizer, thingID, thingType, thingSubType, tab str
 				hx-trigger="change"
 				hx-include="#timeAt,#endTimeAt,#tableButton,#graphButton,#tab"
 				hx-target="#statistics-data"
-				hx-get={ fmt.Sprintf("/components/things/measurements/%s?type=%s&subType=%s", thingID, thingType, thingSubType) }
+				hx-get={ fmt.Sprintf("/components/things/%s/measurements?type=%s&subType=%s", thingID, thingType, thingSubType) }
 				hx-params="*"
 			/>
 			<input
@@ -235,7 +236,7 @@ templ StatisticsFilter(l10n Localizer, thingID, thingType, thingSubType, tab str
 				hx-trigger="change, load"
 				hx-include="#endTimeAt,#tableButton,#graphButton,#tab"
 				hx-target="#statistics-data"
-				hx-get={ fmt.Sprintf("/components/things/measurements/%s?type=%s&subType=%s", thingID, thingType, thingSubType) }
+				hx-get={ fmt.Sprintf("/components/things/%s/measurements?type=%s&subType=%s", thingID, thingType, thingSubType) }
 				hx-params="*"
 				class="border border-input-surface dark:border-white-50 rounded-xl py-2 px-3 dark:bg-input-surface-dark"
 			/>
@@ -247,7 +248,7 @@ templ StatisticsFilter(l10n Localizer, thingID, thingType, thingSubType, tab str
 				hx-trigger="change"
 				hx-include="#timeAt,#tableButton,#graphButton,#tab"
 				hx-target="#statistics-data"
-				hx-get={ fmt.Sprintf("/components/things/measurements/%s?type=%s&subType=%s", thingID, thingType, thingSubType) }
+				hx-get={ fmt.Sprintf("/components/things/%s/measurements?type=%s&subType=%s", thingID, thingType, thingSubType) }
 				hx-params="*"
 				class="border border-input-surface dark:border-white-50 rounded-xl py-2 px-3 dark:bg-input-surface-dark"
 			/>
@@ -284,7 +285,7 @@ templ StatisticsTable(l10n Localizer, dataset ChartDataset, timeAt, endTimeAt st
 			</tr>
 		</tfoot>
 	</table>
-	<script>
+	<script nonce={ csp.Nonce(ctx) }>
 		(() => {
 			const graphElement = document.getElementById('statistics-table');
 			if (graphElement) {

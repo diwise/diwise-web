@@ -188,7 +188,7 @@ func (a *App) GetSensors(ctx context.Context, offset, limit int, args map[string
 
 func (a *App) GetSensorStatus(ctx context.Context, id string) ([]DeviceStatus, error) {
 	var err error
-	ctx, span := tracer.Start(ctx, "get-sensors")
+	ctx, span := tracer.Start(ctx, "get-sensor-status")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
 	var res *ApiResponse

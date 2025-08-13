@@ -3,7 +3,7 @@ module github.com/diwise/diwise-web
 go 1.24
 
 require (
-	github.com/a-h/templ v0.3.857
+	github.com/a-h/templ v0.3.924
 	github.com/diwise/frontend-toolkit v0.0.0-20250210124930-8bf51e19f548
 	github.com/diwise/service-chassis v0.0.0-20250627122433-0f345f210769
 	github.com/google/uuid v1.6.0

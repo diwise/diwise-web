@@ -1,5 +1,9 @@
 package components
 
+import (	
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
+)
+
 func NewChartConfiguration(chartType string, keepRatio, isDark bool, min, max, stepSize *uint) ChartConfiguration {
 	cfg := ChartConfiguration{
 		Type:    chartType,
@@ -219,8 +223,8 @@ var chartHandle = templ.NewOnceHandle()
 templ Chart(id, className string, cfg ChartConfiguration) {
 	<div id="chart-data" data-chart-id={ templ.JSONString(id) } data-chart-cfg={ templ.JSONString(cfg) } style="display:none;"></div>
 	@chartHandle.Once() {
-		<script>
-			(() => {	
+		<script nonce={ csp.Nonce(ctx) }>
+			(() => {
 				const c = document.getElementById('chart-data');
 				const chartID = JSON.parse(c.getAttribute('data-chart-id'));
 				window.chartConfig = JSON.parse(c.getAttribute('data-chart-cfg'));

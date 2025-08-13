@@ -114,7 +114,7 @@ func NewEditSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 			return
 		}
 
-		ctx, cancel := context.WithDeadline(r.Context(), time.Now().Add(600*time.Second))
+		ctx, cancel := context.WithDeadline(r.Context(), time.Now().Add(10*time.Second))
 		defer cancel()
 
 		ctx = helpers.Decorate(ctx,
