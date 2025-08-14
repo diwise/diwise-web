@@ -332,6 +332,8 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 		"Accept":        {accept},
 	}
 
+	query.Add("export", "true")
+
 	var b []byte
 	b, err = helpers.GET(ctx, targetUrl, headers, query)
 	if err != nil {
