@@ -3,6 +3,7 @@ package components
 import (
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	"strings"
 )
 
@@ -200,7 +201,7 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 						HxUrl("post", fmt.Sprintf("/components/things/%s", model.Thing.ID)))
 				</div>
 				<div id="modalDeleteThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
-				<script>
+				<script nonce={ csp.Nonce(ctx) }>
 					document.getElementById('modalDeleteThingContainer').addEventListener('htmx:afterSwap', function() {
 						document.getElementById('modalDeleteThingContainer').classList.remove('hidden');
 					});

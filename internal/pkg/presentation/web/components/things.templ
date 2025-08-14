@@ -3,6 +3,7 @@ package components
 import (
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	"sort"
 	"strings"
 	"time"
@@ -157,7 +158,7 @@ templ ThingsList(l10n Localizer, model ThingsListViewModel) {
 			@ThingsFilter(l10n, model)
 			@DataList(l10n, ThingsTable(l10n, model), ThingsMap(l10n, model), model.MapView)
 		</div>
-		<script>
+		<script csp.Nonce={ csp.Nonce(ctx) }>
 			document.getElementById('modalCreateThingContainer').addEventListener('htmx:afterSwap', function() {
 				document.getElementById('modalCreateThingContainer').classList.remove('hidden');
 			});
@@ -237,7 +238,7 @@ templ NewThing(l10n Localizer, asset AssetLoaderFunc, model NewThingViewModel) {
 							@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
 						</div>
 					</div>
-					<script>
+					<script nonce={ csp.Nonce(ctx) }>
 						document.getElementById('cancelButton').addEventListener('click', function() {
 							document.getElementById('modalCreateThingContainer').classList.add('hidden');
 						});
@@ -318,7 +319,7 @@ templ SelectedFilters(l10n Localizer, hxget string) {
 			{ l10n.Get("nofilterselected") }
 		</div>
 	</div>
-	<script>
+	<script nonce={ csp.Nonce(ctx) }>
 		function updateSelectedFilters() {
 			const selectedFiltersContainer = document.getElementById('selectedFilters');
 			const clearAllButton = document.getElementById('clearAllFilters');
