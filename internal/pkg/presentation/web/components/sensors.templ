@@ -77,7 +77,8 @@ templ SensorsFilter(l10n Localizer, model SensorListViewModel) {
 				<div class="flex items-center gap-6">
 					<div class="flex rounded-xl py-2 px-3 gap-2 w-56 border border-input-surface dark:border-white-30">
 						@SVG("search", Size(20))
-						<input class="filter w-full block focus:outline-none dark:bg-content-background" 
+						<input
+							class="filter w-full block focus:outline-none dark:bg-content-background"
 							type="search"
 							name="search"
 							placeholder={ l10n.Get("search") }
@@ -133,9 +134,11 @@ templ SensorsFilter(l10n Localizer, model SensorListViewModel) {
 						})
 					}
 					<div class="relative inline-block group">
-						<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg"
-							onclick="document.getElementById('lastseen').focus();">
-							{ l10n.Get("lastseen") } 
+						<button
+							class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg"
+							onclick="document.getElementById('lastseen').focus();"
+						>
+							{ l10n.Get("lastseen") }
 							@SVG("chevron-down", Size(20))
 						</button>
 						<div class="hidden absolute bg-gray-100 min-w-max rounded-md shadow-lg z-10 p-4 group-hover:block group-focus-within:block">
@@ -284,7 +287,9 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel) {
 			}
 		</td>
 		<td class="px-6 py-3">
-			if sensor.BatteryLevel >=0 {
+			if sensor.BatteryLevel > 100 {
+				{ fmt.Sprintf("%d mV", sensor.BatteryLevel) }
+			} else if sensor.BatteryLevel >= 0 && sensor.BatteryLevel <= 100 {
 				{ fmt.Sprintf("%d%%", sensor.BatteryLevel) }
 			} else {
 				{ "-" }

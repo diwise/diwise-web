@@ -3,6 +3,7 @@ package components
 import (
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	"sort"
 	"strings"
 )
@@ -217,7 +218,7 @@ templ DeleteThing(l10n Localizer, asset AssetLoaderFunc, thingID, thingName stri
 							Target("#body"))
 					</div>
 				</div>
-				<script>
+				<script nonce={ csp.Nonce(ctx) }>
 					document.getElementById('cancelButton').addEventListener('click', function() {
 						document.getElementById('modalDeleteThingContainer').classList.add('hidden');
 					});
@@ -352,7 +353,7 @@ func TypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, type
 }
 
 templ afterSwap() {
-	<script>
+	<script nonce={ csp.Nonce(ctx) }>
 		document.addEventListener('htmx:afterSwap', function(evt) {
 			function checkItemsLoaded() {
 				initializeItems('.tagItem', 'tagInput', 'addTagButton', 'selectedTags', 'tag-options', 'selectedTagContainer', "tagItem", "removeTagIcon");

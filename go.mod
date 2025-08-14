@@ -3,7 +3,7 @@ module github.com/diwise/diwise-web
 go 1.24
 
 require (
-	github.com/a-h/templ v0.3.857
+	github.com/a-h/templ v0.3.924
 	github.com/diwise/frontend-toolkit v0.0.0-20250210124930-8bf51e19f548
 	github.com/diwise/service-chassis v0.0.0-20250627122433-0f345f210769
 	github.com/google/uuid v1.6.0
@@ -19,6 +19,7 @@ require (
 	github.com/cenkalti/backoff/v5 v5.0.2 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/coreos/go-oidc/v3 v3.14.1 // indirect
+	github.com/diwise/iot-device-mgmt v0.0.0-20250630131210-96d4deff62d6 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect

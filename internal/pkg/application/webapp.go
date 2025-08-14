@@ -174,21 +174,24 @@ func (a *App) GetStatistics(ctx context.Context) (Statistics, error) {
 	return stats, err
 }
 
-func (a *App) GetMeasurementInfo(ctx context.Context, id string) (MeasurementData, error) {
+func (a *App) GetMeasurementInfo(ctx context.Context, id string) ([]MeasurementValue, error) {
 	var err error
 	ctx, span := tracer.Start(ctx, "get-measurementinfo")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
+	q := url.Values{}
+	q.Add("latest", "true")
+
 	var resp *ApiResponse
-	resp, err = a.get(ctx, a.measurementURL, id, url.Values{})
+	resp, err = a.get(ctx, a.measurementURL, id, q)
 	if err != nil {
-		return MeasurementData{}, err
+		return []MeasurementValue{}, err
 	}
 
-	var info MeasurementData
+	var info []MeasurementValue
 	err = json.Unmarshal(resp.Data, &info)
 	if err != nil {
-		return MeasurementData{}, err
+		return []MeasurementValue{}, err
 	}
 
 	return info, nil
@@ -328,6 +331,8 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 		"Authorization": {"Bearer " + authz.Token(ctx)},
 		"Accept":        {accept},
 	}
+
+	query.Add("export", "true")
 
 	var b []byte
 	b, err = helpers.GET(ctx, targetUrl, headers, query)
