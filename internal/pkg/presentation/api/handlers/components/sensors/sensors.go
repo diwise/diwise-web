@@ -14,6 +14,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -45,11 +46,20 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			limit = 1000
 		}
 
+		log := logging.GetFromContext(ctx)
+		startTime := time.Now().UnixMilli()
+		var totalTime int64 = 0
+
 		result, err := app.GetSensors(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
 			return
 		}
+
+		fetchTime := time.Now().UnixMilli() - startTime
+		totalTime += fetchTime
+
+		log.Debug(fmt.Sprintf("fetched %d sensors in %dms", len(result.Sensors), fetchTime))
 
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
@@ -67,6 +77,11 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
+		modelTime := time.Now().UnixMilli() - startTime - fetchTime
+
+		log.Debug(fmt.Sprintf("constructed model in %dms", modelTime))
+		totalTime += modelTime
+
 		profiles := app.GetDeviceProfiles(ctx)
 		for _, p := range profiles {
 			model.DeviceProfiles = append(model.DeviceProfiles, p.Decoder)
@@ -75,11 +90,21 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			model.DeviceProfiles = append(model.DeviceProfiles, "unknown")
 		}
 
+		profileTime := time.Now().UnixMilli() - startTime - fetchTime - modelTime
+
+		log.Debug(fmt.Sprintf("fetched device profiles in %dms", profileTime))
+		totalTime += profileTime
+
 		model.Statistics, err = getStatistics(ctx, app)
 		if err != nil {
 			http.Error(w, "could not fetch sensor statstics", http.StatusInternalServerError)
 			return
 		}
+
+		statsTime := time.Now().UnixMilli() - startTime - fetchTime - modelTime - profileTime
+
+		log.Debug(fmt.Sprintf("fetched sensor statistics in %dms", statsTime))
+		totalTime += statsTime
 
 		sensorList := components.SensorsList(localizer, model)
 		page := components.StartPage(version, localizer, assets, sensorList)
@@ -90,6 +115,8 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			components.PageLast, pageLast,
 			components.PageSize, limit,
 		)
+
+		log.Debug(fmt.Sprintf("total processing time: %dms", totalTime))
 
 		helpers.WriteComponentResponse(ctx, w, r, page, 10*1024, 0)
 	}
