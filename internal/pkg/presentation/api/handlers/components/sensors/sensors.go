@@ -73,7 +73,7 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
-			tvm.BatteryLevel = getBatteryLevel(ctx, app, sensor)
+			tvm.BatteryLevel = getBatteryLevel(sensor)
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
@@ -156,7 +156,7 @@ func NewSensorsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFun
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
-			tvm.BatteryLevel = getBatteryLevel(ctx, app, sensor)
+			tvm.BatteryLevel = getBatteryLevel(sensor)
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
@@ -218,7 +218,7 @@ func NewSensorsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoader
 
 		for _, sensor := range result.Sensors {
 			tvm := toViewModel(sensor)
-			tvm.BatteryLevel = getBatteryLevel(ctx, app, sensor)
+			tvm.BatteryLevel = getBatteryLevel(sensor)
 			model.Sensors = append(model.Sensors, tvm)
 		}
 
@@ -264,13 +264,16 @@ func getStatistics(ctx context.Context, app application.DeviceManagement) (compo
 	}, nil
 }
 
-func getBatteryLevel(ctx context.Context, app application.DeviceManagement, sensor application.Sensor) int {
+func getBatteryLevel(sensor application.Sensor) int {
 	if sensor.DeviceStatus != nil {
 		if sensor.DeviceStatus.BatteryLevel != 0 {
 			return sensor.DeviceStatus.BatteryLevel
 		}
 	}
 
+	return -1
+
+	/*
 	batteryLevelID := fmt.Sprintf("%s/3/9", sensor.DeviceID)
 	data, err := app.GetMeasurementData(ctx, batteryLevelID, application.WithLastN(true), application.WithLimit(1))
 	if err != nil {
@@ -285,6 +288,7 @@ func getBatteryLevel(ctx context.Context, app application.DeviceManagement, sens
 	}
 
 	return -1
+	*/
 }
 
 func toViewModel(sensor application.Sensor) components.SensorViewModel {
@@ -306,6 +310,10 @@ func toViewModel(sensor application.Sensor) components.SensorViewModel {
 	if sensor.DeviceState != nil {
 		s.Online = sensor.DeviceState.Online
 	}
+
+//	if sensor.DeviceStatus != nil {
+//		s.BatteryLevel = sensor.DeviceStatus.BatteryLevel
+//	}
 
 	return s
 }
