@@ -180,8 +180,7 @@ func (a *App) GetMeasurementInfo(ctx context.Context, id string) ([]MeasurementV
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
 	q := url.Values{}
-	q.Add("latest", "true")
-	q.Add("idonly", "true")
+	q.Add("latest", "true")	
 
 	var resp *ApiResponse
 	resp, err = a.get(ctx, a.measurementURL, id, q)
