@@ -289,7 +289,7 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 	for _, md := range measurements {
 		mvm := components.MeasurementViewModel{
 			ID:        *md.ID,
-			Timestamp: md.Timestamp,
+			Timestamp: time.Now(),
 			Value:     md.Value,
 		}
 		mv = append(mv, mvm)

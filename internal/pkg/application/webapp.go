@@ -181,6 +181,7 @@ func (a *App) GetMeasurementInfo(ctx context.Context, id string) ([]MeasurementV
 
 	q := url.Values{}
 	q.Add("latest", "true")
+	q.Add("idonly", "true")
 
 	var resp *ApiResponse
 	resp, err = a.get(ctx, a.measurementURL, id, q)
