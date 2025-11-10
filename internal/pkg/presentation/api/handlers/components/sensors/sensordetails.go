@@ -327,5 +327,17 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		detailsViewModel.Environment = *sensor.Environment
 	}
 
+	if len(sensor.Metadata) > 0 {
+		mdv := make([]components.MetadataViewModel, 0)
+		for _, md := range sensor.Metadata {
+			mdvm := components.MetadataViewModel{
+				Key:   md.Key,
+				Value: md.Value,
+			}
+			mdv = append(mdv, mdvm)
+		}
+		detailsViewModel.Metadata = mdv
+	}
+
 	return &detailsViewModel, nil
 }

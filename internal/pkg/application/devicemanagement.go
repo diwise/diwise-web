@@ -78,6 +78,12 @@ type Sensor struct {
 	DeviceStatus  *DeviceStatus  `json:"deviceStatus,omitempty"`
 	DeviceState   *DeviceState   `json:"deviceState,omitempty"`
 	Alarms        []string       `json:"alarms,omitempty"`
+	Metadata      []Metadata     `json:"metadata,omitempty"`
+}
+
+type Metadata struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 func (s Sensor) ObservedAt() time.Time {

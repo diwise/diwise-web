@@ -29,6 +29,12 @@ type SensorDetailsViewModel struct {
 	ObservedAt        time.Time
 	Environment       string
 	Interval          float32
+	Metadata          []MetadataViewModel
+}
+
+type MetadataViewModel struct {
+	Key   string 
+	Value string 
 }
 
 type DeviceStatus struct {
@@ -133,6 +139,27 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 						</div>
 					</div>
 				</div>
+
+				if len(sensor.Metadata) > 0 {
+					<div class="flex flex-col items-start self-stretch">
+						// Metadata
+						<div class="flex items-center gap-3 self-stretch">
+							//Rubrik Metadata
+							@SVG("graph", Size(24))
+							<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("Metadata") }</h2>
+							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+						</div>
+						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
+							for _, md := range sensor.Metadata {
+								<div class="flex flex-start gap-2">
+									<div class="font-bold">{ md.Key }</div>
+									<div class="break-all">{ md.Value }</div>
+								</div>
+							} 
+						</div>
+					</div>
+				}
+
 				<div class="flex flex-col items-start self-stretch">
 					// Mätvärden
 					<div class="flex items-center gap-3 self-stretch">
@@ -181,6 +208,11 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 						@RenderMeasurementGraph(l10n, sensor)
 					</div>
 				</div>
+
+
+
+
+
 			</div>
 			<div class="border-l border-gray-30 dark:border-white-30 h-auto"></div> //Vertikal gray-30 mellan uppgifter och position
 			<div class="flex flex-col items-start gap-20 w-full lg:flex-[1_0_0]">
@@ -596,7 +628,7 @@ func SensorMeasurementSelect(l10n Localizer, asset AssetLoaderFunc, id, target s
 		if len(parts) == 4 {
 			port = fmt.Sprintf(" (%s)", parts[1])
 		}
-		
+
 		viewModel = append(viewModel, OptionViewModel{
 			Value:    t,
 			Text:     l10n.Get(text) + port,
