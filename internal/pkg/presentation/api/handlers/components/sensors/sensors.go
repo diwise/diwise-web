@@ -274,24 +274,35 @@ func getBatteryLevel(sensor application.Sensor) int {
 	return -1
 
 	/*
-	batteryLevelID := fmt.Sprintf("%s/3/9", sensor.DeviceID)
-	data, err := app.GetMeasurementData(ctx, batteryLevelID, application.WithLastN(true), application.WithLimit(1))
-	if err != nil {
-		return -1
-	}
-
-	if len(data.Values) > 0 {
-		if len(data.Values) > 0 && data.Values[0].Value != nil {
-			v := int(math.Min(math.Max(*data.Values[0].Value, 0), 100))
-			return v
+		batteryLevelID := fmt.Sprintf("%s/3/9", sensor.DeviceID)
+		data, err := app.GetMeasurementData(ctx, batteryLevelID, application.WithLastN(true), application.WithLimit(1))
+		if err != nil {
+			return -1
 		}
-	}
 
-	return -1
+		if len(data.Values) > 0 {
+			if len(data.Values) > 0 && data.Values[0].Value != nil {
+				v := int(math.Min(math.Max(*data.Values[0].Value, 0), 100))
+				return v
+			}
+		}
+
+		return -1
 	*/
 }
 
 func toViewModel(sensor application.Sensor) components.SensorViewModel {
+
+	lastSeen := time.Time{}
+
+	if sensor.DeviceStatus != nil {
+		lastSeen = sensor.DeviceStatus.ObservedAt
+	}
+
+	if sensor.DeviceState != nil {
+		lastSeen = sensor.DeviceState.ObservedAt
+	}
+
 	s := components.SensorViewModel{
 		HasAlerts:    len(sensor.Alarms) > 0,
 		Active:       sensor.Active,
@@ -299,7 +310,7 @@ func toViewModel(sensor application.Sensor) components.SensorViewModel {
 		DevEUI:       sensor.SensorID,
 		Name:         sensor.Name,
 		BatteryLevel: 0,
-		LastSeen:     sensor.DeviceStatus.ObservedAt,
+		LastSeen:     lastSeen,
 		Latitude:     sensor.Location.Latitude,
 		Longitude:    sensor.Location.Longitude,
 	}
@@ -311,9 +322,9 @@ func toViewModel(sensor application.Sensor) components.SensorViewModel {
 		s.Online = sensor.DeviceState.Online
 	}
 
-//	if sensor.DeviceStatus != nil {
-//		s.BatteryLevel = sensor.DeviceStatus.BatteryLevel
-//	}
+	//	if sensor.DeviceStatus != nil {
+	//		s.BatteryLevel = sensor.DeviceStatus.BatteryLevel
+	//	}
 
 	return s
 }
