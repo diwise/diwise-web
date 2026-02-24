@@ -1,0 +1,27 @@
+package shared
+
+type TwoColumnLayoutProps struct {
+	ContainerClass string
+	LeftClass      string
+	DividerClass   string
+	RightClass     string
+}
+
+func classOrDefault(className, fallback string) string {
+	if className != "" {
+		return className
+	}
+	return fallback
+}
+
+templ DetailPageTwoColumnLayout(props TwoColumnLayoutProps, left, right templ.Component) {
+	<div class={ classOrDefault(props.ContainerClass, "w-full flex flex-col lg:flex-row py-6 gap-10") }>
+		<div class={ classOrDefault(props.LeftClass, "flex flex-col items-start gap-20 flex-[1_0_0]") }>
+			@left
+		</div>
+		<div class={ classOrDefault(props.DividerClass, "border-l border-gray-30 dark:border-white-30 h-auto") }></div>
+		<div class={ classOrDefault(props.RightClass, "flex flex-col items-start gap-20 w-full lg:flex-[1_0_0]") }>
+			@right
+		</div>
+	</div>
+}

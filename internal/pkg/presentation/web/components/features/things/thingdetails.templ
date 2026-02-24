@@ -70,106 +70,77 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 				)
 				@ThingStatistics(l10n, asset, model)
 			</div>
-			//Uppgifter och position
-			<div class="flex flex-col lg:flex-row items-start self-stretch py-6 gap-10">
-				//Uppgifter och larm
-				<div class="flex flex-col items-start gap-6 w-full lg:flex-[1_0_0]">
-					//Uppgifter
-					@shared.SectionHeader(
-						shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
-						l10n.Get("details"),
-						false,
-					)
-					//Innehåll Uppgifter
-					<div class="flex flex-col items-start self-stretch gap-6 px-9 text-secondary-dark dark:text-secondary">
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("thingtype") }</div>
-							<div class="">{ l10n.Get(model.Thing.Type) }</div>
-						</div>
-						if model.Thing.SubType != "" {
-							<div class="flex flex-start gap-2">
-								<div class="font-bold">{ l10n.Get("category") }</div>
-								<div class="">{ l10n.Get(model.Thing.SubType) }</div>
-							</div>
-						}
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("name") }</div>
-							if model.Thing.Name == "" {
-								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
-							} else {
-								<div class="">
-									{ l10n.Get(model.Thing.Name) }
-								</div>
-							}
-						</div>
-						@ThingsDetailsProperties(l10n, model)
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("description") }</div>
-							if model.Thing.Description == "" {
-								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
-							} else {
-								<div class="">
-									{ l10n.Get(model.Thing.Description) }
-								</div>
-							}
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold text-nowrap">{ l10n.Get("sensorconnected") }</div>
-							if len(model.Thing.RefDevice) == 0 || model.Thing.RefDevice[0] == "" {
-								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
-							} else {
-								for _, r := range model.Thing.RefDevice {
-									<div class="underline text-primary-surface-blue dark:text-primary-surface-blue-dark">
-										<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", r)) }>{ r }</a>
-									</div>
-								}
-							}
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("organisation") }</div>
-							<div class="">{ model.Thing.Tenant }</div>
-						</div>
-						<div class="flex items-center gap-2">
-							<div class="flex flex-col gap-2">
-								<div class="flex items-center gap-2 flex-wrap">
-									for _, tag := range model.Thing.Tags {
-										<div class="px-2 py-1 rounded-full text-sm border-gray-30 dark:border-white-30 border-2 dark:text-secondary ">
-											{ tag }
-										</div>
-									}
-								</div>
-							</div>
-						</div>
+			@shared.DetailPageTwoColumnLayout(
+				shared.TwoColumnLayoutProps{
+					ContainerClass: "flex flex-col lg:flex-row items-start self-stretch py-6 gap-10",
+					LeftClass:      "flex flex-col items-start gap-6 w-full lg:flex-[1_0_0]",
+					DividerClass:   "flex flex-col items-start self-stretch gap-2 border-l border-gray-30 dark:border-white-30 h-auto",
+					RightClass:     "flex flex-col items-start gap-6 w-full lg:flex-[1_0_0]",
+				},
+				ThingDetailsLeftColumn(l10n, model),
+				ThingDetailsRightColumn(l10n, model),
+			)
+		</div>
+	</div>
+}
+
+templ ThingDetailsLeftColumn(l10n Localizer, model ThingDetailsViewModel) {
+	@shared.SectionHeader(
+		shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+		l10n.Get("details"),
+		false,
+	)
+	@shared.KeyValueDetailsList("px-9") {
+		@shared.KeyValueRow(l10n.Get("thingtype"), l10n.Get(model.Thing.Type))
+		if model.Thing.SubType != "" {
+			@shared.KeyValueRow(l10n.Get("category"), l10n.Get(model.Thing.SubType))
+		}
+		if model.Thing.Name == "" {
+			@shared.KeyValueRowMissing(l10n.Get("name"), l10n.Get("missing"))
+		} else {
+			@shared.KeyValueRow(l10n.Get("name"), l10n.Get(model.Thing.Name))
+		}
+		@ThingsDetailsProperties(l10n, model)
+		if model.Thing.Description == "" {
+			@shared.KeyValueRowMissing(l10n.Get("description"), l10n.Get("missing"))
+		} else {
+			@shared.KeyValueRow(l10n.Get("description"), l10n.Get(model.Thing.Description))
+		}
+		<div class="flex flex-start gap-2">
+			<div class="font-bold text-nowrap">{ l10n.Get("sensorconnected") }</div>
+			if len(model.Thing.RefDevice) == 0 || model.Thing.RefDevice[0] == "" {
+				@shared.MissingValue(l10n.Get("sensormissing"))
+			} else {
+				for _, r := range model.Thing.RefDevice {
+					<div class="underline text-primary-surface-blue dark:text-primary-surface-blue-dark">
+						<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", r)) }>{ r }</a>
 					</div>
-				</div>
-				//Vertikal gray-30 mellan uppgifter och position
-				<div class="flex flex-col items-start self-stretch gap-2 border-l border-gray-30 dark:border-white-30 h-auto"></div>
-				//Position
-				<div class="flex flex-col items-start gap-6 w-full lg:flex-[1_0_0]">
-					<div class="flex flex-col items-start self-stretch">
-						//Karta
-						@shared.SectionHeader(
-							shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
-							l10n.Get("location"),
-							false,
-						)
-						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
-							//
-							<div class="flex flex-start gap-2">
-								<div class="font-bold">{ l10n.Get("latitude") }</div>
-								<div class="">{ fmt.Sprintf("%f", model.Thing.Latitude) }</div>
-							</div>
-							<div class="flex flex-start gap-2">
-								<div class="font-bold">{ l10n.Get("longitude") }</div>
-								<div class="">{ fmt.Sprintf("%f", model.Thing.Longitude) }</div>
-							</div>
-							@shared.Map("small", false, false, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+				}
+			}
+		</div>
+		@shared.KeyValueRow(l10n.Get("organisation"), model.Thing.Tenant)
+		<div class="flex items-center gap-2">
+			<div class="flex flex-col gap-2">
+				<div class="flex items-center gap-2 flex-wrap">
+					for _, tag := range model.Thing.Tags {
+						<div class="px-2 py-1 rounded-full text-sm border-gray-30 dark:border-white-30 border-2 dark:text-secondary ">
+							{ tag }
 						</div>
-					</div>
+					}
 				</div>
 			</div>
 		</div>
-	</div>
+	}
+}
+
+templ ThingDetailsRightColumn(l10n Localizer, model ThingDetailsViewModel) {
+	@shared.EntityLocationSection(l10n, ThingDetailsLocationBody(l10n, model))
+}
+
+templ ThingDetailsLocationBody(l10n Localizer, model ThingDetailsViewModel) {
+	@shared.KeyValueRow(l10n.Get("latitude"), fmt.Sprintf("%f", model.Thing.Latitude))
+	@shared.KeyValueRow(l10n.Get("longitude"), fmt.Sprintf("%f", model.Thing.Longitude))
+	@shared.Map("small", false, false, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
 }
 
 templ DeleteThing(l10n Localizer, asset AssetLoaderFunc, thingID, thingName string) {
