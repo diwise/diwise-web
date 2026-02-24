@@ -1,0 +1,48 @@
+package sensors
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ SensorDetailsPropertiesSection(l10n Localizer, sensor SensorDetailsViewModel) {
+	<div class="flex flex-col items-start self-stretch">
+		@shared.SectionHeader(
+			shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+			l10n.Get("details"),
+			false,
+		)
+		@shared.KeyValueDetailsList("py-6 px-9") {
+			@shared.KeyValueRowClass(l10n.Get("deveui"), sensor.DevEUI, "break-all")
+			@shared.KeyValueRowClass(l10n.Get("id"), sensor.DeviceID, "break-all")
+			@shared.KeyValueRowClass(l10n.Get("sensortype"), sensor.DeviceProfileName, "first-letter:uppercase")
+			if sensor.Environment != "" {
+				@shared.KeyValueRowClass(l10n.Get("environment"), l10n.Get(sensor.Environment), "first-letter:uppercase")
+			} else {
+				@shared.KeyValueRowMissing(l10n.Get("environment"), l10n.Get("missing"))
+			}
+			@shared.KeyValueRow(l10n.Get("organisation"), sensor.Tenant)
+			if sensor.Description != "" {
+				@shared.KeyValueRow(l10n.Get("description"), sensor.Description)
+			} else {
+				@shared.KeyValueRowMissing(l10n.Get("description"), l10n.Get("missing"))
+			}
+			@shared.KeyValueRow(l10n.Get("lastseen"), sensor.ObservedAt.Format("2006-01-02, 15:04"))
+		}
+	</div>
+}
+
+templ SensorDetailsMetadataSection(l10n Localizer, sensor SensorDetailsViewModel) {
+	<div class="flex flex-col items-start self-stretch">
+		@shared.SectionHeader(
+			shared.SVG("graph", shared.Size(24)),
+			l10n.Get("Metadata"),
+			true,
+		)
+		@shared.KeyValueDetailsList("py-6 px-9") {
+			for _, md := range sensor.Metadata {
+				@shared.KeyValueRowClass(md.Key, md.Value, "break-all")
+			}
+		}
+	</div>
+}

@@ -31,8 +31,8 @@ type SensorDetailsViewModel struct {
 }
 
 type MetadataViewModel struct {
-	Key   string 
-	Value string 
+	Key   string
+	Value string
 }
 
 type DeviceStatus struct {
@@ -92,225 +92,13 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 			}
 			@shared.Button(shared.Tertiary, l10n.Get("edit"), "pen", shared.Target("#sensor-view"), shared.HxUrl("get", fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)))
 		</div>
-		<div class="w-full flex flex-col lg:flex-row py-6 gap-10">
-			//Yttersta diven
-			<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
-				//Uppgifter och larm
-				<div class="flex flex-col items-start self-stretch">
-					//Uppgifter
-					@shared.SectionHeader(
-						shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
-						l10n.Get("details"),
-						false,
-					)
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
-						//Innehåll Uppgifter
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("deveui") }</div>
-							<div class="break-all">{ sensor.DevEUI }</div>
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("id") }</div>
-							<div class="break-all">{ sensor.DeviceID }</div>
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("sensortype") }</div>
-							<div class="first-letter:uppercase">{ sensor.DeviceProfileName }</div>
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("environment") }</div>
-							if sensor.Environment != "" {
-								<div class="first-letter:uppercase">{ l10n.Get(sensor.Environment) }</div>
-							} else {
-								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
-							}
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("organisation") }</div>
-							<div class="">{ sensor.Tenant }</div>
-						</div>
-						if sensor.Description != "" {
-							<div class="flex flex-col gap-2">
-								<div class="font-bold">{ l10n.Get("description") }</div>
-								<div class="">{ sensor.Description }</div>
-							</div>
-						} else {
-							<div class="flex gap-2">
-								<div class="font-bold">{ l10n.Get("description") }</div>
-								<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("missing") }</div>
-							</div>
-						}
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("lastseen") }</div>
-							<div class="">{ sensor.ObservedAt.Format("2006-01-02, 15:04") }</div>
-						</div>
-					</div>
-				</div>
-
-				if len(sensor.Metadata) > 0 {
-					<div class="flex flex-col items-start self-stretch">
-						// Metadata
-						@shared.SectionHeader(
-							shared.SVG("graph", shared.Size(24)),
-							l10n.Get("Metadata"),
-							true,
-						)
-						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
-							for _, md := range sensor.Metadata {
-								<div class="flex flex-start gap-2">
-									<div class="font-bold">{ md.Key }</div>
-									<div class="break-all">{ md.Value }</div>
-								</div>
-							} 
-						</div>
-					</div>
-				}
-
-				<div class="flex flex-col items-start self-stretch">
-					// Mätvärden
-					@shared.SectionHeader(
-						shared.SVG("graph", shared.Size(24)),
-						l10n.Get("measurementvalues"),
-						true,
-					)
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-8 pr-2">
-						<div class="border border-input-surface dark:border-white-50 rounded-xl w-auto">
-							<label for="sensorMeasurementTypes" class="hidden block text-sm font-medium text-gray-700">
-								{ l10n.Get("sensorMeasurementTypes") }
-							</label>
-							@SensorMeasurementSelect(l10n, asset, "sensorMeasurementTypes", "measurementCharts", sensor)
-						</div>
-						<div class="flex flex-col items-start gap-2">
-							<div class="text-primary-dark font-bold dark:text-secondary">
-								{ l10n.Get("timeinterval") }
-							</div>
-							<div class="">
-								<input
-									name="timeAt"
-									type="datetime-local"
-									id="timeAt"
-									hx-trigger="change, load"
-									hx-include="#sensorMeasurementTypes,#endTimeAt"
-									hx-target="#measurementCharts"
-									hx-get="/components/measurements"
-									hx-params="*"
-									class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
-								/>
-								-
-								<input
-									name="endTimeAt"
-									type="datetime-local"
-									id="endTimeAt"
-									hx-trigger="change, load"
-									hx-include="#sensorMeasurementTypes,#timeAt"
-									hx-target="#measurementCharts"
-									hx-get="/components/measurements"
-									hx-params="*"
-									class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
-								/>
-							</div>
-						</div>
-						@RenderMeasurementGraph(l10n, sensor)
-					</div>
-				</div>
-
-
-
-
-
-			</div>
-			<div class="border-l border-gray-30 dark:border-white-30 h-auto"></div> //Vertikal gray-30 mellan uppgifter och position
-			<div class="flex flex-col items-start gap-20 w-full lg:flex-[1_0_0]">
-				<div class="flex flex-col items-start self-stretch">
-					//Karta
-					@shared.SectionHeader(
-						shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
-						l10n.Get("location"),
-						false,
-					)
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
-						//
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("latitude") }</div>
-							<div class="">{ fmt.Sprintf("%f", sensor.Latitude) }</div>
-						</div>
-						<div class="flex flex-start gap-2">
-							<div class="font-bold">{ l10n.Get("longitude") }</div>
-							<div class="">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
-						</div>
-						@shared.Map("medium", false, false, shared.NewMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
-					</div>
-				</div>
-				<div class="flex flex-col items-start self-stretch">
-					//Status
-					@shared.SectionHeader(
-						shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
-						l10n.Get("Status"),
-						false,
-					)
-					<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
-						if sensor.DeviceStatus.BatteryLevel > 0 {
-							<div class="flex flex-start gap-2">
-								<div class="font-bold">{ l10n.Get("batterylevel") }</div>
-								if sensor.DeviceStatus.BatteryLevel > 0 && sensor.DeviceStatus.BatteryLevel <= 100 {
-									<div class="break-all">{ fmt.Sprintf("%d%%", sensor.DeviceStatus.BatteryLevel) }</div>
-								} else if sensor.DeviceStatus.BatteryLevel > 100 {
-									<div class="break-all">{ fmt.Sprintf("%d mV", sensor.DeviceStatus.BatteryLevel) }</div>
-								}
-							</div>
-						}
-						if sensor.DeviceStatus.DR != nil && *sensor.DeviceStatus.DR > 0 {
-							<div class="flex flex-start gap-2">
-								<div class="font-bold">{ l10n.Get("dr") }</div>
-								<div class="break-all">{ fmt.Sprintf("%d", *sensor.DeviceStatus.DR) }</div>
-							</div>
-						}
-						if sensor.DeviceStatus.Frequency != nil {
-							<div class="flex flex-start gap-2">
-								<div class="font-bold">{ l10n.Get("frequency") }</div>
-								<div class="break-all">{ fmt.Sprintf("%d MHz", *sensor.DeviceStatus.Frequency / 1000000) }</div>
-							</div>
-						}
-						if sensor.DeviceStatus.LoRaSNR != nil {
-							<div class="flex flex-start gap-2">
-								<div class="font-bold">{ l10n.Get("loraSNR") }</div>
-								<div class="break-all">{ fmt.Sprintf("%.2f", *sensor.DeviceStatus.LoRaSNR) }</div>
-							</div>
-						}
-						if sensor.DeviceStatus.RSSI != nil {
-							<div class="flex flex-start gap-2">
-								<div class="font-bold">{ l10n.Get("rssi") }</div>
-								<div class="break-all">{ fmt.Sprintf("%.2f", *sensor.DeviceStatus.RSSI) }</div>
-							</div>
-						}
-						if sensor.DeviceStatus.SpreadingFactor != nil && *sensor.DeviceStatus.SpreadingFactor > 0 {
-							<div class="flex flex-start gap-2">
-								<div class="font-bold">{ l10n.Get("spreadingFactor") }</div>
-								<div class="break-all">{ fmt.Sprintf("%.2f", *sensor.DeviceStatus.SpreadingFactor) }</div>
-							</div>
-						}
-						if !sensor.DeviceStatus.ObservedAt.IsZero() {
-							<div class="flex flex-start gap-2">
-								<div class="font-bold">{ l10n.Get("lastseen") }</div>
-								<div class="break-all">{ fmt.Sprintf("%s", sensor.DeviceStatus.ObservedAt.Format("2006-01-02, 15:04")) }</div>
-							</div>
-						}
-						@SensorMeasurementCharts(SensorMeasurementChartsProps{
-							ID:     "lora-status-chart",
-							Url:    fmt.Sprintf("/components/sensors/%s/status", sensor.DeviceID),
-							Width:  600,
-							Height: 300,
-						})
-					</div>
-				</div>
-			</div>
-		</div>
+		@SensorDetailsView(l10n, asset, sensor)
 	</div>
 	<script nonce={ csp.Nonce(ctx) }>
 		(()=>{
-			document.body.addEventListener("htmx:afterSwap", function(event) {		
+			document.body.addEventListener("htmx:afterSwap", function(event) {
 				if (event && event.detail && event.detail.target && event.detail.target.classList && event.detail.target.classList.contains("chart-data")) {
-					let chartId = event.detail.target.dataset.chart;										
+					let chartId = event.detail.target.dataset.chart;
 					let data = JSON.parse(event.detail.target.textContent);
 					let ctx = document.getElementById(chartId).getContext('2d');
 
@@ -318,7 +106,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 					if (existingChart) {
 						existingChart.destroy();
 					}
-					
+
 					let defaultScales = {
 						...data.scales,
 						x: {
@@ -328,10 +116,10 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 							}
 						}
 					};
-					
+
 					return new Chart(ctx, {
 						type: 'line',
-						data: {						
+						data: {
 							datasets: data.datasets
 						},
 						options: {
@@ -341,7 +129,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 						}
 					});
 				}
-			});			
+			});
 		})()
 	</script>
 }

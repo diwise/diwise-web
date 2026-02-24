@@ -1,0 +1,72 @@
+package sensors
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ SensorDetailsView(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {
+	<div class="w-full flex flex-col lg:flex-row py-6 gap-10">
+		<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+			@SensorDetailsPropertiesSection(l10n, sensor)
+			if len(sensor.Metadata) > 0 {
+				@SensorDetailsMetadataSection(l10n, sensor)
+			}
+			@SensorDetailsMeasurementSection(l10n, asset, sensor)
+		</div>
+		<div class="border-l border-gray-30 dark:border-white-30 h-auto"></div>
+		<div class="flex flex-col items-start gap-20 w-full lg:flex-[1_0_0]">
+			@SensorDetailsLocationSection(l10n, sensor)
+			@SensorDetailsStatusSection(l10n, sensor)
+		</div>
+	</div>
+}
+
+templ SensorDetailsMeasurementSection(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {
+	<div class="flex flex-col items-start self-stretch">
+		@shared.SectionHeader(
+			shared.SVG("graph", shared.Size(24)),
+			l10n.Get("measurementvalues"),
+			true,
+		)
+		<div class="flex flex-col items-start self-stretch gap-6 py-6 pl-8 pr-2">
+			<div class="border border-input-surface dark:border-white-50 rounded-xl w-auto">
+				<label for="sensorMeasurementTypes" class="hidden block text-sm font-medium text-gray-700">
+					{ l10n.Get("sensorMeasurementTypes") }
+				</label>
+				@SensorMeasurementSelect(l10n, asset, "sensorMeasurementTypes", "measurementCharts", sensor)
+			</div>
+			<div class="flex flex-col items-start gap-2">
+				<div class="text-primary-dark font-bold dark:text-secondary">
+					{ l10n.Get("timeinterval") }
+				</div>
+				<div class="">
+					<input
+						name="timeAt"
+						type="datetime-local"
+						id="timeAt"
+						hx-trigger="change, load"
+						hx-include="#sensorMeasurementTypes,#endTimeAt"
+						hx-target="#measurementCharts"
+						hx-get="/components/measurements"
+						hx-params="*"
+						class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
+					/>
+					-
+					<input
+						name="endTimeAt"
+						type="datetime-local"
+						id="endTimeAt"
+						hx-trigger="change, load"
+						hx-include="#sensorMeasurementTypes,#timeAt"
+						hx-target="#measurementCharts"
+						hx-get="/components/measurements"
+						hx-params="*"
+						class="border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
+					/>
+				</div>
+			</div>
+			@RenderMeasurementGraph(l10n, sensor)
+		</div>
+	</div>
+}
