@@ -10,7 +10,6 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/sensors"
-	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/things"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
@@ -287,9 +286,9 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		m = append(m, *md.ID)
 	}
 
-	mv := make([]featuresthings.MeasurementViewModel, 0)
+	mv := make([]featuresensors.MeasurementViewModel, 0)
 	for _, md := range measurements {
-		mvm := featuresthings.MeasurementViewModel{
+		mvm := featuresensors.MeasurementViewModel{
 			ID:        *md.ID,
 			Timestamp: md.Timestamp,
 			Value:     md.Value,

@@ -1,7 +1,6 @@
 package sensors
 
 import (
-	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/things"
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
@@ -24,7 +23,7 @@ type SensorDetailsViewModel struct {
 	DeviceStatus      DeviceStatus
 	DeviceProfiles    []DeviceProfile
 	MeasurementTypes  []string
-	Measurements      []featuresthings.MeasurementViewModel
+	Measurements      []MeasurementViewModel
 	ObservedAt        time.Time
 	Environment       string
 	Interval          float32
@@ -51,6 +50,16 @@ type DeviceProfile struct {
 	Decoder  string   `json:"decoder,omitempty"`
 	Interval int      `json:"interval,omitempty"`
 	Types    []string `json:"types,omitempty"`
+}
+
+type MeasurementViewModel struct {
+	ID          string    `json:"id"`
+	Timestamp   time.Time `json:"timestamp"`
+	Urn         string    `json:"urn"`
+	BoolValue   *bool     `json:"vb,omitempty"`
+	StringValue string    `json:"vs,omitempty"`
+	Unit        string    `json:"unit,omitempty"`
+	Value       *float64  `json:"v,omitempty"`
 }
 
 templ SensorDetailsPage(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {

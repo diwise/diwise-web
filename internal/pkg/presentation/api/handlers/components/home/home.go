@@ -13,7 +13,6 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	featurehome "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/home"
-	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/sensors"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 
@@ -126,7 +125,7 @@ func NewOverviewCardsHandler(_ context.Context, l10n LocaleBundle, assets AssetL
 			return
 		}
 
-		component := featurehome.OverviewCards(localizer, assets, featuresensors.StatisticsViewModel{
+		component := featurehome.OverviewCards(localizer, assets, featurehome.OverviewStats{
 			Total:    stats.Total,
 			Active:   stats.Active,
 			Inactive: stats.Inactive,
