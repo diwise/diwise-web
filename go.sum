@@ -14,8 +14,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/diwise/frontend-toolkit v0.0.0-20250520152755-db65819e6ff6 h1:pfiZvf8qohok/zXdgXuKG5mvWT0HcmT6vPllzpgl+V0=
 github.com/diwise/frontend-toolkit v0.0.0-20250520152755-db65819e6ff6/go.mod h1:FyN0rX1OkdGLSzu/DjVdG1q7vo3XKbG5N6li2g4eOi4=
-github.com/diwise/service-chassis v0.0.0-20260224073641-0a7989416509 h1:oVK3hHdX0za80BaVqpJxzVBg8V/wfx2ultc6IznNTOE=
-github.com/diwise/service-chassis v0.0.0-20260224073641-0a7989416509/go.mod h1:arvCQ7sLlomUtDox8cce8Am/HP2BiR2AtssfsWFq0nM=
+github.com/diwise/service-chassis v0.0.0-20260224075452-111d1a12718e h1:w4zoHQcnT3SZ31U6KKNNLD5hDf38y8u2ed6tJGDrSjA=
+github.com/diwise/service-chassis v0.0.0-20260224075452-111d1a12718e/go.mod h1:C+hYlLXCItblGtM5WBTG5dYLyACIPpgdwARywCfRfTQ=
 github.com/felixge/httpsnoop v1.0.4 h1:NFTV2Zj1bL4mc9sqWACXbQFVBBg2W3GPvqp8/ESS2Wg=
 github.com/felixge/httpsnoop v1.0.4/go.mod h1:m8KPJKqk1gH5J9DgRY2ASl2lWCfGKXixSwevea8zH2U=
 github.com/go-jose/go-jose/v4 v4.1.3 h1:CVLmWDhDVRa6Mi/IgCgaopNosCaHz7zrMeF9MlZRkrs=

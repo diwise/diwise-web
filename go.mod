@@ -1,11 +1,11 @@
 module github.com/diwise/diwise-web
 
-go 1.25.0
+go 1.26
 
 require (
 	github.com/a-h/templ v0.3.977
 	github.com/diwise/frontend-toolkit v0.0.0-20250520152755-db65819e6ff6
-	github.com/diwise/service-chassis v0.0.0-20260224073641-0a7989416509
+	github.com/diwise/service-chassis v0.0.0-20260224075452-111d1a12718e
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/matryer/is v1.4.1
