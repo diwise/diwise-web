@@ -238,32 +238,24 @@ templ SensorsTable(l10n Localizer, model SensorListViewModel) {
 }
 
 templ SensorsTableMarkup(l10n Localizer, model SensorListViewModel) {
-	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
-		<thead class="border-b border-primary-dark dark:border-white">
-			<tr>
-				<th class="px-6 py-3">{ l10n.Get("online") }</th>
-				/*
-				<th class="px-6 py-3">{ l10n.Get("id") }</th>
-				*/
-				<th class="px-6 py-3">{ l10n.Get("name") }</th>
-				<th class="px-6 py-3">{ l10n.Get("status") }</th>
-				<th class="px-6 py-3">{ l10n.Get("type") }</th>
-				<th class="px-6 py-3">{ l10n.Get("deveui") }</th>
-				<th class="px-6 py-3">{ l10n.Get("batterylevel") }</th>
-				<th class="px-6 py-3">{ l10n.Get("lastseen") }</th>
-			</tr>
-		</thead>
-		<tbody>
-			for _, sensor := range model.Sensors {
-				@SensorRow(l10n, sensor)
-			}
-		</tbody>
-		<tfoot>
-			<tr>
-				<td colspan="8">
-					@shared.Paging(l10n, model.Pageing)
-				</td>
-			</tr>
-		</tfoot>
-	</table>
+	@shared.Table(
+		shared.HeaderRow(
+			shared.TableHeaderText(l10n.Get("online")),
+			shared.TableHeaderText(l10n.Get("name")),
+			shared.TableHeaderText(l10n.Get("status")),
+			shared.TableHeaderText(l10n.Get("type")),
+			shared.TableHeaderText(l10n.Get("deveui")),
+			shared.TableHeaderText(l10n.Get("batterylevel")),
+			shared.TableHeaderText(l10n.Get("lastseen")),
+		),
+		shared.TableData(SensorsTableRows(l10n, model)),
+		shared.PagingFooter("8", l10n, model.Pageing),
+		l10n,
+	)
+}
+
+templ SensorsTableRows(l10n Localizer, model SensorListViewModel) {
+	for _, sensor := range model.Sensors {
+		@SensorRow(l10n, sensor)
+	}
 }

@@ -90,27 +90,22 @@ templ Home(l10n Localizer, asset AssetLoaderFunc, viewModel HomeViewModel) {
 }
 
 templ AlarmsTable(l10n Localizer, viewModel HomeViewModel) {
-	<table class="w-full text-sm text-left dark:bg-content-background dark:text-white">
-		<thead class="border-b border-primary-dark dark:border-white">
-			<tr>
-				<th class="px-6 py-3">{ l10n.Get("sensorID") }</th>
-				<th class="px-6 py-3 min-w-[200px]">{ l10n.Get("description") }</th>
-				<th class="px-6 py-3">{ l10n.Get("pointoftime") }</th>
-			</tr>
-		</thead>
-		<tbody>
-			for _, alarm := range viewModel.Alarms {
-				@AlarmRow(l10n, alarm)
-			}
-		</tbody>
-		<tfoot>
-			<tr>
-				<td colspan="4">
-					@shared.Paging(l10n, viewModel.Pageing)
-				</td>
-			</tr>
-		</tfoot>
-	</table>
+	@shared.Table(
+		shared.HeaderRow(
+			shared.TableHeaderText(l10n.Get("sensorID")),
+			shared.TableHeaderText(l10n.Get("description"), "min-w-[200px]"),
+			shared.TableHeaderText(l10n.Get("pointoftime")),
+		),
+		shared.TableData(AlarmsTableRows(l10n, viewModel)),
+		shared.PagingFooter("4", l10n, viewModel.Pageing),
+		l10n,
+	)
+}
+
+templ AlarmsTableRows(l10n Localizer, viewModel HomeViewModel) {
+	for _, alarm := range viewModel.Alarms {
+		@AlarmRow(l10n, alarm)
+	}
 }
 
 templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {

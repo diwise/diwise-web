@@ -15,28 +15,27 @@ templ ThingsTableComponent(l10n Localizer, model ThingsListViewModel) {
 }
 
 templ ThingsTableMarkup(l10n Localizer, model ThingsListViewModel) {
-	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
-		<thead class="border-b border-dark-primary dark:border-white">
-			<tr>
-				<th class="px-6 py-3">{ l10n.Get("name") }</th>
-				<th class="px-6 py-3">{ l10n.Get("type") }</th>
-				<th class="px-6 py-3 min-w-[200px]">{ l10n.Get("status") }</th>
-				<th class="px-6 py-3">{ l10n.Get("tags") }</th>
-			</tr>
-		</thead>
-		<tbody>
-			for _, thing := range model.Things {
-				@ThingRow(l10n, thing)
-			}
-		</tbody>
-		<tfoot>
-			<tr>
-				<td colspan="4">
-					@shared.Paging(l10n, model.Pageing)
-				</td>
-			</tr>
-		</tfoot>
-	</table>
+	@shared.Table(
+		shared.HeaderRow(
+			shared.TableHeaderText(l10n.Get("name")),
+			shared.TableHeaderText(l10n.Get("type")),
+			shared.TableHeaderText(l10n.Get("status"), "min-w-[200px]"),
+			shared.TableHeaderText(l10n.Get("tags")),
+		),
+		ThingRows(l10n, model),
+		shared.PagingFooter("4", l10n, model.Pageing),
+		l10n,
+	)
+}
+
+templ ThingRows(l10n Localizer, model ThingsListViewModel) {
+	@shared.TableData(ThingRowsContent(l10n, model))
+}
+
+templ ThingRowsContent(l10n Localizer, model ThingsListViewModel) {
+	for _, thing := range model.Things {
+		@ThingRow(l10n, thing)
+	}
 }
 
 templ ThingRow(l10n Localizer, thing ThingViewModel) {

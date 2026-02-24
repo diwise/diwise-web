@@ -1,10 +1,10 @@
 package shared
 
 import (
-	"context"
 	"fmt"
+	"strings"
+
 	. "github.com/diwise/frontend-toolkit"
-	"strconv"
 )
 
 templ Table(header templ.Component, data templ.Component, footer templ.Component, l10n Localizer) {
@@ -42,11 +42,9 @@ templ HeaderRow(titles ...templ.Component) {
 	</thead>
 }
 
-templ TableData(rows ...templ.Component) {
+templ TableData(rows templ.Component) {
 	<tbody>
-		for _, row := range rows {
-			@row
-		}
+		@rows
 	</tbody>
 }
 
@@ -93,120 +91,18 @@ templ Label(label string, active bool) {
 	</span>
 }
 
-templ DataTableFooter(colspan, tableName string, l10n Localizer) {
+templ PagingFooter(colspan string, l10n Localizer, p PagingViewModel) {
 	<tfoot>
 		<tr>
 			<td colspan={ colspan }>
-				<div id="paginering" class="flex items-center w-full h-[60px] px-4 py-3.5 rounded-b-2xl border-white border-opacity-30">
-					<div class="flex flex-1 h-8 justify-start items-center gap-2">
-						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{ l10n.Get("rowsPerPage") }</span>
-						<div class="relative flex justify-between items-center bg-tertiary-surface rounded-xl">
-							<select
-								name="pageSize"
-								class="appearance-none min-w-[64px] outline-none px-3 py-1.5 bg-transparent text-sm font-bold font-sans leading-tight cursor-pointer"
-							>
-								@Options([]OptionViewModel{
-									{
-										Value:    "10",
-										Text:     "10",
-										Selected: true,
-									},
-									{
-										Value:    "20",
-										Text:     "20",
-										Selected: false,
-									},
-									{
-										Value:    "50",
-										Text:     "50",
-										Selected: false,
-									},
-									{
-										Value:    "100",
-										Text:     "100",
-										Selected: false,
-									},
-								})
-							</select>
-							<div class="absolute flex inset-y-0 right-0 px-2 items-center pointer-events-none">
-								<svg class="w-[18px] h-[18px] dark:fill-white">
-									@templ.Raw(iconSVG("chevron-down"))
-								</svg>
-								/*<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 text-zinc-700 dark:text-neutral-200">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-								</svg>*/
-							</div>
-						</div>
-					</div>
-					<div class="flex justify-center items-center flex-none">
-						<button
-							class="p-1.5 rounded-full justify-center items-center gap-1 flex"
-							if !isFirstPage(ctx) {
-								hx-get={ fmt.Sprintf("/components/tables/%s?page=%d&limit=%s", tableName, prevPage(ctx), ctx2str(ctx, PageSize)) }
-								hx-target={ fmt.Sprintf("#%s-table", tableName) }
-								hx-trigger="click"
-							} else {
-								disabled
-							}
-						>
-							<span class="w-5 h-5">
-								if isFirstPage(ctx) {
-									@SVG("arrow-left", DisabledStyle())
-								} else {
-									@SVG("arrow-left")
-								}
-							</span>
-						</button>
-						<span class="h-7 px-3 justify-between items-center flex">
-							for _, page := range pagerIndexes(ctx) {
-								@PageSelector(fmt.Sprintf("%d", page), tableName)
-							}
-						</span>
-						<button
-							class="p-1.5 rounded-full justify-center items-center gap-1 flex"
-							if !isLastPage(ctx) {
-								hx-get={ string(getPageUrl(ctx, tableName)) }
-								hx-target={ fmt.Sprintf("#%s-table", tableName) }
-								hx-trigger="click"
-							} else {
-								disabled
-							}
-						>
-							<span class="w-5 h-5">
-								if isLastPage(ctx) {
-									@SVG("arrow-right", DisabledStyle())
-								} else {
-									@SVG("arrow-right", Box(24, 24))
-								}
-							</span>
-						</button>
-					</div>
-					<div class="h-8 justify-end items-center gap-2 flex flex-1"></div>
-					//Döljer Radhöjd i tabellfootern
-					/*<div class="h-8 justify-end items-center gap-2 flex">
-						<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">Radhöjd:</span>
-						<span class="pl-3 pr-2.5 py-2 bg-gray-900 bg-opacity-10 rounded-xl justify-center items-center gap-1 flex">
-							<span class="grow shrink basis-0 text-zinc-700 text-sm font-bold font-sans leading-none">Normal</span>
-							<span class="w-4 h-4">
-								@SVG("chevron-down", Size(16))
-							</span>
-						</span>
-					</div>*/
-				</div>
+				@Paging(l10n, p)
 			</td>
 		</tr>
 	</tfoot>
 }
 
-func getPageUrl(ctx context.Context, tableName string) templ.SafeURL {
-	next := nextPage(ctx)
-	limit := ctx2str(ctx, PageSize)
-	u := fmt.Sprintf("/components/tables/%s?page=%d&limit=%s", tableName, next, limit)
-	return templ.URL(u)
-}
-
-templ TableHeaderText(title string) {
-	<th class="px-6 py-3">
+templ TableHeaderText(title string, classes ...string) {
+	<th class={ "px-6 py-3", templ.KV(strings.Join(classes, " "), len(classes) > 0) }>
 		{ title }
 	</th>
 }
@@ -273,104 +169,4 @@ func progressBar(text string, value int) templ.Component {
 
 templ LabelCell(label string, active bool) {
 	@Cell(Label(label, active))
-}
-
-templ PageSelector(index, tableName string) {
-	if index == ctx2str(ctx, PageIndex) {
-		<div class="flex-col justify-start items-start inline-flex">
-			<div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex p-0.5 ">
-				<div class="grow shrink basis-0 text-center text-zinc-700 dark:text-neutral-200 text-base font-bold font-sans leading-normal">
-					{ index }
-				</div>
-			</div>
-		</div>
-	} else {
-		<button class="flex-col justify-start items-start inline-flex" hx-get={ fmt.Sprintf("/components/tables/%s?page=%s&limit=%s", tableName, index, ctx2str(ctx, PageSize)) } hx-target={ fmt.Sprintf("#%s-table", tableName) } hx-trigger="click">
-			<div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex py-0.5 ">
-				<div class="grow shrink basis-0 text-center text-zinc-500 dark:text-slate-300 text-base font-normal font-sans underline leading-normal">
-					{ index }
-				</div>
-			</div>
-		</button>
-	}
-}
-
-//HELPERS
-func isFirstPage(ctx context.Context) bool {
-	return ctx2str(ctx, PageIndex) == "1"
-}
-
-func isLastPage(ctx context.Context) bool {
-	return ctx2str(ctx, PageIndex) == ctx2str(ctx, PageLast)
-}
-
-func pageCount(ctx context.Context) int64 {
-	count, _ := strconv.ParseInt(ctx2str(ctx, PageLast), 10, 64)
-	return count
-}
-
-func pageIndex(ctx context.Context) int64 {
-	pIdx := ctx2str(ctx, PageIndex)
-	current, err := strconv.ParseInt(pIdx, 10, 64)
-	if err != nil {
-		return 0
-	}
-	return current
-}
-
-func prevPage(ctx context.Context) int64 {
-	current := pageIndex(ctx)
-	return current - 1
-}
-
-func nextPage(ctx context.Context) int64 {
-	current := pageIndex(ctx)
-	return current + 1
-}
-
-func pagerIndexes(ctx context.Context) []int64 {
-	start := pageIndex(ctx)
-	last := pageCount(ctx)
-
-	const PagerWidth int64 = 6
-
-	start -= (PagerWidth / 2)
-
-	if start > (last - PagerWidth) {
-		start = last - PagerWidth
-	}
-
-	if start < 1 {
-		start = 1
-	}
-
-	result := []int64{}
-
-	if start != 1 {
-		start = start + 1
-		result = append(result, 1, start)
-	} else {
-		result = append(result, 1)
-	}
-
-	page := start + 1
-
-	for len(result) < int(PagerWidth) {
-		if page >= last {
-			break
-		}
-
-		result = append(result, page)
-		page = page + 1
-	}
-
-	if result[len(result)-1] < last {
-		result = append(result, last)
-	}
-
-	return result
-}
-
-func ctx2str(ctx context.Context, key any) string {
-	return fmt.Sprintf("%d", ctx.Value(key))
 }
