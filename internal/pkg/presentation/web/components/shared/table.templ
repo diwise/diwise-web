@@ -17,6 +17,21 @@ templ Table(header templ.Component, data templ.Component, footer templ.Component
 	</div>
 }
 
+templ ListResultSummary(showLabel string, count int, ofLabel string, totalCount int) {
+	<div class="dark:text-white p-2 text-sm">
+		{ showLabel } { fmt.Sprintf("%d", count) } { ofLabel } { fmt.Sprintf("%d", totalCount) }
+	</div>
+}
+
+templ ListTableContainer(summary, table templ.Component) {
+	<div class="flex flex-col gap-2">
+		<div class="flex flex-start items-center gap-2 self-stretch">
+			@summary
+		</div>
+		@table
+	</div>
+}
+
 templ HeaderRow(titles ...templ.Component) {
 	<thead class="border-b border-primary-dark dark:border-white">
 		<tr>

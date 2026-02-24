@@ -132,29 +132,20 @@ type MeasurementViewModel struct {
 	Value       *float64  `json:"v,omitempty"`
 }
 
+const (
+	thingsListRoute      = "/components/things/list"
+	thingsListGtRoute    = "/components/things/list?op=gt"
+	thingsTypeInclude    = "[name=type]:checked"
+	thingsTagsInclude    = "[name=tags]:checked"
+	thingsPercentInclude = "[name=v[percent]]:checked"
+)
+
 templ ThingsList(l10n Localizer, model ThingsListViewModel) {
 	<div class="flex flex-col items-start gap-4 flex-[1_0_0] w-full" id="things-view">
 		<div class="flex flex-col items-start gap-6 self-stretch w-full">
-			<div class="flex items-center w-full justify-between">
-				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
-				<div class="flex gap-4 items-center text-white dark:text-primary-dark font-bold">
-					@shared.Button(shared.Primary, l10n.Get("addthing"), "",
-						shared.Target("#modalCreateThingContainer"),
-						shared.HxUrl("get", "/components/things"),
-						shared.Trigger("click"),
-						shared.Swap("innerHTML"))
-					<div class="relative group">
-						@shared.Button(shared.Secondary, "", "download-cloud",
-							shared.HxUrl("get", "/admin/export?export=things&accept=text/csv"),
-							shared.Trigger("click"),
-							shared.Include(".filter"))
-						@shared.Tooltip(l10n.Get("export"))
-					</div>
-				</div>
-				<div id="modalCreateThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
-			</div>
+			@shared.PageHeader(l10n.Get("things"), ThingsListActions(l10n))
 		</div>
-		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+		@shared.Divider()
 		<div class="flex flex-col items-start self-stretch gap-4">
 			@ThingsFilter(l10n, model)
 			@shared.DataList(l10n, ThingsTable(l10n, model), ThingsMap(l10n, model), model.MapView)
@@ -165,6 +156,14 @@ templ ThingsList(l10n Localizer, model ThingsListViewModel) {
 			});
 		</script>
 	</div>
+}
+
+templ ThingsListActions(l10n Localizer) {
+	<div class="flex gap-4 items-center text-white dark:text-primary-dark font-bold">
+		@shared.ModalLoadPrimaryButton(l10n.Get("addthing"), "#modalCreateThingContainer", "/components/things")
+		@shared.ExportActionButton("/admin/export?export=things&accept=text/csv", ".filter", l10n.Get("export"))
+	</div>
+	<div id="modalCreateThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
 }
 
 templ NewThing(l10n Localizer, asset AssetLoaderFunc, model NewThingViewModel) {
@@ -185,7 +184,7 @@ templ NewThing(l10n Localizer, asset AssetLoaderFunc, model NewThingViewModel) {
 									//Rubrik uppgifter
 									@shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 									<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
-									<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+									@shared.Divider()
 								</div>
 								<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 									//Uppgifter
@@ -230,7 +229,7 @@ templ NewThing(l10n Localizer, asset AssetLoaderFunc, model NewThingViewModel) {
 							</div>
 						</div>
 					</div>
-					<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
+					@shared.Divider()
 					<div class="flex items-center justify-end pt-6">
 						<div class="flex items-center gap-4">
 							<div id="cancelButton">
@@ -278,69 +277,42 @@ func OrganisationSelect(l10n Localizer, asset AssetLoaderFunc, id, selected stri
 
 
 templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
-	<div class="flex w-full flex-col gap-4">
-		<div class="flex h-12 justify-between items-center">
-			<div class="flex items-center dark:text-white">
-				<div class="flex items-center gap-6">
-					@shared.CheckboxList(l10n.Get("type")) {
-						for _, t := range model.Types {
-							@shared.CheckboxOption("type", t.Type, "", l10n, templ.Attributes{
-								"hx-get":     string(templ.SafeURL("/components/things/list")),
-								"hx-target":  "#tableOrMap",
-								"hx-swap":    "outerHTML",
-								"hx-include": "[name=type]:checked",
-								"onchange":   "updateSelectedFilters()",
-								"data-text":  t.Name,
-							})
-						}
-					}
-					@shared.CheckboxList(l10n.Get("tags")) {
-						for _, t := range model.Tags {
-							@shared.CheckboxOption("tags", t, "", l10n, templ.Attributes{
-								"hx-get":     string(templ.SafeURL("/components/things/list")),
-								"hx-target":  "#tableOrMap",
-								"hx-swap":    "outerHTML",
-								"hx-include": "[name=tags]:checked",
-								"onchange":   "updateSelectedFilters()",
-								"value":      t,
-							})
-						}
-					}
-					<div id="fillinglevelFilter" class="hidden">
-						@shared.RadioList(l10n.Get("fillinglevel")) {
-							@shared.RadioOption("v[percent]", "30", ">30%", l10n, templ.Attributes{
-								"hx-get":     string(templ.SafeURL("/components/things/list?op=gt")),
-								"hx-target":  "#tableOrMap",
-								"hx-swap":    "outerHTML",
-								"hx-include": "[name=v[percent]]:checked",
-								"onchange":   "updateSelectedFilters()",
-							})
-							@shared.RadioOption("v[percent]", "50", ">50%", l10n, templ.Attributes{
-								"hx-get":     string(templ.SafeURL("/components/things/list?op=gt")),
-								"hx-target":  "#tableOrMap",
-								"hx-swap":    "outerHTML",
-								"hx-include": "[name=v[percent]]:checked",
-								"onchange":   "updateSelectedFilters()",
-							})
-						}
-					</div>
-				</div>
-			</div>
-			@shared.TableOrMap(l10n, "/components/things/list")
-		</div>
-		@shared.SelectedFilters(l10n, "/components/things/list")
+	@shared.ListFilters(l10n, thingsListRoute, ThingsFilterFields(l10n, model))
+}
+
+templ ThingsFilterFields(l10n Localizer, model ThingsListViewModel) {
+	@shared.CheckboxList(l10n.Get("type")) {
+		for _, t := range model.Types {
+			@shared.CheckboxOption("type", t.Type, "", l10n, shared.MergeAttrs(shared.HxFilterAttrs(thingsListRoute, thingsTypeInclude), templ.Attributes{
+				"data-text":  t.Name,
+			}))
+		}
+	}
+	@shared.CheckboxList(l10n.Get("tags")) {
+		for _, t := range model.Tags {
+			@shared.CheckboxOption("tags", t, "", l10n, shared.MergeAttrs(shared.HxFilterAttrs(thingsListRoute, thingsTagsInclude), templ.Attributes{
+				"value":      t,
+			}))
+		}
+	}
+	<div id="fillinglevelFilter" class="hidden">
+		@shared.RadioList(l10n.Get("fillinglevel")) {
+			@shared.RadioOption("v[percent]", "30", ">30%", l10n, shared.HxFilterAttrs(thingsListGtRoute, thingsPercentInclude))
+			@shared.RadioOption("v[percent]", "50", ">50%", l10n, shared.HxFilterAttrs(thingsListGtRoute, thingsPercentInclude))
+		}
 	</div>
 }
 
 
 templ ThingsTableComponent(l10n Localizer, model ThingsListViewModel) {
-	<div class="flex flex-col gap-2">
-		<div class="flex flex-start items-center gap-2 self-stretch">
-			<div class="dark:text-white p-2 text-sm">
-				{ l10n.Get("show") } { fmt.Sprintf("%d", model.Pageing.Count) } { l10n.Get("thingsof") } { fmt.Sprintf("%d", model.Pageing.TotalCount) }
-			</div>
-		</div>
-		<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+	@shared.ListTableContainer(
+		shared.ListResultSummary(l10n.Get("show"), model.Pageing.Count, l10n.Get("thingsof"), model.Pageing.TotalCount),
+		ThingsTableMarkup(l10n, model),
+	)
+}
+
+templ ThingsTableMarkup(l10n Localizer, model ThingsListViewModel) {
+	<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
 			<thead class="border-b border-dark-primary dark:border-white">
 				<tr>
 					<th class="px-6 py-3">{ l10n.Get("name") }</th>
@@ -362,7 +334,6 @@ templ ThingsTableComponent(l10n Localizer, model ThingsListViewModel) {
 				</tr>
 			</tfoot>
 		</table>
-	</div>
 }
 
 templ ThingRow(l10n Localizer, thing ThingViewModel) {

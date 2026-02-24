@@ -135,10 +135,7 @@ templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 						{ l10n.Get("export") }
 					</div>
 					<div class="">
-						@shared.Button(shared.Secondary, "", "download-cloud",
-							shared.HxUrl("get", fmt.Sprintf("/admin/export?export=thing&accept=text/csv&thingid=%s", model.Thing.ID)),
-							shared.Trigger("click"),
-							shared.Include("#timeAt,#endTimeAt,#tab"))
+						@shared.ExportActionButton(fmt.Sprintf("/admin/export?export=thing&accept=text/csv&thingid=%s", model.Thing.ID), "#timeAt,#endTimeAt,#tab", "")
 					</div>
 				</div>
 				@StatisticsFilter(l10n, model.Thing.ID, model.Thing.Type, model.Thing.SubType, model.Tabs[0])

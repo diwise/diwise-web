@@ -1,0 +1,244 @@
+package sensors
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {
+	<div class="w-full">
+		<div class="flex items-center justify-between w-full">
+			<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("edit") } { sensor.Name }</h1>
+		</div>
+		<form action="/components/sensors/details" method="post">
+			<input type="hidden" name="id" value={ sensor.DeviceID }/>
+			<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
+				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+					//Status och uppgifter
+					<div class="flex flex-col items-start self-stretch">
+						@shared.SectionHeader(
+							shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+							l10n.Get("details"),
+							false,
+						)
+						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+							//Uppgifter
+							<div class="flex flex-start gap-10 self-stretch">
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="font-bold">{ l10n.Get("name") }</div>
+									<input type="text" name="name" value={ sensor.Name } class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder="Namn"/>
+								</div>
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="font-bold">{ l10n.Get("organisation") }</div>
+									<div class="border border-input-surface rounded-xl">
+										<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
+											{ l10n.Get("pickOption") }
+										</label>
+										@OrganisationSelect(l10n, asset, "organisation", sensor.Tenant, sensor.Organisations)
+									</div>
+								</div>
+							</div>
+							<div class="flex flex-start gap-10 self-stretch">
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="font-bold">{ l10n.Get("sensortype") }</div>
+									<div class="border border-input-surface rounded-xl">
+										<label for="sensorType" class="hidden block text-sm font-medium text-gray-700">
+											{ l10n.Get("pickOption") }
+										</label>
+										@SensorTypeSelect(l10n, asset, "sensorType", sensor.DeviceProfileName, sensor.DeviceProfiles)
+									</div>
+								</div>
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
+									<div class="border border-input-surface dark:border-white-50 rounded-xl">
+										<label for="measurementType" class="hidden block text-sm font-medium text-gray-700">
+											{ l10n.Get("measurementtype") }
+										</label>
+										@MeasurementTypeCheckboxDropdown(l10n, asset, "measurementType", sensor)
+									</div>
+								</div>
+							</div>
+							<div class="flex flex-start gap-10 self-stretch">
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="relative">
+										<div class="flex items-center gap-2">
+											<span class="font-bold">{ l10n.Get("environment") }</span>
+											<div class="group relative cursor-pointer">
+												@shared.SVG("help-circle", shared.Size(20), shared.Box(24, 24))
+												<div class="absolute top-1/2 left-full -translate-y-1/2 ml-2 hidden group-hover:block bg-gray-700 text-white text-xs font-medium rounded px-2 py-1 shadow-lg z-50 whitespace-nowrap">
+													{ l10n.Get("located") }
+													<div class="absolute w-2 h-2 bg-gray-700 transform rotate-45 -left-1 top-1/2 -translate-y-1/2"></div>
+												</div>
+											</div>
+										</div>
+										<div class="border border-input-surface rounded-xl">
+											<label for="environment" class="hidden block text-sm font-medium text-gray-700">
+												{ l10n.Get("pickOption") }
+											</label>
+											@EnvironmentSelect(l10n, asset, "environment", sensor.Environment)
+										</div>
+									</div>
+								</div>
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="relative">
+										<div class="flex items-center gap-2">
+											<span class="font-bold">{ l10n.Get("observationinterval") }</span>
+											<div class="group relative cursor-pointer">
+												@shared.SVG("help-circle", shared.Size(20), shared.Box(24, 24))
+												<div class="absolute top-1/2 left-full -translate-y-1/2 ml-2 hidden group-hover:block bg-gray-700 text-white text-xs font-medium rounded px-2 py-1 shadow-lg z-50 whitespace-nowrap">
+													{ l10n.Get("devicenotobservedafter") }
+													<div class="absolute w-2 h-2 bg-gray-700 transform rotate-45 -left-1 top-1/2 -translate-y-1/2"></div>
+												</div>
+											</div>
+										</div>
+										<div class="flex items-center gap-2">
+											<input
+												type="number"
+												name="interval"
+												step="1"
+												value={ fmt.Sprintf("%.0f", sensor.Interval) }
+												class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2"
+												placeholder="Interval"
+											/>
+											<span>{ l10n.Get("hours") }</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="flex flex-start gap-10 self-stretch">
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="font-bold">{ l10n.Get("description") }</div>
+									<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface font-bold dark:border dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2" placeholder={ l10n.Get("description") }>
+										{ sensor.Description }
+									</textarea>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="flex flex-col items-start self-stretch">
+						//Status
+						@shared.SectionHeader(
+							shared.SVG("circle-check", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+							l10n.Get("status"),
+							false,
+						)
+						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+							//Status
+							<label for="custom-checkbox" class="flex items-center justify-between w-full cursor-pointer">
+								<span class="font-bold text-gray-900 dark:text-gray-300">{ l10n.Get("activate") }</span>
+								<div class="flex items-center">
+									<input type="checkbox" name="active" id="custom-checkbox" class="sr-only peer" checked?={ sensor.Active }/>
+									<div class="w-[24px] h-[24px] bg-white rounded border border-gray-400 peer-checked:bg-emerald-800 peer-checked:border-emerald-800 flex justify-center items-center">
+										<svg class="fill-none w-[24px] h-[24px] stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity">
+											@templ.Raw(shared.IconSVG("check"))
+										</svg>
+									</div>
+								</div>
+							</label>
+							<div class="w-full">{ l10n.Get("activatesensorinformation") }</div>
+						</div>
+					</div>
+				</div>
+				<div class="border-l border-gray-30 dark:border-white-30 h-auto"></div> //Vertikal gray-30 mellan uppgifter och position
+				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+					<div class="flex flex-col items-start self-stretch">
+						//Karta
+						@shared.SectionHeader(
+							shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+							l10n.Get("location"),
+							false,
+						)
+						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+							//Position
+							<div class="flex flex-start gap-10 self-stretch">
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="font-bold">{ l10n.Get("latitude") }</div>
+									<input
+										type="number"
+										name="latitude"
+										id="latitude"
+										min="-90"
+										max="90"
+										step="0.000001"
+										value={ fmt.Sprintf("%f", sensor.Latitude) }
+										class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2"
+										placeholder="Latitud"
+									/>
+								</div>
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="font-bold">{ l10n.Get("longitude") }</div>
+									<input
+										type="number"
+										name="longitude"
+										id="longitude"
+										min="-180"
+										max="180"
+										step="0.000001"
+										value={ fmt.Sprintf("%f", sensor.Longitude) }
+										class="w-auto h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark font-bold focus:ring-0 placeholder-gray-500 rounded-xl p-2"
+										placeholder="Longitud"
+									/>
+								</div>
+							</div>
+							@shared.Map("medium", false, true, shared.NewMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
+						</div>
+					</div>
+				</div>
+			</div>
+			@shared.Divider()
+			<div class="flex items-center justify-end py-6">
+				//@shared.Button(shared.Error, l10n.Get("delete"), "trashcan", shared.Name("delete"))
+				<div class="flex items-center gap-4">
+					@shared.Button(shared.Secondary, l10n.Get("cancel"), "close", shared.Name("cancel"))
+					@shared.Button(shared.Primary, l10n.Get("save"), "check", shared.Name("save"), shared.BtnType("submit"))
+				</div>
+			</div>
+		</form>
+	</div>
+}
+
+templ AlarmList(l10n Localizer) {
+	<div class="flex flex-col items-start self-stretch">
+		//Larm
+		@shared.SectionHeader(
+			shared.SVG("alert-triangle", shared.Size(24)),
+			l10n.Get("alerts"),
+			false,
+		)
+		<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+			//Tabell larm
+			<table class="table-auto w-full border-collapse border outline-gray-30 dark:outline-white-30 outline outline-1 overflow-hidden rounded-2xl text-secondary-dark dark:text-secondary">
+				<thead>
+					<tr class="bg-background-200 dark:bg-primary-dark font-bold">
+						<td class="px-6 py-3">{ l10n.Get("time") }</td>
+						<td class="px-6 py-3">{ l10n.Get("type") }</td>
+						<td class="px-6 py-3">{ l10n.Get("status") }</td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="px-6 py-3">2024-05-30, 14:22</td>
+						<td class="px-6 py-3">07.00</td>
+						<td class="px-6 py-3">07.00</td>
+					</tr>
+					<tr>
+						<td class="px-6 py-3">2024-05-29, 12:20</td>
+						<td class="px-6 py-3">07.00</td>
+						<td class="px-6 py-3">07.00</td>
+					</tr>
+					<tr>
+						<td class="px-6 py-3">2024-05-28, 10:32</td>
+						<td class="px-6 py-3">07.00</td>
+						<td class="px-6 py-3">07.00</td>
+					</tr>
+					<tr>
+						<td class="px-6 py-3">2024-05-27, 14:22</td>
+						<td class="px-6 py-3">07.00</td>
+						<td class="px-6 py-3">07.00</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+}

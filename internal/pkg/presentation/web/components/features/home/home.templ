@@ -50,7 +50,7 @@ templ Home(l10n Localizer, asset AssetLoaderFunc, viewModel HomeViewModel) {
 				<div class="flex items-center gap-3 self-stretch">
 					@shared.SVG("map-pin", shared.Size(32), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("overview") }</h1>
-					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+					@shared.Divider()
 				</div>
 				<div hx-get="/components/home/statistics" hx-trigger="load, every 1m" class="flex w-full">
 					@OverviewCards(l10n, asset, featuresensors.StatisticsViewModel{})
@@ -61,7 +61,7 @@ templ Home(l10n Localizer, asset AssetLoaderFunc, viewModel HomeViewModel) {
 				<div class="flex items-center gap-3 self-stretch">
 					@shared.SVG("chartline", shared.Size(80), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					<h2 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose whitespace-nowrap">{ l10n.Get("measurementperday") }</h2>
-					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+					@shared.Divider()
 				</div>
 				<div class="w-full p-6 dark:bg-gray-800 rounded-2xl shadow">
 					<canvas id="usage-chart"></canvas>
@@ -73,7 +73,7 @@ templ Home(l10n Localizer, asset AssetLoaderFunc, viewModel HomeViewModel) {
 			<div class="flex items-center gap-3 self-stretch">
 				@shared.SVG("alert-triangle", shared.Size(24))
 				<h2 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose whitespace-nowrap">{ l10n.Get("information") }</h2>
-				<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+				@shared.Divider()
 			</div>
 			<div id="tableview" class="w-full">
 				@AlarmsTable(l10n, viewModel)

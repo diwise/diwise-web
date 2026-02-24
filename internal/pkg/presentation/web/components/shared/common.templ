@@ -34,6 +34,98 @@ var PageSize PagingConfigKey = "page.size"
 var PageIndex PagingConfigKey = "page.index"
 var PageLast PagingConfigKey = "page.last"
 
+templ Divider() {
+	<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+}
+
+templ PageHeader(title string, actions templ.Component) {
+	<div class="flex items-center w-full justify-between">
+		<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ title }</h1>
+		@actions
+	</div>
+}
+
+templ ListFilters(l10n Localizer, route string, fields templ.Component) {
+	<div class="flex w-full flex-col gap-4">
+		<div class="flex h-12 justify-between items-center">
+			<div class="flex items-center dark:text-white">
+				<div class="flex items-center gap-6">
+					@fields
+				</div>
+			</div>
+			@TableOrMap(l10n, route)
+		</div>
+		@SelectedFilters(l10n, route)
+	</div>
+}
+
+templ ExportActionButton(hxGet, hxInclude, tooltip string) {
+	<div class="relative group">
+		@Button(Secondary, "", "download-cloud",
+			HxUrl("get", hxGet),
+			Trigger("click"),
+			Include(hxInclude))
+		if tooltip != "" {
+			@Tooltip(tooltip)
+		}
+	</div>
+}
+
+templ ModalLoadPrimaryButton(title, target, hxGet string) {
+	@Button(Primary, title, "",
+		Target(target),
+		HxUrl("get", hxGet),
+		Trigger("click"),
+		Swap("innerHTML"))
+}
+
+templ SearchFilterInput(route, include, placeholder string) {
+	<div class="flex rounded-xl py-2 px-3 gap-2 w-56 border border-input-surface dark:border-white-30">
+		@SVG("search", Size(20))
+		<input
+			class="filter w-full block focus:outline-none dark:bg-content-background"
+			type="search"
+			name="search"
+			placeholder={ placeholder }
+			hx-get={ route }
+			hx-trigger="input changed delay:500ms, search"
+			hx-target="#tableOrMap"
+			hx-include={ include }
+		/>
+	</div>
+}
+
+templ SectionHeader(icon templ.Component, title string, nowrap bool) {
+	<div class="flex items-center gap-3 self-stretch">
+		@icon
+		<h2 class={ "font-heading text-xl font-bold dark:text-white", templ.KV("whitespace-nowrap", nowrap) }>{ title }</h2>
+		@Divider()
+	</div>
+}
+
+func HxFilterAttrs(hxGet, hxInclude string) templ.Attributes {
+	return templ.Attributes{
+		"hx-get":     hxGet,
+		"hx-target":  "#tableOrMap",
+		"hx-swap":    "outerHTML",
+		"hx-include": hxInclude,
+		"onchange":   "updateSelectedFilters()",
+	}
+}
+
+func MergeAttrs(base, extra templ.Attributes) templ.Attributes {
+	merged := templ.Attributes{}
+
+	for k, v := range base {
+		merged[k] = v
+	}
+	for k, v := range extra {
+		merged[k] = v
+	}
+
+	return merged
+}
+
 templ Paging(l10n Localizer, p PagingViewModel) {
 	<div id="paginering" class="flex items-center w-full h-[60px] px-4 py-3.5 rounded-b-2xl border-white border-opacity-30">
 		<div class="flex flex-1 h-8 justify-start items-center gap-2">

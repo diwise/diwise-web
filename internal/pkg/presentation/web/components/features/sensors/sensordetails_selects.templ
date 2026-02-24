@@ -1,0 +1,187 @@
+package sensors
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+	"slices"
+	"sort"
+	"strings"
+)
+
+func SensorMeasurementSelect(l10n Localizer, asset AssetLoaderFunc, id, target string, sensorViewModel SensorDetailsViewModel) templ.Component {
+	viewModel := []shared.OptionViewModel{}
+
+	for i, t := range sensorViewModel.MeasurementTypes {
+		parts := strings.Split(t, "/")
+		text := strings.Join(parts[len(parts)-2:], "-")
+
+		port := ""
+		if len(parts) == 4 {
+			port = fmt.Sprintf(" (%s)", parts[1])
+		}
+
+		viewModel = append(viewModel, shared.OptionViewModel{
+			Value:    t,
+			Text:     l10n.Get(text) + port,
+			Selected: i == 0,
+		})
+	}
+
+	slices.SortFunc(viewModel, func(a, b shared.OptionViewModel) int {
+		return strings.Compare(a.Text, b.Text)
+	})
+
+	return shared.SelectMultipleInputs(id, false, "/components/measurements", "#"+target, "#timeAt,#endTimeAt", viewModel)
+}
+
+func MeasurementChart(datasets []shared.ChartDataset, keepRatio, isDark bool) templ.Component {
+	cfg := shared.NewChartConfiguration("line", keepRatio, isDark, nil, nil, nil)
+	cfg.Timeseries(true)
+	cfg.Add(datasets...)
+
+	return shared.Chart("measurement-chart", "", cfg)
+}
+
+func MeasurementTypeSelect(l10n Localizer, asset AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
+	viewModel := []shared.OptionViewModel{
+		{
+			Value:    "",
+			Text:     l10n.Get("choose"),
+			Selected: true,
+			Hidden:   true,
+			Disabled: true,
+		},
+	}
+
+	i := slices.IndexFunc(sensorViewModel.DeviceProfiles, func(p DeviceProfile) bool {
+		return p.Name == sensorViewModel.DeviceProfileName
+	})
+
+	if i < 0 {
+		return shared.Select(id, true, "", "", viewModel)
+	}
+
+	profile := sensorViewModel.DeviceProfiles[i]
+
+	for _, t := range profile.Types {
+		viewModel = append(viewModel, shared.OptionViewModel{
+			Value: t,
+			Text:  t,
+			Selected: slices.ContainsFunc(sensorViewModel.Types, func(s string) bool {
+				return s == t
+			}),
+		})
+	}
+
+	return shared.Select(id, true, "", "", viewModel)
+}
+
+func SensorTypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, profiles []DeviceProfile) templ.Component {
+	viewModel := []shared.OptionViewModel{
+		{
+			Value:    "",
+			Text:     l10n.Get("choose"),
+			Selected: true,
+			Hidden:   true,
+			Disabled: true,
+		},
+	}
+
+	for _, p := range profiles {
+		viewModel = append(viewModel, shared.OptionViewModel{
+			Value:    p.Decoder,
+			Text:     p.Name,
+			Selected: p.Name == selected,
+		})
+	}
+
+	return shared.Select(id, false, "/components/admin/types", "#measurementType", viewModel)
+}
+
+func OrganisationSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, organisations []string) templ.Component {
+	viewModel := []shared.OptionViewModel{
+		{
+			Value:    "",
+			Text:     l10n.Get("choose"),
+			Selected: selected == "",
+			Hidden:   true,
+			Disabled: true,
+		},
+	}
+
+	for i, org := range organisations {
+		viewModel = append(viewModel, shared.OptionViewModel{
+			Value:    org,
+			Text:     org,
+			Selected: org == selected || (selected == "" && i == 0),
+		})
+	}
+
+	return shared.Select(id, false, "", "", viewModel)
+}
+
+func MeasurementTypeCheckboxDropdown(l10n Localizer, asset AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
+	viewModel := []shared.OptionViewModel{}
+
+	i := slices.IndexFunc(sensorViewModel.DeviceProfiles, func(p DeviceProfile) bool {
+		return p.Name == sensorViewModel.DeviceProfileName
+	})
+
+	if i < 0 {
+		return shared.CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
+	}
+
+	profile := sensorViewModel.DeviceProfiles[i]
+
+	for _, t := range profile.Types {
+		parts := strings.Split(t, ":")
+		text := strings.Join(parts[1:], "-")
+
+		viewModel = append(viewModel, shared.OptionViewModel{
+			Value: t,
+			Text:  l10n.Get(text),
+			Name:  id + "-option[]",
+			Selected: slices.ContainsFunc(sensorViewModel.Types, func(s string) bool {
+				return s == t
+			}),
+		})
+	}
+
+	sort.Slice(viewModel, func(i int, j int) bool {
+		return viewModel[i].Text < viewModel[j].Text
+	})
+
+	return shared.CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
+}
+
+func EnvironmentSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string) templ.Component {
+	viewModel := []shared.OptionViewModel{
+		{
+			Value:    "",
+			Text:     "",
+			Selected: selected == "",
+		},
+		{
+			Value:    "soil",
+			Text:     l10n.Get("soil"),
+			Selected: selected == "soil",
+		},
+		{
+			Value:    "air",
+			Text:     l10n.Get("air"),
+			Selected: selected == "air",
+		},
+		{
+			Value:    "water",
+			Text:     l10n.Get("water"),
+			Selected: selected == "water",
+		},
+	}
+
+	sort.Slice(viewModel[1:], func(i, j int) bool {
+		return viewModel[i+1].Text < viewModel[j+1].Text
+	})
+
+	return shared.Select(id, false, "", "", viewModel)
+}

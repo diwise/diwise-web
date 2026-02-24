@@ -28,12 +28,11 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					//Status och uppgifter
 					<div class="flex flex-col items-start self-stretch">
-						<div class="flex items-center gap-3 self-stretch">
-							//Rubrik uppgifter
-							@shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-							<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
-							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-						</div>
+						@shared.SectionHeader(
+							shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+							l10n.Get("details"),
+							false,
+						)
 						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 							//Uppgifter
 							<div class="flex flex-start gap-10 self-stretch">
@@ -140,12 +139,11 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 				<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
 					<div class="flex flex-col items-start self-stretch">
 						//Karta
-						<div class="flex items-center gap-3 self-stretch">
-							//Position rubrik
-							@shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
-							<h2 class="font-heading text-xl font-bold">{ l10n.Get("location") }</h2>
-							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
-						</div>
+						@shared.SectionHeader(
+							shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+							l10n.Get("location"),
+							false,
+						)
 						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 							//Position
 							<div class="flex flex-start gap-10 self-stretch">
@@ -183,7 +181,7 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 					</div>
 				</div>
 			</div>
-			<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
+			@shared.Divider()
 			<div class="flex items-center justify-between py-6">
 				@shared.Button(shared.Error, l10n.Get("delete"), "trashcan",
 					shared.Target("#modalDeleteThingContainer"),
@@ -209,224 +207,5 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 				</script>
 			</div>
 		</form>
-	</div>
-}
-
-templ ConnectOneSensor(l10n Localizer, model ThingDetailsViewModel) {
-	<div class="flex flex-start self-stretch">
-		<div class="flex flex-col gap-2 flex-1">
-			<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-			if len(model.Thing.RefDevice) == 0 {
-				<div class="italic text-secondary-outline-hover dark:text-secondary">{ l10n.Get("sensormissing") }</div>
-			}
-			<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-				//<input type="hidden" name="currentDevice" value={ model.Thing.RefDevice[0] }/>
-				<input
-					list="sensor-options"
-					name="currentDevice"
-					placeholder={ l10n.Get("picksensor") }
-					class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
-					value={ model.Thing.RefDevice[0] }
-					id="sensorInput"
-				/>
-				<datalist id="sensor-options">
-					for _, sensor := range model.ValidSensors {
-						<option value={ sensor.DeviceID }>{ fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder) }</option>
-					}
-				</datalist>
-				<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
-					<svg class="w-[18px] h-[18px] dark:fill-white">
-						@templ.Raw(shared.IconSVG("chevron-down"))
-					</svg>
-				</div>
-			</div>
-		</div>
-	</div>
-}
-
-templ ConnectMultipleSensors(l10n Localizer, model ThingDetailsViewModel) {
-	<div class="flex flex-start self-stretch">
-		<div class="flex flex-col gap-6 flex-1">
-			<div class="flex flex-col gap-2 flex-1">
-				<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-				<div class="flex items-center gap-2 self-stretch text-sm dark:text-white">
-					<div id="selectedSensorContainer" class="flex items-center gap-2 flex-wrap overflow-hidden max-w-full"></div>
-				</div>
-			</div>
-			<div class="flex flex-start self-stretch gap-3">
-				<div class="relative inline-block w-full border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl">
-					<input
-						list="sensor-options"
-						name="relatedDevice"
-						placeholder={ l10n.Get("picksensor") }
-						class="text-sm p-2 rounded-xl w-full block focus:outline-none dark:border-white-50 dark:bg-input-surface-dark"
-						id="sensorInput"
-					/>
-					<datalist id="sensor-options">
-						for _, sensor := range model.ValidSensors {
-							<option value={ sensor.DeviceID }>{ fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder) }</option>
-						}
-					</datalist>
-					<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
-						<svg class="w-[18px] h-[18px] dark:fill-white">
-							@templ.Raw(shared.IconSVG("chevron-down"))
-						</svg>
-					</div>
-				</div>
-				<div id="addSensorButton" class="flex gap-2 rounded-xl whitespace-nowrap cursor-pointer font-bold px-4 py-2 bg-tertiary-surface rounded-xl hover:bg-tertiary-surface-hover dark:bg-primary-surface-white dark:hover:bg-white-30 text-primary-dark dark:text-white">
-					{ l10n.Get("add") }
-				</div>
-			</div>
-			<!-- Ett hidden input för alla sensorer separerade med kommatecken, förifylld från backend -->
-			<input type="hidden" id="selectedSensors" name="currentDevice" value={ strings.Join(model.Thing.RefDevice, ",") }/>
-		</div>
-	</div>
-}
-
-func editThingDetailType(l10n Localizer, model ThingDetailsViewModel) templ.Component {
-	thingType := strings.ToLower(model.Thing.Type)
-	subType := strings.ToLower(model.Thing.SubType)
-
-	if subType != "" {
-		thingType = subType
-	}
-
-	switch thingType {
-	//	case "beach":
-	//		return ConnectOneSensor(l10n, model)
-	case "pointofinterest":
-		return ConnectMultipleSensors(l10n, model)
-	case "building":
-		return ConnectMultipleSensors(l10n, model)
-	case "wastecontainer":
-		return EditWasteContainer(l10n, model, thingType)
-	case "sandstorage":
-		return EditSandStorage(l10n, model, thingType)
-	case "container":
-		return EditWasteContainer(l10n, model, thingType)
-		//	case "lifebuoy":
-		//		return ConnectOneSensor(l10n, model)
-		//	case "passage":
-		//		return ConnectOneSensor(l10n, model)
-		//	case "pumpingstation":
-		//		return ConnectOneSensor(l10n, model)
-	case "room":
-		return ConnectMultipleSensors(l10n, model)
-	case "combinedseweroverflow":
-		return EditSewer(l10n, model, thingType)
-	case "sewer":
-		return EditSewer(l10n, model, thingType)
-		//	case "watermeter":
-		//		return ConnectOneSensor(l10n, model)
-	case "sink":
-		return ConnectMultipleSensors(l10n, model)
-	}
-
-	return ConnectOneSensor(l10n, model)
-}
-
-templ EditSewer(l10n Localizer, model ThingDetailsViewModel, thingtype string) {
-	@EditHeightAndLevel(l10n, model, thingtype)
-	@EditOffset(l10n, model)
-	@ConnectOneSensor(l10n, model)
-}
-
-templ EditSandStorage(l10n Localizer, model ThingDetailsViewModel, thingtype string) {
-	@EditHeightAndLevel(l10n, model, thingtype)
-	@EditAngle(l10n, model)
-	@ConnectMultipleSensors(l10n, model)
-}
-
-templ EditWasteContainer(l10n Localizer, model ThingDetailsViewModel, thingtype string) {
-	@EditHeightAndLevel(l10n, model, thingtype)
-	@ConnectOneSensor(l10n, model)
-}
-
-templ EditHeightAndLevel(l10n Localizer, model ThingDetailsViewModel, thingtype string) {
-	<div class="flex flex-start gap-10 self-stretch">
-		<div class="flex flex-col gap-2 flex-1">
-			<div class="font-bold">
-				if thingtype == "wastecontainer" {
-					{ l10n.Get("maxcontainerheight") }
-				} else if thingtype == "sewer" || thingtype == "combinedseweroverflow" {
-					{ l10n.Get("maxdistancesewer") }
-				} else {
-					{ l10n.Get("maxcontainerheight") }
-				}
-			</div>
-			<div class="flex items-center">
-				<input
-					type="number"
-					name="maxd"
-					step="0.01"
-					class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-					placeholder=""
-					value={ model.Thing.GetFloatAsString("maxd", 0) }
-				/>
-				<span class="ml-2">{ l10n.Get("m") }</span>
-			</div>
-		</div>
-		<div class="flex flex-col gap-2 flex-1">
-			<div class="font-bold">
-				if thingtype == "wastecontainer" {
-					{ l10n.Get("maxfillinglevel") }
-				} else if thingtype == "sewer" || thingtype == "combinedseweroverflow" {
-					{ l10n.Get("maxwaterlevel") }
-				} else {
-					{ l10n.Get("maxfillinglevel") }
-				}
-			</div>
-			<div class="flex items-center">
-				<input
-					type="number"
-					name="maxl"
-					step="0.01"
-					class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-					placeholder=""
-					value={ model.Thing.GetFloatAsString("maxl", 0) }
-				/>
-				<span class="ml-2">{ l10n.Get("m") }</span>
-			</div>
-		</div>
-	</div>
-}
-
-templ EditAngle(l10n Localizer, model ThingDetailsViewModel) {
-	<div class="w-full flex flex-start gap-10 self-stretch">
-		<div class="w-full flex flex-col gap-2 flex-1">
-			<div class="font-bold">{ l10n.Get("angle") }</div>
-			<div class="flex items-center w-1/2">
-				<input
-					type="number"
-					name="angle"
-					min="0"
-					max="90"
-					step="1"
-					class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-					placeholder=""
-					value={ model.Thing.GetFloatAsString("angle", 0) }
-				/>
-				<span class="ml-2">{ l10n.Get("degrees") }</span>
-			</div>
-		</div>
-	</div>
-}
-
-templ EditOffset(l10n Localizer, model ThingDetailsViewModel) {
-	<div class="w-full flex flex-start gap-10 self-stretch">
-		<div class="w-full flex flex-col gap-2 flex-1">
-			<div class="font-bold">{ l10n.Get("offset") }</div>
-			<div class="flex items-center w-1/2">
-				<input
-					type="number"
-					name="offset"
-					step="0.01"
-					class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
-					placeholder=""
-					value={ model.Thing.GetFloatAsString("offset", 0) }
-				/>
-				<span class="ml-2">{ l10n.Get("m") }</span>
-			</div>
-		</div>
 	</div>
 }
