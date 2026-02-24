@@ -13,6 +13,10 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
+	featurehome "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/home"
+	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/sensors"
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -36,18 +40,18 @@ func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc,
 		args := r.URL.Query()
 		helpers.SanitizeParams(args, "page", "limit", "offset")
 
-		datasets := []components.ChartDataset{}
+		datasets := []shared.ChartDataset{}
 		max := 31
 
-		model := components.HomeViewModel{
+		model := featurehome.HomeViewModel{
 			UsageDatasets: datasets,
 			XScaleMax:     uint(max),
-			Alarms:        make([]components.AlarmViewModel, 0),
+			Alarms:        make([]featurehome.AlarmViewModel, 0),
 		}
 
 		result, _ := app.GetAlarms(ctx, offset, limit, args)
 		for _, a := range result.Alarms {
-			model.Alarms = append(model.Alarms, components.AlarmViewModel{
+			model.Alarms = append(model.Alarms, featurehome.AlarmViewModel{
 				DeviceID:   a.DeviceID,
 				ObservedAt: a.ObservedAt,
 				Types:      a.Types,
@@ -58,8 +62,8 @@ func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc,
 		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 		model.Pageing = getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args)
 
-		home := components.Home(localizer, assets, model)
-		component := components.StartPage(version, localizer, assets, home)
+		home := featurehome.Home(localizer, assets, model)
+		component := layout.StartPage(version, localizer, assets, home)
 
 		helpers.WriteComponentResponse(ctx, w, r, component, 50*1024, 0)
 	}
@@ -82,13 +86,13 @@ func NewAlarmsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 		args := r.URL.Query()
 		helpers.SanitizeParams(args, "page", "limit", "offset")
 
-		model := components.HomeViewModel{
-			Alarms: make([]components.AlarmViewModel, 0),
+		model := featurehome.HomeViewModel{
+			Alarms: make([]featurehome.AlarmViewModel, 0),
 		}
 
 		result, _ := app.GetAlarms(ctx, offset, limit, args)
 		for _, a := range result.Alarms {
-			model.Alarms = append(model.Alarms, components.AlarmViewModel{
+			model.Alarms = append(model.Alarms, featurehome.AlarmViewModel{
 				DeviceID:   a.DeviceID,
 				ObservedAt: a.ObservedAt,
 				Types:      a.Types,
@@ -99,7 +103,7 @@ func NewAlarmsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 		model.Pageing = getPaging(pageIndex_, pageLast, limit, offset, helpers.PagerIndexes(pageIndex_, pageLast), args)
 
-		component := components.AlarmsTable(localizer, model)
+		component := featurehome.AlarmsTable(localizer, model)
 
 		helpers.WriteComponentResponse(ctx, w, r, component, 5*1024, 0)
 	}
@@ -123,7 +127,7 @@ func NewOverviewCardsHandler(_ context.Context, l10n LocaleBundle, assets AssetL
 			return
 		}
 
-		component := components.OverviewCards(localizer, assets, components.StatisticsViewModel{
+		component := featurehome.OverviewCards(localizer, assets, featuresensors.StatisticsViewModel{
 			Total:    stats.Total,
 			Active:   stats.Active,
 			Inactive: stats.Inactive,
@@ -155,14 +159,14 @@ func NewUsageHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFun
 			return
 		}
 
-		component := components.UsageChart(isDark, max, datasets)
+		component := featurehome.UsageChart(isDark, max, datasets)
 		helpers.WriteComponentResponse(ctx, w, r, component, 10*1024, 10*time.Minute)
 	}
 
 	return http.HandlerFunc(fn)
 }
 
-func getUsageData(isDark bool, ctx context.Context, app application.DeviceManagement) ([]components.ChartDataset, uint, error) {
+func getUsageData(isDark bool, ctx context.Context, app application.DeviceManagement) ([]shared.ChartDataset, uint, error) {
 	daysInMonth := func(ts time.Time) int {
 		return time.Date(ts.Year(), ts.Month()+1, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -1).Day()
 	}
@@ -184,14 +188,14 @@ func getUsageData(isDark bool, ctx context.Context, app application.DeviceManage
 		return nil, 0, err
 	}
 
-	sets := make(map[string]components.ChartDataset, 0)
-	datasets := make([]components.ChartDataset, 0)
+	sets := make(map[string]shared.ChartDataset, 0)
+	datasets := make([]shared.ChartDataset, 0)
 
 	for _, v := range data.Values {
 		m := fmt.Sprintf("%d-%02d", v.Timestamp.Year(), v.Timestamp.Month())
 		ds, ok := sets[m]
 		if !ok {
-			ds = components.NewChartDataset(m, isDark)
+			ds = shared.NewChartDataset(m, isDark)
 			ds.BorderColor = ""
 		}
 		ds.Add(strconv.Itoa(v.Timestamp.Day()), v.Count)
@@ -206,8 +210,8 @@ func getUsageData(isDark bool, ctx context.Context, app application.DeviceManage
 	return datasets, uint(max), nil
 }
 
-func getPaging(pageIndex, pageLast, pageSize, offset int, pages []int64, args url.Values) components.PagingViewModel {
-	return components.PagingViewModel{
+func getPaging(pageIndex, pageLast, pageSize, offset int, pages []int64, args url.Values) shared.PagingViewModel {
+	return shared.PagingViewModel{
 		PageIndex: pageIndex,
 		PageLast:  pageLast,
 		PageSize:  pageSize,

@@ -1,6 +1,7 @@
-package components
+package things
 
 import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
@@ -11,7 +12,7 @@ import (
 
 type ThingsListViewModel struct {
 	Things  []ThingViewModel
-	Pageing PagingViewModel
+	Pageing shared.PagingViewModel
 	MapView bool
 	Tags    []string
 	Types   []TypeViewModel
@@ -137,17 +138,17 @@ templ ThingsList(l10n Localizer, model ThingsListViewModel) {
 			<div class="flex items-center w-full justify-between">
 				<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("things") }</h1>
 				<div class="flex gap-4 items-center text-white dark:text-primary-dark font-bold">
-					@Button(Primary, l10n.Get("addthing"), "",
-						Target("#modalCreateThingContainer"),
-						HxUrl("get", "/components/things"),
-						Trigger("click"),
-						Swap("innerHTML"))
+					@shared.Button(shared.Primary, l10n.Get("addthing"), "",
+						shared.Target("#modalCreateThingContainer"),
+						shared.HxUrl("get", "/components/things"),
+						shared.Trigger("click"),
+						shared.Swap("innerHTML"))
 					<div class="relative group">
-						@Button(Secondary, "", "download-cloud",
-							HxUrl("get", "/admin/export?export=things&accept=text/csv"),
-							Trigger("click"),
-							Include(".filter"))
-						@Tooltip(l10n.Get("export"))
+						@shared.Button(shared.Secondary, "", "download-cloud",
+							shared.HxUrl("get", "/admin/export?export=things&accept=text/csv"),
+							shared.Trigger("click"),
+							shared.Include(".filter"))
+						@shared.Tooltip(l10n.Get("export"))
 					</div>
 				</div>
 				<div id="modalCreateThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
@@ -156,7 +157,7 @@ templ ThingsList(l10n Localizer, model ThingsListViewModel) {
 		<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 		<div class="flex flex-col items-start self-stretch gap-4">
 			@ThingsFilter(l10n, model)
-			@DataList(l10n, ThingsTable(l10n, model), ThingsMap(l10n, model), model.MapView)
+			@shared.DataList(l10n, ThingsTable(l10n, model), ThingsMap(l10n, model), model.MapView)
 		</div>
 		<script csp.Nonce={ csp.Nonce(ctx) }>
 			document.getElementById('modalCreateThingContainer').addEventListener('htmx:afterSwap', function() {
@@ -182,7 +183,7 @@ templ NewThing(l10n Localizer, asset AssetLoaderFunc, model NewThingViewModel) {
 							<div class="flex flex-col items-start self-stretch">
 								<div class="flex items-center gap-3 self-stretch">
 									//Rubrik uppgifter
-									@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+									@shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 									<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
 									<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 								</div>
@@ -233,9 +234,9 @@ templ NewThing(l10n Localizer, asset AssetLoaderFunc, model NewThingViewModel) {
 					<div class="flex items-center justify-end pt-6">
 						<div class="flex items-center gap-4">
 							<div id="cancelButton">
-								@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"), BtnType("button"))
+								@shared.Button(shared.Secondary, l10n.Get("cancel"), "close", shared.Name("cancel"), shared.BtnType("button"))
 							</div>
-							@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
+							@shared.Button(shared.Primary, l10n.Get("save"), "check", shared.Name("save"), shared.BtnType("submit"))
 						</div>
 					</div>
 					<script nonce={ csp.Nonce(ctx) }>
@@ -249,14 +250,41 @@ templ NewThing(l10n Localizer, asset AssetLoaderFunc, model NewThingViewModel) {
 	</div>
 }
 
+func OrganisationSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, organisations []string) templ.Component {
+	viewModel := []shared.OptionViewModel{
+		{
+			Value:    "",
+			Text:     l10n.Get("choose"),
+			Selected: true,
+			Hidden:   true,
+			Disabled: true,
+		},
+	}
+
+	sort.Slice(organisations, func(i, j int) bool {
+		return organisations[i] < organisations[j]
+	})
+
+	for _, t := range organisations {
+		viewModel = append(viewModel, shared.OptionViewModel{
+			Value:    t,
+			Text:     t,
+			Selected: t == selected,
+		})
+	}
+
+	return shared.SelectMultipleInputs(id, false, "", "", "", viewModel)
+}
+
+
 templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
 	<div class="flex w-full flex-col gap-4">
 		<div class="flex h-12 justify-between items-center">
 			<div class="flex items-center dark:text-white">
 				<div class="flex items-center gap-6">
-					@CheckboxList(l10n.Get("type")) {
+					@shared.CheckboxList(l10n.Get("type")) {
 						for _, t := range model.Types {
-							@CheckboxOption("type", t.Type, "", l10n, templ.Attributes{
+							@shared.CheckboxOption("type", t.Type, "", l10n, templ.Attributes{
 								"hx-get":     string(templ.SafeURL("/components/things/list")),
 								"hx-target":  "#tableOrMap",
 								"hx-swap":    "outerHTML",
@@ -266,9 +294,9 @@ templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
 							})
 						}
 					}
-					@CheckboxList(l10n.Get("tags")) {
+					@shared.CheckboxList(l10n.Get("tags")) {
 						for _, t := range model.Tags {
-							@CheckboxOption("tags", t, "", l10n, templ.Attributes{
+							@shared.CheckboxOption("tags", t, "", l10n, templ.Attributes{
 								"hx-get":     string(templ.SafeURL("/components/things/list")),
 								"hx-target":  "#tableOrMap",
 								"hx-swap":    "outerHTML",
@@ -279,15 +307,15 @@ templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
 						}
 					}
 					<div id="fillinglevelFilter" class="hidden">
-						@RadioList(l10n.Get("fillinglevel")) {
-							@RadioOption("v[percent]", "30", ">30%", l10n, templ.Attributes{
+						@shared.RadioList(l10n.Get("fillinglevel")) {
+							@shared.RadioOption("v[percent]", "30", ">30%", l10n, templ.Attributes{
 								"hx-get":     string(templ.SafeURL("/components/things/list?op=gt")),
 								"hx-target":  "#tableOrMap",
 								"hx-swap":    "outerHTML",
 								"hx-include": "[name=v[percent]]:checked",
 								"onchange":   "updateSelectedFilters()",
 							})
-							@RadioOption("v[percent]", "50", ">50%", l10n, templ.Attributes{
+							@shared.RadioOption("v[percent]", "50", ">50%", l10n, templ.Attributes{
 								"hx-get":     string(templ.SafeURL("/components/things/list?op=gt")),
 								"hx-target":  "#tableOrMap",
 								"hx-swap":    "outerHTML",
@@ -298,186 +326,12 @@ templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
 					</div>
 				</div>
 			</div>
-			@TableOrMap(l10n, "/components/things/list")
+			@shared.TableOrMap(l10n, "/components/things/list")
 		</div>
-		@SelectedFilters(l10n, "/components/things/list")
+		@shared.SelectedFilters(l10n, "/components/things/list")
 	</div>
 }
 
-templ SelectedFilters(l10n Localizer, hxget string) {
-	<div class="flex items-center gap-2 self-stretch dark:text-white">
-		<div class="font-bold self-start whitespace-nowrap dark:text-white p-2">
-			{ l10n.Get("selectedfilters") }
-		</div>
-		<form id="filterForm" hx-get={ hxget } hx-target="#tableOrMap" hx-swap="outerHTML">
-			<div id="selectedFilters" class="flex flex-wrap items-center gap-2 self-stretch text-sm"></div>
-		</form>
-		<div id="clearAllFilters" class="hidden flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border cursor-pointer text-sm">
-			{ l10n.Get("clearall") }
-		</div>
-		<div id="noFilters" class="flex items-center py-2 justify-center gap-1 rounded-full italic text-sm">
-			{ l10n.Get("nofilterselected") }
-		</div>
-	</div>
-	<script nonce={ csp.Nonce(ctx) }>
-		function updateSelectedFilters() {
-			const selectedFiltersContainer = document.getElementById('selectedFilters');
-			const clearAllButton = document.getElementById('clearAllFilters');
-			const noFiltersDiv = document.getElementById('noFilters');
-			
-			if (!selectedFiltersContainer) {
-				return;
-			}
-			
-			selectedFiltersContainer.innerHTML = '';
-
-			const selectedTypes = Array.from(document.querySelectorAll('input[name="type"]:checked')).map(cb => ({
-				name: "type",
-				value: cb.value,
-				text: cb.getAttribute('data-text'),
-			}));
-
-			const selectedTags = Array.from(document.querySelectorAll('input[name="tags"]:checked')).map(cb => ({
-				name: "tags",
-				value: cb.value,
-				text: cb.value,
-			}));
-
-			let selectedFillingLevel = [];
-			const fillingLevelFilter = document.querySelectorAll('input[name="v[percent]"]:checked');
-			
-			if (fillingLevelFilter.length > 0) {
-				selectedFillingLevel = Array.from(fillingLevelFilter).map(cb => ({
-					name: "v[percent]",
-					value: cb.value,
-					text: cb.getAttribute('data-text'),
-				}));
-			}
-
-			const selectedStatus = Array.from(document.querySelectorAll('input[name="active"]:checked')).map(cb => ({
-				name: "active",
-				value: cb.value,
-				text: cb.value === "true" ? "Aktiv" : "Inaktiv",
-			}));
-
-			const selectedOnline = Array.from(document.querySelectorAll('input[name="online"]:checked')).map(cb => ({
-				name: "online",
-				value: cb.value,
-				text: cb.value === "true" ? "Online" : "Offline",
-			}));
-
-			const lastSeenInput = document.querySelector('input[name="lastseen"]');
-			const selectedLastSeen = lastSeenInput && lastSeenInput.value
-				? [{
-					name: "lastseen",
-					value: lastSeenInput.value,
-					text: `Senast sedd efter: ${lastSeenInput.value.replace('T', ' ').slice(0, 16)}`,
-				}]
-				: [];
-
-			const selectedFilters = [...selectedTypes, ...selectedTags, ...selectedFillingLevel, ...selectedStatus, ...selectedOnline, ...selectedLastSeen];
-			
-			const svgIcon = `
-				<svg class="h-4 w-4 fill-none stroke-primary-dark dark:stroke-white stroke-2 cursor-pointer" viewBox="0 0 24 24">
-					<path d="M18 6 6 18"/><path d="m6 6 12 12"/>
-				</svg>`;
-
-			selectedFilters.forEach(filter => {
-				const filterDiv = document.createElement('div');
-				filterDiv.className = "flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border capitalize";
-
-				const filterText = document.createTextNode(filter.text);
-				filterDiv.appendChild(filterText);
-
-				const removeIcon = document.createElement('span');
-				removeIcon.innerHTML = svgIcon;
-				removeIcon.addEventListener('click', function() {
-					if (filter.name === "lastseen") {
-						const lastSeenInput = document.querySelector('input[name="lastseen"]');
-						
-						if (lastSeenInput) {
-							lastSeenInput.value = ""; 
-							lastSeenInput.dispatchEvent(new Event('change')); 
-						}
-					} else {
-						const checkbox = document.querySelector(`input[name="${filter.name}"][value="${filter.value}"]`);
-						if (checkbox) {
-							checkbox.checked = false;
-							checkbox.dispatchEvent(new Event('change')); 
-						}
-					}
-				});
-
-				filterDiv.appendChild(removeIcon);
-				selectedFiltersContainer.appendChild(filterDiv);
-			});
-
-			if (selectedFilters.length > 0) {
-				clearAllButton.classList.remove('hidden');
-				clearAllButton.addEventListener('click', clearAllFilters);
-				noFiltersDiv.classList.add('hidden');
-			} else {
-				clearAllButton.classList.add('hidden');
-				clearAllButton.removeEventListener('click', clearAllFilters);
-				noFiltersDiv.classList.remove('hidden');
-			}
-		}
-
-		document.body.addEventListener('htmx:afterOnLoad', updateSelectedFilters);
-
-		function toggleFillinglevelVisibility() {
-			
-			const typeCheckboxes = document.querySelectorAll('input[name="type"]');
-			let isWastecontainerSelected = false;
-
-			typeCheckboxes.forEach(checkbox => {
-				if (checkbox.checked && checkbox.value.toLowerCase() === "container-wastecontainer") {
-					isWastecontainerSelected = true;
-				}
-			});
-
-			const fillinglevelFilter = document.getElementById('fillinglevelFilter');
-			if (!fillinglevelFilter) {
-				return;
-			}
-			if (isWastecontainerSelected) {
-				fillinglevelFilter.classList.remove('hidden');
-			} else {
-				fillinglevelFilter.classList.add('hidden');
-			}
-		}
-
-		function clearAllFilters() {
-			const allCheckedCheckboxes = document.querySelectorAll('input:checked');
-			allCheckedCheckboxes.forEach(cb => {
-				cb.checked = false;
-			});
-
-			document.getElementById('filterForm').dispatchEvent(new Event('submit', { cancelable: true }));
-
-			const fillinglevelFilter = document.getElementById('fillinglevelFilter');
-			if (fillinglevelFilter) {
-				fillinglevelFilter.classList.add('hidden');
-			}
-
-			const lastSeenInput = document.querySelector('input[name="lastseen"]');
-			if (lastSeenInput) {
-				lastSeenInput.value = "";
-				lastSeenInput.dispatchEvent(new Event('change'));
-			}
-		}
-
-		document.addEventListener('htmx:load', function () {
-			const typeCheckboxes = document.querySelectorAll('input[name="type"]');
-			typeCheckboxes.forEach(checkbox => {
-				checkbox.addEventListener('change', toggleFillinglevelVisibility);
-			});
-			
-			toggleFillinglevelVisibility();
-		});
-
-	</script>
-}
 
 templ ThingsTableComponent(l10n Localizer, model ThingsListViewModel) {
 	<div class="flex flex-col gap-2">
@@ -503,7 +357,7 @@ templ ThingsTableComponent(l10n Localizer, model ThingsListViewModel) {
 			<tfoot>
 				<tr>
 					<td colspan="4">
-						@Paging(l10n, model.Pageing)
+						@shared.Paging(l10n, model.Pageing)
 					</td>
 				</tr>
 			</tfoot>
@@ -633,7 +487,7 @@ func ThingStatusCell(l10n Localizer, thing ThingViewModel) templ.Component {
 
 templ NoDataCell(l10n Localizer, t ThingViewModel) {
 	<div class="flex items-center gap-2">
-		@SVG("alert-triangle", Size(24))
+		@shared.SVG("alert-triangle", shared.Size(24))
 		{ l10n.Get("missingdata") }
 	</div>
 }
@@ -647,32 +501,32 @@ templ BuildingCell(l10n Localizer, t ThingViewModel) {
 func LifebuoyCell(l10n Localizer, t ThingViewModel) templ.Component {
 	vb, ok := t.Properties["presence"]
 	if !ok {
-		return Text(l10n.Get("nodata"))
+		return shared.Text(l10n.Get("nodata"))
 	}
 	b, ok := vb.(bool)
 	if !ok {
-		return Text(l10n.Get("nodata"))
+		return shared.Text(l10n.Get("nodata"))
 	}
 	if b {
-		return Text(l10n.Get("present"))
+		return shared.Text(l10n.Get("present"))
 	} else {
-		return Text(l10n.Get("notPresent"))
+		return shared.Text(l10n.Get("notPresent"))
 	}
 }
 
 func DeskCell(l10n Localizer, t ThingViewModel) templ.Component {
 	vb, ok := t.Properties["presence"]
 	if !ok {
-		return Text(l10n.Get("nodata"))
+		return shared.Text(l10n.Get("nodata"))
 	}
 	b, ok := vb.(bool)
 	if !ok {
-		return Text(l10n.Get("nodata"))
+		return shared.Text(l10n.Get("nodata"))
 	}
 	if b {
-		return Text(l10n.Get("occupied"))
+		return shared.Text(l10n.Get("occupied"))
 	} else {
-		return Text(l10n.Get("available"))
+		return shared.Text(l10n.Get("available"))
 	}
 }
 
@@ -702,10 +556,10 @@ func SewerCell(l10n Localizer, t ThingViewModel) templ.Component {
 	}
 
 	if len(level) > 0 {
-		components = append(components, Text(fmt.Sprintf("%s: %s", l10n.Get("level"), level)))
+		components = append(components, shared.Text(fmt.Sprintf("%s: %s", l10n.Get("level"), level)))
 	}
 
-	return Div("", components...)
+	return shared.Div("", components...)
 }
 
 func CombinedSewerOverflowCell(l10n Localizer, t ThingViewModel) templ.Component {
@@ -722,33 +576,33 @@ func CombinedSewerOverflowCell(l10n Localizer, t ThingViewModel) templ.Component
 			} else {
 				vbTranslation = l10n.Get("no")
 			}
-			components = append(components, Text(fmt.Sprintf("%s: %s", l10n.Get("overflow"), vbTranslation)))
+			components = append(components, shared.Text(fmt.Sprintf("%s: %s", l10n.Get("overflow"), vbTranslation)))
 		}
 	}
 
-	return Div("", components...)
+	return shared.Div("", components...)
 }
 
 func SewagePumpingstationCell(l10n Localizer, t ThingViewModel) templ.Component {
 	vb, ok := t.Properties["pumpingObserved"]
 	if !ok {
-		return Text(l10n.Get("nodata"))
+		return shared.Text(l10n.Get("nodata"))
 	}
 	b, ok := vb.(bool)
 	if !ok {
-		return Text(l10n.Get("nodata"))
+		return shared.Text(l10n.Get("nodata"))
 	}
 	if b {
-		return Text(l10n.Get("pumpingObserved"))
+		return shared.Text(l10n.Get("pumpingObserved"))
 	} else {
-		return Text(l10n.Get("off"))
+		return shared.Text(l10n.Get("off"))
 	}
 }
 
 func WasteContainerCell(l10n Localizer, t ThingViewModel) templ.Component {
 	v, ok := t.Properties["percent"]
 	if !ok {
-		return Text(l10n.Get("nodata"))
+		return shared.Text(l10n.Get("nodata"))
 	}
 
 	value := v.(float64)
@@ -764,13 +618,13 @@ func WasteContainerCell(l10n Localizer, t ThingViewModel) templ.Component {
 		colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent"
 	}
 
-	return ProgressBar(colourClass, text, int(value))
+	return shared.ProgressBar(colourClass, text, int(value))
 }
 
 func SandStorageCell(l10n Localizer, t ThingViewModel) templ.Component {
 	v, ok := t.Properties["percent"]
 	if !ok {
-		return Text(l10n.Get("nodata"))
+		return shared.Text(l10n.Get("nodata"))
 	}
 
 	value := v.(float64)
@@ -786,7 +640,7 @@ func SandStorageCell(l10n Localizer, t ThingViewModel) templ.Component {
 		colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent"
 	}
 
-	return ProgressBar(colourClass, text, int(value))
+	return shared.ProgressBar(colourClass, text, int(value))
 }
 
 templ PassageCell(t ThingViewModel) {
@@ -816,7 +670,7 @@ func TemperatureCell(t ThingViewModel) templ.Component {
 		return templ.NopComponent
 	}
 
-	return Div("", Text(fmt.Sprintf("%0.1f °C", temp)))
+	return shared.Div("", shared.Text(fmt.Sprintf("%0.1f °C", temp)))
 }
 
 /*
@@ -833,13 +687,13 @@ func ThingsMap(l10n Localizer, model ThingsListViewModel) templ.Component {
 	if !model.MapView {
 		return templ.NopComponent
 	}
-	mapData := newMapData(62.3908, 17.3069)
+	mapData := shared.NewMapData(62.3908, 17.3069)
 	mapData.CurrentView = "thing"
-	return Map("large", true, false, mapData, thingsToMapFeature(l10n, model.Things))
+	return shared.Map("large", true, false, mapData, thingsToMapFeature(l10n, model.Things))
 }
 
-func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollection {
-	features := make([]Feature, 0, len(things))
+func thingsToMapFeature(l10n Localizer, things []ThingViewModel) shared.FeatureCollection {
+	features := make([]shared.Feature, 0, len(things))
 
 	for _, thing := range things {
 		if thing.Latitude == 0 || thing.Longitude == 0 {
@@ -849,7 +703,7 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		thingType := strings.ToLower(thing.Type)
 		thingSubType := strings.ToLower(thing.SubType)
 
-		feature := NewFeature(NewPoint(thing.Latitude, thing.Longitude))
+		feature := shared.NewFeature(shared.NewPoint(thing.Latitude, thing.Longitude))
 		feature.AddProperty("id", thing.ID)
 		feature.AddProperty("type", thingType)
 		feature.AddProperty("subtype", thingSubType)
@@ -995,5 +849,9 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) FeatureCollecti
 		features = append(features, feature)
 	}
 
-	return NewFeatureCollection(features)
+	return shared.NewFeatureCollection(features)
+}
+
+func ThingsToMapFeature(l10n Localizer, things []ThingViewModel) shared.FeatureCollection {
+	return thingsToMapFeature(l10n, things)
 }

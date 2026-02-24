@@ -1,4 +1,4 @@
-package components
+package shared
 
 import (
 	"fmt"
@@ -24,6 +24,10 @@ func newMapData(lat, lon float64) mapData {
 	}
 
 	return md
+}
+
+func NewMapData(lat, lon float64) mapData {
+	return newMapData(lat, lon)
 }
 
 func NewFeatureCollection(features []Feature) FeatureCollection {

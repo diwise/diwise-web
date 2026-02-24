@@ -10,6 +10,9 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
+	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/sensors"
+	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/things"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
 	. "github.com/diwise/frontend-toolkit"
@@ -37,8 +40,8 @@ func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 			return
 		}
 
-		sensorDetails := components.SensorDetailsPage(localizer, assets, *detailsViewModel)
-		page := components.StartPage(version, localizer, assets, sensorDetails)
+		sensorDetails := featuresensors.SensorDetailsPage(localizer, assets, *detailsViewModel)
+		page := layout.StartPage(version, localizer, assets, sensorDetails)
 
 		helpers.WriteComponentResponse(ctx, w, r, page, 1024, 0)
 	}
@@ -76,13 +79,13 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, as
 			tenants := app.GetTenants(ctx)
 			deviceProfiles := app.GetDeviceProfiles(ctx)
 
-			dp := []components.DeviceProfile{}
+			dp := []featuresensors.DeviceProfile{}
 			for _, p := range deviceProfiles {
 				types := []string{}
 				if p.Types != nil {
 					types = *p.Types
 				}
-				dp = append(dp, components.DeviceProfile{
+				dp = append(dp, featuresensors.DeviceProfile{
 					Name:     p.Name,
 					Decoder:  p.Decoder,
 					Interval: p.Interval,
@@ -93,9 +96,9 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, as
 			detailsViewModel.Organisations = tenants
 			detailsViewModel.DeviceProfiles = dp
 
-			component = components.EditSensorDetails(localizer, assets, *detailsViewModel)
+			component = featuresensors.EditSensorDetails(localizer, assets, *detailsViewModel)
 		} else {
-			component = components.SensorDetails(localizer, assets, *detailsViewModel)
+			component = featuresensors.SensorDetails(localizer, assets, *detailsViewModel)
 		}
 
 		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
@@ -132,13 +135,13 @@ func NewEditSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 		tenants := app.GetTenants(ctx)
 		deviceProfiles := app.GetDeviceProfiles(ctx)
 
-		dp := []components.DeviceProfile{}
+		dp := []featuresensors.DeviceProfile{}
 		for _, p := range deviceProfiles {
 			types := []string{}
 			if p.Types != nil {
 				types = *p.Types
 			}
-			dp = append(dp, components.DeviceProfile{
+			dp = append(dp, featuresensors.DeviceProfile{
 				Name:     p.Name,
 				Decoder:  p.Decoder,
 				Interval: p.Interval,
@@ -149,7 +152,7 @@ func NewEditSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 		detailsViewModel.Organisations = tenants
 		detailsViewModel.DeviceProfiles = dp
 
-		component = components.EditSensorDetails(localizer, assets, *detailsViewModel)
+		component = featuresensors.EditSensorDetails(localizer, assets, *detailsViewModel)
 
 		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
@@ -238,7 +241,7 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 	return http.HandlerFunc(fn)
 }
 
-func composeViewModel(ctx context.Context, id string, app application.DeviceManagement) (*components.SensorDetailsViewModel, error) {
+func composeViewModel(ctx context.Context, id string, app application.DeviceManagement) (*featuresensors.SensorDetailsViewModel, error) {
 	log := logging.GetFromContext(ctx)
 
 	log.Debug("begin get sensor")
@@ -254,13 +257,13 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 	deviceProfiles := app.GetDeviceProfiles(ctx)
 	log.Debug("end get tenants and device profiles")
 
-	dp := []components.DeviceProfile{}
+	dp := []featuresensors.DeviceProfile{}
 	for _, p := range deviceProfiles {
 		types := []string{}
 		if p.Types != nil {
 			types = *p.Types
 		}
-		dp = append(dp, components.DeviceProfile{
+		dp = append(dp, featuresensors.DeviceProfile{
 			Name:     p.Name,
 			Decoder:  p.Decoder,
 			Interval: p.Interval,
@@ -285,9 +288,9 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		m = append(m, *md.ID)
 	}
 
-	mv := make([]components.MeasurementViewModel, 0)
+	mv := make([]featuresthings.MeasurementViewModel, 0)
 	for _, md := range measurements {
-		mvm := components.MeasurementViewModel{
+		mvm := featuresthings.MeasurementViewModel{
 			ID:        *md.ID,
 			Timestamp: md.Timestamp,
 			Value:     md.Value,
@@ -295,7 +298,7 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		mv = append(mv, mvm)
 	}
 
-	detailsViewModel := components.SensorDetailsViewModel{
+	detailsViewModel := featuresensors.SensorDetailsViewModel{
 		DeviceID:          sensor.DeviceID,
 		DevEUI:            sensor.SensorID,
 		Name:              sensor.Name,
@@ -307,7 +310,7 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		Active:            sensor.Active,
 		Types:             types,
 		Organisations:     tenants,
-		DeviceStatus: components.DeviceStatus{
+		DeviceStatus: featuresensors.DeviceStatus{
 			BatteryLevel:    sensor.DeviceStatus.BatteryLevel,
 			RSSI:            sensor.DeviceStatus.RSSI,
 			LoRaSNR:         sensor.DeviceStatus.LoRaSNR,
@@ -328,9 +331,9 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 	}
 
 	if len(sensor.Metadata) > 0 {
-		mdv := make([]components.MetadataViewModel, 0)
+		mdv := make([]featuresensors.MetadataViewModel, 0)
 		for _, md := range sensor.Metadata {
-			mdvm := components.MetadataViewModel{
+			mdvm := featuresensors.MetadataViewModel{
 				Key:   md.Key,
 				Value: md.Value,
 			}

@@ -16,6 +16,9 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
+	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/things"
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"github.com/google/uuid"
 
@@ -50,16 +53,16 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 		tags, _ := app.GetTags(ctx)
 		types, _ := app.GetTypes(ctx)
 
-		typesViewModels := []components.TypeViewModel{}
+		typesViewModels := []featuresthings.TypeViewModel{}
 
 		for _, t := range types {
-			typesViewModels = append(typesViewModels, components.TypeViewModel{
+			typesViewModels = append(typesViewModels, featuresthings.TypeViewModel{
 				Type: t,
 				Name: localizer.Get(t),
 			})
 		}
 
-		slices.SortFunc(typesViewModels, func(a, b components.TypeViewModel) int {
+		slices.SortFunc(typesViewModels, func(a, b featuresthings.TypeViewModel) int {
 			return cmp.Compare(a.Name, b.Name)
 		})
 
@@ -72,8 +75,8 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 
-		model := components.ThingsListViewModel{
-			Things:  make([]components.ThingViewModel, 0),
+		model := featuresthings.ThingsListViewModel{
+			Things:  make([]featuresthings.ThingViewModel, 0),
 			Pageing: getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			Tags:    tags,
 			Types:   typesViewModels,
@@ -85,14 +88,14 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 			model.Things = append(model.Things, tvm)
 		}
 
-		thingList := components.ThingsList(localizer, model)
-		page := components.StartPage(version, localizer, assets, thingList)
+		thingList := featuresthings.ThingsList(localizer, model)
+		page := layout.StartPage(version, localizer, assets, thingList)
 
 		ctx = helpers.Decorate(
 			ctx,
-			components.PageIndex, pageIndex_,
-			components.PageLast, pageLast,
-			components.PageSize, limit,
+			shared.PageIndex, pageIndex_,
+			shared.PageLast, pageLast,
+			shared.PageSize, limit,
 		)
 
 		helpers.WriteComponentResponse(ctx, w, r, page, 1024, 0)
@@ -111,14 +114,14 @@ func NewThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets Ass
 
 		thingTypes, _ := app.GetTypes(ctx)
 
-		newThingViewModel := components.NewThingViewModel{
+		newThingViewModel := featuresthings.NewThingViewModel{
 			ThingType:     thingTypes,
 			Organisations: app.GetTenants(ctx),
 		}
 
 		newThingViewModel.Tags, _ = app.GetTags(ctx)
 
-		component := components.NewThing(localizer, assets, newThingViewModel)
+		component := featuresthings.NewThing(localizer, assets, newThingViewModel)
 		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
 
@@ -216,8 +219,8 @@ func NewThingsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoaderF
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 
-		model := components.ThingsListViewModel{
-			Things:  make([]components.ThingViewModel, 0),
+		model := featuresthings.ThingsListViewModel{
+			Things:  make([]featuresthings.ThingViewModel, 0),
 			Pageing: getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			MapView: mapview,
 		}
@@ -229,20 +232,20 @@ func NewThingsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoaderF
 
 		var tblComp, mapComp templ.Component
 		if model.MapView {
-			mapComp = components.ThingsMap(localizer, model)
+			mapComp = featuresthings.ThingsMap(localizer, model)
 			tblComp = templ.NopComponent
 		} else {
 			mapComp = templ.NopComponent
-			tblComp = components.ThingsTable(localizer, model)
+			tblComp = featuresthings.ThingsTable(localizer, model)
 		}
 
-		component := components.DataList(localizer, tblComp, mapComp, model.MapView)
+		component := shared.DataList(localizer, tblComp, mapComp, model.MapView)
 
 		ctx = helpers.Decorate(
 			ctx,
-			components.PageIndex, pageIndex_,
-			components.PageLast, pageLast,
-			components.PageSize, limit,
+			shared.PageIndex, pageIndex_,
+			shared.PageLast, pageLast,
+			shared.PageSize, limit,
 		)
 
 		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
@@ -275,8 +278,8 @@ func NewThingsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 
-		model := components.ThingsListViewModel{
-			Things:  make([]components.ThingViewModel, 0),
+		model := featuresthings.ThingsListViewModel{
+			Things:  make([]featuresthings.ThingViewModel, 0),
 			Pageing: getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 			MapView: false,
 		}
@@ -286,13 +289,13 @@ func NewThingsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 			model.Things = append(model.Things, tvm)
 		}
 
-		component := components.ThingsTable(localizer, model)
+		component := featuresthings.ThingsTable(localizer, model)
 
 		ctx = helpers.Decorate(
 			ctx,
-			components.PageIndex, pageIndex_,
-			components.PageLast, pageLast,
-			components.PageSize, limit,
+			shared.PageIndex, pageIndex_,
+			shared.PageLast, pageLast,
+			shared.PageSize, limit,
 		)
 
 		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
@@ -301,8 +304,8 @@ func NewThingsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 	return http.HandlerFunc(fn)
 }
 
-func toViewModel(thing application.Thing) components.ThingViewModel {
-	tvm := components.ThingViewModel{
+func toViewModel(thing application.Thing) featuresthings.ThingViewModel {
+	tvm := featuresthings.ThingViewModel{
 		ID:              thing.ID,
 		Type:            thing.Type,
 		SubType:         thing.SubType,
@@ -314,10 +317,10 @@ func toViewModel(thing application.Thing) components.ThingViewModel {
 		Tenant:          thing.Tenant,
 		Tags:            thing.Tags,
 		ObservedAt:      thing.ObservedAt,
-		Measurements:    make([]components.MeasurementViewModel, 0),
+		Measurements:    make([]featuresthings.MeasurementViewModel, 0),
 		Properties:      make(map[string]any),
 		RefDevice:       make([]string, 0),
-		Latest:          make(map[string]components.MeasurementViewModel),
+		Latest:          make(map[string]featuresthings.MeasurementViewModel),
 	}
 
 	for _, rd := range thing.RefDevices {
@@ -335,7 +338,7 @@ func toViewModel(thing application.Thing) components.ThingViewModel {
 				vs = *m.StringValue
 			}
 
-			mvm := components.MeasurementViewModel{
+			mvm := featuresthings.MeasurementViewModel{
 				ID:          m.ID,
 				Timestamp:   m.Timestamp,
 				Urn:         m.Urn,
@@ -365,8 +368,8 @@ func toMap(v any) map[string]any {
 	return m
 }
 
-func getPaging(pageIndex, pageLast, pageSize, count, total, offset int, pages []int64, args url.Values) components.PagingViewModel {
-	return components.PagingViewModel{
+func getPaging(pageIndex, pageLast, pageSize, count, total, offset int, pages []int64, args url.Values) shared.PagingViewModel {
+	return shared.PagingViewModel{
 		PageIndex:  pageIndex,
 		PageLast:   pageLast,
 		PageSize:   pageSize,

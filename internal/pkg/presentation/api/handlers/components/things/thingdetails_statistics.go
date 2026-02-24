@@ -12,7 +12,8 @@ import (
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/things"
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
 	//lint:ignore ST1001 it is OK when we do it
@@ -40,7 +41,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		endTimeAt := getTime(r, "endTimeAt", endOfDay)
 
 		var chart, table templ.Component
-		datasets := []components.ChartDataset{}
+		datasets := []shared.ChartDataset{}
 
 		label := localizer.Get(activeTab)
 		isDark := helpers.IsDarkMode(r)
@@ -122,7 +123,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		}
 
 		if len(datasets) == 0 {
-			datasets = append(datasets, components.NewChartDataset(label, isDark))
+			datasets = append(datasets, shared.NewChartDataset(label, isDark))
 		}
 
 		if strings.HasSuffix(n, "/3") && thing.TypeValues.MaxDistance != nil && *thing.TypeValues.MaxDistance > 0 {
@@ -131,20 +132,20 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			stepsize = &one
 		}
 
-		chart = components.StatisticsChart(datasets, chartType, stepsize, minvalue, maxvalue, keepRatio, isDark)
+		chart = featuresthings.StatisticsChart(datasets, chartType, stepsize, minvalue, maxvalue, keepRatio, isDark)
 
 		tsAt := timeAt.UTC().Format(time.RFC3339)
 		endTsAt := endTimeAt.UTC().Format(time.RFC3339)
 
-		table = components.StatisticsTable(localizer, datasets[0], tsAt, endTsAt)
+		table = featuresthings.StatisticsTable(localizer, datasets[0], tsAt, endTsAt)
 		helpers.WriteComponentResponse(ctx, w, r, templ.Join(chart, table), 1024, 0)
 	}
 
 	return http.HandlerFunc(fn)
 }
 
-func toDataset(label string, isDark bool, measurements []application.Measurement) components.ChartDataset {
-	dataset := components.NewChartDataset(label, isDark)
+func toDataset(label string, isDark bool, measurements []application.Measurement) shared.ChartDataset {
+	dataset := shared.NewChartDataset(label, isDark)
 	previousValue := 0
 
 	for _, v := range measurements {

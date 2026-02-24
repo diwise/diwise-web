@@ -1,6 +1,7 @@
-package components
+package things
 
 import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
@@ -39,7 +40,7 @@ templ Tab(tab string, firstTab bool, model ThingDetailsViewModel, l10n Localizer
 			templ.KV("hover:border-b-4 hover:border-gray-200 dark:hover:border-white-30", !firstTab) }
 		data-tab={ tab }
 	>
-		@SVG(omaToTabIcon(tab), Box(24, 24), Size(24), FillColor("primary-dark", "white"), StrokeColor("primary-dark", "white"))
+		@shared.SVG(omaToTabIcon(tab), shared.Box(24, 24), shared.Size(24), shared.FillColor("primary-dark", "white"), shared.StrokeColor("primary-dark", "white"))
 		{ l10n.Get(tab) }
 	</button>
 }
@@ -134,10 +135,10 @@ templ StatisticsWrapper(l10n Localizer, model ThingDetailsViewModel) {
 						{ l10n.Get("export") }
 					</div>
 					<div class="">
-						@Button(Secondary, "", "download-cloud",
-							HxUrl("get", fmt.Sprintf("/admin/export?export=thing&accept=text/csv&thingid=%s", model.Thing.ID)),
-							Trigger("click"),
-							Include("#timeAt,#endTimeAt,#tab"))
+						@shared.Button(shared.Secondary, "", "download-cloud",
+							shared.HxUrl("get", fmt.Sprintf("/admin/export?export=thing&accept=text/csv&thingid=%s", model.Thing.ID)),
+							shared.Trigger("click"),
+							shared.Include("#timeAt,#endTimeAt,#tab"))
 					</div>
 				</div>
 				@StatisticsFilter(l10n, model.Thing.ID, model.Thing.Type, model.Thing.SubType, model.Tabs[0])
@@ -259,12 +260,12 @@ templ StatisticsFilter(l10n Localizer, thingID, thingType, thingSubType, tab str
 			&nbsp;
 		</div>
 		<div class="">
-			@graphTableButtons(l10n)
+			@GraphTableButtons(l10n)
 		</div>
 	</div>
 }
 
-templ StatisticsTable(l10n Localizer, dataset ChartDataset, timeAt, endTimeAt string) {
+templ StatisticsTable(l10n Localizer, dataset shared.ChartDataset, timeAt, endTimeAt string) {
 	<table id="statistics-table" class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white" data-timeAt={ timeAt } data-endTimeAt={ endTimeAt } hidden>
 		<thead class="border-b border-primary-dark dark:border-white">
 			<tr>
@@ -310,25 +311,25 @@ templ StatisticsTable(l10n Localizer, dataset ChartDataset, timeAt, endTimeAt st
 	</script>
 }
 
-templ StatisticsTableRow(l10n Localizer, value ChartValue) {
+templ StatisticsTableRow(l10n Localizer, value shared.ChartValue) {
 	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
 		<td class="px-6 py-3">{ value.X }</td>
 		<td class="px-6 py-3">{ fmt.Sprintf("%v", value.Y) }</td>
 	</tr>
 }
 
-func StatisticsChart(datasets []ChartDataset, chartType string, stepsize, minvalue, maxvalue *uint, keepRatio, isDark bool) templ.Component {
-	cfg := NewChartConfiguration(chartType, keepRatio, isDark, minvalue, maxvalue, stepsize)
+func StatisticsChart(datasets []shared.ChartDataset, chartType string, stepsize, minvalue, maxvalue *uint, keepRatio, isDark bool) templ.Component {
+	cfg := shared.NewChartConfiguration(chartType, keepRatio, isDark, minvalue, maxvalue, stepsize)
 	cfg.Timeseries(true)
 
 	datasets = setChartColors(datasets, chartType, isDark)
 
 	cfg.Add(datasets...)
 
-	return Chart("measurement-chart", "", cfg)
+	return shared.Chart("measurement-chart", "", cfg)
 }
 
-func setChartColors(datasets []ChartDataset, chartType string, isDark bool) []ChartDataset {
+func setChartColors(datasets []shared.ChartDataset, chartType string, isDark bool) []shared.ChartDataset {
     for i := range datasets {
         if chartType == "bar" {
             if isDark {
@@ -350,4 +351,33 @@ func setChartColors(datasets []ChartDataset, chartType string, isDark bool) []Ch
         }
     }
     return datasets
+}
+
+templ GraphTableButtons(l10n Localizer) {
+	<div class="flex items-center self-stretch gap-6">
+		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
+			<div class="relative group">
+				<button
+					id="graphButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black stroke-white dark:bg-white dark:stroke-black hover:bg-tertiary-surface-hover"
+					hx-on:click="showGraph();">
+					<svg class="w-[18px] h-[18px]">
+						@shared.SVG("chartline", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@shared.Tooltip(l10n.Get("graph"))
+			</div>
+			<div class="relative group">
+				<button
+					id="tableButton"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer stroke-black dark:stroke-white dark:fill-white hover:bg-tertiary-surface-hover"
+					hx-on:click="showTable();">
+					<svg class="w-[18px] h-[18px]">
+						@shared.SVG("table", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@shared.Tooltip(l10n.Get("table"))
+			</div>
+		</div>
+	</div>
 }

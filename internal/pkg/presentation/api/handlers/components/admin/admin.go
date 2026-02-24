@@ -11,6 +11,10 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
+	featureadmin "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/admin"
+	featureauth "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/auth"
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -31,13 +35,13 @@ func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, a
 
 		profile := deviceProfiles[i]
 
-		options := []components.OptionViewModel{}
+		options := []shared.OptionViewModel{}
 
 		for _, t := range *profile.Types {
 			parts := strings.Split(t, ":")
 			text := strings.Join(parts[1:], "-")
 
-			options = append(options, components.OptionViewModel{
+			options = append(options, shared.OptionViewModel{
 				Value:    t,
 				Text:     localizer.Get(text),
 				Name:     "measurementType-option[]",
@@ -49,7 +53,7 @@ func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, a
 			return options[i].Text < options[j].Text
 		})
 
-		component := components.CheckboxDropdownList("measurementType", options, localizer.Get("chooseMeasurementtype"))
+		component := shared.CheckboxDropdownList("measurementType", options, localizer.Get("chooseMeasurementtype"))
 		helpers.WriteComponentResponse(ctx, w, r, component, 2*1024, 0)
 	}
 
@@ -67,8 +71,8 @@ func NewErrorPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 		)
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		errorpage := components.ErrorPage(localizer, assets)
-		component := components.StartPage(version, localizer, assets, errorpage)
+		errorpage := featureauth.ErrorPage(localizer, assets)
+		component := layout.StartPage(version, localizer, assets, errorpage)
 
 		helpers.WriteComponentResponse(ctx, w, r, component, 30*1024, 0)
 	}
@@ -87,12 +91,12 @@ func NewAdminPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 		)
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		m := components.AdminViewModel{
+		m := featureadmin.AdminViewModel{
 			Token: authz.Token(ctx),
 		}
 
-		adminpage := components.AdminPage(localizer, assets, m)
-		component := components.StartPage(version, localizer, assets, adminpage)
+		adminpage := featureadmin.AdminPage(localizer, assets, m)
+		component := layout.StartPage(version, localizer, assets, adminpage)
 
 		helpers.WriteComponentResponse(ctx, w, r, component, 30*1024, 0)
 	}

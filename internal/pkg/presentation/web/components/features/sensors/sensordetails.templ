@@ -1,6 +1,8 @@
-package components
+package sensors
 
 import (
+	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/things"
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
 	"slices"
@@ -25,7 +27,7 @@ type SensorDetailsViewModel struct {
 	DeviceStatus      DeviceStatus
 	DeviceProfiles    []DeviceProfile
 	MeasurementTypes  []string
-	Measurements      []MeasurementViewModel
+	Measurements      []featuresthings.MeasurementViewModel
 	ObservedAt        time.Time
 	Environment       string
 	Interval          float32
@@ -62,9 +64,9 @@ templ SensorDetailsPage(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 
 templ statusActive(active bool, l10n Localizer) {
 	if active {
-		@Label(l10n.Get("active"), active)
+		@shared.Label(l10n.Get("active"), active)
 	} else {
-		@Label(l10n.Get("inactive"), active)
+		@shared.Label(l10n.Get("inactive"), active)
 	}
 }
 
@@ -82,7 +84,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 					@statusActive(sensor.Active, l10n)
 				</div>
 			}
-			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#sensor-view"), HxUrl("get", fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)))
+			@shared.Button(shared.Tertiary, l10n.Get("edit"), "pen", shared.Target("#sensor-view"), shared.HxUrl("get", fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)))
 		</div>
 		<div class="w-full flex flex-col lg:flex-row py-6 gap-10">
 			//Yttersta diven
@@ -92,7 +94,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 					//Uppgifter
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik
-						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("details") }</h2>
 						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 					</div>
@@ -145,7 +147,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 						// Metadata
 						<div class="flex items-center gap-3 self-stretch">
 							//Rubrik Metadata
-							@SVG("graph", Size(24))
+							@shared.SVG("graph", shared.Size(24))
 							<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("Metadata") }</h2>
 							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 						</div>
@@ -164,7 +166,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 					// Mätvärden
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik Mätvärden
-						@SVG("graph", Size(24))
+						@shared.SVG("graph", shared.Size(24))
 						<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("measurementvalues") }</h2>
 						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 					</div>
@@ -220,7 +222,7 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 					//Karta
 					<div class="flex items-center gap-3 self-stretch">
 						//Position rubrik
-						@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("location") }</h2>
 						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 					</div>
@@ -234,14 +236,14 @@ templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsV
 							<div class="font-bold">{ l10n.Get("longitude") }</div>
 							<div class="">{ fmt.Sprintf("%f", sensor.Longitude) }</div>
 						</div>
-						@Map("medium", false, false, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
+						@shared.Map("medium", false, false, shared.NewMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
 					</div>
 				</div>
 				<div class="flex flex-col items-start self-stretch">
 					//Status
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik
-						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold dark:text-white">{ fmt.Sprintf("%s", l10n.Get("Status")) }</h2>
 						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 					</div>
@@ -371,7 +373,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 					<div class="flex flex-col items-start self-stretch">
 						<div class="flex items-center gap-3 self-stretch">
 							//Rubrik uppgifter
-							@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
 							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 						</div>
@@ -418,7 +420,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 										<div class="flex items-center gap-2">
 											<span class="font-bold">{ l10n.Get("environment") }</span>
 											<div class="group relative cursor-pointer">
-												@SVG("help-circle", Size(20), Box(24, 24))
+												@shared.SVG("help-circle", shared.Size(20), shared.Box(24, 24))
 												<div class="absolute top-1/2 left-full -translate-y-1/2 ml-2 hidden group-hover:block bg-gray-700 text-white text-xs font-medium rounded px-2 py-1 shadow-lg z-50 whitespace-nowrap">
 													{ l10n.Get("located") }
 													<div class="absolute w-2 h-2 bg-gray-700 transform rotate-45 -left-1 top-1/2 -translate-y-1/2"></div>
@@ -438,7 +440,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 										<div class="flex items-center gap-2">
 											<span class="font-bold">{ l10n.Get("observationinterval") }</span>
 											<div class="group relative cursor-pointer">
-												@SVG("help-circle", Size(20), Box(24, 24))
+												@shared.SVG("help-circle", shared.Size(20), shared.Box(24, 24))
 												<div class="absolute top-1/2 left-full -translate-y-1/2 ml-2 hidden group-hover:block bg-gray-700 text-white text-xs font-medium rounded px-2 py-1 shadow-lg z-50 whitespace-nowrap">
 													{ l10n.Get("devicenotobservedafter") }
 													<div class="absolute w-2 h-2 bg-gray-700 transform rotate-45 -left-1 top-1/2 -translate-y-1/2"></div>
@@ -473,7 +475,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 						//Status
 						<div class="flex items-center gap-3 self-stretch">
 							//Rubrik
-							@SVG("circle-check", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@shared.SVG("circle-check", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold">{ l10n.Get("status") }</h2>
 							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 						</div>
@@ -485,7 +487,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 									<input type="checkbox" name="active" id="custom-checkbox" class="sr-only peer" checked?={ sensor.Active }/>
 									<div class="w-[24px] h-[24px] bg-white rounded border border-gray-400 peer-checked:bg-emerald-800 peer-checked:border-emerald-800 flex justify-center items-center">
 										<svg class="fill-none w-[24px] h-[24px] stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity">
-											@templ.Raw(iconSVG("check"))
+											@templ.Raw(shared.IconSVG("check"))
 										</svg>
 									</div>
 								</div>
@@ -500,7 +502,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 						//Karta
 						<div class="flex items-center gap-3 self-stretch">
 							//Position rubrik
-							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold">{ l10n.Get("location") }</h2>
 							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 						</div>
@@ -536,17 +538,17 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 									/>
 								</div>
 							</div>
-							@Map("medium", false, true, newMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
+							@shared.Map("medium", false, true, shared.NewMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
 						</div>
 					</div>
 				</div>
 			</div>
 			<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div>
 			<div class="flex items-center justify-end py-6">
-				//@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"))
+				//@shared.Button(shared.Error, l10n.Get("delete"), "trashcan", shared.Name("delete"))
 				<div class="flex items-center gap-4">
-					@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"))
-					@Button(Primary, l10n.Get("save"), "check", Name("save"), BtnType("submit"))
+					@shared.Button(shared.Secondary, l10n.Get("cancel"), "close", shared.Name("cancel"))
+					@shared.Button(shared.Primary, l10n.Get("save"), "check", shared.Name("save"), shared.BtnType("submit"))
 				</div>
 			</div>
 		</form>
@@ -558,7 +560,7 @@ templ AlarmList(l10n Localizer) {
 		//Larm
 		<div class="flex items-center gap-3 self-stretch">
 			//Rubrik larm
-			@SVG("alert-triangle", Size(24))
+			@shared.SVG("alert-triangle", shared.Size(24))
 			<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("alerts") }</h2>
 			<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 		</div>
@@ -599,16 +601,16 @@ templ AlarmList(l10n Localizer) {
 	</div>
 }
 
-func sensorMapFeature(sensor SensorDetailsViewModel) FeatureCollection {
-	feature := NewFeature(NewPoint(sensor.Latitude, sensor.Longitude))
+func sensorMapFeature(sensor SensorDetailsViewModel) shared.FeatureCollection {
+	feature := shared.NewFeature(shared.NewPoint(sensor.Latitude, sensor.Longitude))
 	feature.AddProperty("desc", sensor.Description)
 	feature.AddProperty("type", "sensor")
-	return NewFeatureCollection([]Feature{feature})
+	return shared.NewFeatureCollection([]shared.Feature{feature})
 }
 
 func SensorMeasurementSelect(l10n Localizer, asset AssetLoaderFunc, id, target string, sensorViewModel SensorDetailsViewModel) templ.Component {
 	/*
-		viewModel := []OptionViewModel{
+		viewModel := []shared.OptionViewModel{
 			{
 				Value:    "",
 				Text:     l10n.Get("choose"),
@@ -618,7 +620,7 @@ func SensorMeasurementSelect(l10n Localizer, asset AssetLoaderFunc, id, target s
 			},
 		}
 	*/
-	viewModel := []OptionViewModel{}
+	viewModel := []shared.OptionViewModel{}
 
 	for i, t := range sensorViewModel.MeasurementTypes {
 		parts := strings.Split(t, "/")
@@ -629,30 +631,30 @@ func SensorMeasurementSelect(l10n Localizer, asset AssetLoaderFunc, id, target s
 			port = fmt.Sprintf(" (%s)", parts[1])
 		}
 
-		viewModel = append(viewModel, OptionViewModel{
+		viewModel = append(viewModel, shared.OptionViewModel{
 			Value:    t,
 			Text:     l10n.Get(text) + port,
 			Selected: i == 0,
 		})
 	}
 
-	slices.SortFunc(viewModel, func(a, b OptionViewModel) int {
+	slices.SortFunc(viewModel, func(a, b shared.OptionViewModel) int {
 		return strings.Compare(a.Text, b.Text)
 	})
 
-	return SelectMultipleInputs(id, false, "/components/measurements", "#"+target, "#timeAt,#endTimeAt", viewModel)
+	return shared.SelectMultipleInputs(id, false, "/components/measurements", "#"+target, "#timeAt,#endTimeAt", viewModel)
 }
 
-func MeasurementChart(datasets []ChartDataset, keepRatio, isDark bool) templ.Component {
-	cfg := NewChartConfiguration("line", keepRatio, isDark, nil, nil, nil)
+func MeasurementChart(datasets []shared.ChartDataset, keepRatio, isDark bool) templ.Component {
+	cfg := shared.NewChartConfiguration("line", keepRatio, isDark, nil, nil, nil)
 	cfg.Timeseries(true)
 	cfg.Add(datasets...)
 
-	return Chart("measurement-chart", "", cfg)
+	return shared.Chart("measurement-chart", "", cfg)
 }
 
 func MeasurementTypeSelect(l10n Localizer, asset AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
-	viewModel := []OptionViewModel{
+	viewModel := []shared.OptionViewModel{
 		{
 			Value:    "",
 			Text:     l10n.Get("choose"),
@@ -667,13 +669,13 @@ func MeasurementTypeSelect(l10n Localizer, asset AssetLoaderFunc, id string, sen
 	})
 
 	if i < 0 {
-		return Select(id, true, "", "", viewModel)
+		return shared.Select(id, true, "", "", viewModel)
 	}
 
 	profile := sensorViewModel.DeviceProfiles[i]
 
 	for _, t := range profile.Types {
-		viewModel = append(viewModel, OptionViewModel{
+		viewModel = append(viewModel, shared.OptionViewModel{
 			Value: t,
 			Text:  t,
 			Selected: slices.ContainsFunc(sensorViewModel.Types, func(s string) bool {
@@ -682,11 +684,11 @@ func MeasurementTypeSelect(l10n Localizer, asset AssetLoaderFunc, id string, sen
 		})
 	}
 
-	return Select(id, true, "", "", viewModel)
+	return shared.Select(id, true, "", "", viewModel)
 }
 
 func SensorTypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, profiles []DeviceProfile) templ.Component {
-	viewModel := []OptionViewModel{
+	viewModel := []shared.OptionViewModel{
 		{
 			Value:    "",
 			Text:     l10n.Get("choose"),
@@ -697,18 +699,18 @@ func SensorTypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string
 	}
 
 	for _, p := range profiles {
-		viewModel = append(viewModel, OptionViewModel{
+		viewModel = append(viewModel, shared.OptionViewModel{
 			Value:    p.Decoder,
 			Text:     p.Name,
 			Selected: p.Name == selected,
 		})
 	}
 
-	return Select(id, false, "/components/admin/types", "#measurementType", viewModel)
+	return shared.Select(id, false, "/components/admin/types", "#measurementType", viewModel)
 }
 
 func OrganisationSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, organisations []string) templ.Component {
-	viewModel := []OptionViewModel{
+	viewModel := []shared.OptionViewModel{
 		{
 			Value:    "",
 			Text:     l10n.Get("choose"),
@@ -719,25 +721,25 @@ func OrganisationSelect(l10n Localizer, asset AssetLoaderFunc, id, selected stri
 	}
 
 	for i, org := range organisations {
-		viewModel = append(viewModel, OptionViewModel{
+		viewModel = append(viewModel, shared.OptionViewModel{
 			Value:    org,
 			Text:     org,
 			Selected: org == selected || (selected == "" && i == 0),
 		})
 	}
 
-	return Select(id, false, "", "", viewModel)
+	return shared.Select(id, false, "", "", viewModel)
 }
 
 func MeasurementTypeCheckboxDropdown(l10n Localizer, asset AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
-	viewModel := []OptionViewModel{}
+	viewModel := []shared.OptionViewModel{}
 
 	i := slices.IndexFunc(sensorViewModel.DeviceProfiles, func(p DeviceProfile) bool {
 		return p.Name == sensorViewModel.DeviceProfileName
 	})
 
 	if i < 0 {
-		return CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
+		return shared.CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
 	}
 
 	profile := sensorViewModel.DeviceProfiles[i]
@@ -746,7 +748,7 @@ func MeasurementTypeCheckboxDropdown(l10n Localizer, asset AssetLoaderFunc, id s
 		parts := strings.Split(t, ":")
 		text := strings.Join(parts[1:], "-")
 
-		viewModel = append(viewModel, OptionViewModel{
+		viewModel = append(viewModel, shared.OptionViewModel{
 			Value: t,
 			Text:  l10n.Get(text),
 			Name:  id + "-option[]",
@@ -760,11 +762,11 @@ func MeasurementTypeCheckboxDropdown(l10n Localizer, asset AssetLoaderFunc, id s
 		return viewModel[i].Text < viewModel[j].Text
 	})
 
-	return CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
+	return shared.CheckboxDropdownList(id, viewModel, l10n.Get("chooseMeasurementtype"))
 }
 
 func EnvironmentSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string) templ.Component {
-	viewModel := []OptionViewModel{
+	viewModel := []shared.OptionViewModel{
 		{
 			Value:    "",
 			Text:     "",
@@ -791,10 +793,10 @@ func EnvironmentSelect(l10n Localizer, asset AssetLoaderFunc, id, selected strin
 		return viewModel[i+1].Text < viewModel[j+1].Text
 	})
 
-	return Select(id, false, "", "", viewModel)
+	return shared.Select(id, false, "", "", viewModel)
 }
 
-func RenderStatisticsGraph(l10n Localizer, model ThingDetailsViewModel) templ.Component {
+func RenderStatisticsGraph(l10n Localizer, model featuresthings.ThingDetailsViewModel) templ.Component {
 	now := time.Now()
 	startDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	endDate := time.Now()

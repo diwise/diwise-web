@@ -1,6 +1,7 @@
-package components
+package things
 
 import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
@@ -57,7 +58,7 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ model.Thing.ID }</h1>
 				</div>
 			}
-			@Button(Tertiary, l10n.Get("edit"), "pen", Target("#things-view"), HxUrl("get", (fmt.Sprintf("/components/things/%s?mode=edit", model.Thing.ID))))
+			@shared.Button(shared.Tertiary, l10n.Get("edit"), "pen", shared.Target("#things-view"), shared.HxUrl("get", (fmt.Sprintf("/components/things/%s?mode=edit", model.Thing.ID))))
 		</div>
 		// Contents
 		<div class="flex flex-col items-start gap-10">
@@ -65,7 +66,7 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 			<div class="flex flex-col items-start self-stretch pt-6 gap-6">
 				// Header for stats
 				<div class="flex items-center gap-3 self-stretch">
-					@SVG("chartline", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					@shared.SVG("chartline", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 					<h2 class="font-heading text-xl font-bold dark:text-white whitespace-nowrap">{ l10n.Get("statistics") }</h2>
 					<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 				</div>
@@ -78,7 +79,7 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 					//Uppgifter
 					<div class="flex items-center gap-3 self-stretch">
 						//Rubrik
-						@SVG("info", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+						@shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 						<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("details") }</h2>
 						<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 					</div>
@@ -153,7 +154,7 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 						//Karta
 						<div class="flex items-center gap-3 self-stretch">
 							//Position rubrik
-							@SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+							@shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
 							<h2 class="font-heading text-xl font-bold dark:text-white">{ l10n.Get("location") }</h2>
 							<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
 						</div>
@@ -167,7 +168,7 @@ templ ThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetailsView
 								<div class="font-bold">{ l10n.Get("longitude") }</div>
 								<div class="">{ fmt.Sprintf("%f", model.Thing.Longitude) }</div>
 							</div>
-							@Map("small", false, false, newMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+							@shared.Map("small", false, false, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
 						</div>
 					</div>
 				</div>
@@ -211,11 +212,11 @@ templ DeleteThing(l10n Localizer, asset AssetLoaderFunc, thingID, thingName stri
 				<div class="flex items-center justify-end pt-6">
 					<div class="flex items-center gap-4">
 						<div id="cancelButton">
-							@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"), BtnType("button"))
+							@shared.Button(shared.Secondary, l10n.Get("cancel"), "close", shared.Name("cancel"), shared.BtnType("button"))
 						</div>
-						@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"),
-							HxUrl("delete", "/things/"+thingID+"?confirmed=true"),
-							Target("#body"))
+						@shared.Button(shared.Error, l10n.Get("delete"), "trashcan", shared.Name("delete"),
+							shared.HxUrl("delete", "/things/"+thingID+"?confirmed=true"),
+							shared.Target("#body"))
 					</div>
 				</div>
 				<script nonce={ csp.Nonce(ctx) }>
@@ -327,7 +328,7 @@ templ RoomProperties(l10n Localizer, model ThingDetailsViewModel) {
 }
 
 func TypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, types []string) templ.Component {
-	viewModel := []OptionViewModel{
+	viewModel := []shared.OptionViewModel{
 		{
 			Value:    "",
 			Text:     l10n.Get("choose"),
@@ -338,7 +339,7 @@ func TypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, type
 	}
 
 	for _, t := range types {
-		viewModel = append(viewModel, OptionViewModel{
+		viewModel = append(viewModel, shared.OptionViewModel{
 			Value:    t,
 			Text:     l10n.Get(t),
 			Selected: t == selected,
@@ -349,7 +350,7 @@ func TypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, type
 		return viewModel[i].Text < viewModel[j].Text
 	})
 
-	return Select(id, false, "", "", viewModel)
+	return shared.Select(id, false, "", "", viewModel)
 }
 
 templ afterSwap() {

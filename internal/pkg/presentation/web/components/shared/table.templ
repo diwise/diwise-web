@@ -1,4 +1,4 @@
-package components
+package shared
 
 import (
 	"context"
@@ -259,13 +259,6 @@ func progressBar(text string, value int) templ.Component {
 templ LabelCell(label string, active bool) {
 	@Cell(Label(label, active))
 }
-
-//PAGING
-type PagingConfigKey string
-
-var PageSize PagingConfigKey = "page.size"
-var PageIndex PagingConfigKey = "page.index"
-var PageLast PagingConfigKey = "page.last"
 
 templ PageSelector(index, tableName string) {
 	if index == ctx2str(ctx, PageIndex) {
