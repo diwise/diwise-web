@@ -19,8 +19,16 @@
    - different owners usually touch different parts.
 
 ## Naming
-1. Main template name matches file name.
-2. Grouped files use family naming (for example `button.templ`, `button_helpers.templ`).
+1. Prefer descriptive role names, not generic `Component`:
+   - `*View`, `*Edit`, `*List`, `*Filter`, `*Table`, `*Map`, `*Modal`, `*Actions`.
+2. Helper/template file suffixes are explicit:
+   - `_helpers.templ` for helper templates/functions tied to one feature flow.
+   - `_properties.templ` for domain property rendering blocks.
+   - `_graph.templ` for chart/graph templates and graph helper functions.
+   - `_edit.templ` for edit form composition.
+3. Main template name does not have to match file name.
+4. `shared` templates stay noun/primitive-based (for example `button.templ`, `table.templ`, `common.templ`), not feature-flow names.
+5. Avoid vague names like `common2`, `misc`, `temp`, or `component`.
 
 ## Boundary Rule
 1. `shared` stays domain-agnostic.

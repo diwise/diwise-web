@@ -1,7 +1,6 @@
 package sensors
 
 import (
-	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/things"
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
 	"time"
@@ -15,21 +14,6 @@ func RenderMeasurementGraph(l10n Localizer, model SensorDetailsViewModel) templ.
 
 	if len(model.Measurements) > 0 {
 		m := model.Measurements[len(model.Measurements)-1]
-		ts := m.Timestamp
-		startDate = time.Date(ts.Year(), ts.Month(), ts.Day(), 0, 0, 0, 0, ts.Location())
-		endDate = ts
-	}
-
-	return Graph(l10n, startDate, endDate)
-}
-
-func RenderStatisticsGraph(l10n Localizer, model featuresthings.ThingDetailsViewModel) templ.Component {
-	now := time.Now()
-	startDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	endDate := time.Now()
-
-	if len(model.Thing.Measurements) > 0 {
-		m := model.Thing.Measurements[len(model.Thing.Measurements)-1]
 		ts := m.Timestamp
 		startDate = time.Date(ts.Year(), ts.Month(), ts.Day(), 0, 0, 0, 0, ts.Location())
 		endDate = ts

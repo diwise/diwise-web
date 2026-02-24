@@ -43,40 +43,6 @@ func MeasurementChart(datasets []shared.ChartDataset, keepRatio, isDark bool) te
 	return shared.Chart("measurement-chart", "", cfg)
 }
 
-func MeasurementTypeSelect(l10n Localizer, asset AssetLoaderFunc, id string, sensorViewModel SensorDetailsViewModel) templ.Component {
-	viewModel := []shared.OptionViewModel{
-		{
-			Value:    "",
-			Text:     l10n.Get("choose"),
-			Selected: true,
-			Hidden:   true,
-			Disabled: true,
-		},
-	}
-
-	i := slices.IndexFunc(sensorViewModel.DeviceProfiles, func(p DeviceProfile) bool {
-		return p.Name == sensorViewModel.DeviceProfileName
-	})
-
-	if i < 0 {
-		return shared.Select(id, true, "", "", viewModel)
-	}
-
-	profile := sensorViewModel.DeviceProfiles[i]
-
-	for _, t := range profile.Types {
-		viewModel = append(viewModel, shared.OptionViewModel{
-			Value: t,
-			Text:  t,
-			Selected: slices.ContainsFunc(sensorViewModel.Types, func(s string) bool {
-				return s == t
-			}),
-		})
-	}
-
-	return shared.Select(id, true, "", "", viewModel)
-}
-
 func SensorTypeSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, profiles []DeviceProfile) templ.Component {
 	viewModel := []shared.OptionViewModel{
 		{
