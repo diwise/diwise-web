@@ -12,9 +12,8 @@ import (
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/things"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 
 	//lint:ignore ST1001 it is OK when we do it
 	. "github.com/diwise/frontend-toolkit"
@@ -107,7 +106,7 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 	editMode := r.URL.Query().Get("mode") == "edit"
 
 	ctx = helpers.Decorate(ctx,
-		components.CurrentComponent, "things",
+		layout.CurrentComponent, "things",
 	)
 
 	thing, err := app.GetThing(ctx, id, r.URL.Query())
@@ -174,7 +173,7 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 func DeleteThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(r.Context(),
-			components.CurrentComponent, "things",
+			layout.CurrentComponent, "things",
 		)
 
 		id := r.PathValue("id")

@@ -9,10 +9,9 @@ import (
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/sensors"
 	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/things"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
 	. "github.com/diwise/frontend-toolkit"
@@ -31,7 +30,7 @@ func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 		}
 
 		ctx := helpers.Decorate(r.Context(),
-			components.CurrentComponent, "sensors",
+			layout.CurrentComponent, "sensors",
 		)
 
 		detailsViewModel, err := composeViewModel(ctx, id, app)
@@ -64,7 +63,7 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, as
 
 		mode := r.URL.Query().Get("mode")
 		ctx = helpers.Decorate(ctx,
-			components.CurrentComponent, "sensors",
+			layout.CurrentComponent, "sensors",
 		)
 
 		detailsViewModel, err := composeViewModel(ctx, id, app)
@@ -121,7 +120,7 @@ func NewEditSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 		defer cancel()
 
 		ctx = helpers.Decorate(ctx,
-			components.CurrentComponent, "sensors",
+			layout.CurrentComponent, "sensors",
 		)
 
 		detailsViewModel, err := composeViewModel(ctx, id, app)

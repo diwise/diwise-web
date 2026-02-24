@@ -15,9 +15,8 @@ import (
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/things"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"github.com/google/uuid"
@@ -33,7 +32,7 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 
 		ctx = helpers.Decorate(
 			r.Context(),
-			components.CurrentComponent, "things",
+			layout.CurrentComponent, "things",
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
@@ -109,7 +108,7 @@ func NewThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets Ass
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
 		ctx := helpers.Decorate(r.Context(),
-			components.CurrentComponent, "things",
+			layout.CurrentComponent, "things",
 		)
 
 		thingTypes, _ := app.GetTypes(ctx)
@@ -193,7 +192,7 @@ func NewThingsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoaderF
 
 		ctx := helpers.Decorate(
 			r.Context(),
-			components.CurrentComponent, "things",
+			layout.CurrentComponent, "things",
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
@@ -259,7 +258,7 @@ func NewThingsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 
 		ctx := helpers.Decorate(
 			r.Context(),
-			components.CurrentComponent, "things",
+			layout.CurrentComponent, "things",
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))

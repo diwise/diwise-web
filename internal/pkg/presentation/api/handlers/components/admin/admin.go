@@ -10,10 +10,9 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 	featureadmin "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/admin"
 	featureauth "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/auth"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 
 	. "github.com/diwise/frontend-toolkit"
@@ -67,7 +66,7 @@ func NewErrorPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 
 		ctx = helpers.Decorate(
 			r.Context(),
-			components.CurrentComponent, "error",
+			layout.CurrentComponent, "error",
 		)
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
@@ -87,7 +86,7 @@ func NewAdminPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 
 		ctx = helpers.Decorate(
 			r.Context(),
-			components.CurrentComponent, "admin",
+			layout.CurrentComponent, "admin",
 		)
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 

@@ -1,7 +1,6 @@
 package things
 
 import (
-	comp "github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 	"fmt"
 	. "github.com/diwise/frontend-toolkit"
@@ -112,7 +111,7 @@ templ EditThingDetails(l10n Localizer, asset AssetLoaderFunc, model ThingDetails
 											</datalist>
 											<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
 												<svg class="w-[18px] h-[18px] dark:fill-white">
-													@templ.Raw(comp.IconSVG("chevron-down"))
+													@templ.Raw(shared.IconSVG("chevron-down"))
 												</svg>
 											</div>
 										</div>
@@ -237,7 +236,7 @@ templ ConnectOneSensor(l10n Localizer, model ThingDetailsViewModel) {
 				</datalist>
 				<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
 					<svg class="w-[18px] h-[18px] dark:fill-white">
-						@templ.Raw(comp.IconSVG("chevron-down"))
+						@templ.Raw(shared.IconSVG("chevron-down"))
 					</svg>
 				</div>
 			</div>
@@ -270,7 +269,7 @@ templ ConnectMultipleSensors(l10n Localizer, model ThingDetailsViewModel) {
 					</datalist>
 					<div class="pointer-events-none absolute bg-white dark:bg-input-surface-dark rounded-xl inset-y-0 right-0 flex items-center px-2 text-gray-700">
 						<svg class="w-[18px] h-[18px] dark:fill-white">
-							@templ.Raw(comp.IconSVG("chevron-down"))
+							@templ.Raw(shared.IconSVG("chevron-down"))
 						</svg>
 					</div>
 				</div>

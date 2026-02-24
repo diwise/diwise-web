@@ -13,9 +13,8 @@ import (
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/sensors"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
@@ -29,7 +28,7 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 
 		ctx = helpers.Decorate(
 			r.Context(),
-			components.CurrentComponent, "sensors",
+			layout.CurrentComponent, "sensors",
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
@@ -132,7 +131,7 @@ func NewSensorsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFun
 
 		ctx := helpers.Decorate(
 			r.Context(),
-			components.CurrentComponent, "sensors",
+			layout.CurrentComponent, "sensors",
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
@@ -183,7 +182,7 @@ func NewSensorsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoader
 
 		ctx := helpers.Decorate(
 			r.Context(),
-			components.CurrentComponent, "sensors",
+			layout.CurrentComponent, "sensors",
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
