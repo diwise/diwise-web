@@ -1,0 +1,21 @@
+package shared
+
+templ ExportActionButton(hxGet, hxInclude, tooltip string) {
+	<div class="relative group">
+		@Button(Secondary, "", "download-cloud",
+			HxUrl("get", hxGet),
+			Trigger("click"),
+			Include(hxInclude))
+		if tooltip != "" {
+			@Tooltip(tooltip)
+		}
+	</div>
+}
+
+templ ModalLoadPrimaryButton(title, target, hxGet string) {
+	@Button(Primary, title, "",
+		Target(target),
+		HxUrl("get", hxGet),
+		Trigger("click"),
+		Swap("innerHTML"))
+}
