@@ -35,7 +35,9 @@ func InstallDevmodeHandlers(ctx context.Context, mux *http.ServeMux) *http.Serve
 	devmux.HandleFunc("GET /admin/tenants", devmode.NewAdminTenantsHandler(ctx))
 	devmux.HandleFunc("GET /alarms", devmode.NewAlarmsHandler(ctx))
 	devmux.HandleFunc("GET /devices", devmode.NewDevicesHandler(ctx))
+	devmux.HandleFunc("GET /devices/{id}", devmode.NewDeviceByIDHandler(ctx))
 	devmux.HandleFunc("GET /measurements", devmode.NewMeasurementsHandler(ctx))
+	devmux.HandleFunc("GET /measurements/{id}", devmode.NewMeasurementByIDHandler(ctx))
 	devmux.HandleFunc("GET /things", devmode.NewThingsHandler(ctx))
 	devmux.HandleFunc("GET /things/{id}", devmode.NewThingsHandler(ctx))
 
