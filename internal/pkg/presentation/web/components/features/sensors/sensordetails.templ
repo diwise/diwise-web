@@ -1,0 +1,142 @@
+package sensors
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+	"time"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
+)
+
+type SensorDetailsViewModel struct {
+	DeviceID          string
+	DevEUI            string
+	Name              string
+	Latitude          float64
+	Longitude         float64
+	DeviceProfileName string
+	Types             []string
+	Tenant            string
+	Description       string
+	Active            bool
+	Organisations     []string
+	DeviceStatus      DeviceStatus
+	DeviceProfiles    []DeviceProfile
+	MeasurementTypes  []string
+	Measurements      []MeasurementViewModel
+	ObservedAt        time.Time
+	Environment       string
+	Interval          float32
+	Metadata          []MetadataViewModel
+}
+
+type MetadataViewModel struct {
+	Key   string
+	Value string
+}
+
+type DeviceStatus struct {
+	BatteryLevel    int       `json:"batteryLevel,omitzero"`
+	RSSI            *float64  `json:"rssi,omitempty"`
+	LoRaSNR         *float64  `json:"loRaSNR,omitempty"`
+	Frequency       *int64    `json:"frequency,omitempty"`
+	SpreadingFactor *float64  `json:"spreadingFactor,omitempty"`
+	DR              *int      `json:"dr,omitempty"`
+	ObservedAt      time.Time `json:"observedAt"`
+}
+
+type DeviceProfile struct {
+	Name     string   `json:"name"`
+	Decoder  string   `json:"decoder,omitempty"`
+	Interval int      `json:"interval,omitempty"`
+	Types    []string `json:"types,omitempty"`
+}
+
+type MeasurementViewModel struct {
+	ID          string    `json:"id"`
+	Timestamp   time.Time `json:"timestamp"`
+	Urn         string    `json:"urn"`
+	BoolValue   *bool     `json:"vb,omitempty"`
+	StringValue string    `json:"vs,omitempty"`
+	Unit        string    `json:"unit,omitempty"`
+	Value       *float64  `json:"v,omitempty"`
+}
+
+templ SensorDetailsPage(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {
+	<div class="flex flex-col items-start gap-14 flex-[1_0_0] w-full" id="sensor-view">
+		@SensorDetails(l10n, asset, sensor)
+	</div>
+}
+
+templ statusActive(active bool, l10n Localizer) {
+	if active {
+		@shared.Label(l10n.Get("active"), active)
+	} else {
+		@shared.Label(l10n.Get("inactive"), active)
+	}
+}
+
+templ SensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {
+	<div class="w-full">
+		<div class="flex items-center w-full justify-between">
+			if sensor.Name == "" {
+				<div class="flex items-center align-middle">
+					<h1 class="py-3">&nbsp;</h1>
+					@statusActive(sensor.Active, l10n)
+				</div>
+			} else {
+				<div class="flex items-center gap-6 align-middle">
+					<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ sensor.Name }</h1>
+					@statusActive(sensor.Active, l10n)
+				</div>
+			}
+			@shared.Button(shared.Tertiary, l10n.Get("edit"), "pen", shared.Target("#sensor-view"), shared.HxUrl("get", fmt.Sprintf("/components/sensors/details?id=%s&mode=edit", sensor.DeviceID)))
+		</div>
+		@SensorDetailsView(l10n, asset, sensor)
+	</div>
+	<script nonce={ csp.Nonce(ctx) }>
+		(()=>{
+			document.body.addEventListener("htmx:afterSwap", function(event) {
+				if (event && event.detail && event.detail.target && event.detail.target.classList && event.detail.target.classList.contains("chart-data")) {
+					let chartId = event.detail.target.dataset.chart;
+					let data = JSON.parse(event.detail.target.textContent);
+					let ctx = document.getElementById(chartId).getContext('2d');
+
+					const existingChart = Chart.getChart(chartId); // <canvas> id
+					if (existingChart) {
+						existingChart.destroy();
+					}
+
+					let defaultScales = {
+						...data.scales,
+						x: {
+							type: 'time',
+							time: {
+								unit: 'hour',
+							}
+						}
+					};
+
+					return new Chart(ctx, {
+						type: 'line',
+						data: {
+							datasets: data.datasets
+						},
+						options: {
+							responsive: true,
+							animation: false,
+							scales: defaultScales,
+						}
+					});
+				}
+			});
+		})()
+	</script>
+}
+
+func sensorMapFeature(sensor SensorDetailsViewModel) shared.FeatureCollection {
+	feature := shared.NewFeature(shared.NewPoint(sensor.Latitude, sensor.Longitude))
+	feature.AddProperty("desc", sensor.Description)
+	feature.AddProperty("type", "sensor")
+	return shared.NewFeatureCollection([]shared.Feature{feature})
+}

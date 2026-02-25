@@ -1,0 +1,107 @@
+package shared
+
+import (
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+	"strings"
+)
+
+type PagingViewModel struct {
+	PageIndex  int
+	PageLast   int
+	PageSize   int
+	Offset     int
+	Count      int
+	TotalCount int
+	Pages      []int64
+	Query      string
+	TargetURL  string
+	TargetID   string
+}
+
+type PagingConfigKey string
+
+var PageSize PagingConfigKey = "page.size"
+var PageIndex PagingConfigKey = "page.index"
+var PageLast PagingConfigKey = "page.last"
+
+templ Paging(l10n Localizer, p PagingViewModel) {
+	<div id="paginering" class="flex items-center w-full h-[60px] px-4 py-3.5 rounded-b-2xl border-white border-opacity-30">
+		<div class="flex flex-1 h-8 justify-start items-center gap-2">
+			<span class="text-zinc-700 dark:text-neutral-200 text-sm font-normal font-sans leading-[18px]">{ l10n.Get("rowsPerPage") }:</span>
+			<div class="relative flex justify-between items-center bg-tertiary-surface rounded-xl">
+				<select
+					id="pageSizeSelector"
+					class="filter appearance-none min-w-[64px] outline-none px-3 py-1.5 bg-transparent text-sm font-bold font-sans leading-tight cursor-pointer"
+					name="limit"
+					hx-get={ p.TargetURL }
+					hx-target={ p.TargetID }
+					hx-include=".filter"
+				>
+					<option value="5" selected?={ p.PageSize == 5 }>5</option>
+					<option value="10" selected?={ p.PageSize == 10 }>10</option>
+					<option value="15" selected?={ p.PageSize == 15 }>15</option>
+					<option value="50" selected?={ p.PageSize == 50 }>50</option>
+					<option value="100" selected?={ p.PageSize == 100 }>100</option>
+				</select>
+				<div class="absolute flex inset-y-0 right-0 px-2 items-center pointer-events-none">
+					<svg class="w-[18px] h-[18px] dark:fill-white">
+						@templ.Raw(iconSVG("chevron-down"))
+					</svg>
+				</div>
+			</div>
+		</div>
+		<div class="flex justify-center items-center flex-none">
+			@PageButton(p.PageIndex-1, p.TargetURL, p.Query, p.TargetID) {
+				<span class="w-5 h-5">
+					@SVG("arrow-left")
+				</span>
+			}
+			<span class="h-7 px-3 justify-between items-center flex">
+				for _, page := range p.Pages {
+					if int(page) == p.PageIndex {
+						<div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex py-0.5 ">
+							<div class="grow shrink basis-0 text-center text-primary-dark dark:text-slate-300 text-base font-bold font-sans leading-normal">{ fmt.Sprintf("%d", page) }</div>
+						</div>
+					} else {
+						@PageButton(int(page), p.TargetURL, p.Query, p.TargetID) {
+							<div class="w-[40.89px] rounded-lg justify-start items-center gap-0.5 inline-flex py-0.5 ">
+								<div class="grow shrink basis-0 text-center text-primary-surface-blue dark:dark:text-primary-surface-blue-dark text-base font-normal font-sans underline leading-normal">{ fmt.Sprintf("%d", page) }</div>
+							</div>
+						}
+					}
+				}
+			</span>
+			@PageButton(p.PageIndex+1, p.TargetURL, p.Query, p.TargetID) {
+				<span class="w-5 h-5">
+					@SVG("arrow-right", Box(24, 24))
+				</span>
+			}
+		</div>
+		<div class="h-8 justify-end items-center gap-2 flex flex-1"></div>
+	</div>
+}
+
+templ PageButton(pageIndex int, hxGet, query, hxTarget string) {
+	<button
+		class="p-1.5 rounded-full justify-center items-center gap-1 flex"
+		if hxGet != "" {
+			if query != "" {
+				hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?page=%d&%s", hxGet, pageIndex, query))) }
+			} else {
+				hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?page=%d", hxGet, pageIndex))) }
+			}
+		}
+		if hxTarget != "" {
+			if strings.HasPrefix(hxTarget, "#") {
+				hx-target={ hxTarget }
+			} else {
+				hx-target={ fmt.Sprintf("#%s", hxTarget) }
+			}
+		}
+		hx-trigger="click"
+		hx-include=".filter"
+	>
+		{ children... }
+	</button>
+}

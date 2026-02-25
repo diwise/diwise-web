@@ -1,0 +1,267 @@
+package things
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
+	"sort"
+	"time"
+)
+
+type ThingsListViewModel struct {
+	Things  []ThingViewModel
+	Pageing shared.PagingViewModel
+	MapView bool
+	Tags    []string
+	Types   []TypeViewModel
+}
+
+type TypeViewModel struct {
+	Type string
+	Name string
+}
+
+type ThingViewModel struct {
+	ID              string
+	Type            string
+	SubType         string
+	Name            string
+	AlternativeName string
+	Description     string
+	Latitude        float64
+	Longitude       float64
+	RefDevice       []string
+	Tenant          string
+	Tags            []string
+	Measurements    []MeasurementViewModel
+	Latest          map[string]MeasurementViewModel
+	ObservedAt      time.Time
+	Properties      map[string]any
+}
+
+func (t ThingViewModel) HasWarning() bool {
+	return t.ObservedAt.IsZero()
+}
+
+func (t ThingViewModel) GetBoolOrDefault(key string, defaultValue bool) bool {
+	if v, ok := t.Properties[key]; ok {
+		if b, ok := v.(bool); ok {
+			return b
+		}
+	}
+	return defaultValue
+}
+
+func (t ThingViewModel) GetFloatOrDefault(key string, defaultValue float64) float64 {
+	if v, ok := t.Properties[key]; ok {
+		if f, ok := v.(float64); ok {
+			return f
+		}
+	}
+	return defaultValue
+}
+
+func (t ThingViewModel) GetMeasurementValue(key string) float64 {
+	if t.Properties[key] == nil {
+		return 0.0
+	}
+
+	var m map[string]any
+	var ok bool
+	var v float64
+
+	v, ok = t.Properties[key].(float64)
+	if !ok {
+		if m, ok = t.Properties[key].(map[string]any); ok {
+			v, ok = m["v"].(float64)
+		}
+	}
+
+	if !ok {
+		return 0.0
+	}
+
+	return v
+}
+
+func (t ThingViewModel) GetFloat(key string) (float64, bool) {
+	if v, ok := t.Properties[key]; ok {
+		if f, ok := v.(float64); ok {
+			return f, true
+		}
+	}
+	return 0.0, false
+}
+
+func (t ThingViewModel) GetBool(key string) (bool, bool) {
+	if v, ok := t.Properties[key]; ok {
+		if b, ok := v.(bool); ok {
+			return b, true
+		}
+	}
+	return false, false
+}
+
+func (t ThingViewModel) GetFloatAsString(key string, defaultValue float64) string {
+	if v, ok := t.Properties[key]; ok {
+		if f, ok := v.(float64); ok {
+			return fmt.Sprintf("%0.2f", f)
+		}
+	}
+	return fmt.Sprintf("%0.2f", defaultValue)
+}
+
+func (t ThingViewModel) GetStringOrDefault(key string, defaultValue string) string {
+	if v, ok := t.Properties[key]; ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+	}
+	return defaultValue
+}
+
+type MeasurementViewModel struct {
+	ID          string    `json:"id"`
+	Timestamp   time.Time `json:"timestamp"`
+	Urn         string    `json:"urn"`
+	BoolValue   *bool     `json:"vb,omitempty"`
+	StringValue string    `json:"vs,omitempty"`
+	Unit        string    `json:"unit,omitempty"`
+	Value       *float64  `json:"v,omitempty"`
+}
+
+templ ThingsList(l10n Localizer, model ThingsListViewModel) {
+	<div class="flex flex-col items-start gap-4 flex-[1_0_0] w-full" id="things-view">
+		<div class="flex flex-col items-start gap-6 self-stretch w-full">
+			@shared.PageHeader(l10n.Get("things"), ThingsListActions(l10n))
+		</div>
+		@shared.Divider()
+		<div class="flex flex-col items-start self-stretch gap-4">
+			@ThingsFilter(l10n, model)
+			@shared.DataList(l10n, ThingsTable(l10n, model), ThingsMap(l10n, model), model.MapView)
+		</div>
+		<script csp.Nonce={ csp.Nonce(ctx) }>
+			document.getElementById('modalCreateThingContainer').addEventListener('htmx:afterSwap', function() {
+				document.getElementById('modalCreateThingContainer').classList.remove('hidden');
+			});
+		</script>
+	</div>
+}
+
+templ ThingsListActions(l10n Localizer) {
+	<div class="flex gap-4 items-center text-white dark:text-primary-dark font-bold">
+		@shared.ModalLoadPrimaryButton(l10n.Get("addthing"), "#modalCreateThingContainer", "/components/things")
+		@shared.ExportActionButton("/admin/export?export=things&accept=text/csv", ".filter", l10n.Get("export"))
+	</div>
+	<div id="modalCreateThingContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
+}
+
+templ NewThing(l10n Localizer, asset AssetLoaderFunc, model NewThingViewModel) {
+	<div id="modalCreateThing" class="fixed inset-0 bg-gray-30 z-50 flex items-start justify-center dark:text-white">
+		<div class="bg-white dark:bg-primary-dark rounded-lg shadow-xl w-full max-w-xl p-6 mt-8">
+			<div class="w-full">
+				<div class="flex items-center w-full justify-between">
+					<div class="flex items-center gap-6 align-middle">
+						<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">{ l10n.Get("addthing") }</h1>
+					</div>
+				</div>
+				<form action={ templ.SafeURL("/things") } method="post">
+					<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
+						<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+							//Status och uppgifter
+							<div class="flex flex-col items-start self-stretch">
+								<div class="flex items-center gap-3 self-stretch">
+									//Rubrik uppgifter
+									@shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+									<h2 class="font-heading text-xl font-bold">{ l10n.Get("details") }</h2>
+									@shared.Divider()
+								</div>
+								<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
+									//Uppgifter
+									<div class="flex flex-start gap-10 self-stretch">
+										<div class="flex flex-col gap-2 flex-1">
+											<div class="font-bold">{ l10n.Get("thingtype") }</div>
+											<div class="border border-input-surface rounded-xl">
+												<label for="type" class="hidden block text-sm font-medium text-gray-700">
+													{ l10n.Get("pickOption") }
+												</label>
+												@TypeSelect(l10n, asset, "type", "", model.ThingType)
+											</div>
+										</div>
+									</div>
+									<div class="flex flex-start gap-10 self-stretch">
+										<div class="flex flex-col gap-2 flex-1">
+											<div class="font-bold">{ l10n.Get("name") }</div>
+											<input
+												type="text"
+												name="name"
+												class="border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2"
+												placeholder=""
+											/>
+										</div>
+										<div class="flex flex-col gap-2 flex-1">
+											<div class="font-bold">{ l10n.Get("organisation") }</div>
+											<div class="border border-input-surface rounded-xl">
+												<label for="organisation" class="hidden block text-sm font-medium text-gray-700">
+													{ l10n.Get("pickOption") }
+												</label>
+												@OrganisationSelect(l10n, asset, "organisation", "", model.Organisations)
+											</div>
+										</div>
+									</div>
+									<div class="flex flex-start gap-10 self-stretch">
+										<div class="flex flex-col gap-2 flex-[1_0_0]">
+											<div class="font-bold">{ l10n.Get("description") }</div>
+											<textarea type="text" name="description" class="w-full min-h-[150px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark rounded-xl p-2" placeholder={ l10n.Get("description") }></textarea>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					@shared.Divider()
+					<div class="flex items-center justify-end pt-6">
+						<div class="flex items-center gap-4">
+							<div id="cancelButton">
+								@shared.Button(shared.Secondary, l10n.Get("cancel"), "close", shared.Name("cancel"), shared.BtnType("button"))
+							</div>
+							@shared.Button(shared.Primary, l10n.Get("save"), "check", shared.Name("save"), shared.BtnType("submit"))
+						</div>
+					</div>
+					<script nonce={ csp.Nonce(ctx) }>
+						document.getElementById('cancelButton').addEventListener('click', function() {
+							document.getElementById('modalCreateThingContainer').classList.add('hidden');
+						});
+					</script>
+				</form>
+			</div>
+		</div>
+	</div>
+}
+
+func OrganisationSelect(l10n Localizer, asset AssetLoaderFunc, id, selected string, organisations []string) templ.Component {
+	viewModel := []shared.OptionViewModel{
+		{
+			Value:    "",
+			Text:     l10n.Get("choose"),
+			Selected: true,
+			Hidden:   true,
+			Disabled: true,
+		},
+	}
+
+	sort.Slice(organisations, func(i, j int) bool {
+		return organisations[i] < organisations[j]
+	})
+
+	for _, t := range organisations {
+		viewModel = append(viewModel, shared.OptionViewModel{
+			Value:    t,
+			Text:     t,
+			Selected: t == selected,
+		})
+	}
+
+	return shared.SelectMultipleInputs(id, false, "", "", "", viewModel)
+}

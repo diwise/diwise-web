@@ -1,0 +1,18 @@
+package shared
+
+import (
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ EntityLocationSection(l10n Localizer, body templ.Component) {
+	<div class="flex flex-col items-start self-stretch">
+		@SectionHeader(
+			SVG("map-pin", Size(24), NoFill(), Box(24, 24), StrokeColor("primary-dark", "zinc-100"), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+			l10n.Get("location"),
+			false,
+		)
+		<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
+			@body
+		</div>
+	</div>
+}

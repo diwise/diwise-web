@@ -9,7 +9,8 @@ import (
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/sensors"
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
 	. "github.com/diwise/frontend-toolkit"
@@ -39,7 +40,7 @@ func NewBatteryLevelComponentHandler(ctx context.Context, l10n LocaleBundle, ass
 			}
 		}
 
-		component := components.Text(fmt.Sprintf("%s%s", v, u))
+		component := shared.Text(fmt.Sprintf("%s%s", v, u))
 		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 10*time.Minute)
 	}
 
@@ -98,7 +99,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 
 		isDark := helpers.IsDarkMode(r)
 
-		dataset := components.NewChartDataset("", isDark)
+		dataset := shared.NewChartDataset("", isDark)
 
 		previousValue := 0
 		for _, v := range measurements.Values {
@@ -126,7 +127,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			}
 		}
 
-		component := components.MeasurementChart([]components.ChartDataset{dataset}, true, isDark)
+		component := featuresensors.MeasurementChart([]shared.ChartDataset{dataset}, true, isDark)
 		helpers.WriteComponentResponse(ctx, w, r, component, 20*1024, 5*time.Minute)
 	}
 

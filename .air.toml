@@ -3,9 +3,9 @@ testdata_dir = "testdata"
 tmp_dir = ".tmp"
 
 [build]
-  args_bin = ["-csp", "off", "-web-assets", "$PWD/assets"]
+  args_bin = ["-csp", "off", "-web-assets", "$PWD/assets", "-devmode", "true"]
   bin = "./.tmp/main"
-  cmd = "tailwindcss -c ./internal/pkg/presentation/web/css/tailwind.config.js -i ./internal/pkg/presentation/web/css/input.css -o ./assets/css/diwise.css && templ generate && go build -race -o ./.tmp/main ./cmd/diwise-web"
+  cmd = "npx tailwindcss -c ./internal/pkg/presentation/web/css/tailwind.config.js -i ./internal/pkg/presentation/web/css/input.css -o ./assets/css/diwise.css && templ generate && go build -race -o ./.tmp/main ./cmd/diwise-web"
   delay = 1000
   exclude_dir = ["assets/css", "tmp", "vendor", "testdata", ".vscode"]
   exclude_file = []

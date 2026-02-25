@@ -5,3 +5,7 @@ diwise.css
 .vscode/
 air.log
 __debug_bin*
+node_modules/*
+package-lock.json
+AGENTS.md
+docs/playbooks/*
