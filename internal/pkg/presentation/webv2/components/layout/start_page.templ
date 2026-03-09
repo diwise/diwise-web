@@ -1,0 +1,186 @@
+package layout
+
+import (
+	"context"
+	"fmt"
+
+	auth "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/auth"
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
+)
+
+type ComponentName string
+
+var CurrentComponent ComponentName = "current-component-v2"
+
+templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, mainContent templ.Component) {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link href={ asset("/css/diwise-v2.css").Path() } rel="stylesheet"/>
+			<link href={ asset("/css/leaflet.css").Path() } rel="stylesheet"/>
+			<script src="https://cdn.jsdelivr.net/npm/chart.js" nonce={ csp.Nonce(ctx) }></script>
+			<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js" nonce={ csp.Nonce(ctx) }></script>
+			<script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js" nonce={ csp.Nonce(ctx) }></script>
+			<script src={ asset("/js/htmx.min.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+			<script src={ asset("/js/htmx-ext-sse.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+			<script src={ asset("/js/leaflet.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+			<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet"/>
+			<link rel="icon" type="image/x-icon" href={ asset("/icons/favicon.ico").Path() }/>
+			<title>diwise</title>
+		</head>
+		if authz.IsLoggedIn(ctx) {
+			@Body(version, localizer, asset, mainContent)
+		} else {
+			@auth.NotLoggedIn(localizer, asset)
+		}
+	</html>
+}
+
+templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent templ.Component) {
+	<body id="body" hx-ext="sse" sse-connect={ "/events/" + version } sse-close="goodbye" class="min-h-screen">
+		<div id="sse" class="hidden" sse-swap="upgrade,hello,tick"></div>
+		<div class="mx-auto flex min-h-screen w-full max-w-[1720px] flex-col md:flex-row">
+			<aside class="hidden h-screen w-72 shrink-0 border-r border-border/80 px-4 py-8 md:sticky md:top-0 md:flex md:flex-col">
+				<div class="flex items-center gap-3 px-2">
+					@shared.SVG("diwiselogo", shared.Box(135, 51), shared.FillColor("primary-dark", "white"), shared.ClassNames("h-[48px]", "w-[127px]"))
+				</div>
+				<nav class="mt-14 flex flex-col gap-2">
+					@NavItem(l10n.Get("home"), "/v2/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
+					@NavItem(l10n.Get("sensors"), "/sensors", false, icon.Rss(icon.Props{Size: 18}))
+					@NavItem(l10n.Get("things"), "/things", false, icon.Shapes(icon.Props{Size: 18}))
+				</nav>
+				<div class="mt-auto flex flex-col gap-3">
+					@NavItem(l10n.Get("logout"), "/v2/logout", false, icon.LogOut(icon.Props{Size: 18}))
+					<div class="flex items-center gap-2 rounded-2xl border border-border/80 bg-card/70 p-2 backdrop-blur">
+						@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-light flex-1 justify-center rounded-xl dark:hidden"}) {
+							@icon.SunMedium(icon.Props{Size: 18})
+						}
+						@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-dark hidden flex-1 justify-center rounded-xl dark:inline-flex"}) {
+							@icon.Moon(icon.Props{Size: 18})
+						}
+						<p class="px-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">{ l10n.Get("light") } / { l10n.Get("dark") }</p>
+					</div>
+				</div>
+			</aside>
+			<div class="flex min-h-screen flex-1 flex-col">
+				<header class="sticky top-0 z-40 border-b border-border/80 bg-background/90 px-4 py-3 backdrop-blur md:hidden">
+					<div class="flex items-center gap-2">
+						<img src={ asset("/images/diwise-logo.svg").Path() } alt="Diwise" class="h-8 dark:hidden"/>
+						<img src={ asset("/images/diwise-logo-dark.svg").Path() } alt="Diwise" class="hidden h-8 dark:block"/>
+						<div class="ml-auto flex items-center gap-1">
+							@IconNav("/v2/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
+							@IconNav("/sensors", false, icon.Rss(icon.Props{Size: 18}))
+							@IconNav("/things", false, icon.Shapes(icon.Props{Size: 18}))
+							@IconNav("/v2/logout", false, icon.LogOut(icon.Props{Size: 18}))
+							@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-light rounded-xl dark:hidden"}) {
+								@icon.SunMedium(icon.Props{Size: 18})
+							}
+							@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-dark hidden rounded-xl dark:inline-flex"}) {
+								@icon.Moon(icon.Props{Size: 18})
+							}
+						</div>
+					</div>
+				</header>
+				<main id="main-content" class="flex flex-1 flex-col px-4 py-8 md:px-8 lg:px-12">
+					@mainContent
+				</main>
+			</div>
+		</div>
+	</body>
+	<script nonce={ csp.Nonce(ctx) }>
+		function setTheme(theme) {
+			if (theme === 'dark') {
+				document.body.classList.add('dark');
+				localStorage.theme = 'dark';
+			} else {
+				document.body.classList.remove('dark');
+				localStorage.theme = 'light';
+			}
+
+			document.cookie = `theme=${theme}; path=/; max-age=31536000;`;
+
+			const isDark = document.body.classList.contains('dark');
+			if (typeof updateMapForTheme === 'function') {
+				updateMapForTheme(isDark);
+			}
+		}
+
+		function reloadPage() {
+			document.location.replace(document.location.href)
+		}
+
+		document.body.addEventListener('htmx:sseClose', (evt) => {
+			if (evt.detail.type === "message") {
+				setTimeout(reloadPage, 2000)
+			}
+		})
+
+		function onPageLoad() {
+			if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+				document.body.classList.add('dark')
+			} else {
+				document.body.classList.remove('dark')
+			}
+
+			document.querySelectorAll('.toggle-light').forEach((element) => {
+				element.addEventListener('click', () => setTheme('light'));
+			});
+			document.querySelectorAll('.toggle-dark').forEach((element) => {
+				element.addEventListener('click', () => setTheme('dark'));
+			});
+		}
+
+		onPageLoad()
+	</script>
+}
+
+templ NavItem(title, href string, selected bool, leading templ.Component) {
+	@button.Button(button.Props{
+		Href: href,
+		Variant: navVariant(selected),
+		Class: "w-full justify-start rounded-2xl px-4 py-6 text-base shadow-none",
+		Attributes: templ.Attributes{
+			"hx-get":         href,
+			"hx-target":      "#body",
+			"hx-replace-url": "true",
+		},
+	}) {
+		@leading
+		<span>{ title }</span>
+	}
+}
+
+templ IconNav(href string, selected bool, leading templ.Component) {
+	@button.Button(button.Props{
+		Href: href,
+		Variant: navVariant(selected),
+		Size: button.SizeIcon,
+		Class: "rounded-xl shadow-none",
+		Attributes: templ.Attributes{
+			"hx-get":         href,
+			"hx-target":      "#body",
+			"hx-replace-url": "true",
+		},
+	}) {
+		@leading
+	}
+}
+
+func navVariant(selected bool) button.Variant {
+	if selected {
+		return button.VariantDefault
+	}
+	return button.VariantGhost
+}
+
+func isCurrent(ctx context.Context, expect string) bool {
+	name := fmt.Sprintf("%s", ctx.Value(CurrentComponent))
+	return name == expect
+}

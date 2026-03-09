@@ -211,6 +211,12 @@ func Box(x, y int) func(*svgCfg) {
 	}
 }
 
+func ClassNames(names ...string) func(*svgCfg) {
+	return func(cfg *svgCfg) {
+		cfg.classes["custom"] = append(cfg.classes["custom"], names...)
+	}
+}
+
 templ SVG(name string, config ...func(*svgCfg)) {
 	<svg class={ newSVGCfg(config...).Classes() } viewBox={ newSVGCfg(config...).ViewBox() } { newSVGCfg(config...).Stroke()... }>
 		@templ.Raw(iconSVG(name))

@@ -1,5 +1,11 @@
 {
+  "scripts": {
+    "build:css:legacy": "node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./internal/pkg/presentation/web/css/input.css -o ./assets/css/diwise.css",
+    "build:css:v2": "node ./node_modules/@tailwindcss/cli/dist/index.mjs -i ./internal/pkg/presentation/webv2/css/input.css -o ./assets/css/diwise-v2.css",
+    "build:css": "npm run build:css:legacy && npm run build:css:v2"
+  },
   "devDependencies": {
-    "tailwindcss": "^3.4.17"
+    "@tailwindcss/cli": "^4.2.1",
+    "tailwindcss": "^4.2.1"
   }
 }

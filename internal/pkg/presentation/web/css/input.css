@@ -1,3 +1,7 @@
-@tailwind base;
-@tailwind utilities;
-@tailwind components;
+@import "tailwindcss";
+
+@config "./tailwind.config.js";
+@custom-variant dark (&:is(.dark *));
+
+@source "../components/**/*.templ";
+@source inline("stroke-zinc-100 stroke-secondary-text dark:stroke-zinc-100 dark:border-white-50");

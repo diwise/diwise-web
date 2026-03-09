@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@source "../components/**/*.templ";
+@source "../components/**/*.go";
+
+@theme inline {
+  --font-sans: Arial, sans-serif;
+  --font-heading: Raleway, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+:root {
+  --background: #f6f5f2;
+  --foreground: #1f1f25;
+  --card: rgba(255, 255, 255, 0.92);
+  --card-foreground: #1f1f25;
+  --primary: #1f1f25;
+  --primary-foreground: #ffffff;
+  --secondary: #e7e5e4;
+  --secondary-foreground: #1f1f25;
+  --muted: #efeeea;
+  --muted-foreground: #6b6b73;
+  --accent: #f1ece8;
+  --accent-foreground: #1f1f25;
+  --destructive: #d62e2e;
+  --border: rgba(28, 28, 40, 0.16);
+  --input: rgba(28, 28, 40, 0.14);
+  --ring: rgba(170, 78, 31, 0.4);
+}
+
+.dark {
+  --background: #1f1f25;
+  --foreground: #f9fafb;
+  --card: rgba(37, 37, 46, 0.9);
+  --card-foreground: #f9fafb;
+  --primary: #ffffff;
+  --primary-foreground: #1f1f25;
+  --secondary: rgba(255, 255, 255, 0.1);
+  --secondary-foreground: #f9fafb;
+  --muted: rgba(255, 255, 255, 0.08);
+  --muted-foreground: rgba(255, 255, 255, 0.68);
+  --accent: rgba(255, 255, 255, 0.12);
+  --accent-foreground: #f9fafb;
+  --destructive: #f87171;
+  --border: rgba(255, 255, 255, 0.16);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: rgba(255, 255, 255, 0.3);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(219, 105, 0, 0.11), transparent 28%),
+      radial-gradient(circle at top right, rgba(0, 85, 149, 0.1), transparent 25%),
+      var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+}

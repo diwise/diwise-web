@@ -1,0 +1,31 @@
+package auth
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ NotLoggedIn(l10n Localizer, asset AssetLoaderFunc) {
+	<div class="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
+		<img src={ asset("/images/bg.webp").Path() } alt="" class="pointer-events-none absolute left-1/2 top-1/2 max-w-none -translate-x-1/2 -translate-y-1/2" aria-hidden="true"/>
+		<div class="absolute inset-0 bg-black/10" aria-hidden="true"></div>
+		<div class="relative grid w-full max-w-5xl overflow-hidden rounded-[2rem] border border-border/70 bg-card/95 shadow-2xl shadow-black/10 backdrop-blur md:grid-cols-2">
+			<div class="flex items-center justify-center bg-white/85 p-8 dark:bg-card/80">
+				@shared.SVG("diwiselogo", shared.Box(135, 51), shared.FillColor("primary-dark", "white"), shared.ClassNames("h-[48px]", "w-[127px]"))
+			</div>
+			<div class="flex flex-col justify-center bg-[#AA4E1F] p-8 text-white md:p-10">
+				<div class="space-y-5 md:max-w-sm">
+					<h1 class="font-heading text-3xl font-bold leading-tight">{ l10n.Get("notloggedin") }</h1>
+					@button.Button(button.Props{
+						Href:    "/v2/login",
+						Variant: button.VariantDefault,
+						Class:   "rounded-xl bg-white px-6 text-[#1F1F25] hover:bg-white/90",
+					}) {
+						{ l10n.Get("login") }
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+}

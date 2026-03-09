@@ -1,0 +1,304 @@
+package home
+
+import (
+	"fmt"
+	"net/url"
+	"strconv"
+	"time"
+
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/pagination"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/skeleton"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+type OverviewStats struct {
+	Total    int
+	Active   int
+	Inactive int
+	Online   int
+	Unknown  int
+}
+
+type HomeViewModel struct {
+	UsageDatasets []shared.ChartDataset
+	XScaleMax     uint
+	Alarms        []AlarmViewModel
+	Paging        PagingViewModel
+}
+
+type AlarmViewModel struct {
+	DeviceID   string
+	ObservedAt time.Time
+	Types      []string
+}
+
+type PagingViewModel struct {
+	PageIndex int
+	PageLast  int
+	PageSize  int
+	Query     string
+	TargetURL string
+	TargetID  string
+}
+
+templ Home(l10n Localizer, viewModel HomeViewModel) {
+	<div class="flex flex-col gap-14">
+		<div class="grid gap-10 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-start">
+			<section class="flex flex-col gap-6">
+				@SectionHeading(l10n.Get("overview"), shared.SVG("map-pin", shared.Size(32), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})))
+				<div hx-get="/v2/components/home/statistics" hx-trigger="load, every 1m" class="w-full">
+					@OverviewCardsSkeleton()
+				</div>
+			</section>
+			<div class="hidden xl:block xl:h-full xl:min-h-[24rem] xl:px-2">
+				@separator.Separator(separator.Props{Orientation: separator.OrientationVertical, Class: "h-full [&_span:last-child]:hidden"})
+			</div>
+			<section class="flex flex-col gap-6">
+				@SectionHeading(l10n.Get("measurementperday"), shared.SVG("chartline", shared.Size(80), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})))
+				@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border border-border/80 bg-white shadow dark:bg-gray-800"}) {
+					@card.Content(card.ContentProps{Class: "p-6"}) {
+						<div class="h-[320px]">
+							<canvas id="usage-chart" class="h-full w-full"></canvas>
+						</div>
+						<div hx-get="/v2/components/home/usage" hx-trigger="load, every 60m" class="hidden"></div>
+					}
+				}
+			</section>
+		</div>
+		@AlarmsTableSection(l10n, viewModel)
+	</div>
+}
+
+templ OverviewCards(l10n Localizer, stats OverviewStats) {
+	<div class="grid gap-5 md:grid-cols-2">
+		@OverviewCard(l10n.Get("numberofsensors"), "/sensors", stats.Total, shared.SVG("rss", shared.Size(32)))
+		@OverviewCard(l10n.Get("activesensors"), "/sensors?active=true", stats.Active, shared.SVG("rss", shared.Size(32), shared.OKStyle()))
+		@OverviewCard(l10n.Get("inactivesensors"), "/sensors?active=false", stats.Inactive, shared.SVG("rss", shared.Size(32), shared.AlertStyle()))
+		@OverviewCard(l10n.Get("unknownsensors"), "/sensors?type=unknown", stats.Unknown, shared.SVG("rss", shared.Size(32), shared.WarningStyle()))
+	</div>
+}
+
+templ OverviewCardsSkeleton() {
+	<div class="grid gap-5 md:grid-cols-2">
+		for i := 0; i < 4; i++ {
+			@card.Card(card.Props{Class: "rounded-[1.75rem] border-border/80 bg-card/80 shadow-xl shadow-black/5"}) {
+				@card.Content(card.ContentProps{Class: "flex min-h-44 flex-col gap-5 p-6"}) {
+					@skeleton.Skeleton(skeleton.Props{Class: "h-8 w-8 rounded-md"})
+					@skeleton.Skeleton(skeleton.Props{Class: "h-10 w-20 rounded-xl"})
+					<div class="mt-auto flex items-end justify-between gap-4">
+						@skeleton.Skeleton(skeleton.Props{Class: "h-5 w-36 rounded-xl"})
+						@skeleton.Skeleton(skeleton.Props{Class: "size-10 rounded-full"})
+					</div>
+				}
+			}
+		}
+	</div>
+}
+
+templ OverviewCard(title, href string, count int, leading templ.Component) {
+	<a
+		href={ templ.SafeURL(href) }
+		hx-get={ href }
+		hx-target="#body"
+		hx-replace-url="true"
+		class="block"
+	>
+		@card.Card(card.Props{Class: "h-full rounded-2xl border-0 bg-white shadow dark:bg-gray-800"}) {
+			@card.Content(card.ContentProps{Class: "flex items-center p-6"}) {
+				<div class="flex flex-1 flex-col items-start gap-4">
+					@leading
+					<div class="text-[32px] font-bold leading-10 font-heading text-neutral-800 dark:text-neutral-200">
+						if count > 0 {
+							{ fmt.Sprintf("%d", count) }
+						} else {
+							{ "-" }
+						}
+					</div>
+					<div class="text-lg whitespace-nowrap text-zinc-700 dark:text-zinc-200">
+						{ title }
+					</div>
+				</div>
+				<div class="ml-auto flex size-6 items-center justify-center rounded-full bg-primary-surface dark:bg-white">
+					@shared.SVG("arrow-right", shared.Size(16), shared.Box(24, 24), shared.StrokeColor("white", "black"), shared.FillColor("white", "black"))
+				</div>
+			}
+		}
+	</a>
+}
+
+templ AlarmsTableSection(l10n Localizer, viewModel HomeViewModel) {
+	<section id="tableview" class="flex flex-col gap-6">
+		@SectionHeading(l10n.Get("information"), shared.SVG("alert-triangle", shared.Size(24)))
+		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-0 bg-transparent shadow-none"}) {
+			@card.Content(card.ContentProps{Class: "space-y-6 p-0"}) {
+				<div class="overflow-x-auto">
+					@table.Table(table.Props{Class: "min-w-[640px]"}) {
+						@table.Header() {
+							@table.Row() {
+								@table.Head(table.HeadProps{Class: "px-6 py-3 font-medium text-muted-foreground"}) { { l10n.Get("sensorID") } }
+								@table.Head(table.HeadProps{Class: "min-w-[200px] px-6 py-3 font-medium text-muted-foreground"}) { { l10n.Get("description") } }
+								@table.Head(table.HeadProps{Class: "px-6 py-3 font-medium text-muted-foreground"}) { { l10n.Get("pointoftime") } }
+							}
+						}
+						@table.Body() {
+							if len(viewModel.Alarms) == 0 {
+								@table.Row() {
+									@table.Cell(table.CellProps{Class: "px-4 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "3"}}) {
+										{ l10n.Get("noalarms") }
+									}
+								}
+							} else {
+								for _, alarm := range viewModel.Alarms {
+									@AlarmRow(l10n, alarm)
+								}
+							}
+						}
+					}
+				</div>
+				if viewModel.Paging.PageLast > 1 {
+					<div class="flex justify-end">
+						@PagingControl(l10n, viewModel.Paging)
+					</div>
+				}
+			}
+		}
+	</section>
+}
+
+templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
+	@table.Row(table.RowProps{Class: "border-border/70 hover:bg-background-100 dark:hover:bg-white/10"}) {
+		@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
+			<a
+				href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", alarm.DeviceID)) }
+				hx-get={ fmt.Sprintf("/sensors/%s", alarm.DeviceID) }
+				hx-target="#body"
+				hx-replace-url="true"
+				class="font-bold text-foreground hover:underline"
+			>
+				{ alarm.DeviceID }
+			</a>
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			<div class="flex flex-wrap gap-2">
+				for _, t := range alarm.Types {
+					<span class="rounded-full border-2 border-gray-30 px-2 py-1 text-sm dark:border-white-30">
+						{ l10n.Get(t) }
+					</span>
+				}
+			</div>
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3 text-muted-foreground"}) {
+			{ alarm.ObservedAt.Format("2006-01-02, 15:04") }
+		}
+	}
+}
+
+templ PagingControl(l10n Localizer, model PagingViewModel) {
+	{{ pager := pagination.CreatePagination(model.PageIndex, model.PageLast, 5) }}
+	@pagination.Pagination() {
+		@pagination.Content() {
+			@pagination.Item() {
+				@pagination.Previous(pagination.PreviousProps{
+					Href:       pageHref(model, model.PageIndex-1),
+					Disabled:   !pager.HasPrevious,
+					Label:      l10n.Get("previous"),
+					Attributes: pageAttributes(model, model.PageIndex-1),
+				})
+			}
+			for _, page := range pager.Pages {
+				@pagination.Item() {
+					@pagination.Link(pagination.LinkProps{
+						Href:       pageHref(model, page),
+						IsActive:   page == model.PageIndex,
+						Attributes: pageAttributes(model, page),
+					}) {
+						{ strconv.Itoa(page) }
+					}
+				}
+			}
+			@pagination.Item() {
+				@pagination.Next(pagination.NextProps{
+					Href:       pageHref(model, model.PageIndex+1),
+					Disabled:   !pager.HasNext,
+					Label:      l10n.Get("next"),
+					Attributes: pageAttributes(model, model.PageIndex+1),
+				})
+			}
+		}
+	}
+}
+
+templ SectionHeading(title string, leading templ.Component) {
+	<div class="flex items-center gap-3 self-stretch">
+		@leading
+		<h2 class="text-2xl font-bold font-heading leading-loose whitespace-nowrap text-primary-dark dark:text-white">{ title }</h2>
+		<div class="min-w-8 flex-1">
+			@separator.Separator(separator.Props{Class: "[&_span:last-child]:hidden"})
+		</div>
+	</div>
+}
+
+func pageHref(model PagingViewModel, page int) string {
+	if page < 1 {
+		page = 1
+	}
+	if model.PageLast > 0 && page > model.PageLast {
+		page = model.PageLast
+	}
+
+	values, _ := url.ParseQuery(model.Query)
+	values.Set("page", strconv.Itoa(page))
+	values.Set("limit", strconv.Itoa(model.PageSize))
+	values.Set("offset", strconv.Itoa((page-1)*model.PageSize))
+
+	return fmt.Sprintf("%s?%s", model.TargetURL, values.Encode())
+}
+
+func pageAttributes(model PagingViewModel, page int) templ.Attributes {
+	return templ.Attributes{
+		"hx-get":  pageHref(model, page),
+		"hx-target": model.TargetID,
+		"hx-swap": "outerHTML",
+	}
+}
+
+func UsageChart(isDark bool, xScaleMax uint, datasets []shared.ChartDataset) templ.Component {
+	stepsize := uint(20000)
+	cfg := shared.NewChartConfiguration("bar", false, isDark, nil, nil, &stepsize)
+
+	var (
+		xScaleType          string = "linear"
+		xScalePosition      string = "bottom"
+		xScaleMin           uint   = 1
+		xScaleTicksStepSize uint   = 1
+	)
+
+	borderRadius := 18
+
+	cfg.Options.Scales.X.Type = &xScaleType
+	cfg.Options.Scales.X.Position = &xScalePosition
+	cfg.Options.Scales.X.Min = &xScaleMin
+	cfg.Options.Scales.X.Max = &xScaleMax
+	cfg.Options.Scales.X.Ticks.StepSize = &xScaleTicksStepSize
+	cfg.Options.BarBorderRadius = &borderRadius
+
+	var colors []string
+	if isDark {
+		colors = []string{"#FFFFFF", "#DB6900"}
+	} else {
+		colors = []string{"#1F1F25", "#DB6900"}
+	}
+
+	for i := range datasets {
+		datasets[i].BackgroundColor = colors[i%len(colors)]
+		datasets[i].BorderColor = colors[i%len(colors)]
+		datasets[i].BorderWidth = 1
+	}
+
+	cfg.Add(datasets...)
+	return shared.Chart("usage-chart", "", cfg)
+}

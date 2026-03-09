@@ -16,6 +16,8 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/home"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/sensors"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/things"
+	authv2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/auth"
+	homev2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/home"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 
 	"github.com/diwise/frontend-toolkit/pkg/assets"
@@ -162,7 +164,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
 	// home
-	r.Handle("GET /", func() http.Handler {
+	r.Handle("GET /", authv2.RedirectIfPostLogout(func() http.Handler {
 		// GET / catches ALL routes that no other handler matches, so we need to make sure that
 		// we only serve the homepage when the path actually IS / (or /home as handled below).
 		next := home.NewHomePage(ctx, l10n, assetLoader.Load, app)
@@ -174,11 +176,30 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 
 			next(w, r)
 		})
-	}())
+	}()))
 	r.HandleFunc("GET /home", home.NewHomePage(ctx, l10n, assetLoader.Load, app))
 	r.Handle("GET /components/home/statistics", RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/home/usage", RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/tables/alarms", RequireHX(home.NewAlarmsTable(ctx, l10n, assetLoader.Load, app)))
+
+	// home v2
+	r.Handle("GET /v2", func() http.Handler {
+		next := homev2.NewHomePage(ctx, l10n, assetLoader.Load, app)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path != "/v2" {
+				w.WriteHeader(http.StatusNotFound)
+				return
+			}
+
+			next(w, r)
+		})
+	}())
+	r.HandleFunc("GET /v2/home", homev2.NewHomePage(ctx, l10n, assetLoader.Load, app))
+	r.Handle("GET /v2/components/home/statistics", RequireHX(homev2.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /v2/components/home/usage", RequireHX(homev2.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /v2/components/tables/alarms", RequireHX(homev2.NewAlarmsTable(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /v2/login", authv2.NewLoginRedirect())
+	r.HandleFunc("GET /v2/logout", authv2.NewLogoutRedirect())
 
 	// things
 	r.HandleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load, app))
