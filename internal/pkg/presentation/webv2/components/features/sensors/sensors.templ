@@ -442,7 +442,8 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 								<a
 									href="${clearAllHref}"
 									hx-get="${clearAllHref}"
-									hx-target="#body"
+									hx-target="#app-shell"
+									hx-swap="outerHTML"
 									hx-replace-url="true"
 									class="inline-flex h-8 items-center justify-center rounded-full px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
 								>${escapeHtml(labels.clearAll)}</a>
@@ -505,7 +506,8 @@ templ ActiveFilterSummary(l10n Localizer, filters FiltersViewModel) {
 				Class:   "rounded-full px-3",
 				Attributes: templ.Attributes{
 					"hx-get":         clearAllHref(filtersPageSize(filters)),
-					"hx-target":      "#body",
+					"hx-target":      "#app-shell",
+					"hx-swap":        "outerHTML",
 					"hx-replace-url": "true",
 				},
 			}) {
@@ -639,14 +641,7 @@ func SensorsMap(l10n Localizer, model SensorsPageViewModel) templ.Component {
 }
 
 templ SensorRow(l10n Localizer, sensor SensorViewModel) {
-	@table.Row(table.RowProps{
-		Class: "cursor-pointer border-border/70 hover:bg-background-100 dark:hover:bg-white/10",
-		Attributes: templ.Attributes{
-			"hx-get":         fmt.Sprintf("/sensors/%s", sensor.DeviceID),
-			"hx-target":      "#body",
-			"hx-replace-url": "true",
-		},
-	}) {
+	@table.Row(table.RowProps{Class: "border-border/70 hover:bg-background-100 dark:hover:bg-white/10"}) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			<div class="inline-flex items-center gap-2">
 				<span class={ onlineIndicatorClass(sensor.Online) }></span>
@@ -658,13 +653,13 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel) {
 			</div>
 		}
 		@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
-			<span class="font-bold text-foreground">
+			<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", sensor.DeviceID)) } class="font-bold text-foreground hover:underline">
 				if sensor.Name != "" {
 					{ sensor.Name }
 				} else {
 					{ sensor.DeviceID }
 				}
-			</span>
+			</a>
 		}
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			if sensor.Active {

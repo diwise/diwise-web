@@ -106,7 +106,8 @@ templ OverviewCard(title, href string, count int, leading templ.Component) {
 	<a
 		href={ templ.SafeURL(href) }
 		hx-get={ href }
-		hx-target="#body"
+		hx-target="#app-shell"
+		hx-swap="outerHTML"
 		hx-replace-url="true"
 		class="block h-full"
 	>
@@ -187,9 +188,6 @@ templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
 			<a
 				href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", alarm.DeviceID)) }
-				hx-get={ fmt.Sprintf("/sensors/%s", alarm.DeviceID) }
-				hx-target="#body"
-				hx-replace-url="true"
 				class="font-bold text-foreground hover:underline"
 			>
 				{ alarm.DeviceID }

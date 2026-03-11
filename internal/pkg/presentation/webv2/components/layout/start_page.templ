@@ -3,6 +3,7 @@ package layout
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	auth "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/auth"
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
@@ -48,68 +49,9 @@ templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, main
 templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent templ.Component) {
 	<body id="body" hx-ext="sse" sse-connect={ "/events/" + version } sse-close="goodbye" class="min-h-screen">
 		<div id="sse" class="hidden" sse-swap="upgrade,hello,tick"></div>
-		<div class="flex min-h-screen w-full flex-col md:flex-row">
-			<aside class="hidden h-screen w-72 shrink-0 border-r border-border/80 px-4 py-8 md:sticky md:top-0 md:flex md:flex-col">
-				<div class="flex items-center gap-3 px-2">
-					@shared.SVG("diwiselogo", shared.Box(135, 51), shared.FillColor("primary-dark", "white"), shared.ClassNames("h-[48px]", "w-[127px]"))
-				</div>
-				<nav class="mt-14 flex flex-col gap-2">
-					@NavItem(l10n.Get("home"), "/v2/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
-					@NavItem(l10n.Get("sensors"), "/v2/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
-					@NavItem(l10n.Get("things"), "/things", false, icon.Shapes(icon.Props{Size: 18}))
-				</nav>
-				<div class="mt-auto flex flex-col gap-3">
-					@NavItem(l10n.Get("logout"), "/v2/logout", false, icon.LogOut(icon.Props{Size: 18}))
-					<div class="flex items-center gap-2 rounded-2xl border border-border/80 bg-card/70 p-2 backdrop-blur">
-						@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-light flex-1 justify-center rounded-xl dark:hidden"}) {
-							@icon.SunMedium(icon.Props{Size: 18})
-						}
-						@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-dark hidden flex-1 justify-center rounded-xl dark:inline-flex"}) {
-							@icon.Moon(icon.Props{Size: 18})
-						}
-						<p class="px-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">{ l10n.Get("light") } / { l10n.Get("dark") }</p>
-					</div>
-				</div>
-			</aside>
-			<div class="flex min-h-screen flex-1 flex-col">
-				<header class="sticky top-0 z-40 border-b border-border/80 bg-background/90 px-4 py-3 backdrop-blur md:hidden">
-					<div class="flex items-center gap-2">
-						<img src={ asset("/images/diwise-logo.svg").Path() } alt="Diwise" class="h-8 dark:hidden"/>
-						<img src={ asset("/images/diwise-logo-dark.svg").Path() } alt="Diwise" class="hidden h-8 dark:block"/>
-						<div class="ml-auto flex items-center gap-1">
-							@IconNav("/v2/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
-							@IconNav("/v2/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
-							@IconNav("/things", false, icon.Shapes(icon.Props{Size: 18}))
-							@IconNav("/v2/logout", false, icon.LogOut(icon.Props{Size: 18}))
-							@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-light rounded-xl dark:hidden"}) {
-								@icon.SunMedium(icon.Props{Size: 18})
-							}
-							@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-dark hidden rounded-xl dark:inline-flex"}) {
-								@icon.Moon(icon.Props{Size: 18})
-							}
-						</div>
-					</div>
-				</header>
-				<main id="main-content" class="flex flex-1 flex-col px-4 py-8 md:px-8 lg:px-12">
-					<div class="flex w-full flex-1 flex-col">
-						@mainContent
-					</div>
-				</main>
-			</div>
-		</div>
+		@AppShell(l10n, asset, mainContent)
 	</body>
 	<script nonce={ csp.Nonce(ctx) }>
-		function ensureTemplUIPopoverPortal() {
-			if (document.querySelector('[data-tui-popover-portal-container]')) {
-				return;
-			}
-
-			const portal = document.createElement('div');
-			portal.setAttribute('data-tui-popover-portal-container', '');
-			portal.className = 'fixed inset-0 z-[9999] pointer-events-none';
-			document.body.appendChild(portal);
-		}
-
 		function setTheme(theme) {
 			if (theme === 'dark') {
 				document.body.classList.add('dark');
@@ -138,8 +80,6 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 		})
 
 		function onPageLoad() {
-			ensureTemplUIPopoverPortal()
-
 			if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
 				document.body.classList.add('dark')
 			} else {
@@ -160,14 +100,60 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 			}
 		});
 
-		document.addEventListener('htmx:afterSwap', (event) => {
-			if (event.target?.id === 'body' || event.target?.closest?.('#body')) {
-				onPageLoad();
-			}
-		});
-
 		onPageLoad()
 	</script>
+}
+
+templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Component) {
+	<div id="app-shell" class="flex min-h-screen w-full flex-col md:flex-row">
+		<aside class="hidden h-screen w-72 shrink-0 border-r border-border/80 px-4 py-8 md:sticky md:top-0 md:flex md:flex-col">
+			<div class="flex items-center gap-3 px-2">
+				@shared.SVG("diwiselogo", shared.Box(135, 51), shared.FillColor("primary-dark", "white"), shared.ClassNames("h-[48px]", "w-[127px]"))
+			</div>
+			<nav class="mt-14 flex flex-col gap-2">
+				@NavItem(l10n.Get("home"), "/v2/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
+				@NavItem(l10n.Get("sensors"), "/v2/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
+				@NavItem(l10n.Get("things"), "/things", false, icon.Shapes(icon.Props{Size: 18}))
+			</nav>
+			<div class="mt-auto flex flex-col gap-3">
+				@NavItem(l10n.Get("logout"), "/v2/logout", false, icon.LogOut(icon.Props{Size: 18}))
+				<div class="flex items-center gap-2 rounded-2xl border border-border/80 bg-card/70 p-2 backdrop-blur">
+					@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-light flex-1 justify-center rounded-xl dark:hidden"}) {
+						@icon.SunMedium(icon.Props{Size: 18})
+					}
+					@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-dark hidden flex-1 justify-center rounded-xl dark:inline-flex"}) {
+						@icon.Moon(icon.Props{Size: 18})
+					}
+					<p class="px-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">{ l10n.Get("light") } / { l10n.Get("dark") }</p>
+				</div>
+			</div>
+		</aside>
+		<div class="flex min-h-screen flex-1 flex-col">
+			<header class="sticky top-0 z-40 border-b border-border/80 bg-background/90 px-4 py-3 backdrop-blur md:hidden">
+				<div class="flex items-center gap-2">
+					<img src={ asset("/images/diwise-logo.svg").Path() } alt="Diwise" class="h-8 dark:hidden"/>
+					<img src={ asset("/images/diwise-logo-dark.svg").Path() } alt="Diwise" class="hidden h-8 dark:block"/>
+					<div class="ml-auto flex items-center gap-1">
+						@IconNav("/v2/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
+						@IconNav("/v2/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
+						@IconNav("/things", false, icon.Shapes(icon.Props{Size: 18}))
+						@IconNav("/v2/logout", false, icon.LogOut(icon.Props{Size: 18}))
+						@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-light rounded-xl dark:hidden"}) {
+							@icon.SunMedium(icon.Props{Size: 18})
+						}
+						@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-dark hidden rounded-xl dark:inline-flex"}) {
+							@icon.Moon(icon.Props{Size: 18})
+						}
+					</div>
+				</div>
+			</header>
+			<main id="main-content" class="flex flex-1 flex-col px-4 py-8 md:px-8 lg:px-12">
+				<div class="flex w-full flex-1 flex-col">
+					@mainContent
+				</div>
+			</main>
+		</div>
+	</div>
 }
 
 templ NavItem(title, href string, selected bool, leading templ.Component) {
@@ -175,11 +161,7 @@ templ NavItem(title, href string, selected bool, leading templ.Component) {
 		Href: href,
 		Variant: navVariant(selected),
 		Class: "w-full justify-start rounded-2xl px-4 py-6 text-base shadow-none",
-		Attributes: templ.Attributes{
-			"hx-get":         href,
-			"hx-target":      "#body",
-			"hx-replace-url": "true",
-		},
+		Attributes: shellNavAttributes(href),
 	}) {
 		@leading
 		<span>{ title }</span>
@@ -192,14 +174,27 @@ templ IconNav(href string, selected bool, leading templ.Component) {
 		Variant: navVariant(selected),
 		Size: button.SizeIcon,
 		Class: "rounded-xl shadow-none",
-		Attributes: templ.Attributes{
-			"hx-get":         href,
-			"hx-target":      "#body",
-			"hx-replace-url": "true",
-		},
+		Attributes: shellNavAttributes(href),
 	}) {
 		@leading
 	}
+}
+
+func shellNavAttributes(href string) templ.Attributes {
+	if !shouldSwapShell(href) {
+		return nil
+	}
+
+	return templ.Attributes{
+		"hx-get":         href,
+		"hx-target":      "#app-shell",
+		"hx-swap":        "outerHTML",
+		"hx-replace-url": "true",
+	}
+}
+
+func shouldSwapShell(href string) bool {
+	return strings.HasPrefix(href, "/v2/") && href != "/v2/logout"
 }
 
 func navVariant(selected bool) button.Variant {

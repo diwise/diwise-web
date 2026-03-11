@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	featurehome "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/home"
@@ -51,7 +52,10 @@ func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc,
 		model.Paging = getPaging(pageIndexInt, pageLast, limit, args)
 
 		home := featurehome.Home(localizer, model)
-		component := v2layout.StartPage(version, localizer, assets, home)
+		component := templ.Component(v2layout.StartPage(version, localizer, assets, home))
+		if helpers.IsHxRequest(r) {
+			component = v2layout.AppShell(localizer, assets, home)
+		}
 		helpers.WriteComponentResponse(ctx, w, r, component, 60*1024, 0)
 	}
 

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/sensors"
@@ -34,7 +35,11 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			return
 		}
 
-		page := v2layout.StartPage(version, localizer, assets, featuresensors.SensorsPage(localizer, model))
+		content := featuresensors.SensorsPage(localizer, model)
+		page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
+		if helpers.IsHxRequest(r) {
+			page = v2layout.AppShell(localizer, assets, content)
+		}
 		helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, 0)
 	}
 }
