@@ -412,6 +412,9 @@ other = "Search"
 [selectedfilters]
 other = "Selected filters:"
 
+[selecteditemcount]
+other = "{n} selected"
+
 [sensorconnected]
 other = "Connected sensor"
 

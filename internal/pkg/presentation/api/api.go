@@ -18,7 +18,9 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/things"
 	authv2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/auth"
 	homev2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/home"
+	sensorsv2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/sensors"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
+	webv2utils "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/utils"
 
 	"github.com/diwise/frontend-toolkit/pkg/assets"
 	"github.com/diwise/frontend-toolkit/pkg/locale"
@@ -161,6 +163,9 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	assetLoader, _ := assets.NewLoader(ctx,
 		assets.BasePath(assetPath), assets.Logger(logging.GetFromContext(ctx)),
 	)
+	webv2utils.ScriptURL = func(path string) string {
+		return assetLoader.Load(strings.TrimPrefix(path, "/assets")).Path()
+	}
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
 	// home
@@ -198,6 +203,9 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /v2/components/home/statistics", RequireHX(homev2.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /v2/components/home/usage", RequireHX(homev2.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /v2/components/tables/alarms", RequireHX(homev2.NewAlarmsTable(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /v2/sensors", sensorsv2.NewSensorsPage(ctx, l10n, assetLoader.Load, app))
+	r.Handle("GET /v2/components/sensors/list", RequireHX(sensorsv2.NewSensorsDataList(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /v2/components/tables/sensors", RequireHX(sensorsv2.NewSensorsTable(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /v2/login", authv2.NewLoginRedirect())
 	r.HandleFunc("GET /v2/logout", authv2.NewLogoutRedirect())
 

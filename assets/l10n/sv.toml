@@ -412,6 +412,9 @@ other = "Sök"
 [selectedfilters]
 other = "Valda filter:"
 
+[selecteditemcount]
+other = "{n} valda"
+
 [sensorconnected]
 other = "Kopplad sensor"
 

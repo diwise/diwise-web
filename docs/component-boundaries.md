@@ -1,5 +1,11 @@
 # Component Boundaries: `shared` vs `features/*`
 
+## V2 Playbook
+For `/v2` work, review `docs/templui.md` first and prefer `templui` components as the default building blocks.
+The goal is to use those components as much as possible in v2 and only build custom UI when composition or extension is not enough.
+If the required building block is missing, add/install the relevant `templui` component before introducing a custom parallel primitive.
+When a `/v2` feature already exists in legacy, keep route and query behavior aligned with legacy while both stacks run in parallel.
+
 ## Core Rule
 Share by behavior, not by looks.
 

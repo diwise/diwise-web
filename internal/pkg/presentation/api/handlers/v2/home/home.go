@@ -12,8 +12,8 @@ import (
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	v2layout "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/layout"
 	featurehome "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/home"
+	v2layout "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/layout"
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
 
 	. "github.com/diwise/frontend-toolkit"
@@ -30,8 +30,7 @@ func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc,
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
-		offset, _ := helpers.GetOffsetAndLimit(r)
-		limit := 5
+		offset, limit := getOffsetAndLimit(r)
 
 		args := r.URL.Query()
 		helpers.SanitizeParams(args, "page", "limit", "offset")
@@ -72,7 +71,7 @@ func NewAlarmsTable(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
-		offset, limit := helpers.GetOffsetAndLimit(r)
+		offset, limit := getOffsetAndLimit(r)
 
 		args := r.URL.Query()
 		helpers.SanitizeParams(args, "page", "limit", "offset")
@@ -201,4 +200,13 @@ func getPaging(pageIndex, pageLast, pageSize int, args url.Values) featurehome.P
 		TargetURL: "/v2/components/tables/alarms",
 		TargetID:  "#tableview",
 	}
+}
+
+func getOffsetAndLimit(r *http.Request) (int, int) {
+	offset, limit := helpers.GetOffsetAndLimit(r)
+	if r.URL.Query().Get("limit") == "" {
+		limit = 5
+	}
+
+	return offset, limit
 }

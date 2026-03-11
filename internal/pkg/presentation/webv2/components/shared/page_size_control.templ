@@ -1,0 +1,60 @@
+package shared
+
+import (
+	"strconv"
+
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
+)
+
+type PageSizeControlProps struct {
+	FormID    string
+	Label     string
+	TargetURL string
+	TargetID  string
+	Include   string
+	PageSize  int
+	Options   []int
+}
+
+templ PageSizeControl(props PageSizeControlProps) {
+	<form
+		id={ props.FormID }
+		class="flex w-full min-w-[220px] items-center gap-3 sm:w-auto"
+		hx-get={ props.TargetURL }
+		hx-target={ props.TargetID }
+		hx-swap="outerHTML"
+		if props.Include != "" {
+			hx-include={ props.Include }
+		}
+		hx-trigger="change"
+	>
+		<span class="shrink-0 text-sm font-medium text-muted-foreground">{ props.Label }:</span>
+		@selectbox.SelectBox(selectbox.Props{ID: props.FormID + "-select"}) {
+			@selectbox.Trigger(selectbox.TriggerProps{
+				Name:  "limit",
+				Class: "h-9 min-w-[108px] justify-between rounded-xl bg-background px-3 text-sm shadow-xs",
+			}) {
+				@selectbox.Value(selectbox.ValueProps{
+					Placeholder: strconv.Itoa(props.PageSize),
+					Class:       "text-sm text-foreground",
+				})
+			}
+			@selectbox.Content(selectbox.ContentProps{
+				Class:    "rounded-2xl border border-border/80 bg-popover p-0 shadow-xl",
+				NoSearch: true,
+			}) {
+				@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+					for _, pageSize := range props.Options {
+						@selectbox.Item(selectbox.ItemProps{
+							Value:    strconv.Itoa(pageSize),
+							Selected: pageSize == props.PageSize,
+							Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-background-100 data-[tui-selectbox-selected=true]:bg-primary-surface data-[tui-selectbox-selected=true]:text-primary-dark dark:hover:bg-white/10 dark:data-[tui-selectbox-selected=true]:bg-white/10 dark:data-[tui-selectbox-selected=true]:text-white",
+						}) {
+							{ strconv.Itoa(pageSize) }
+						}
+					}
+				}
+			}
+		}
+	</form>
+}
