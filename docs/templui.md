@@ -12,6 +12,7 @@ Components are designed to be composable, customizable, and easy to integrate in
 For `internal/pkg/presentation/webv2`, this document is part of the playbook and should be reviewed before building new UI.
 The default approach in v2 is to compose with existing `templui` components as much as possible instead of creating custom replacements.
 If a needed component is not present locally yet, prefer adding/installing the corresponding `templui` component before building a bespoke v2 primitive.
+If templui does not expose a needed behavior, prefer an app-owned wrapper in `webv2/components/shared` over patching the installed component under `webv2/components/shared/ui`.
 
 - [Introduction](https://templui.io/docs/introduction): Core principles and getting started guide
 - [How to Use](https://templui.io/docs/how-to-use): CLI installation and usage guide

@@ -615,7 +615,7 @@ func sensorsToMapFeature(l10n Localizer, model SensorsPageViewModel) shared.Feat
 		}
 		feature.AddProperty("latitude", sensor.Latitude)
 		feature.AddProperty("longitude", sensor.Longitude)
-		feature.AddProperty("url", fmt.Sprintf("/sensors/%s", sensor.DeviceID))
+		feature.AddProperty("url", fmt.Sprintf("/v2/sensors/%s", sensor.DeviceID))
 		feature.AddProperty("text_active", l10n.Get("active"))
 		feature.AddProperty("text_inactive", l10n.Get("inactive"))
 		feature.AddProperty("text_deveui", l10n.Get("deveui"))
@@ -653,7 +653,14 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel) {
 			</div>
 		}
 		@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
-			<a href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", sensor.DeviceID)) } class="font-bold text-foreground hover:underline">
+			<a
+				href={ templ.SafeURL(fmt.Sprintf("/v2/sensors/%s", sensor.DeviceID)) }
+				hx-get={ fmt.Sprintf("/v2/sensors/%s", sensor.DeviceID) }
+				hx-target="#app-shell"
+				hx-swap="outerHTML"
+				hx-replace-url="true"
+				class="font-bold text-foreground hover:underline"
+			>
 				if sensor.Name != "" {
 					{ sensor.Name }
 				} else {

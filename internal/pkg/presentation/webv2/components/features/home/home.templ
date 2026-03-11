@@ -6,7 +6,6 @@ import (
 
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/chart"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/skeleton"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
@@ -187,7 +186,11 @@ templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
 	@table.Row(table.RowProps{Class: "border-border/70 hover:bg-background-100 dark:hover:bg-white/10"}) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
 			<a
-				href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", alarm.DeviceID)) }
+				href={ templ.SafeURL(fmt.Sprintf("/v2/sensors/%s", alarm.DeviceID)) }
+				hx-get={ fmt.Sprintf("/v2/sensors/%s", alarm.DeviceID) }
+				hx-target="#app-shell"
+				hx-swap="outerHTML"
+				hx-replace-url="true"
 				class="font-bold text-foreground hover:underline"
 			>
 				{ alarm.DeviceID }
@@ -218,22 +221,48 @@ templ SectionHeading(title string, leading templ.Component) {
 	</div>
 }
 
-func UsageChart(_ bool, data chart.Data) templ.Component {
+func UsageChart(_ bool, data shared.AdvancedChartData) templ.Component {
 	beginAtZero := true
 
-	return chart.Chart(chart.Props{
-		ID:          "usage-chart",
-		Variant:     chart.VariantBar,
-		Data:        data,
-		Options:     chart.Options{Responsive: true, Legend: true},
-		ShowLegend:  true,
-		ShowXAxis:   true,
-		ShowYAxis:   true,
-		ShowXLabels: true,
-		ShowYLabels: true,
-		ShowXGrid:   false,
-		ShowYGrid:   true,
-		BeginAtZero: &beginAtZero,
-		Class:       "h-full w-full",
+	return shared.AdvancedChart(shared.AdvancedChartProps{
+		ID:    "usage-chart",
+		Class: "h-full w-full",
+		Config: shared.AdvancedChartConfig{
+			Type: "bar",
+			Data: data,
+			Options: shared.AdvancedChartOptions{
+				Responsive:          true,
+				MaintainAspectRatio: false,
+				Animation:           false,
+				Interaction: &shared.Interaction{
+					Intersect: true,
+					Axis:      "xy",
+					Mode:      "nearest",
+				},
+				Scales: map[string]shared.AxisScale{
+					"x": {
+						Grid: &shared.AxisGrid{Display: boolPtr(false)},
+						Border: &shared.AxisBorder{
+							Display: true,
+							Color:   "#1F1F25",
+						},
+						Ticks: &shared.AxisTicks{Color: "#444450"},
+					},
+					"y": {
+						BeginAtZero: &beginAtZero,
+						Grid:        &shared.AxisGrid{Display: boolPtr(true), Color: "#E2E2E8"},
+						Border: &shared.AxisBorder{
+							Display: true,
+							Color:   "#1F1F25",
+						},
+						Ticks: &shared.AxisTicks{Color: "#444450"},
+					},
+				},
+			},
+		},
 	})
+}
+
+func boolPtr(v bool) *bool {
+	return &v
 }

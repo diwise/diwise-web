@@ -66,6 +66,7 @@
     --radius-lg: 0.5rem;
     --radius-xl: 0.75rem;
     --radius-2xl: 1rem;
+    --radius-3xl: 1.5rem;
     --animate-pulse: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     --aspect-video: 16 / 9;
     --default-transition-duration: 150ms;
@@ -501,6 +502,9 @@
   .h-\[40px\] {
     height: 40px;
   }
+  .h-\[40vh\] {
+    height: 40vh;
+  }
   .h-\[48px\] {
     height: 48px;
   }
@@ -515,6 +519,9 @@
   }
   .h-\[320px\] {
     height: 320px;
+  }
+  .h-\[420px\] {
+    height: 420px;
   }
   .h-\[600px\] {
     height: 600px;
@@ -831,6 +838,9 @@
   .gap-6 {
     gap: calc(var(--spacing) * 6);
   }
+  .gap-8 {
+    gap: calc(var(--spacing) * 8);
+  }
   .gap-10 {
     gap: calc(var(--spacing) * 10);
   }
@@ -907,6 +917,9 @@
   }
   .rounded-2xl {
     border-radius: var(--radius-2xl);
+  }
+  .rounded-3xl {
+    border-radius: var(--radius-3xl);
   }
   .rounded-\[1\.75rem\] {
     border-radius: 1.75rem;
@@ -1022,6 +1035,12 @@
   .bg-background {
     background-color: var(--background);
   }
+  .bg-background\/40 {
+    background-color: var(--background);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--background) 40%, transparent);
+    }
+  }
   .bg-background\/60 {
     background-color: var(--background);
     @supports (color: color-mix(in lab, red, red)) {
@@ -1056,6 +1075,12 @@
     background-color: var(--card);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--card) 80%, transparent);
+    }
+  }
+  .bg-card\/90 {
+    background-color: var(--card);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--card) 90%, transparent);
     }
   }
   .bg-card\/95 {
@@ -1216,6 +1241,9 @@
   }
   .px-6 {
     padding-inline: calc(var(--spacing) * 6);
+  }
+  .px-8 {
+    padding-inline: calc(var(--spacing) * 8);
   }
   .px-9 {
     padding-inline: calc(var(--spacing) * 9);
@@ -1392,6 +1420,10 @@
     --tw-tracking: 0.2em;
     letter-spacing: 0.2em;
   }
+  .tracking-\[0\.18em\] {
+    --tw-tracking: 0.18em;
+    letter-spacing: 0.18em;
+  }
   .tracking-tight {
     --tw-tracking: var(--tracking-tight);
     letter-spacing: var(--tracking-tight);
@@ -1401,6 +1433,9 @@
   }
   .text-wrap {
     text-wrap: wrap;
+  }
+  .break-words {
+    overflow-wrap: break-word;
   }
   .break-all {
     word-break: break-all;
@@ -2392,6 +2427,11 @@
   .lg\:flex-row {
     @media (width >= 64rem) {
       flex-direction: row;
+    }
+  }
+  .lg\:items-start {
+    @media (width >= 64rem) {
+      align-items: flex-start;
     }
   }
   .lg\:px-12 {

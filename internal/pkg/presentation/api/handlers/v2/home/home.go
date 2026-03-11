@@ -15,7 +15,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	featurehome "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/home"
 	v2layout "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/layout"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/chart"
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
 
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -151,7 +151,7 @@ func NewUsageHandler(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app a
 	return http.HandlerFunc(fn)
 }
 
-func getUsageData(isDark bool, ctx context.Context, app application.DeviceManagement) (chart.Data, error) {
+func getUsageData(isDark bool, ctx context.Context, app application.DeviceManagement) (shared.AdvancedChartData, error) {
 	daysInMonth := func(ts time.Time) int {
 		return time.Date(ts.Year(), ts.Month()+1, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -1).Day()
 	}
@@ -167,7 +167,7 @@ func getUsageData(isDark bool, ctx context.Context, app application.DeviceManage
 
 	data, err := app.GetMeasurementData(ctx, "", application.WithAggrMethods("rate"), application.WithTimeUnit("day"), application.WithTimeRel("between", timeAt, endTimeAt))
 	if err != nil {
-		return chart.Data{}, err
+		return shared.AdvancedChartData{}, err
 	}
 
 	labels := make([]string, 0, max)
@@ -175,7 +175,7 @@ func getUsageData(isDark bool, ctx context.Context, app application.DeviceManage
 		labels = append(labels, strconv.Itoa(day))
 	}
 
-	sets := make(map[string]chart.Dataset, 0)
+	sets := make(map[string]shared.AdvancedChartDataset, 0)
 	order := make([]string, 0)
 
 	for _, v := range data.Values {
@@ -183,9 +183,9 @@ func getUsageData(isDark bool, ctx context.Context, app application.DeviceManage
 		ds, ok := sets[m]
 		if !ok {
 			color := usageChartColor(isDark, len(order))
-			ds = chart.Dataset{
+			ds = shared.AdvancedChartDataset{
 				Label:           m,
-				Data:            make([]float64, len(labels)),
+				Data:            make([]any, len(labels)),
 				BorderWidth:     1,
 				BorderColor:     color,
 				BackgroundColor: color,
@@ -199,12 +199,12 @@ func getUsageData(isDark bool, ctx context.Context, app application.DeviceManage
 		sets[m] = ds
 	}
 
-	datasets := make([]chart.Dataset, 0, len(order))
+	datasets := make([]shared.AdvancedChartDataset, 0, len(order))
 	for _, key := range order {
 		datasets = append(datasets, sets[key])
 	}
 
-	return chart.Data{Labels: labels, Datasets: datasets}, nil
+	return shared.AdvancedChartData{Labels: labels, Datasets: datasets}, nil
 }
 
 func usageChartColor(isDark bool, index int) string {
