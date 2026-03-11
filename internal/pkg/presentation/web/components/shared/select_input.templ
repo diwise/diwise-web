@@ -1,0 +1,64 @@
+package shared
+
+templ Option(option OptionViewModel) {
+	<option value={ option.Value } selected?={ option.Selected } hidden?={ option.Hidden } disabled?={ option.Disabled }>{ option.Text }</option>
+}
+
+templ Options(options []OptionViewModel) {
+	for _, option := range options {
+		@Option(option)
+	}
+}
+
+templ Select(id string, multiple bool, hxGet, hxTarget string, options []OptionViewModel) {
+	<div class="relative inline-block w-full">
+		<select
+			id={ id }
+			name={ id }
+			if hxGet != "" {
+				hx-get={ hxGet }
+			}
+			if hxTarget != "" {
+				hx-target={ hxTarget }
+			}
+			hx-trigger="change"
+			class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base dark:border dark:border-white-50 dark:bg-input-surface-dark dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
+			multiple?={ multiple }
+		>
+			@Options(options)
+		</select>
+		<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+			<svg class="w-[18px] h-[18px] dark:fill-white">
+				@templ.Raw(iconSVG("chevron-down"))
+			</svg>
+		</div>
+	</div>
+}
+
+templ SelectMultipleInputs(id string, multiple bool, hxGet, hxTarget, hxInclude string, options []OptionViewModel) {
+	<div class="relative inline-block w-full">
+		<select
+			id={ id }
+			name={ id }
+			if hxGet != "" {
+				hx-get={ hxGet }
+			}
+			if hxTarget != "" {
+				hx-target={ hxTarget }
+			}
+			if hxInclude != "" {
+				hx-include={ hxInclude }
+			}
+			hx-params="*"
+			class="appearance-none cursor-pointer block w-full pl-3 pr-10 py-2 text-base dark:border dark:border-white-50 dark:bg-input-surface-dark dark:text-secondary focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-xl bg-white"
+			multiple?={ multiple }
+		>
+			@Options(options)
+		</select>
+		<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+			<svg class="w-[18px] h-[18px] dark:fill-white">
+				@templ.Raw(iconSVG("chevron-down"))
+			</svg>
+		</div>
+	</div>
+}

@@ -1,0 +1,75 @@
+package shared
+
+import (
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ DataList(l10n Localizer, tableComponent, mapComponent templ.Component, mapView bool) {
+	<div id="tableOrMap" class="w-full flex flex-col gap-6 items-start inline-flex">
+		<input
+			type="hidden"
+			id="mapview"
+			name="mapview"
+			class="filter"
+			if mapView {
+				value="true"
+			} else {
+				value="false"
+			}
+		/>
+		<div
+			if mapView {
+				id="map__view"
+			} else {
+				id="tableview"
+			}
+			class="w-full"
+		>
+			if mapView {
+				@mapComponent
+			} else {
+				@tableComponent
+			}
+		</div>
+	</div>
+}
+
+templ TableOrMap(l10n Localizer, hxGet string) {
+	<div class="flex items-center ml-auto">
+		<div class="flex p-2 items-center gap-4 bg-tertiary-surface bg-opacity-20 dark:bg-primary-surface-white rounded-2xl gap-2">
+			<div class="relative group">
+				<button
+					id="tableviewButton"
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=false", hxGet))) }
+					hx-target="#tableOrMap"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer bg-black fill-white dark:bg-white dark:fill-black stroke-white dark:stroke-black hover:bg-tertiary-surface-hover"
+					hx-on:click="this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white'); this.classList.remove('dark:fill-white', 'stroke-black');
+					document.getElementById('mapButton').classList.add('fill-black', 'dark:fill-white');
+					document.getElementById('mapButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black');"
+				>
+					<svg class="w-[18px] h-[18px]">
+						@SVG("table", Size(24), NoFill(), Box(24, 24), Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}))
+					</svg>
+				</button>
+				@Tooltip(l10n.Get("table"))
+			</div>
+			<div class="relative group">
+				<button
+					id="mapButton"
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("%s?mapview=true", hxGet))) }
+					hx-target="#tableOrMap"
+					class="flex p-1.5 rounded-[10px] justify-center items-center gap-1 cursor-pointer dark:fill-white hover:bg-tertiary-surface-hover"
+					hx-on:click="this.classList.add('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black' ); this.classList.remove('dark:fill-white');
+					document.getElementById('tableviewButton').classList.add('fill-black', 'dark:fill-white', 'stroke-black');
+					document.getElementById('tableviewButton').classList.remove('bg-black', 'fill-white', 'dark:bg-white', 'dark:fill-black', 'stroke-white');"
+				>
+					<svg class="w-[18px] h-[18px]">
+						@templ.Raw(iconSVG("map"))
+					</svg>
+				</button>
+				@Tooltip(l10n.Get("map"))
+			</div>
+		</div>
+	</div>
+}

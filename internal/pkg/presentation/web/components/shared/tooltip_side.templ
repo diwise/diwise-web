@@ -1,0 +1,9 @@
+package shared
+
+templ TooltipSide(tooltiptext string) {
+	<div class="absolute top-1/2 left-full transform -translate-y-1/2 ml-2 hidden group-hover:block">
+		<div class="bg-primary-surface text-white dark:bg-white dark:text-primary-dark rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px] whitespace-nowrap">
+			{ tooltiptext }
+		</div>
+	</div>
+}

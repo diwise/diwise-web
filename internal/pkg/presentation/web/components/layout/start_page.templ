@@ -1,7 +1,8 @@
-package components
+package layout
 
 import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
+	auth "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/auth"
 	. "github.com/diwise/frontend-toolkit"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 )
@@ -29,7 +30,7 @@ templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, main
 		if authz.IsLoggedIn(ctx) {
 			@Body(version, localizer, asset, mainContent)
 		} else {
-			@NotLoggedIn(localizer, asset)
+			@auth.NotLoggedIn(localizer, asset)
 		}
 	</html>
 }

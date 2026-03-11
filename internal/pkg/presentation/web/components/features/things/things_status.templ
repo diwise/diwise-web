@@ -1,0 +1,259 @@
+package things
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+	"strings"
+)
+
+templ statusCellContainer(contents ...templ.Component) {
+	<div>
+		for _, c := range contents {
+			@c
+		}
+	</div>
+}
+
+func ThingStatusCell(l10n Localizer, thing ThingViewModel) templ.Component {
+	if thing.HasWarning() {
+		return NoDataCell(l10n, thing)
+	} else {
+		switch strings.ToLower(thing.Type) {
+		case "beach":
+			fallthrough
+		case "pointofinterest":
+			return TemperatureCell(thing)
+		case "building":
+			return BuildingCell(l10n, thing)
+		case "wastecontainer":
+			fallthrough
+		case "container":
+			switch strings.ToLower(thing.SubType) {
+			case "wastecontainer":
+				return WasteContainerCell(l10n, thing)
+			case "sandstorage":
+				return SandStorageCell(l10n, thing)
+			}
+			return templ.NopComponent
+		case "lifebuoy":
+			return LifebuoyCell(l10n, thing)
+		case "desk":
+			return DeskCell(l10n, thing)
+		case "passage":
+			return PassageCell(thing)
+		case "pumpingstation":
+			return SewagePumpingstationCell(l10n, thing)
+		case "room":
+			return TemperatureCell(thing)
+		case "sewer":
+			switch strings.ToLower(thing.SubType) {
+			case "combinedseweroverflow":
+				return CombinedSewerOverflowCell(l10n, thing)
+			}
+			return SewerCell(l10n, thing)
+		case "watermeter":
+			return WaterMeterCell(l10n, thing)
+		default:
+			return templ.NopComponent
+		}
+	}
+}
+
+templ NoDataCell(l10n Localizer, t ThingViewModel) {
+	<div class="flex items-center gap-2">
+		@shared.SVG("alert-triangle", shared.Size(24))
+		{ l10n.Get("missingdata") }
+	</div>
+}
+
+templ BuildingCell(l10n Localizer, t ThingViewModel) {
+	<div>
+		{ fmt.Sprintf("%0.f kWh / %0.f kW", t.Properties["energy"], t.Properties["power"]) }
+	</div>
+}
+
+func LifebuoyCell(l10n Localizer, t ThingViewModel) templ.Component {
+	vb, ok := t.Properties["presence"]
+	if !ok {
+		return shared.Text(l10n.Get("nodata"))
+	}
+	b, ok := vb.(bool)
+	if !ok {
+		return shared.Text(l10n.Get("nodata"))
+	}
+	if b {
+		return shared.Text(l10n.Get("present"))
+	} else {
+		return shared.Text(l10n.Get("notPresent"))
+	}
+}
+
+func DeskCell(l10n Localizer, t ThingViewModel) templ.Component {
+	vb, ok := t.Properties["presence"]
+	if !ok {
+		return shared.Text(l10n.Get("nodata"))
+	}
+	b, ok := vb.(bool)
+	if !ok {
+		return shared.Text(l10n.Get("nodata"))
+	}
+	if b {
+		return shared.Text(l10n.Get("occupied"))
+	} else {
+		return shared.Text(l10n.Get("available"))
+	}
+}
+
+templ WaterMeterCell(l10n Localizer, t ThingViewModel) {
+	<div>
+		{ fmt.Sprintf("%0.f m³", t.Properties["cumulativeVolume"]) }
+	</div>
+}
+
+func SewerCell(l10n Localizer, t ThingViewModel) templ.Component {
+	var components []templ.Component
+	level := ""
+
+	if currentLevel, ok := t.Properties["currentLevel"]; ok {
+		if v, ok := currentLevel.(float64); ok {
+			level += fmt.Sprintf("%0.1fm", v)
+		}
+	}
+
+	if percent, ok := t.Properties["percent"]; ok {
+		if p, ok := percent.(float64); ok {
+			if len(level) > 0 {
+				level += " / "
+			}
+			level += fmt.Sprintf("%0.f%%", p)
+		}
+	}
+
+	if len(level) > 0 {
+		components = append(components, shared.Text(fmt.Sprintf("%s: %s", l10n.Get("level"), level)))
+	}
+
+	return statusCellContainer(components...)
+}
+
+func CombinedSewerOverflowCell(l10n Localizer, t ThingViewModel) templ.Component {
+	overflowObserved, okOverflow := t.Properties["overflowObserved"]
+
+	var components []templ.Component
+
+	if okOverflow {
+
+		if vb, ok := overflowObserved.(bool); ok {
+			var vbTranslation string
+			if vb {
+				vbTranslation = l10n.Get("yes")
+			} else {
+				vbTranslation = l10n.Get("no")
+			}
+			components = append(components, shared.Text(fmt.Sprintf("%s: %s", l10n.Get("overflow"), vbTranslation)))
+		}
+	}
+
+	return statusCellContainer(components...)
+}
+
+func SewagePumpingstationCell(l10n Localizer, t ThingViewModel) templ.Component {
+	vb, ok := t.Properties["pumpingObserved"]
+	if !ok {
+		return shared.Text(l10n.Get("nodata"))
+	}
+	b, ok := vb.(bool)
+	if !ok {
+		return shared.Text(l10n.Get("nodata"))
+	}
+	if b {
+		return shared.Text(l10n.Get("pumpingObserved"))
+	} else {
+		return shared.Text(l10n.Get("off"))
+	}
+}
+
+func WasteContainerCell(l10n Localizer, t ThingViewModel) templ.Component {
+	v, ok := t.Properties["percent"]
+	if !ok {
+		return shared.Text(l10n.Get("nodata"))
+	}
+
+	value := v.(float64)
+	text := fmt.Sprintf("%0.f%%", value)
+
+	colourClass := ""
+	switch {
+	case value >= 50:
+		colourClass = "bg-red-600 dark:bg-err-prim-surf"
+	case value <= 30:
+		colourClass = "bg-green-700 dark:bg-primary-surface-green-accent"
+	default:
+		colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent"
+	}
+
+	return shared.ProgressBar(colourClass, text, int(value))
+}
+
+func SandStorageCell(l10n Localizer, t ThingViewModel) templ.Component {
+	v, ok := t.Properties["percent"]
+	if !ok {
+		return shared.Text(l10n.Get("nodata"))
+	}
+
+	value := v.(float64)
+	text := fmt.Sprintf("%0.f%%", value)
+
+	colourClass := ""
+	switch {
+	case value <= 50:
+		colourClass = "bg-red-600 dark:bg-err-prim-surf"
+	case value >= 70:
+		colourClass = "bg-green-700 dark:bg-primary-surface-green-accent"
+	default:
+		colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent"
+	}
+
+	return shared.ProgressBar(colourClass, text, int(value))
+}
+
+templ PassageCell(t ThingViewModel) {
+	<div>
+		{ fmt.Sprintf("%0.f st", t.Properties["passagesToday"]) }
+	</div>
+}
+
+func TemperatureCell(t ThingViewModel) templ.Component {
+
+	if t.Properties["temperature"] == nil {
+		return templ.NopComponent
+	}
+
+	var m map[string]any
+	var ok bool
+	var temp float64
+
+	temp, ok = t.Properties["temperature"].(float64)
+	if !ok {
+		if m, ok = t.Properties["temperature"].(map[string]any); ok {
+			temp, ok = m["v"].(float64)
+		}
+	}
+
+	if !ok {
+		return templ.NopComponent
+	}
+
+	return statusCellContainer(shared.Text(fmt.Sprintf("%0.1f °C", temp)))
+}
+
+/*
+
+templ TemperatureCell(t ThingViewModel) {
+	<div>
+		{ fmt.Sprintf("%0.1f °C", t.Properties["temperature"]) }
+	</div>
+}
+
+*/

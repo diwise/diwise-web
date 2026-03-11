@@ -1,0 +1,82 @@
+package sensors
+
+import (
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+	"time"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
+)
+
+func RenderMeasurementGraph(l10n Localizer, model SensorDetailsViewModel) templ.Component {
+	now := time.Now()
+	startDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	endDate := time.Now()
+
+	if len(model.Measurements) > 0 {
+		m := model.Measurements[len(model.Measurements)-1]
+		ts := m.Timestamp
+		startDate = time.Date(ts.Year(), ts.Month(), ts.Day(), 0, 0, 0, 0, ts.Location())
+		endDate = ts
+	}
+
+	return Graph(l10n, startDate, endDate)
+}
+
+templ Graph(l10n Localizer, startDate, endDate time.Time) {
+	<div
+		id="graphView"
+		class="w-full"
+		style="height: 40vh; position: relative;"
+		data-start-date={ fmt.Sprintf("%s", startDate.Format("2006-01-02 15:04")) }
+		data-end-date={ fmt.Sprintf("%s", endDate.Format("2006-01-02 15:04")) }
+	>
+		<canvas id="measurement-chart"></canvas>
+		<div id="measurementCharts" style="display:none;"></div>
+	</div>
+	<script nonce={ csp.Nonce(ctx) }>
+		(() => {
+			const graphElement = document.getElementById('graphView');
+			if (graphElement) {
+				const startDateStr = graphElement.getAttribute('data-start-date');
+				const endDateStr = graphElement.getAttribute('data-end-date');
+				
+				const timeAtInput = document.getElementById("timeAt");
+				const endTimeAtInput = document.getElementById("endTimeAt");
+
+				var startDate = dateFns.startOfDay(new Date(startDateStr));
+  				var endDate = dateFns.endOfDay(new Date(endDateStr)); 
+
+				var formattedStartDate = dateFns.format(startDate, 'yyyy-MM-dd HH:mm');
+				var formattedEndDate = dateFns.format(endDate, 'yyyy-MM-dd HH:mm');
+
+				if (timeAtInput && endTimeAtInput) {
+					timeAtInput.value = formattedStartDate;
+					endTimeAtInput.value = formattedEndDate;
+				}
+			}
+		})();
+	</script>
+}
+
+type SensorMeasurementChartsProps struct {
+	ID     string
+	Url    string
+	Width  int
+	Height int
+}
+
+templ SensorMeasurementCharts(props SensorMeasurementChartsProps) {
+	<div class="relative w-full h-[600px]">
+		<canvas
+			id={ props.ID }
+			class="absolute inset-0 w-full h-full"
+		></canvas>
+	</div>
+	<div
+		class="chart-data hidden"
+		id={ fmt.Sprintf("%s-data", props.ID) }
+		data-chart={ props.ID }
+		hx-get={ string(templ.SafeURL(props.Url)) }
+		hx-trigger="load"
+	></div>
+}

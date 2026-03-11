@@ -1,0 +1,17 @@
+package shared
+
+import (
+	"fmt"
+)
+
+css progressbarwidth(percent int) {
+	width: { fmt.Sprintf("%d%%", percent) };
+	height: 6px;
+}
+
+templ ProgressBar(cssClass, text string, value int) {
+	<div>{ text }</div>
+	<div class="bg-background-200 dark:bg-primary-surface-white w-full rounded-lg">
+		<div class={ cssClass, progressbarwidth(value), "rounded-lg" }></div>
+	</div>
+}

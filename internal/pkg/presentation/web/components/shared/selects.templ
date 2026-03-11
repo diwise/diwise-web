@@ -1,0 +1,54 @@
+package shared
+
+type OptionViewModel struct {
+	Value    string
+	Text     string
+	Name     string
+	Selected bool
+	Hidden   bool
+	Disabled bool
+}
+
+templ OptionCheckbox(option OptionViewModel) {
+	<label for={ option.Value } class="flex items-center justify-between w-full cursor-pointer mb-2 gap-3 pr-2">
+		<span class="ml-2 text-gray-700 dark:text-primary-dark">{ option.Text }</span>
+		<div class="flex items-center">
+			<input
+				type="checkbox"
+				id={ option.Value }
+				name={ option.Name }
+				value={ option.Value }
+				checked?={ option.Selected }
+				disabled?={ option.Disabled }
+				class="sr-only peer form-checkbox cursor-pointer"
+			/>
+			<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center">
+				<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24">
+					@templ.Raw(iconSVG("check"))
+				</svg>
+			</div>
+		</div>
+	</label>
+}
+
+templ OptionCheckboxes(options []OptionViewModel) {
+	for _, option := range options {
+		@OptionCheckbox(option)
+	}
+}
+
+templ CheckboxDropdownList(id string, options []OptionViewModel, buttonText string) {
+	<div id={ id } class="relative w-full inline-block group">
+		<button type="button" class="flex items-center justify-between p-2 w-full font-medium cursor-pointer">
+			{ buttonText }
+			<svg class="w-[18px] h-[18px] dark:fill-white">
+				@templ.Raw(iconSVG("chevron-down"))
+			</svg>
+		</button>
+		<div class="hidden absolute z-10 py-2 rounded-md bg-background-100 shadow-md group-hover:block hover:block">
+			<div class="flex flex-col w-full">
+				@OptionCheckboxes(options)
+			</div>
+		</div>
+	</div>
+}

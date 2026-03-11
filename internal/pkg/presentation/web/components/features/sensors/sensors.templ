@@ -1,0 +1,261 @@
+package sensors
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+	"time"
+)
+
+type SensorListViewModel struct {
+	Sensors        []SensorViewModel
+	Statistics     StatisticsViewModel
+	Pageing        shared.PagingViewModel
+	MapView        bool
+	DeviceProfiles []string
+}
+
+type SensorViewModel struct {
+	Active       bool
+	DevEUI       string
+	DeviceID     string
+	Name         string
+	Latitude     float64
+	Longitude    float64
+	BatteryLevel int
+	LastSeen     time.Time
+	HasAlerts    bool
+	Type         string
+	Online       bool
+}
+
+type StatisticsViewModel struct {
+	Total    int
+	Active   int
+	Inactive int
+	Online   int
+	Unknown  int
+}
+
+const (
+	sensorsListRoute    = "/components/sensors/list"
+	sensorsFilterInclude = "[name=type]:checked, [name=active]:checked, [name=online]:checked, [name=lastseen], [name=search]"
+)
+
+templ Statistics(l10n Localizer, model StatisticsViewModel) {
+	<div class="flex items-start gap-10 dark:text-white">
+		<div class="flex items-start gap-2">{ l10n.Get("total") }<span class="font-bold">{ fmt.Sprintf("%d", model.Total) } </span></div>
+		<div class="flex items-start gap-2">{ l10n.Get("active") }<span class="font-bold">{ fmt.Sprintf("%d", model.Active) }</span></div>
+		<div class="flex items-start gap-2">{ l10n.Get("inactive") }<span class="font-bold">{ fmt.Sprintf("%d", model.Inactive) }</span></div>
+		<div class="flex items-start gap-2">{ l10n.Get("unknown") }<span class="font-bold">{ fmt.Sprintf("%d", model.Unknown) }</span></div>
+	</div>
+}
+
+templ SensorListActions(l10n Localizer) {
+	<div class="flex flex-row items-center text-white dark:text-primary-dark font-bold gap-4">
+		@shared.ExportActionButton("/admin/export?export=devices&accept=text/csv", ".filter", l10n.Get("export"))
+	</div>
+}
+
+templ SensorsList(l10n Localizer, model SensorListViewModel) {
+	<div class="flex flex-col items-start gap-6 flex-[1_0_0] w-full" id="sensor-view">
+		<div class="flex flex-col items-start gap-6 w-full">
+			@shared.PageHeader(l10n.Get("sensors"), SensorListActions(l10n))
+			@Statistics(l10n, model.Statistics)
+		</div>
+		@shared.Divider()
+		<div class="flex flex-col items-start self-stretch gap-4">
+			@SensorsFilter(l10n, model)
+			@shared.DataList(l10n, SensorsTable(l10n, model), SensorMap(l10n, model), model.MapView)
+		</div>
+	</div>
+}
+
+templ SensorsFilter(l10n Localizer, model SensorListViewModel) {
+	@shared.ListFilters(l10n, sensorsListRoute, SensorsFilterFields(l10n, model))
+}
+
+templ SensorsFilterFields(l10n Localizer, model SensorListViewModel) {
+	@shared.SearchFilterInput(sensorsListRoute, sensorsFilterInclude, l10n.Get("search"))
+	@shared.CheckboxList(l10n.Get("type")) {
+		for _, t := range model.DeviceProfiles {
+			@shared.CheckboxOption("type", t, "", l10n, shared.MergeAttrs(shared.HxFilterAttrs(sensorsListRoute, sensorsFilterInclude), templ.Attributes{
+				"data-text":  l10n.Get(t),
+				"value":      t,
+			}))
+		}
+	}
+	@shared.RadioList(l10n.Get("status")) {
+		@shared.RadioOption("active", "true", l10n.Get("active"), l10n, shared.HxFilterAttrs(sensorsListRoute, sensorsFilterInclude))
+		@shared.RadioOption("active", "false", l10n.Get("inactive"), l10n, shared.HxFilterAttrs(sensorsListRoute, sensorsFilterInclude))
+	}
+	@shared.RadioList(l10n.Get("Online")) {
+		@shared.RadioOption("online", "true", l10n.Get("online"), l10n, shared.HxFilterAttrs(sensorsListRoute, sensorsFilterInclude))
+		@shared.RadioOption("online", "false", l10n.Get("offline"), l10n, shared.HxFilterAttrs(sensorsListRoute, sensorsFilterInclude))
+	}
+	<div class="relative inline-block group">
+		<button
+			class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg"
+			onclick="document.getElementById('lastseen').focus();"
+		>
+			{ l10n.Get("lastseen") }
+			@shared.SVG("chevron-down", shared.Size(20))
+		</button>
+		<div class="hidden absolute bg-gray-100 min-w-max rounded-md shadow-lg z-10 p-4 group-hover:block group-focus-within:block">
+			<input
+				name="lastseen"
+				type="datetime-local"
+				id="lastseen"
+				class="filter border border-input-surface rounded-xl py-2 px-3 dark:text-secondary-dark"
+				hx-get={ sensorsListRoute }
+				hx-target="#tableOrMap"
+				hx-include={ sensorsFilterInclude }
+				hx-swap="outerHTML"
+				onclick="this.showPicker()"
+				onchange="updateSelectedFilters()"
+			/>
+		</div>
+	</div>
+}
+
+
+func sensorsToMapFeature(l10n Localizer, model SensorListViewModel) shared.FeatureCollection {
+	features := make([]shared.Feature, 0, len(model.Sensors))
+
+	for _, sensor := range model.Sensors {
+		if sensor.Latitude == 0 || sensor.Longitude == 0 {
+			continue
+		}
+		feature := shared.NewFeature(shared.NewPoint(sensor.Latitude, sensor.Longitude))
+		feature.AddProperty("status", sensor.Active)
+		feature.AddProperty("type", sensor.Type)
+		feature.AddProperty("name", sensor.Name)
+		feature.AddProperty("deveui", sensor.DevEUI)
+		if sensor.BatteryLevel >= 0 {
+			feature.AddProperty("batterylevel", fmt.Sprintf("%d%%", sensor.BatteryLevel))
+		} else {
+			feature.AddProperty("batterylevel", "-")
+		}
+		if !sensor.LastSeen.IsZero() {
+			feature.AddProperty("lastseen", sensor.LastSeen.Format("2006-01-02, 15:04"))
+		} else {
+			feature.AddProperty("lastseen", "-")
+		}
+		feature.AddProperty("latitude", sensor.Latitude)
+		feature.AddProperty("longitude", sensor.Longitude)
+		feature.AddProperty("url", fmt.Sprintf("/sensors/%s", sensor.DeviceID))
+
+		//Språkstöd
+		feature.AddProperty("text_active", l10n.Get("active"))
+		feature.AddProperty("text_inactive", l10n.Get("inactive"))
+		feature.AddProperty("text_deveui", l10n.Get("deveui"))
+		feature.AddProperty("text_sensortype", l10n.Get("sensortype"))
+		feature.AddProperty("text_batterylevel", l10n.Get("batterylevel"))
+		feature.AddProperty("text_position", l10n.Get("location"))
+		feature.AddProperty("text_lastseen", l10n.Get("lastseen"))
+		feature.AddProperty("text_moreinformation", l10n.Get("moreinformation"))
+
+		features = append(features, feature)
+	}
+
+	return shared.NewFeatureCollection(features)
+}
+
+func SensorMap(l10n Localizer, model SensorListViewModel) templ.Component {
+	if !model.MapView {
+		return templ.NopComponent
+	}
+	mapData := shared.NewMapData(62.3908, 17.3069)
+	mapData.CurrentView = "sensor"
+	return shared.Map("large", true, false, mapData, sensorsToMapFeature(l10n, model))
+}
+
+templ SensorRow(l10n Localizer, sensor SensorViewModel) {
+	<tr
+		class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
+		hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/sensors/details?id=%s", sensor.DeviceID))) }
+		hx-target="#sensor-view"
+		hx-push-url={ string(templ.SafeURL(fmt.Sprintf("/sensors/%s", sensor.DeviceID))) }
+		hx-trigger="click"
+		hx-disinherit="hx-target hx-push-url"
+	>
+		if sensor.Online {
+			<td class="px-6 py-3 flex items-center gap-2 dark:fill-primary-surface-green-accent">
+				@shared.SVG("circle", shared.FillColor("green-700", "primary-surface-green-accent"), shared.Box(12, 12), shared.Size(16))
+				<span>
+					{ l10n.Get("online") }
+				</span>
+			</td>
+		} else {
+			<td class="px-6 py-3 flex items-center gap-2 fill-red-600">
+				@shared.SVG("circle", shared.FillColor("#D62E2E", "err-prim-surf"), shared.Box(12, 12), shared.Size(16))
+				<span>
+					{ l10n.Get("offline") }
+				</span>
+			</td>
+		}
+		/*
+		<td class="px-6 py-3"><span class="font-bold">{ sensor.DeviceID }</span></td>
+		*/
+		<td class="px-6 py-3"><span class="font-bold">{ sensor.Name }</span></td>
+		if sensor.Active {
+			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-primary-green-accent"><span class="text-sm font-bold font-sans leading-none text-primary-green">{ l10n.Get("active") }</span></span></td>
+		} else {
+			<td class="px-6 py-3"><span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 bg-tertiary-surface dark:bg-primary-surface-white"><span class="text-sm font-bold font-sans leading-none text-primary-dark dark:text-white">{ l10n.Get("inactive") }</span></span></td>
+		}
+		<td class="px-6 py-3 capitalize">{ sensor.Type }</td>
+		<td class="px-6 py-3 break-all">
+			if sensor.HasAlerts {
+				<span class="font-bold">{ sensor.DevEUI }</span>
+			} else {
+				{ sensor.DevEUI }
+			}
+		</td>
+		<td class="px-6 py-3">
+			if sensor.BatteryLevel > 100 {
+				{ fmt.Sprintf("%d mV", sensor.BatteryLevel) }
+			} else if sensor.BatteryLevel >= 0 && sensor.BatteryLevel <= 100 {
+				{ fmt.Sprintf("%d%%", sensor.BatteryLevel) }
+			} else {
+				{ "-" }
+			}
+		</td>
+		<td class="px-6 py-3">
+			if sensor.LastSeen.IsZero() {
+				{ l10n.Get("-") }
+			} else {
+				{ sensor.LastSeen.Format("2006-01-02, 15:04") }
+			}
+		</td>
+	</tr>
+}
+
+templ SensorsTable(l10n Localizer, model SensorListViewModel) {
+	@shared.ListTableContainer(
+		shared.ListResultSummary(l10n.Get("show"), model.Pageing.Count, l10n.Get("sensorsof"), model.Pageing.TotalCount),
+		SensorsTableMarkup(l10n, model),
+	)
+}
+
+templ SensorsTableMarkup(l10n Localizer, model SensorListViewModel) {
+	@shared.Table(
+		shared.HeaderRow(
+			shared.TableHeaderText(l10n.Get("online")),
+			shared.TableHeaderText(l10n.Get("name")),
+			shared.TableHeaderText(l10n.Get("status")),
+			shared.TableHeaderText(l10n.Get("type")),
+			shared.TableHeaderText(l10n.Get("deveui")),
+			shared.TableHeaderText(l10n.Get("batterylevel")),
+			shared.TableHeaderText(l10n.Get("lastseen")),
+		),
+		shared.TableData(SensorsTableRows(l10n, model)),
+		shared.PagingFooter("8", l10n, model.Pageing),
+		l10n,
+	)
+}
+
+templ SensorsTableRows(l10n Localizer, model SensorListViewModel) {
+	for _, sensor := range model.Sensors {
+		@SensorRow(l10n, sensor)
+	}
+}

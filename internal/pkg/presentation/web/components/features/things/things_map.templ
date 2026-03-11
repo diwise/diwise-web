@@ -1,0 +1,181 @@
+package things
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+	"strings"
+)
+
+func ThingsMap(l10n Localizer, model ThingsListViewModel) templ.Component {
+	if !model.MapView {
+		return templ.NopComponent
+	}
+	mapData := shared.NewMapData(62.3908, 17.3069)
+	mapData.CurrentView = "thing"
+	return shared.Map("large", true, false, mapData, thingsToMapFeature(l10n, model.Things))
+}
+
+func thingsToMapFeature(l10n Localizer, things []ThingViewModel) shared.FeatureCollection {
+	features := make([]shared.Feature, 0, len(things))
+
+	for _, thing := range things {
+		if thing.Latitude == 0 || thing.Longitude == 0 {
+			continue
+		}
+
+		thingType := strings.ToLower(thing.Type)
+		thingSubType := strings.ToLower(thing.SubType)
+
+		feature := shared.NewFeature(shared.NewPoint(thing.Latitude, thing.Longitude))
+		feature.AddProperty("id", thing.ID)
+		feature.AddProperty("type", thingType)
+		feature.AddProperty("subtype", thingSubType)
+		feature.AddProperty("name", thing.Name)
+		feature.AddProperty("latitude", thing.Latitude)
+		feature.AddProperty("longitude", thing.Longitude)
+		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ID))
+
+		if thing.Description != "" {
+			feature.AddProperty("description", thing.Description)
+		}
+
+		if len(thing.Tags) > 0 {
+			feature.AddProperty("tags", thing.Tags)
+		} else {
+			feature.AddProperty("tags", nil)
+		}
+
+		feature.AddProperty("missingdata", thing.HasWarning())
+
+		switch thingType {
+		case "pointofinterest":
+			fallthrough
+		case "beach":
+			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetMeasurementValue("temperature")))
+		case "room":
+			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetMeasurementValue("temperature")))
+		case "container":
+			fl, ok := thing.GetFloat("percent")
+			if ok {
+				var state string
+
+				if thingSubType == "wastecontainer" {
+					if fl > 49 {
+						state = "red"
+					}
+					if fl > 30 && fl <= 49 {
+						state = "orange"
+					}
+					if fl <= 30 {
+						state = "green"
+					}
+				} else {
+					if fl > 70 {
+						state = "green"
+					}
+					if fl > 50 && fl <= 70 {
+						state = "orange"
+					}
+					if fl <= 50 {
+						state = "red"
+					}
+				}
+
+				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fl))
+				feature.AddProperty("state", state)
+			} else {
+				feature.AddProperty("fillinglevel", "")
+				feature.AddProperty("state", "black")
+			}
+		case "sewer":
+			if overflow, ok := thing.GetBool("overflowObserved"); ok {
+				if overflow {
+					feature.AddProperty("state", l10n.Get("yes"))
+				} else {
+					feature.AddProperty("state", l10n.Get("no"))
+				}
+			} else {
+				feature.AddProperty("state", "black")
+			}
+
+			if p, ok := thing.GetFloat("percent"); ok {
+				if p > 0 {
+					level := fmt.Sprintf("%0.f", p)
+					feature.AddProperty("fillinglevel", level)
+				}
+			}
+		case "lifebuoy":
+			if presence, ok := thing.GetBool("presence"); ok {
+				if presence {
+					feature.AddProperty("present", l10n.Get("yes"))
+				} else {
+					feature.AddProperty("present", l10n.Get("no"))
+				}
+			} else {
+				feature.AddProperty("text_nodata", l10n.Get("nodata"))
+			}
+		case "desk":
+			if presence, ok := thing.GetBool("presence"); ok {
+				if presence {
+					feature.AddProperty("present", l10n.Get("occupied"))
+				} else {
+					feature.AddProperty("present", l10n.Get("available"))
+				}
+			} else {
+				feature.AddProperty("text_nodata", l10n.Get("nodata"))
+			}
+		case "pumpingstation":
+			if pumpingObserved, ok := thing.GetBool("pumpingObserved"); ok {
+				if pumpingObserved {
+					feature.AddProperty("pumpingObserved", l10n.Get("yes"))
+				} else {
+					feature.AddProperty("pumpingObserved", l10n.Get("no"))
+				}
+			} else {
+				feature.AddProperty("text_nodata", l10n.Get("nodata"))
+			}
+		case "building":
+			energyAndPower := fmt.Sprintf("%0.f kWh / %0.f kW", thing.GetFloatOrDefault("energy", 0.0), thing.GetFloatOrDefault("power", 0.0))
+			feature.AddProperty("energyandpower", energyAndPower)
+		}
+
+		// todo: only if thing is passage?
+		if passages, ok := thing.GetFloat("passagesToday"); ok {
+			feature.AddProperty("passagestoday", passages)
+		}
+
+		// todo: only if thing is watermeter?
+		if cumulativeVolume, ok := thing.GetFloat("cumulativeVolume"); ok {
+			feature.AddProperty("cumulativeVolume", fmt.Sprintf("%.0f m³", cumulativeVolume))
+		}
+
+		//Språkstöd
+		feature.AddProperty("text_consumption", l10n.Get("consumption"))
+		feature.AddProperty("text_cumulativevolume", l10n.Get("cumulativevolume"))
+		feature.AddProperty("text_description", l10n.Get("description"))
+		feature.AddProperty("text_fillinglevel", l10n.Get("fillinglevel"))
+		feature.AddProperty("text_id", l10n.Get("id"))
+		feature.AddProperty("text_information", l10n.Get("information"))
+		feature.AddProperty("text_present", l10n.Get("present"))
+		feature.AddProperty("text_level", l10n.Get("level"))
+		feature.AddProperty("text_missingdata", l10n.Get("missingdata"))
+		feature.AddProperty("text_moreinformation", l10n.Get("moreinformation"))
+		feature.AddProperty("text_name", l10n.Get("name"))
+		feature.AddProperty("text_overflow", l10n.Get("overflow"))
+		feature.AddProperty("text_passagestoday", l10n.Get("numberofpassagestoday"))
+		feature.AddProperty("text_position", l10n.Get("location"))
+		feature.AddProperty("text_pumping", l10n.Get("pumping"))
+		feature.AddProperty("text_status", l10n.Get("status"))
+		feature.AddProperty("text_tags", l10n.Get("tags"))
+		feature.AddProperty("text_temperature", l10n.Get("temperature"))
+
+		features = append(features, feature)
+	}
+
+	return shared.NewFeatureCollection(features)
+}
+
+func ThingsToMapFeature(l10n Localizer, things []ThingViewModel) shared.FeatureCollection {
+	return thingsToMapFeature(l10n, things)
+}

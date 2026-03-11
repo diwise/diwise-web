@@ -1,0 +1,114 @@
+package things
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+	"sort"
+)
+
+templ ThingsTableComponent(l10n Localizer, model ThingsListViewModel) {
+	@shared.ListTableContainer(
+		shared.ListResultSummary(l10n.Get("show"), model.Pageing.Count, l10n.Get("thingsof"), model.Pageing.TotalCount),
+		ThingsTableMarkup(l10n, model),
+	)
+}
+
+templ ThingsTableMarkup(l10n Localizer, model ThingsListViewModel) {
+	@shared.Table(
+		shared.HeaderRow(
+			shared.TableHeaderText(l10n.Get("name")),
+			shared.TableHeaderText(l10n.Get("type")),
+			shared.TableHeaderText(l10n.Get("status"), "min-w-[200px]"),
+			shared.TableHeaderText(l10n.Get("tags")),
+		),
+		ThingRows(l10n, model),
+		shared.PagingFooter("4", l10n, model.Pageing),
+		l10n,
+	)
+}
+
+templ ThingRows(l10n Localizer, model ThingsListViewModel) {
+	@shared.TableData(ThingRowsContent(l10n, model))
+}
+
+templ ThingRowsContent(l10n Localizer, model ThingsListViewModel) {
+	for _, thing := range model.Things {
+		@ThingRow(l10n, thing)
+	}
+}
+
+templ ThingRow(l10n Localizer, thing ThingViewModel) {
+	<tr
+		class="border-b border-divider-gray border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
+		hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/things/%s?type=%s&subType=%s", thing.ID, thing.Type, thing.SubType))) }
+		hx-target="#things-view"
+		hx-push-url={ string(templ.SafeURL(fmt.Sprintf("/things/%s", thing.ID))) }
+		hx-trigger="click"
+	>
+		<td class="px-6 py-3">
+			<span class="font-bold">
+				if len(thing.Name) > 0 {
+					{ thing.Name }
+				} else {
+					{ thing.ID }
+				}
+			</span>
+		</td>
+		<td class="px-6 py-3">
+			if thing.SubType != "" {
+				{ l10n.Get(thing.SubType) }
+			} else {
+				{ l10n.Get(thing.Type) }
+			}
+		</td>
+		<td class="px-6 py-3 ">
+			@ThingStatusCell(l10n, thing)
+		</td>
+		<td class="px-6 py-3 relative">
+			@TagCell(l10n, thing)
+		</td>
+	</tr>
+}
+
+func TagCell(l10n Localizer, thing ThingViewModel) templ.Component {
+	if len(thing.Tags) == 0 {
+		return templ.NopComponent
+	}
+	sortedTags := make([]string, len(thing.Tags))
+	copy(sortedTags, thing.Tags)
+	sort.Strings(sortedTags)
+
+	return TagComponent(l10n, sortedTags)
+}
+
+templ TagComponent(l10n Localizer, sortedTags []string) {
+	for i, tag := range sortedTags {
+		if i < 3 {
+			<span class="px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+				{ tag }
+			</span>
+		}
+	}
+	if len(sortedTags) > 3 {
+		<span class="dark:text-secondary px-2 py-1 text-sm relative group cursor-pointer">
+			{ fmt.Sprintf("+ %d %s", len(sortedTags)-3, l10n.Get("more")) }
+			<div class="absolute hidden z-10 flex flex-col group-hover:block bg-background-100 dark:bg-gray-800 shadow-lg rounded-lg p-2 right-0">
+				for i, tag := range sortedTags {
+					if i >= 3 {
+						<div class="flex self-stretch dark:bg-gray-800 px-2 py-1 mt-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+							{ tag }
+						</div>
+					}
+				}
+			</div>
+		</span>
+	}
+}
+
+func ThingsTable(l10n Localizer, model ThingsListViewModel) templ.Component {
+	if model.MapView {
+		return templ.NopComponent
+	}
+	return ThingsTableComponent(l10n, model)
+}

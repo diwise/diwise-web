@@ -1,0 +1,181 @@
+package shared
+
+import (
+	. "github.com/diwise/frontend-toolkit"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
+)
+
+templ SelectedFilters(l10n Localizer, hxget string) {
+	<div class="flex items-center gap-2 self-stretch dark:text-white">
+		<div class="font-bold self-start whitespace-nowrap dark:text-white p-2">
+			{ l10n.Get("selectedfilters") }
+		</div>
+		<form id="filterForm" hx-get={ hxget } hx-target="#tableOrMap" hx-swap="outerHTML">
+			<div id="selectedFilters" class="flex flex-wrap items-center gap-2 self-stretch text-sm"></div>
+		</form>
+		<div id="clearAllFilters" class="hidden flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border cursor-pointer text-sm">
+			{ l10n.Get("clearall") }
+		</div>
+		<div id="noFilters" class="flex items-center py-2 justify-center gap-1 rounded-full italic text-sm">
+			{ l10n.Get("nofilterselected") }
+		</div>
+	</div>
+	<script nonce={ csp.Nonce(ctx) }>
+		function updateSelectedFilters() {
+			const selectedFiltersContainer = document.getElementById('selectedFilters');
+			const clearAllButton = document.getElementById('clearAllFilters');
+			const noFiltersDiv = document.getElementById('noFilters');
+
+			if (!selectedFiltersContainer) {
+				return;
+			}
+
+			selectedFiltersContainer.innerHTML = '';
+
+			const selectedTypes = Array.from(document.querySelectorAll('input[name="type"]:checked')).map(cb => ({
+				name: "type",
+				value: cb.value,
+				text: cb.getAttribute('data-text'),
+			}));
+
+			const selectedTags = Array.from(document.querySelectorAll('input[name="tags"]:checked')).map(cb => ({
+				name: "tags",
+				value: cb.value,
+				text: cb.value,
+			}));
+
+			let selectedFillingLevel = [];
+			const fillingLevelFilter = document.querySelectorAll('input[name="v[percent]"]:checked');
+
+			if (fillingLevelFilter.length > 0) {
+				selectedFillingLevel = Array.from(fillingLevelFilter).map(cb => ({
+					name: "v[percent]",
+					value: cb.value,
+					text: cb.getAttribute('data-text'),
+				}));
+			}
+
+			const selectedStatus = Array.from(document.querySelectorAll('input[name="active"]:checked')).map(cb => ({
+				name: "active",
+				value: cb.value,
+				text: cb.value === "true" ? "Aktiv" : "Inaktiv",
+			}));
+
+			const selectedOnline = Array.from(document.querySelectorAll('input[name="online"]:checked')).map(cb => ({
+				name: "online",
+				value: cb.value,
+				text: cb.value === "true" ? "Online" : "Offline",
+			}));
+
+			const lastSeenInput = document.querySelector('input[name="lastseen"]');
+			const selectedLastSeen = lastSeenInput && lastSeenInput.value
+				? [{
+					name: "lastseen",
+					value: lastSeenInput.value,
+					text: `Senast sedd efter: ${lastSeenInput.value.replace('T', ' ').slice(0, 16)}`,
+				}]
+				: [];
+
+			const selectedFilters = [...selectedTypes, ...selectedTags, ...selectedFillingLevel, ...selectedStatus, ...selectedOnline, ...selectedLastSeen];
+
+			const svgIcon = `
+				<svg class="h-4 w-4 fill-none stroke-primary-dark dark:stroke-white stroke-2 cursor-pointer" viewBox="0 0 24 24">
+					<path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+				</svg>`;
+
+			selectedFilters.forEach(filter => {
+				const filterDiv = document.createElement('div');
+				filterDiv.className = "flex items-center p-2 justify-center gap-1 rounded-full border-gray-30 dark:border-white-30 border capitalize";
+
+				const filterText = document.createTextNode(filter.text);
+				filterDiv.appendChild(filterText);
+
+				const removeIcon = document.createElement('span');
+				removeIcon.innerHTML = svgIcon;
+				removeIcon.addEventListener('click', function() {
+					if (filter.name === "lastseen") {
+						const lastSeenInput = document.querySelector('input[name="lastseen"]');
+
+						if (lastSeenInput) {
+							lastSeenInput.value = "";
+							lastSeenInput.dispatchEvent(new Event('change'));
+						}
+					} else {
+						const checkbox = document.querySelector(`input[name="${filter.name}"][value="${filter.value}"]`);
+						if (checkbox) {
+							checkbox.checked = false;
+							checkbox.dispatchEvent(new Event('change'));
+						}
+					}
+				});
+
+				filterDiv.appendChild(removeIcon);
+				selectedFiltersContainer.appendChild(filterDiv);
+			});
+
+			if (selectedFilters.length > 0) {
+				clearAllButton.classList.remove('hidden');
+				clearAllButton.addEventListener('click', clearAllFilters);
+				noFiltersDiv.classList.add('hidden');
+			} else {
+				clearAllButton.classList.add('hidden');
+				clearAllButton.removeEventListener('click', clearAllFilters);
+				noFiltersDiv.classList.remove('hidden');
+			}
+		}
+
+		document.body.addEventListener('htmx:afterOnLoad', updateSelectedFilters);
+
+		function toggleFillinglevelVisibility() {
+
+			const typeCheckboxes = document.querySelectorAll('input[name="type"]');
+			let isWastecontainerSelected = false;
+
+			typeCheckboxes.forEach(checkbox => {
+				if (checkbox.checked && checkbox.value.toLowerCase() === "container-wastecontainer") {
+					isWastecontainerSelected = true;
+				}
+			});
+
+			const fillinglevelFilter = document.getElementById('fillinglevelFilter');
+			if (!fillinglevelFilter) {
+				return;
+			}
+			if (isWastecontainerSelected) {
+				fillinglevelFilter.classList.remove('hidden');
+			} else {
+				fillinglevelFilter.classList.add('hidden');
+			}
+		}
+
+		function clearAllFilters() {
+			const allCheckedCheckboxes = document.querySelectorAll('input:checked');
+			allCheckedCheckboxes.forEach(cb => {
+				cb.checked = false;
+			});
+
+			document.getElementById('filterForm').dispatchEvent(new Event('submit', { cancelable: true }));
+
+			const fillinglevelFilter = document.getElementById('fillinglevelFilter');
+			if (fillinglevelFilter) {
+				fillinglevelFilter.classList.add('hidden');
+			}
+
+			const lastSeenInput = document.querySelector('input[name="lastseen"]');
+			if (lastSeenInput) {
+				lastSeenInput.value = "";
+				lastSeenInput.dispatchEvent(new Event('change'));
+			}
+		}
+
+		document.addEventListener('htmx:load', function () {
+			const typeCheckboxes = document.querySelectorAll('input[name="type"]');
+			typeCheckboxes.forEach(checkbox => {
+				checkbox.addEventListener('change', toggleFillinglevelVisibility);
+			});
+
+			toggleFillinglevelVisibility();
+		});
+
+	</script>
+}

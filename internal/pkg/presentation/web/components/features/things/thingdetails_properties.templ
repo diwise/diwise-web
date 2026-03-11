@@ -1,0 +1,108 @@
+package things
+
+import (
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+	"strings"
+)
+
+func ThingsDetailsProperties(l10n Localizer, model ThingDetailsViewModel) templ.Component {
+	if strings.ToLower(model.Thing.Type) == "container" {
+		if strings.ToLower(model.Thing.SubType) == "wastecontainer" {
+			return WasteContainerProperties(l10n, model)
+		}
+		if strings.ToLower(model.Thing.SubType) == "sandstorage" {
+			return SandStorageProperties(l10n, model)
+		}
+	}
+	if strings.ToLower(model.Thing.Type) == "sewer" {
+		return SewerProperties(l10n, model)
+	}
+	return templ.NopComponent
+}
+
+templ WasteContainerProperties(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex flex-start gap-2">
+		<div class="font-bold">{ l10n.Get("size") }</div>
+		<div class="font-normal">
+			if model.Thing.GetFloatOrDefault("maxd", 0) != 0 {
+				<div>
+					{ l10n.Get("containerheight") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
+				</div>
+			}
+			if model.Thing.GetFloatOrDefault("maxl", 0) != 0 {
+				<div>
+					{ l10n.Get("maxfillingheight") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+				</div>
+			}
+			if model.Thing.GetFloatOrDefault("maxd", 0) == 0 && model.Thing.GetFloatOrDefault("maxl", 0) == 0 {
+				<div class="italic text-secondary-outline-hover dark:text-secondary">
+					{ l10n.Get("missing") }
+				</div>
+			}
+		</div>
+	</div>
+}
+
+templ SandStorageProperties(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex flex-start gap-2">
+		<div class="font-bold">{ l10n.Get("size") }</div>
+		<div class="font-normal">
+			if model.Thing.GetFloatOrDefault("maxd", 0) != 0 {
+				<div>
+					{ l10n.Get("containerheight") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
+				</div>
+			}
+			if model.Thing.GetFloatOrDefault("maxl", 0) != 0 {
+				<div>
+					{ l10n.Get("maxfillingheight") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+				</div>
+			}
+			if model.Thing.GetFloatOrDefault("angle", 0) != 0 {
+				<div>
+					{ l10n.Get("angleis") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("angle", 0)) }</span> { l10n.Get("degrees") }.
+				</div>
+			} else {
+				<div class="italic text-secondary-outline-hover dark:text-secondary">
+					{ l10n.Get("angleismissing") }
+				</div>
+			}
+		</div>
+	</div>
+}
+
+templ SewerProperties(l10n Localizer, model ThingDetailsViewModel) {
+	<div class="flex flex-start gap-2">
+		<div class="font-bold">{ l10n.Get("measurements") }</div>
+		<div class="font-normal">
+			if model.Thing.GetFloatOrDefault("maxd", 0) != 0 {
+				<div>
+					{ l10n.Get("sewerheight") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxd", 0)) }</span> m
+				</div>
+			}
+			if model.Thing.GetFloatOrDefault("offset", 0) != 0 {
+				<div>
+					{ l10n.Get("offsetsetting") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("offset", 0)) }</span> m.
+				</div>
+			}
+			if model.Thing.GetFloatOrDefault("maxl", 0) != 0 {
+				<div>
+					{ l10n.Get("maxwaterlevelheight") }
+					<span>{ fmt.Sprintf("%0.2f",model.Thing.GetFloatOrDefault("maxl", 0)) }</span> m.
+				</div>
+			}
+			if model.Thing.GetFloatOrDefault("maxd", 0) == 0 && model.Thing.GetFloatOrDefault("maxl", 0) == 0 && model.Thing.GetFloatOrDefault("offset", 0) == 0 {
+				<div class="italic text-secondary-outline-hover dark:text-secondary">
+					{ l10n.Get("missing") }
+				</div>
+			}
+		</div>
+	</div>
+}

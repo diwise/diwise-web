@@ -5,6 +5,7 @@ import (
 	"embed"
 	"encoding/json"
 	"net/http"
+	"slices"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
@@ -40,10 +41,28 @@ func NewThingsHandler(ctx context.Context) http.HandlerFunc {
 
 		logger.Info("DEVMODE THINGS REQUEST", "path", p, "url", u)
 
-		w.Header()["Content-Type"] = []string{"application/json"}
-		w.WriteHeader(http.StatusOK)
+		if p == "/things/values" {
+			thingID := r.URL.Query().Get("thingid")
+			valuesResponse, err := newLatestValuesResponse(thingID)
+			if err != nil {
+				logger.Error("DEVMODE THINGS ERROR", "error", err)
+				http.Error(w, "could not render thing values", http.StatusInternalServerError)
+				return
+			}
 
-		c, err := jsonFiles.ReadFile(fileMap[p])
+			w.Header()["Content-Type"] = []string{"application/json"}
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(&valuesResponse)
+			return
+		}
+
+		fileName, ok := fileMap[p]
+		if !ok {
+			http.NotFound(w, r)
+			return
+		}
+
+		c, err := jsonFiles.ReadFile(fileName)
 		if err != nil {
 			logger.Error("DEVMODE THINGS ERROR", "error", err)
 			http.Error(w, "could not read things from json", http.StatusInternalServerError)
@@ -57,6 +76,82 @@ func NewThingsHandler(ctx context.Context) http.HandlerFunc {
 			return
 		}
 
+		w.Header()["Content-Type"] = []string{"application/json"}
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(&response)
 	}
+}
+
+func newLatestValuesResponse(thingID string) (application.ApiResponse, error) {
+	if thingID == "" {
+		return application.ApiResponse{
+			Meta: &application.Meta{
+				Count:        0,
+				TotalRecords: 0,
+			},
+			Data:  []byte("[]"),
+			Links: &application.Links{},
+		}, nil
+	}
+
+	fileName, ok := fileMap["/things/"+thingID]
+	if !ok {
+		return application.ApiResponse{
+			Meta: &application.Meta{
+				Count:        0,
+				TotalRecords: 0,
+			},
+			Data:  []byte("[]"),
+			Links: &application.Links{},
+		}, nil
+	}
+
+	c, err := jsonFiles.ReadFile(fileName)
+	if err != nil {
+		return application.ApiResponse{}, err
+	}
+
+	var thingResp application.ApiResponse
+	if err := json.Unmarshal(c, &thingResp); err != nil {
+		return application.ApiResponse{}, err
+	}
+
+	var thing application.Thing
+	if err := json.Unmarshal(thingResp.Data, &thing); err != nil {
+		return application.ApiResponse{}, err
+	}
+
+	values := make([]application.Measurement, 0)
+	for _, grouped := range thing.Values {
+		if len(grouped) == 0 {
+			continue
+		}
+
+		latest := slices.MaxFunc(grouped, func(a, b application.Measurement) int {
+			switch {
+			case a.Timestamp.Before(b.Timestamp):
+				return -1
+			case a.Timestamp.After(b.Timestamp):
+				return 1
+			default:
+				return 0
+			}
+		})
+		values = append(values, latest)
+	}
+
+	data, err := json.Marshal(values)
+	if err != nil {
+		return application.ApiResponse{}, err
+	}
+
+	count := uint64(len(values))
+	return application.ApiResponse{
+		Meta: &application.Meta{
+			Count:        count,
+			TotalRecords: count,
+		},
+		Data:  data,
+		Links: &application.Links{},
+	}, nil
 }

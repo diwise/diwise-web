@@ -12,7 +12,8 @@ import (
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
+	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/features/things"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components/layout"
 
 	//lint:ignore ST1001 it is OK when we do it
 	. "github.com/diwise/frontend-toolkit"
@@ -29,8 +30,8 @@ func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoa
 			http.Error(w, "could not render thing details page", http.StatusInternalServerError)
 		}
 
-		thingDetailsPage := components.ThingDetailsPage(localizer, assets, thingDetails)
-		page := components.StartPage(version, localizer, assets, thingDetailsPage)
+		thingDetailsPage := featuresthings.ThingDetailsPage(localizer, assets, thingDetails)
+		page := layout.StartPage(version, localizer, assets, thingDetailsPage)
 
 		helpers.WriteComponentResponse(ctx, w, r, page, 1024, 0)
 	}
@@ -57,7 +58,7 @@ func NewThingDetailsComponentHandler(_ context.Context, l10n LocaleBundle, asset
 				name = id
 			}
 
-			c := components.DeleteThing(localizer, assets, id, name)
+			c := featuresthings.DeleteThing(localizer, assets, id, name)
 			helpers.WriteComponentResponse(ctx, w, r, c, 1024, 0)
 			return
 		}
@@ -105,7 +106,7 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 	editMode := r.URL.Query().Get("mode") == "edit"
 
 	ctx = helpers.Decorate(ctx,
-		components.CurrentComponent, "things",
+		layout.CurrentComponent, "things",
 	)
 
 	thing, err := app.GetThing(ctx, id, r.URL.Query())
@@ -118,7 +119,7 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 		return ctx, nil, fmt.Errorf("could not compose view model")
 	}
 
-	thingDetailsViewModel := components.ThingDetailsViewModel{
+	thingDetailsViewModel := featuresthings.ThingDetailsViewModel{
 		Thing: toViewModel(thing),
 		Type:  thing.Type,
 	}
@@ -127,7 +128,7 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 		tabName := strings.ReplaceAll(strings.Replace(lv.ID, id, "", 1)[1:], "/", "-")
 		thingDetailsViewModel.Tabs = append(thingDetailsViewModel.Tabs, tabName)
 
-		thingDetailsViewModel.Thing.Latest[tabName] = components.MeasurementViewModel{
+		thingDetailsViewModel.Thing.Latest[tabName] = featuresthings.MeasurementViewModel{
 			ID:        lv.ID,
 			Timestamp: lv.Timestamp,
 			Value:     lv.Value,
@@ -152,7 +153,7 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 	if editMode {
 		validSensors, _ := app.GetValidSensors(ctx, thing.ValidURNs)
 		for _, s := range validSensors {
-			thingDetailsViewModel.ValidSensors = append(thingDetailsViewModel.ValidSensors, components.ValidSensorViewModel{
+			thingDetailsViewModel.ValidSensors = append(thingDetailsViewModel.ValidSensors, featuresthings.ValidSensorViewModel{
 				SensorID: s.SensorID,
 				DeviceID: s.DeviceID,
 				Decoder:  s.Decoder,
@@ -162,17 +163,17 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 		thingDetailsViewModel.Organisations = app.GetTenants(ctx)
 		thingDetailsViewModel.Tags, _ = app.GetTags(ctx)
 
-		component := components.EditThingDetails(localizer, assets, thingDetailsViewModel)
+		component := featuresthings.EditThingDetails(localizer, assets, thingDetailsViewModel)
 		return ctx, component, nil
 	}
 
-	return ctx, components.ThingDetails(localizer, assets, thingDetailsViewModel), nil
+	return ctx, featuresthings.ThingDetails(localizer, assets, thingDetailsViewModel), nil
 }
 
 func DeleteThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(r.Context(),
-			components.CurrentComponent, "things",
+			layout.CurrentComponent, "things",
 		)
 
 		id := r.PathValue("id")

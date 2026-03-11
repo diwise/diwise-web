@@ -1,0 +1,172 @@
+package shared
+
+import (
+	"fmt"
+	"strings"
+
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ Table(header templ.Component, data templ.Component, footer templ.Component, l10n Localizer) {
+	<div class="flex flex-col gap-10">
+		<table class="table-auto min-w-full text-sm text-left dark:bg-content-background dark:text-white">
+			@header
+			@data
+			@footer
+		</table>
+	</div>
+}
+
+templ ListResultSummary(showLabel string, count int, ofLabel string, totalCount int) {
+	<div class="dark:text-white p-2 text-sm">
+		{ showLabel } { fmt.Sprintf("%d", count) } { ofLabel } { fmt.Sprintf("%d", totalCount) }
+	</div>
+}
+
+templ ListTableContainer(summary, table templ.Component) {
+	<div class="flex flex-col gap-2">
+		<div class="flex flex-start items-center gap-2 self-stretch">
+			@summary
+		</div>
+		@table
+	</div>
+}
+
+templ HeaderRow(titles ...templ.Component) {
+	<thead class="border-b border-primary-dark dark:border-white">
+		<tr>
+			for _, title := range titles {
+				@title
+			}
+		</tr>
+	</thead>
+}
+
+templ TableData(rows templ.Component) {
+	<tbody>
+		@rows
+	</tbody>
+}
+
+templ TableRow(cells ...templ.Component) {
+	<tr class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20">
+		for _, cell := range cells {
+			@cell
+		}
+	</tr>
+}
+
+templ LinkRow(cells []templ.Component, url, pushUrl templ.SafeURL, viewName string) {
+	<tr
+		class="border-b border-gray-30 border-opacity-70 hover:bg-background-100 dark:border-white dark:bg-opacity-20 hover:cursor-pointer"
+		hx-get={ string(url) }
+		hx-target={ fmt.Sprintf("#%s-view", viewName) }
+		hx-push-url={ string(pushUrl) }
+		hx-trigger="click"
+		hx-disinherit="hx-target hx-push-url"
+	>
+		for _, cell := range cells {
+			@cell
+		}
+	</tr>
+}
+
+templ Label(label string, active bool) {
+	<span
+		class={ "px-2.5 py-1 rounded-full justify-start items-center gap-1.5",
+        templ.KV("bg-primary-green-accent", active),
+        templ.KV("bg-gray-900", !active),
+        templ.KV("bg-opacity-10", !active),
+        templ.KV("dark:bg-white", !active),
+        templ.KV("dark:bg-opacity-20", !active) }
+	>
+		<span
+			class={ "text-sm font-bold font-sans leading-none",
+            templ.KV("text-primary-green", active),
+            templ.KV("text-neutral-800", !active),
+            templ.KV("dark:text-white", !active) }
+		>
+			{ label }
+		</span>
+	</span>
+}
+
+templ PagingFooter(colspan string, l10n Localizer, p PagingViewModel) {
+	<tfoot>
+		<tr>
+			<td colspan={ colspan }>
+				@Paging(l10n, p)
+			</td>
+		</tr>
+	</tfoot>
+}
+
+templ TableHeaderText(title string, classes ...string) {
+	<th class={ "px-6 py-3", templ.KV(strings.Join(classes, " "), len(classes) > 0) }>
+		{ title }
+	</th>
+}
+
+templ Text(data string) {
+	{ data }
+}
+
+templ FirstText(data string) {
+	<span class="font-bold">
+		{ data }
+	</span>
+}
+
+templ Cell(contents templ.Component) {
+	<td class="px-6 py-3">
+		@contents
+	</td>
+}
+
+templ ActiveCell(contents templ.Component, id, url, trigger string) {
+	<td class="px-6 py-3" hx-get={ url } hx-target={ "#" + id } hx-trigger={ trigger }>
+		<div id={ id }>
+			@contents
+		</div>
+	</td>
+}
+
+templ LinkCell(contents templ.Component, url, viewName string) {
+	<td class="px-6 py-3 hover:cursor-pointer" hx-get={ url } hx-target={ fmt.Sprintf("#%s-view", viewName) } hx-trigger="click">
+		@contents
+	</td>
+}
+
+templ TextFirstCell(data string) {
+	@Cell(FirstText(data))
+}
+
+templ TextLinkCell(data, url, viewName string) {
+	@LinkCell(Text(data), url, viewName)
+}
+
+templ TextCell(data string) {
+	@Cell(Text(data))
+}
+
+templ ProgressBarCell(data string) {
+	@Cell(progressBar(data, 0))
+}
+
+func progressBar(text string, value int) templ.Component {
+	colourClass := ""
+	switch {
+	case value >= 70:
+		colourClass = "bg-red-600"
+	case value <= 40:
+		colourClass = "bg-green-700"
+	default:
+		colourClass = "bg-orange-600"
+	}
+
+	return ProgressBar(colourClass, text, value)
+}
+
+templ LabelCell(label string, active bool) {
+	@Cell(Label(label, active))
+}

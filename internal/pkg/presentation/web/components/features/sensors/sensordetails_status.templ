@@ -1,0 +1,67 @@
+package sensors
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	"fmt"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ SensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsViewModel) {
+	<div class="flex flex-col items-start self-stretch">
+		@shared.SectionHeader(
+			shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+			l10n.Get("location"),
+			false,
+		)
+		<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
+			@shared.KeyValueRow(l10n.Get("latitude"), fmt.Sprintf("%f", sensor.Latitude))
+			@shared.KeyValueRow(l10n.Get("longitude"), fmt.Sprintf("%f", sensor.Longitude))
+			@shared.Map("medium", false, false, shared.NewMapData(sensor.Latitude, sensor.Longitude), sensorMapFeature(sensor))
+		</div>
+	</div>
+}
+
+templ SensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsViewModel) {
+	<div class="flex flex-col items-start self-stretch">
+		@shared.SectionHeader(
+			shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("primary-dark", "zinc-100"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+			l10n.Get("Status"),
+			false,
+		)
+		<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9 text-secondary-dark dark:text-secondary">
+			@shared.KeyValueDetailsList("") {
+				if sensor.DeviceStatus.BatteryLevel > 0 {
+					if sensor.DeviceStatus.BatteryLevel <= 100 {
+						@shared.KeyValueRowClass(l10n.Get("batterylevel"), fmt.Sprintf("%d%%", sensor.DeviceStatus.BatteryLevel), "break-all")
+					} else {
+						@shared.KeyValueRowClass(l10n.Get("batterylevel"), fmt.Sprintf("%d mV", sensor.DeviceStatus.BatteryLevel), "break-all")
+					}
+				}
+				if sensor.DeviceStatus.DR != nil && *sensor.DeviceStatus.DR > 0 {
+					@shared.KeyValueRowClass(l10n.Get("dr"), fmt.Sprintf("%d", *sensor.DeviceStatus.DR), "break-all")
+				}
+				if sensor.DeviceStatus.Frequency != nil {
+					@shared.KeyValueRowClass(l10n.Get("frequency"), fmt.Sprintf("%d MHz", *sensor.DeviceStatus.Frequency / 1000000), "break-all")
+				}
+				if sensor.DeviceStatus.LoRaSNR != nil {
+					@shared.KeyValueRowClass(l10n.Get("loraSNR"), fmt.Sprintf("%.2f", *sensor.DeviceStatus.LoRaSNR), "break-all")
+				}
+				if sensor.DeviceStatus.RSSI != nil {
+					@shared.KeyValueRowClass(l10n.Get("rssi"), fmt.Sprintf("%.2f", *sensor.DeviceStatus.RSSI), "break-all")
+				}
+				if sensor.DeviceStatus.SpreadingFactor != nil && *sensor.DeviceStatus.SpreadingFactor > 0 {
+					@shared.KeyValueRowClass(l10n.Get("spreadingFactor"), fmt.Sprintf("%.2f", *sensor.DeviceStatus.SpreadingFactor), "break-all")
+				}
+				if !sensor.DeviceStatus.ObservedAt.IsZero() {
+					@shared.KeyValueRowClass(l10n.Get("lastseen"), sensor.DeviceStatus.ObservedAt.Format("2006-01-02, 15:04"), "break-all")
+				}
+			}
+			@SensorMeasurementCharts(SensorMeasurementChartsProps{
+				ID:     "lora-status-chart",
+				Url:    fmt.Sprintf("/components/sensors/%s/status", sensor.DeviceID),
+				Width:  600,
+				Height: 300,
+			})
+		</div>
+	</div>
+}

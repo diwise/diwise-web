@@ -1,0 +1,20 @@
+package shared
+
+templ Divider() {
+	<div class="h-px border-t border-gray-30 w-full dark:border-white-30"></div>
+}
+
+templ PageHeader(title string, actions templ.Component) {
+	<div class="flex items-center w-full justify-between">
+		<h1 class="dark:text-white text-2xl font-bold font-heading leading-loose">{ title }</h1>
+		@actions
+	</div>
+}
+
+templ SectionHeader(icon templ.Component, title string, nowrap bool) {
+	<div class="flex items-center gap-3 self-stretch">
+		@icon
+		<h2 class={ "font-heading text-xl font-bold dark:text-white", templ.KV("whitespace-nowrap", nowrap) }>{ title }</h2>
+		@Divider()
+	</div>
+}

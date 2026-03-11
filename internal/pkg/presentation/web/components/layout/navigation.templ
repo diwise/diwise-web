@@ -1,0 +1,44 @@
+package layout
+
+import (
+	"context"
+	"fmt"
+
+	. "github.com/diwise/frontend-toolkit"
+)
+
+type ComponentName string
+
+var CurrentComponent ComponentName = "current-component"
+
+templ MenuSegment(title, slug string, icon templ.Component, asset AssetLoaderFunc, selected bool) {
+	<div
+		class={ "flex px-3 py-2.5 justify-start items-center gap-2.5 self-stretch cursor-pointer",
+		templ.KV("rounded-xl", !selected),
+		templ.KV("hover:bg-tertiary-surface-hover", !selected),
+		templ.KV("dark:hover:bg-white-30", !selected),
+		templ.KV("rounded-lg", selected),
+		templ.KV("bg-black", selected),
+		templ.KV("dark:bg-primary-surface-dark", selected) }
+		hx-get={ slug }
+		hx-target="#body"
+		hx-replace-url="true"
+	>
+		@icon
+		<div
+			class={ "text-base font-sans leading-normal lg:block hidden",
+			templ.KV("text-neutral-800", !selected),
+			templ.KV("font-bold", selected),
+			templ.KV("text-white", selected),
+			templ.KV("dark:text-primary-dark", selected),
+			templ.KV("dark:text-secondary", !selected) }
+		>
+			{ title }
+		</div>
+	</div>
+}
+
+func isCurrent(ctx context.Context, expect string) bool {
+	name := fmt.Sprintf("%s", ctx.Value(CurrentComponent))
+	return name == expect
+}

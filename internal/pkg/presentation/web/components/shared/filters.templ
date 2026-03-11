@@ -1,0 +1,131 @@
+package shared
+
+import (
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ ListFilters(l10n Localizer, route string, fields templ.Component) {
+	<div class="flex w-full flex-col gap-4">
+		<div class="flex h-12 justify-between items-center">
+			<div class="flex items-center dark:text-white">
+				<div class="flex items-center gap-6">
+					@fields
+				</div>
+			</div>
+			@TableOrMap(l10n, route)
+		</div>
+		@SelectedFilters(l10n, route)
+	</div>
+}
+
+templ SearchFilterInput(route, include, placeholder string) {
+	<div class="flex rounded-xl py-2 px-3 gap-2 w-56 border border-input-surface dark:border-white-30">
+		@SVG("search", Size(20))
+		<input
+			class="filter w-full block focus:outline-none dark:bg-content-background"
+			type="search"
+			name="search"
+			placeholder={ placeholder }
+			hx-get={ route }
+			hx-trigger="input changed delay:500ms, search"
+			hx-target="#tableOrMap"
+			hx-include={ include }
+		/>
+	</div>
+}
+
+func HxFilterAttrs(hxGet, hxInclude string) templ.Attributes {
+	return templ.Attributes{
+		"hx-get":     hxGet,
+		"hx-target":  "#tableOrMap",
+		"hx-swap":    "outerHTML",
+		"hx-include": hxInclude,
+		"onchange":   "updateSelectedFilters()",
+	}
+}
+
+func MergeAttrs(base, extra templ.Attributes) templ.Attributes {
+	merged := templ.Attributes{}
+
+	for k, v := range base {
+		merged[k] = v
+	}
+	for k, v := range extra {
+		merged[k] = v
+	}
+
+	return merged
+}
+
+templ CheckboxOption(name, value, text string, l10n Localizer, attrs templ.Attributes) {
+	<label class="flex items-center gap-3 dark:text-primary-dark cursor-pointer capitalize">
+		<input
+			type="checkbox"
+			name={ name }
+			value={ value }
+			data-text={ l10n.Get(value) }
+			class="filter sr-only peer form-checkbox"
+			hx-trigger="change"
+			hx-include=".filter"
+			{ attrs... }
+		/>
+		<div class="w-[20px] h-[20px] bg-white rounded border border-gray-400 peer-checked:bg-black peer-checked:border-black flex justify-center items-center hover:bg-secondary-outline-hover hover:border-black">
+			<svg class="w-full h-full fill-none stroke-white stroke-2 opacity-100 peer-checked:opacity-0 transition-opacity" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M20 6 9 17l-5-5"></path></svg>
+		</div>
+		if text != "" {
+			{ l10n.Get(text) }
+		} else {
+			{ l10n.Get(value) }
+		}
+	</label>
+}
+
+templ CheckboxList(header string) {
+	<div class="relative inline-block group">
+		<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg">
+			{ header }
+			@SVG("chevron-down", Size(20))
+		</button>
+		<div class="hidden absolute bg-gray-100 min-w-max rounded-md shadow-lg z-10 p-4 group-hover:block">
+			{ children... }
+		</div>
+	</div>
+}
+
+templ RadioOption(name, value, text string, l10n Localizer, attrs templ.Attributes) {
+	<label class="flex items-center gap-3 dark:text-primary-dark cursor-pointer">
+		<input
+			type="radio"
+			name={ name }
+			value={ value }
+			data-text={ l10n.Get(value) }
+			class="filter sr-only peer"
+			hx-trigger="change"
+			hx-include=".filter"
+			{ attrs... }
+		/>
+		<div
+			class="w-[20px] h-[20px] bg-white rounded-full border border-gray-400 relative 
+					peer-checked:before:bg-primary-dark before:content-[''] before:w-[12px] before:h-[12px] 
+					before:rounded-full before:bg-transparent before:absolute before:top-[50%] before:left-[50%] before:transform 
+					before:-translate-x-1/2 before:-translate-y-1/2 hover:before:bg-secondary-outline-hover hover:border-black"
+		></div>
+		if text != "" {
+			{ l10n.Get(text) }
+		} else {
+			{ l10n.Get(value) }
+		}
+	</label>
+}
+
+templ RadioList(header string) {
+	<div class="relative inline-block group">
+		<button class="flex items-center justify-start text-left p-2 gap-2 font-bold hover:bg-tertiary-surface-hover hover:rounded-lg">
+			{ header }
+			@SVG("chevron-down", Size(20))
+		</button>
+		<div class="hidden absolute bg-gray-100 min-w-max rounded-md shadow-lg z-10 p-4 group-hover:block">
+			{ children... }
+		</div>
+	</div>
+}

@@ -1,0 +1,30 @@
+package layout
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ NewDarkModeToggle(isOn bool, asset AssetLoaderFunc, l10n Localizer) {
+	<div id="NewDarkModeToggle" class="flex items-center bg-tertiary-surface dark:bg-primary-surface-white gap-2 rounded-full p-1.5 text-sm font-bold cursor-pointer">
+		<div class="toggle-light flex items-center bg-primary-surface dark:bg-transparent rounded-full dark:hover:bg-white-30 text-white dark:text-white py-2 px-3 gap-2">
+			@shared.SVG("sun-medium", shared.Size(24), shared.Box(24, 24), shared.FillColor("white", "primary-dark"))
+			{ l10n.Get("light") }
+		</div>
+		<div class="toggle-dark flex items-center py-2 px-3.5 gap-2 dark:bg-primary-surface-dark hover:bg-tertiary-surface-hover rounded-full dark:text-black">
+			@shared.SVG("moon", shared.Size(20), shared.Box(20, 20), shared.FillColor("primary-dark", "primary-dark"))
+			{ l10n.Get("dark") }
+		</div>
+	</div>
+}
+
+templ NewDarkModeToggleMdMenu(isOn bool, asset AssetLoaderFunc) {
+	<div id="NewDarkModeToggle" class="flex md:flex-col items-center bg-tertiary-surface dark:bg-primary-surface-white gap-2 rounded-full p-1.5 text-sm font-bold cursor-pointer">
+		<div class="toggle-light flex items-center p-2 gap-2 bg-primary-surface dark:bg-transparent rounded-full dark:hover:bg-white-30 text-white dark:text-white">
+			@shared.SVG("sun-medium", shared.Size(24), shared.Box(24, 24), shared.FillColor("white", "primary-dark"))
+		</div>
+		<div class="toggle-dark flex items-center p-2 gap-2 dark:bg-primary-surface-dark hover:bg-tertiary-surface-hover rounded-full dark:text-black">
+			@shared.SVG("moon", shared.Size(20), shared.Box(20, 20), shared.FillColor("primary-dark", "primary-dark"))
+		</div>
+	</div>
+}

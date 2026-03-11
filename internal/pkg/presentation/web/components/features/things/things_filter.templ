@@ -1,0 +1,41 @@
+package things
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+const (
+	thingsListRoute      = "/components/things/list"
+	thingsListGtRoute    = "/components/things/list?op=gt"
+	thingsTypeInclude    = "[name=type]:checked"
+	thingsTagsInclude    = "[name=tags]:checked"
+	thingsPercentInclude = "[name=v[percent]]:checked"
+)
+
+templ ThingsFilter(l10n Localizer, model ThingsListViewModel) {
+	@shared.ListFilters(l10n, thingsListRoute, ThingsFilterFields(l10n, model))
+}
+
+templ ThingsFilterFields(l10n Localizer, model ThingsListViewModel) {
+	@shared.CheckboxList(l10n.Get("type")) {
+		for _, t := range model.Types {
+			@shared.CheckboxOption("type", t.Type, "", l10n, shared.MergeAttrs(shared.HxFilterAttrs(thingsListRoute, thingsTypeInclude), templ.Attributes{
+				"data-text": t.Name,
+			}))
+		}
+	}
+	@shared.CheckboxList(l10n.Get("tags")) {
+		for _, t := range model.Tags {
+			@shared.CheckboxOption("tags", t, "", l10n, shared.MergeAttrs(shared.HxFilterAttrs(thingsListRoute, thingsTagsInclude), templ.Attributes{
+				"value": t,
+			}))
+		}
+	}
+	<div id="fillinglevelFilter" class="hidden">
+		@shared.RadioList(l10n.Get("fillinglevel")) {
+			@shared.RadioOption("v[percent]", "30", ">30%", l10n, shared.HxFilterAttrs(thingsListGtRoute, thingsPercentInclude))
+			@shared.RadioOption("v[percent]", "50", ">50%", l10n, shared.HxFilterAttrs(thingsListGtRoute, thingsPercentInclude))
+		}
+	</div>
+}

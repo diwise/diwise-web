@@ -1,0 +1,12 @@
+package shared
+
+templ Tooltip(tooltiptext string) {
+	<div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 hidden group-hover:block">
+		<svg class="w-[40px] h-[8px] absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full">
+			@SVG("tip", Box(41, 8), FillColor("black", "white"))
+		</svg>
+		<div class="bg-primary-surface text-white dark:bg-white dark:text-primary-dark rounded-lg shadow-lg flex py-2 px-4 items-center gap-1.5 text-sm font-bold font-sans leading-[18px] whitespace-nowrap">
+			{ tooltiptext }
+		</div>
+	</div>
+}

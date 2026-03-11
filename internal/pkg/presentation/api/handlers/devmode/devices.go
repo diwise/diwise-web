@@ -59,7 +59,6 @@ var emptyResponse = newResponseFromJsons(0, []string{})
 func NewDevicesHandler(ctx context.Context) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		w.Header()["Content-Type"] = []string{"application/json"}
 		w.WriteHeader(http.StatusOK)
 
@@ -69,6 +68,26 @@ func NewDevicesHandler(ctx context.Context) http.HandlerFunc {
 		}
 
 		response := newDeviceResponseFromFilters(int(lim), newFiltersFromRequest(r)...)
+		json.NewEncoder(w).Encode(&response)
+	}
+}
+
+func NewDeviceByIDHandler(_ context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		if id == "" {
+			http.Error(w, "missing device id", http.StatusBadRequest)
+			return
+		}
+
+		response, found := newDeviceResponseByID(id)
+		if !found {
+			http.NotFound(w, r)
+			return
+		}
+
+		w.Header()["Content-Type"] = []string{"application/json"}
+		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(&response)
 	}
 }
@@ -146,6 +165,40 @@ func newDeviceResponseFromFilters(limit int, filters ...func(d *testDevice) bool
 		}
 	}
 	return newResponseFromJsons(totalCount, jsons)
+}
+
+func newDeviceResponseByID(id string) (application.ApiResponse, bool) {
+	for _, conf := range testDevices {
+		if conf.deviceID != id {
+			continue
+		}
+
+		deviceData := deviceJson(
+			conf.active,
+			conf.online,
+			conf.sensorID,
+			conf.deviceID,
+			conf.tenant,
+			conf.name,
+			conf.profilename,
+			conf.location,
+		)
+
+		count := uint64(1)
+		response := application.ApiResponse{
+			Meta: &application.Meta{
+				Count:        count,
+				TotalRecords: count,
+			},
+			Data:  []byte(deviceData),
+			Links: &application.Links{},
+		}
+
+		return response, true
+	}
+
+	response := application.ApiResponse{}
+	return response, false
 }
 
 func newResponseFromJsons(totalRecords int, jsons []string) application.ApiResponse {

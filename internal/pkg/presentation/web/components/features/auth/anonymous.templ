@@ -1,6 +1,9 @@
-package components
+package auth
 
-import . "github.com/diwise/frontend-toolkit"
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/web/components/shared"
+	. "github.com/diwise/frontend-toolkit"
+)
 
 templ NotLoggedIn(l10n Localizer, asset AssetLoaderFunc) {
 	<div class="flex items-center justify-center min-h-screen bg-no-repeat bg-center bg-[url('/assets/790b004db41539410fb0ebe8f6d04cab4fc47cc7709b04b0a03353605edc100a/bg2048.webp')]">
@@ -13,7 +16,7 @@ templ NotLoggedIn(l10n Localizer, asset AssetLoaderFunc) {
 				<div class="pl-6 space-y-4">
 					<h1>{ l10n.Get("notloggedin") }</h1>
 					<form action="/login" method="get">
-						@Button("primaryInverted", l10n.Get("login"), "")
+						@shared.Button(shared.PrimaryInverted, l10n.Get("login"), "")
 					</form>
 				</div>
 			</div>
