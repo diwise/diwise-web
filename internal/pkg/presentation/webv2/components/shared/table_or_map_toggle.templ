@@ -1,0 +1,126 @@
+package shared
+
+import (
+	"fmt"
+
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
+)
+
+type TableOrMapToggleProps struct {
+	BaseID        string
+	HiddenInputID string
+	TargetURL     string
+	TargetID      string
+	Include       string
+	MapView       bool
+	TableLabel    string
+	MapLabel      string
+}
+
+templ TableOrMapToggle(l10n Localizer, props TableOrMapToggleProps) {
+	{{ baseID := props.BaseID }}
+	if baseID == "" {
+		{{ baseID = "table-or-map-toggle" }}
+	}
+	{{ tableID := baseID + "-table" }}
+	{{ mapID := baseID + "-map" }}
+	{{ tableAttrs := templ.Attributes{
+		"type":         "button",
+		"hx-get":       props.TargetURL,
+		"hx-target":    props.TargetID,
+		"hx-swap":      "outerHTML",
+		"hx-vals":      `{"mapview":"false"}`,
+		"aria-label":   props.TableLabel,
+		"aria-pressed": boolString(!props.MapView),
+		"title":        props.TableLabel,
+		"hx-on:click":  fmt.Sprintf("setTableOrMapView('%s','%s','%s',false)", props.HiddenInputID, tableID, mapID),
+	} }}
+	{{ mapAttrs := templ.Attributes{
+		"type":         "button",
+		"hx-get":       props.TargetURL,
+		"hx-target":    props.TargetID,
+		"hx-swap":      "outerHTML",
+		"hx-vals":      `{"mapview":"true"}`,
+		"aria-label":   props.MapLabel,
+		"aria-pressed": boolString(props.MapView),
+		"title":        props.MapLabel,
+		"hx-on:click":  fmt.Sprintf("setTableOrMapView('%s','%s','%s',true)", props.HiddenInputID, tableID, mapID),
+	} }}
+	if props.Include != "" {
+		{{ tableAttrs["hx-include"] = props.Include }}
+		{{ mapAttrs["hx-include"] = props.Include }}
+	}
+	<div class="flex items-center gap-2 rounded-2xl border border-border/80 bg-background p-1 shadow-xs">
+		@button.Button(button.Props{
+			ID:      tableID,
+			Variant: toggleButtonVariant(!props.MapView),
+			Class:   toggleButtonClass(!props.MapView),
+			Attributes: tableAttrs,
+		}) {
+			@icon.Table(icon.Props{Size: 16})
+		}
+		@button.Button(button.Props{
+			ID:      mapID,
+			Variant: toggleButtonVariant(props.MapView),
+			Class:   toggleButtonClass(props.MapView),
+			Attributes: mapAttrs,
+		}) {
+			@icon.Map(icon.Props{Size: 16})
+		}
+	</div>
+	<script nonce={ csp.Nonce(ctx) }>
+		function setTableOrMapView(hiddenInputID, tableButtonID, mapButtonID, mapView) {
+			const hidden = document.getElementById(hiddenInputID);
+			if (hidden) {
+				hidden.value = mapView ? 'true' : 'false';
+			}
+
+			const tableButton = document.getElementById(tableButtonID);
+			const mapButton = document.getElementById(mapButtonID);
+			if (!tableButton || !mapButton) {
+				return;
+			}
+
+			const activeClasses = ['bg-primary', 'text-primary-foreground', 'shadow-xs', 'hover:bg-primary/90'];
+			const inactiveClasses = ['text-muted-foreground', 'hover:bg-background-100', 'hover:text-foreground', 'dark:text-white/70', 'dark:hover:bg-white/10', 'dark:hover:text-white'];
+
+			const setState = (button, active) => {
+				button.classList.remove(...activeClasses, ...inactiveClasses);
+				if (active) {
+					button.classList.add(...activeClasses);
+					button.setAttribute('aria-pressed', 'true');
+				} else {
+					button.classList.add(...inactiveClasses);
+					button.setAttribute('aria-pressed', 'false');
+				}
+			};
+
+			setState(tableButton, !mapView);
+			setState(mapButton, mapView);
+		}
+	</script>
+}
+
+func toggleButtonClass(active bool) string {
+	if active {
+		return "rounded-xl"
+	}
+	return "rounded-xl text-muted-foreground shadow-none hover:bg-background-100 hover:text-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+}
+
+func toggleButtonVariant(active bool) button.Variant {
+	if active {
+		return button.VariantDefault
+	}
+	return button.VariantGhost
+}
+
+func boolString(value bool) string {
+	if value {
+		return "true"
+	}
+	return "false"
+}

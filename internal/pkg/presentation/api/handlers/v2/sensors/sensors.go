@@ -59,16 +59,37 @@ func NewSensorsTable(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, ap
 }
 
 func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
-	return NewSensorsTable(ctx, l10n, assets, app)
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := helpers.Decorate(
+			r.Context(),
+			v2layout.CurrentComponent, "sensors",
+		)
+
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		model, err := composeListModel(ctx, r, app, false)
+		if err != nil {
+			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
+			return
+		}
+
+		component := featuresensors.SensorsDataList(localizer, model)
+		helpers.WriteComponentResponse(ctx, w, r, component, 16*1024, 0)
+	}
 }
 
 func composeListModel(ctx context.Context, r *http.Request, app application.DeviceManagement, includePageMeta bool) (featuresensors.SensorsPageViewModel, error) {
 	pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 	offset, limit := helpers.GetOffsetAndLimit(r)
+	showMap := r.URL.Query().Get("mapview") == "true"
 
 	args := r.URL.Query()
 	helpers.SanitizeParams(args, "page", "limit", "offset")
 	selectedTypes := normalizeTypeFilter(args)
+
+	if showMap {
+		offset = 0
+		limit = 1000
+	}
 
 	result, err := app.GetSensors(ctx, offset, limit, args)
 	if err != nil {
@@ -79,6 +100,7 @@ func composeListModel(ctx context.Context, r *http.Request, app application.Devi
 	pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
 
 	model := featuresensors.SensorsPageViewModel{
+		MapView: showMap,
 		Sensors: make([]featuresensors.SensorViewModel, 0, len(result.Sensors)),
 		Filters: featuresensors.FiltersViewModel{
 			Search:        r.URL.Query().Get("search"),
@@ -97,7 +119,7 @@ func composeListModel(ctx context.Context, r *http.Request, app application.Devi
 			TotalCount: result.TotalRecords,
 			Query:      args.Encode(),
 			TargetURL:  "/v2/components/sensors/list",
-			TargetID:   "#tableview",
+			TargetID:   "#tableOrMap",
 		},
 	}
 
@@ -194,6 +216,8 @@ func toViewModel(sensor application.Sensor) featuresensors.SensorViewModel {
 		BatteryLevel: batteryLevel(sensor),
 		LastSeen:     lastSeen,
 		HasAlerts:    len(sensor.Alarms) > 0,
+		Latitude:     sensor.Location.Latitude,
+		Longitude:    sensor.Location.Longitude,
 	}
 
 	if sensor.DeviceProfile != nil {

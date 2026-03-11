@@ -6,6 +6,7 @@ import (
 
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/chart"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/skeleton"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
@@ -21,10 +22,8 @@ type OverviewStats struct {
 }
 
 type HomeViewModel struct {
-	UsageDatasets []shared.ChartDataset
-	XScaleMax     uint
-	Alarms        []AlarmViewModel
-	Paging        PagingViewModel
+	Alarms []AlarmViewModel
+	Paging PagingViewModel
 }
 
 type AlarmViewModel struct {
@@ -58,10 +57,13 @@ templ Home(l10n Localizer, viewModel HomeViewModel) {
 				@SectionHeading(l10n.Get("measurementperday"), shared.SVG("chartline", shared.Size(32), shared.NoFill(), shared.Box(24, 24), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}), shared.ClassNames("shrink-0", "stroke-black", "dark:stroke-white")))
 				@card.Card(card.Props{Class: "h-full overflow-hidden rounded-2xl border border-border/80 bg-white shadow dark:bg-gray-800"}) {
 					@card.Content(card.ContentProps{Class: "flex h-full p-6"}) {
-						<div class="h-[320px] w-full xl:min-h-[22rem]">
-							<canvas id="usage-chart" class="h-full w-full"></canvas>
+						<div
+							class="h-[320px] w-full xl:min-h-[22rem]"
+							hx-get="/v2/components/home/usage"
+							hx-trigger="load, every 60m"
+						>
+							@skeleton.Skeleton(skeleton.Props{Class: "h-full w-full rounded-2xl"})
 						</div>
-						<div hx-get="/v2/components/home/usage" hx-trigger="load, every 60m" class="hidden"></div>
 					}
 				}
 			</section>
@@ -218,39 +220,22 @@ templ SectionHeading(title string, leading templ.Component) {
 	</div>
 }
 
-func UsageChart(isDark bool, xScaleMax uint, datasets []shared.ChartDataset) templ.Component {
-	stepsize := uint(20000)
-	cfg := shared.NewChartConfiguration("bar", false, isDark, nil, nil, &stepsize)
+func UsageChart(_ bool, data chart.Data) templ.Component {
+	beginAtZero := true
 
-	var (
-		xScaleType          string = "linear"
-		xScalePosition      string = "bottom"
-		xScaleMin           uint   = 1
-		xScaleTicksStepSize uint   = 1
-	)
-
-	borderRadius := 18
-
-	cfg.Options.Scales.X.Type = &xScaleType
-	cfg.Options.Scales.X.Position = &xScalePosition
-	cfg.Options.Scales.X.Min = &xScaleMin
-	cfg.Options.Scales.X.Max = &xScaleMax
-	cfg.Options.Scales.X.Ticks.StepSize = &xScaleTicksStepSize
-	cfg.Options.BarBorderRadius = &borderRadius
-
-	var colors []string
-	if isDark {
-		colors = []string{"#FFFFFF", "#DB6900"}
-	} else {
-		colors = []string{"#1F1F25", "#DB6900"}
-	}
-
-	for i := range datasets {
-		datasets[i].BackgroundColor = colors[i%len(colors)]
-		datasets[i].BorderColor = colors[i%len(colors)]
-		datasets[i].BorderWidth = 1
-	}
-
-	cfg.Add(datasets...)
-	return shared.Chart("usage-chart", "", cfg)
+	return chart.Chart(chart.Props{
+		ID:          "usage-chart",
+		Variant:     chart.VariantBar,
+		Data:        data,
+		Options:     chart.Options{Responsive: true, Legend: true},
+		ShowLegend:  true,
+		ShowXAxis:   true,
+		ShowYAxis:   true,
+		ShowXLabels: true,
+		ShowYLabels: true,
+		ShowXGrid:   false,
+		ShowYGrid:   true,
+		BeginAtZero: &beginAtZero,
+		Class:       "h-full w-full",
+	})
 }

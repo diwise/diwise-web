@@ -32,6 +32,7 @@ templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, main
 			<script src={ asset("/js/htmx.min.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 			<script src={ asset("/js/htmx-ext-sse.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 			<script src={ asset("/js/leaflet.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+			@ui.TemplUIScripts()
 			<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet"/>
 			<link rel="icon" type="image/x-icon" href={ asset("/icons/favicon.ico").Path() }/>
 			<title>diwise</title>
@@ -97,8 +98,18 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 			</div>
 		</div>
 	</body>
-	@ui.TemplUIScripts()
 	<script nonce={ csp.Nonce(ctx) }>
+		function ensureTemplUIPopoverPortal() {
+			if (document.querySelector('[data-tui-popover-portal-container]')) {
+				return;
+			}
+
+			const portal = document.createElement('div');
+			portal.setAttribute('data-tui-popover-portal-container', '');
+			portal.className = 'fixed inset-0 z-[9999] pointer-events-none';
+			document.body.appendChild(portal);
+		}
+
 		function setTheme(theme) {
 			if (theme === 'dark') {
 				document.body.classList.add('dark');
@@ -120,26 +131,40 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 			document.location.replace(document.location.href)
 		}
 
-		document.body.addEventListener('htmx:sseClose', (evt) => {
+		document.addEventListener('htmx:sseClose', (evt) => {
 			if (evt.detail.type === "message") {
 				setTimeout(reloadPage, 2000)
 			}
 		})
 
 		function onPageLoad() {
+			ensureTemplUIPopoverPortal()
+
 			if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
 				document.body.classList.add('dark')
 			} else {
 				document.body.classList.remove('dark')
 			}
-
-			document.querySelectorAll('.toggle-light').forEach((element) => {
-				element.addEventListener('click', () => setTheme('light'));
-			});
-			document.querySelectorAll('.toggle-dark').forEach((element) => {
-				element.addEventListener('click', () => setTheme('dark'));
-			});
 		}
+
+		document.addEventListener('click', (event) => {
+			const lightToggle = event.target.closest('.toggle-light');
+			if (lightToggle) {
+				setTheme('light');
+				return;
+			}
+
+			const darkToggle = event.target.closest('.toggle-dark');
+			if (darkToggle) {
+				setTheme('dark');
+			}
+		});
+
+		document.addEventListener('htmx:afterSwap', (event) => {
+			if (event.target?.id === 'body' || event.target?.closest?.('#body')) {
+				onPageLoad();
+			}
+		});
 
 		onPageLoad()
 	</script>

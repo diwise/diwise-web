@@ -24,6 +24,7 @@ type SensorsPageViewModel struct {
 	Paging         PagingViewModel
 	DeviceProfiles []string
 	Filters        FiltersViewModel
+	MapView        bool
 }
 
 type SensorViewModel struct {
@@ -36,6 +37,8 @@ type SensorViewModel struct {
 	LastSeen     time.Time
 	HasAlerts    bool
 	Online       bool
+	Latitude     float64
+	Longitude    float64
 }
 
 type StatisticsViewModel struct {
@@ -75,8 +78,18 @@ templ SensorsPage(l10n Localizer, viewModel SensorsPageViewModel) {
 		</section>
 		<section class="flex flex-col gap-6">
 			@Filters(l10n, viewModel)
-			@SensorsTableSection(l10n, viewModel)
+			@SensorsDataList(l10n, viewModel)
 		</section>
+	</div>
+}
+
+templ SensorsDataList(l10n Localizer, viewModel SensorsPageViewModel) {
+	<div id="tableOrMap" class="w-full">
+		if viewModel.MapView {
+			@SensorsMap(l10n, viewModel)
+		} else {
+			@SensorsTableSection(l10n, viewModel)
+		}
 	</div>
 }
 
@@ -106,16 +119,28 @@ templ StatisticCard(title string, count int, leading templ.Component) {
 templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 	@card.Card(card.Props{Class: "rounded-2xl border-border/80 bg-card/80 shadow-sm"}) {
 		@card.Content(card.ContentProps{Class: "p-5"}) {
-
+			<div class="mb-4 flex justify-end">
+				@shared.TableOrMapToggle(l10n, shared.TableOrMapToggleProps{
+					BaseID:        "sensors-view-mode",
+					HiddenInputID: "mapview",
+					TargetURL:     "/v2/components/sensors/list",
+					TargetID:      "#tableOrMap",
+					Include:       "#sensors-filters-form",
+					MapView:       viewModel.MapView,
+					TableLabel:    l10n.Get("table"),
+					MapLabel:      l10n.Get("map"),
+				})
+			</div>
 			<form
 				id="sensors-filters-form"
 				class="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,1fr))]"
 				hx-get="/v2/components/sensors/list"
-				hx-target="#tableview"
+				hx-target="#tableOrMap"
 				hx-swap="outerHTML"
 				hx-trigger="input changed delay:250ms, change"
 			>
 				<input type="hidden" name="limit" value={ strconv.Itoa(viewModel.Paging.PageSize) }/>
+				<input type="hidden" id="mapview" name="mapview" value={ boolString(viewModel.MapView) }/>
 				<div class="flex flex-col gap-2">
 					@input.Input(input.Props{
 						ID:          "search",
@@ -567,8 +592,61 @@ templ SensorsTableSection(l10n Localizer, viewModel SensorsPageViewModel) {
 	</section>
 }
 
+func sensorsToMapFeature(l10n Localizer, model SensorsPageViewModel) shared.FeatureCollection {
+	features := make([]shared.Feature, 0, len(model.Sensors))
+
+	for _, sensor := range model.Sensors {
+		if sensor.Latitude == 0 || sensor.Longitude == 0 {
+			continue
+		}
+
+		feature := shared.NewFeature(shared.NewPoint(sensor.Latitude, sensor.Longitude))
+		feature.AddProperty("status", sensor.Active)
+		feature.AddProperty("type", sensor.Type)
+		feature.AddProperty("name", sensor.Name)
+		feature.AddProperty("deveui", sensor.DevEUI)
+		feature.AddProperty("batterylevel", formatBattery(sensor.BatteryLevel))
+		if sensor.LastSeen.IsZero() {
+			feature.AddProperty("lastseen", "-")
+		} else {
+			feature.AddProperty("lastseen", sensor.LastSeen.Format("2006-01-02, 15:04"))
+		}
+		feature.AddProperty("latitude", sensor.Latitude)
+		feature.AddProperty("longitude", sensor.Longitude)
+		feature.AddProperty("url", fmt.Sprintf("/sensors/%s", sensor.DeviceID))
+		feature.AddProperty("text_active", l10n.Get("active"))
+		feature.AddProperty("text_inactive", l10n.Get("inactive"))
+		feature.AddProperty("text_deveui", l10n.Get("deveui"))
+		feature.AddProperty("text_sensortype", l10n.Get("sensortype"))
+		feature.AddProperty("text_batterylevel", l10n.Get("batterylevel"))
+		feature.AddProperty("text_position", l10n.Get("location"))
+		feature.AddProperty("text_lastseen", l10n.Get("lastseen"))
+		feature.AddProperty("text_moreinformation", l10n.Get("moreinformation"))
+		features = append(features, feature)
+	}
+
+	return shared.NewFeatureCollection(features)
+}
+
+func SensorsMap(l10n Localizer, model SensorsPageViewModel) templ.Component {
+	if !model.MapView {
+		return templ.NopComponent
+	}
+
+	mapData := shared.NewMapData(62.3908, 17.3069)
+	mapData.CurrentView = "sensor"
+	return shared.Map("large", true, false, mapData, sensorsToMapFeature(l10n, model))
+}
+
 templ SensorRow(l10n Localizer, sensor SensorViewModel) {
-	@table.Row(table.RowProps{Class: "border-border/70 hover:bg-background-100 dark:hover:bg-white/10"}) {
+	@table.Row(table.RowProps{
+		Class: "cursor-pointer border-border/70 hover:bg-background-100 dark:hover:bg-white/10",
+		Attributes: templ.Attributes{
+			"hx-get":         fmt.Sprintf("/sensors/%s", sensor.DeviceID),
+			"hx-target":      "#body",
+			"hx-replace-url": "true",
+		},
+	}) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			<div class="inline-flex items-center gap-2">
 				<span class={ onlineIndicatorClass(sensor.Online) }></span>
@@ -580,19 +658,13 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel) {
 			</div>
 		}
 		@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
-			<a
-				href={ templ.SafeURL(fmt.Sprintf("/sensors/%s", sensor.DeviceID)) }
-				hx-get={ fmt.Sprintf("/sensors/%s", sensor.DeviceID) }
-				hx-target="#body"
-				hx-replace-url="true"
-				class="font-bold text-foreground hover:underline"
-			>
+			<span class="font-bold text-foreground">
 				if sensor.Name != "" {
 					{ sensor.Name }
 				} else {
 					{ sensor.DeviceID }
 				}
-			</a>
+			</span>
 		}
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			if sensor.Active {
@@ -658,6 +730,13 @@ func onlineIndicatorClass(online bool) string {
 		return "size-2.5 rounded-full bg-green-600"
 	}
 	return "size-2.5 rounded-full bg-red-600"
+}
+
+func boolString(value bool) string {
+	if value {
+		return "true"
+	}
+	return "false"
 }
 
 func filterTriggerClass() string {

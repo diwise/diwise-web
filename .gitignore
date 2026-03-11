@@ -9,3 +9,4 @@ node_modules/*
 package-lock.json
 AGENTS.md
 docs/playbooks/*
+assets/css/diwise-v2.css
