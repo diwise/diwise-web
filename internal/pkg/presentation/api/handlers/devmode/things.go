@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/application/common"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
@@ -36,7 +36,7 @@ func NewThingsHandler(ctx context.Context) http.HandlerFunc {
 
 		u := r.URL.String()
 		p := r.URL.Path
-		response := application.ApiResponse{}
+		response := common.ApiResponse{}
 
 		logger.Info("DEVMODE THINGS REQUEST", "path", p, "url", u)
 

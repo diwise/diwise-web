@@ -2,8 +2,6 @@ package application
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -12,6 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/diwise/diwise-web/internal/pkg/application/admin"
+	"github.com/diwise/diwise-web/internal/pkg/application/alarms"
+	"github.com/diwise/diwise-web/internal/pkg/application/common"
+	"github.com/diwise/diwise-web/internal/pkg/application/devices"
+	"github.com/diwise/diwise-web/internal/pkg/application/measurements"
+	"github.com/diwise/diwise-web/internal/pkg/application/things"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
@@ -21,244 +25,116 @@ import (
 var tracer = otel.Tracer("diwise-web/app")
 
 type App struct {
-	deviceManagementURL string
-	thingManagementURL  string
-	adminURL            string
-	measurementURL      string
-	alarmsURL           string
+	client       *common.Client
+	admin        *admin.Service
+	alarms       *alarms.Service
+	devices      *devices.Service
+	measurements *measurements.Service
+	things       *things.Service
 }
 
-func New(ctx context.Context, devmgmt, things, admin, alarms, measurement string) (*App, error) {
+func New(ctx context.Context, devmgmt, thingsURL, adminURL, alarmsURL, measurementURL string) (*App, error) {
+	_ = ctx
+	client := common.NewClient(devmgmt, thingsURL, adminURL, alarmsURL, measurementURL)
 	return &App{
-		deviceManagementURL: devmgmt,
-		thingManagementURL:  things,
-		adminURL:            admin,
-		alarmsURL:           alarms,
-		measurementURL:      measurement,
+		client:       client,
+		admin:        admin.NewService(client),
+		alarms:       alarms.NewService(client),
+		devices:      devices.NewService(client),
+		measurements: measurements.NewService(client),
+		things:       things.NewService(client),
 	}, nil
 }
 
-type InputParam func(v *url.Values)
+func WithReverse(reverse bool) common.InputParam { return common.WithReverse(reverse) }
+func WithLimit(limit int) common.InputParam      { return common.WithLimit(limit) }
+func WithLastN(lastN bool) common.InputParam     { return common.WithLastN(lastN) }
+func WithTimeRel(timeRel string, timeAt, endTimeAt time.Time) common.InputParam {
+	return common.WithTimeRel(timeRel, timeAt, endTimeAt)
+}
+func WithAggrMethods(methods ...string) common.InputParam { return common.WithAggrMethods(methods...) }
+func WithTimeUnit(timeUnit string) common.InputParam      { return common.WithTimeUnit(timeUnit) }
+func WithAfter(timeAt time.Time) common.InputParam        { return common.WithAfter(timeAt) }
+func WithBoolValue(boolValue bool) common.InputParam      { return common.WithBoolValue(boolValue) }
 
-func WithReverse(reverse bool) InputParam {
-	return func(v *url.Values) {
-		v.Set("reverse", fmt.Sprintf("%t", reverse))
-	}
-}
-func WithLimit(limit int) InputParam {
-	return func(v *url.Values) {
-		v.Set("limit", fmt.Sprintf("%d", limit))
-	}
-}
-func WithLastN(lastN bool) InputParam {
-	return func(v *url.Values) {
-		v.Set("lastN", fmt.Sprintf("%t", lastN))
-	}
+func (a *App) GetDevice(ctx context.Context, id string) (devices.Device, error) {
+	return a.devices.GetDevice(ctx, id)
 }
 
-func WithTimeRel(timeRel string, timeAt, endTimeAt time.Time) InputParam {
-	return func(v *url.Values) {
-		v.Set("timeRel", timeRel)
-		v.Set("timeAt", timeAt.UTC().Format(time.RFC3339))
-		v.Set("endTimeAt", endTimeAt.UTC().Format(time.RFC3339))
-	}
+func (a *App) GetDevices(ctx context.Context, offset, limit int, args map[string][]string) (devices.DeviceResult, error) {
+	return a.devices.GetDevices(ctx, offset, limit, args)
 }
 
-func WithAggrMethods(methods ...string) InputParam {
-	return func(v *url.Values) {
-		v.Set("aggrMethods", strings.Join(methods, ","))
-	}
+func (a *App) UpdateDevice(ctx context.Context, deviceID string, fields map[string]any) error {
+	return a.devices.UpdateDevice(ctx, deviceID, fields)
 }
 
-func WithTimeUnit(timeUnit string) InputParam {
-	return func(v *url.Values) {
-		v.Set("timeUnit", timeUnit)
-	}
+func (a *App) GetSensorStatus(ctx context.Context, id string) ([]devices.SensorStatus, error) {
+	return a.devices.GetSensorStatus(ctx, id)
 }
 
-func WithAfter(timeAt time.Time) InputParam {
-	return func(v *url.Values) {
-		v.Set("timeRel", "after")
-		v.Set("timeAt", timeAt.UTC().Format(time.RFC3339))
-	}
+func (a *App) GetTenants(ctx context.Context) []string {
+	return a.admin.GetTenants(ctx)
 }
 
-func WithBoolValue(boolValue bool) InputParam {
-	return func(v *url.Values) {
-		v.Set("vb", fmt.Sprintf("%t", boolValue))
-	}
+func (a *App) GetDeviceProfiles(ctx context.Context) []devices.SensorProfile {
+	return a.admin.GetDeviceProfiles(ctx)
+}
+
+func (a *App) GetStatistics(ctx context.Context) (devices.Statistics, error) {
+	return a.devices.GetStatistics(ctx)
+}
+
+func (a *App) GetMeasurementInfo(ctx context.Context, id string) ([]measurements.Value, error) {
+	return a.measurements.GetMeasurementInfo(ctx, id)
+}
+
+func (a *App) GetMeasurementData(ctx context.Context, id string, params ...common.InputParam) (measurements.Data, error) {
+	return a.measurements.GetMeasurementData(ctx, id, params...)
+}
+
+func (a *App) GetAlarms(ctx context.Context, offset, limit int, args map[string][]string) (alarms.Result, error) {
+	return a.alarms.GetAlarms(ctx, offset, limit, args)
+}
+
+func (a *App) NewThing(ctx context.Context, t things.Thing) error {
+	return a.things.NewThing(ctx, t)
+}
+
+func (a *App) GetThing(ctx context.Context, id string, params map[string][]string) (things.Thing, error) {
+	return a.things.GetThing(ctx, id, params)
+}
+
+func (a *App) GetLatestValues(ctx context.Context, thingID string) ([]things.Measurement, error) {
+	return a.things.GetLatestValues(ctx, thingID)
+}
+
+func (a *App) GetThings(ctx context.Context, offset, limit int, params map[string][]string) (things.Result, error) {
+	return a.things.GetThings(ctx, offset, limit, params)
+}
+
+func (a *App) UpdateThing(ctx context.Context, thingID string, fields map[string]any) error {
+	return a.things.UpdateThing(ctx, thingID, fields)
+}
+
+func (a *App) DeleteThing(ctx context.Context, thingID string) error {
+	return a.things.DeleteThing(ctx, thingID)
 }
 
 func (a *App) GetTags(ctx context.Context) ([]string, error) {
-	var err error
-	ctx, span := tracer.Start(ctx, "get-tags")
-	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
-
-	var res *ApiResponse
-	res, err = a.get(ctx, a.thingManagementURL, "tags", url.Values{})
-	if err != nil {
-		return []string{}, err
-	}
-
-	var tags []string
-	err = json.Unmarshal(res.Data, &tags)
-	if err != nil {
-		return []string{}, err
-	}
-
-	return tags, nil
+	return a.things.GetTags(ctx)
 }
 
-func (a *App) GetDeviceProfiles(ctx context.Context) []DeviceProfile {
-	var err error
-	ctx, span := tracer.Start(ctx, "get-deviceprofiles")
-	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
-
-	var res *ApiResponse
-	res, err = a.get(ctx, a.adminURL, "deviceprofiles", url.Values{})
-	if err != nil {
-		return []DeviceProfile{}
-	}
-
-	var deviceProfiles []DeviceProfile
-	err = json.Unmarshal(res.Data, &deviceProfiles)
-	if err != nil {
-		return []DeviceProfile{}
-	}
-
-	return deviceProfiles
+func (a *App) GetTypes(ctx context.Context) ([]string, error) {
+	return a.things.GetTypes(ctx)
 }
 
-func (a *App) GetStatistics(ctx context.Context) (Statistics, error) {
-	var err error
-	ctx, span := tracer.Start(ctx, "get-statistics")
-	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
-
-	errs := make(chan error, 5)
-
-	count := func(key, value string, result *int) {
-		go func() {
-			var err error
-			defer func() { errs <- err }()
-
-			params := url.Values{}
-			params.Add("limit", "1")
-
-			if key != "" && value != "" {
-				params.Add(key, value)
-			}
-
-			var res *ApiResponse
-			res, err = a.get(ctx, a.deviceManagementURL, "", params)
-
-			if err == nil && res.Meta != nil {
-				*result = int(res.Meta.TotalRecords)
-			} else {
-				*result = 0
-			}
-		}()
-	}
-
-	stats := Statistics{}
-
-	count("", "", &stats.Total)
-	count("online", "true", &stats.Online)
-	count("active", "true", &stats.Active)
-	count("active", "false", &stats.Inactive)
-	count("profilename", "unknown", &stats.Unknown)
-
-	for range 5 {
-		err = errors.Join(err, <-errs)
-	}
-
-	return stats, err
+func (a *App) GetValidSensors(ctx context.Context, urns []string) ([]things.SensorIdentifier, error) {
+	return a.things.GetValidSensors(ctx, urns)
 }
 
-func (a *App) GetMeasurementInfo(ctx context.Context, id string) ([]MeasurementValue, error) {
-	var err error
-	ctx, span := tracer.Start(ctx, "get-measurementinfo")
-	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
-
-	q := url.Values{}
-	q.Add("latest", "true")	
-
-	var resp *ApiResponse
-	resp, err = a.get(ctx, a.measurementURL, id, q)
-	if err != nil {
-		return []MeasurementValue{}, err
-	}
-
-	var info []MeasurementValue
-	err = json.Unmarshal(resp.Data, &info)
-	if err != nil {
-		return []MeasurementValue{}, err
-	}
-
-	return info, nil
-}
-
-func (a *App) GetMeasurementData(ctx context.Context, id string, params ...InputParam) (MeasurementData, error) {
-	var err error
-	ctx, span := tracer.Start(ctx, "get-measurementdata")
-	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
-
-	q := url.Values{}
-	if id != "" {
-		q.Add("id", id)
-	}
-
-	for _, p := range params {
-		p(&q)
-	}
-
-	var resp *ApiResponse
-	resp, err = a.get(ctx, a.measurementURL, "", q)
-	if err != nil {
-		return MeasurementData{}, err
-	}
-
-	var data MeasurementData
-	err = json.Unmarshal(resp.Data, &data)
-	if err != nil {
-		return MeasurementData{}, err
-	}
-
-	return data, nil
-}
-
-func (a *App) GetAlarms(ctx context.Context, offset, limit int, args map[string][]string) (AlarmResult, error) {
-	var err error
-	ctx, span := tracer.Start(ctx, "get-alarms")
-	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
-
-	params := url.Values{}
-	params.Add("limit", fmt.Sprintf("%d", limit))
-	params.Add("offset", fmt.Sprintf("%d", offset))
-	params.Add("info", "true")
-
-	for k, v := range args {
-		params[k] = v
-	}
-
-	var res *ApiResponse
-	res, err = a.get(ctx, a.alarmsURL, "", params)
-	if err != nil {
-		return AlarmResult{}, err
-	}
-
-	var alarms []Alarm
-	err = json.Unmarshal(res.Data, &alarms)
-	if err != nil {
-		return AlarmResult{}, err
-	}
-
-	return AlarmResult{
-		Alarms:       alarms,
-		TotalRecords: int(res.Meta.TotalRecords),
-		Offset:       int(*res.Meta.Offset),
-		Limit:        int(*res.Meta.Limit),
-		Count:        len(alarms),
-	}, nil
+func (a *App) ConnectSensor(ctx context.Context, thingID string, refDevices []string) error {
+	return a.things.ConnectSensor(ctx, thingID, refDevices)
 }
 
 func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
@@ -267,7 +143,6 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
 	query, _ := url.ParseQuery(params.Encode())
-
 	export := query.Get("export")
 	if export == "" {
 		return nil, fmt.Errorf("export parameter is missing")
@@ -278,22 +153,22 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 		return nil, fmt.Errorf("accept parameter is missing")
 	}
 
-	targetUrl := ""
-
+	targetURL := ""
 	helpers.SanitizeParams(query, "limit", "offset", "mapview", "export", "accept", "redirected")
 
 	switch export {
 	case "devices":
-		targetUrl = a.deviceManagementURL
+		targetURL = a.client.DeviceManagementURL()
 	case "things":
 		if query.Has("type") {
 			t := query.Get("type")
 			if strings.Contains(t, "-") {
-				query.Set("type", strings.Split(t, "-")[0])
-				query.Set("subType", strings.Split(t, "-")[1])
+				parts := strings.Split(t, "-")
+				query.Set("type", parts[0])
+				query.Set("subType", parts[1])
 			}
 		}
-		targetUrl = a.thingManagementURL
+		targetURL = a.client.ThingManagementURL()
 	case "thing":
 		if query.Has("tab") {
 			query.Set("n", strings.ReplaceAll(query.Get("tab"), "-", "/"))
@@ -321,8 +196,7 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 		if !query.Has("limit") {
 			query.Set("limit", strconv.Itoa(math.MaxInt32))
 		}
-
-		targetUrl = a.thingManagementURL + "/values"
+		targetURL = a.client.ThingManagementURL() + "/values"
 	default:
 		return nil, fmt.Errorf("export parameter is invalid")
 	}
@@ -331,15 +205,12 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 		"Authorization": {"Bearer " + authz.Token(ctx)},
 		"Accept":        {accept},
 	}
-
 	query.Add("export", "true")
 
-	var b []byte
-	b, err = helpers.GET(ctx, targetUrl, headers, query)
+	b, err := helpers.GET(ctx, targetURL, headers, query)
 	if err != nil {
 		return nil, err
 	}
-
 	return b, nil
 }
 
@@ -352,15 +223,14 @@ func (a *App) Import(ctx context.Context, t string, f io.Reader) error {
 		"Authorization": {"Bearer " + authz.Token(ctx)},
 	}
 
-	targetUrl := ""
-
+	targetURL := ""
 	switch t {
 	case "devices":
-		targetUrl = a.deviceManagementURL
+		targetURL = a.client.DeviceManagementURL()
 	case "things":
-		targetUrl = a.thingManagementURL
+		targetURL = a.client.ThingManagementURL()
 	}
 
-	err = helpers.FileUpload(ctx, targetUrl, headers, f)
+	err = helpers.FileUpload(ctx, targetURL, headers, f)
 	return err
 }

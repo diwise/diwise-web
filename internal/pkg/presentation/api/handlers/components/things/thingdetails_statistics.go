@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	appthings "github.com/diwise/diwise-web/internal/pkg/application/things"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
@@ -19,7 +19,7 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app appthings.Management) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -143,7 +143,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 	return http.HandlerFunc(fn)
 }
 
-func toDataset(label string, isDark bool, measurements []application.Measurement) components.ChartDataset {
+func toDataset(label string, isDark bool, measurements []appthings.Measurement) components.ChartDataset {
 	dataset := components.NewChartDataset(label, isDark)
 	previousValue := 0
 

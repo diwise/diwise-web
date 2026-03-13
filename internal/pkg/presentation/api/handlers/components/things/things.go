@@ -13,7 +13,9 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/application/admin"
+	"github.com/diwise/diwise-web/internal/pkg/application/common"
+	appthings "github.com/diwise/diwise-web/internal/pkg/application/things"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
@@ -23,7 +25,12 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+type thingsApp interface {
+	admin.Management
+	appthings.Management
+}
+
+func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +108,7 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 	return http.HandlerFunc(fn)
 }
 
-func NewThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
@@ -125,7 +132,7 @@ func NewThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets Ass
 	return http.HandlerFunc(fn)
 }
 
-func NewCreateThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewCreateThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -162,13 +169,13 @@ func NewCreateThingComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			thingSubType = parts[1]
 		}
 
-		err = app.NewThing(ctx, application.Thing{
+		err = app.NewThing(ctx, appthings.Thing{
 			ID:          id,
 			Type:        thingType,
 			SubType:     thingSubType,
 			Name:        thingName,
 			Description: thingDesc,
-			Location: application.Location{
+			Location: common.Location{
 				Latitude:  0,
 				Longitude: 0,
 			},
@@ -185,7 +192,7 @@ func NewCreateThingComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 	return http.HandlerFunc(fn)
 }
 
-func NewThingsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := helpers.Decorate(
@@ -251,7 +258,7 @@ func NewThingsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoaderF
 	return http.HandlerFunc(fn)
 }
 
-func NewThingsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := helpers.Decorate(
@@ -301,7 +308,7 @@ func NewThingsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 	return http.HandlerFunc(fn)
 }
 
-func toViewModel(thing application.Thing) components.ThingViewModel {
+func toViewModel(thing appthings.Thing) components.ThingViewModel {
 	tvm := components.ThingViewModel{
 		ID:              thing.ID,
 		Type:            thing.Type,

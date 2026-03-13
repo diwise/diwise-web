@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/application/admin"
+	"github.com/diwise/diwise-web/internal/pkg/application/devices"
+	"github.com/diwise/diwise-web/internal/pkg/application/measurements"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
@@ -15,7 +17,13 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+type sensorDetailsApp interface {
+	admin.Management
+	devices.Management
+	measurements.Management
+}
+
+func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +54,7 @@ func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 	return http.HandlerFunc(fn)
 }
 
-func NewSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
@@ -104,7 +112,7 @@ func NewSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, as
 	return http.HandlerFunc(fn)
 }
 
-func NewEditSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewEditSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
@@ -157,7 +165,7 @@ func NewEditSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 	return http.HandlerFunc(fn)
 }
 
-func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -225,7 +233,7 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 				}
 			}
 
-			err = app.UpdateSensor(ctx, id, fields)
+			err = app.UpdateDevice(ctx, id, fields)
 			if err != nil {
 				http.Error(w, "could not update sensor", http.StatusInternalServerError)
 				return
@@ -238,11 +246,11 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 	return http.HandlerFunc(fn)
 }
 
-func composeViewModel(ctx context.Context, id string, app application.DeviceManagement) (*components.SensorDetailsViewModel, error) {
+func composeViewModel(ctx context.Context, id string, app sensorDetailsApp) (*components.SensorDetailsViewModel, error) {
 	log := logging.GetFromContext(ctx)
 
 	log.Debug("begin get sensor")
-	sensor, err := app.GetSensor(ctx, id)
+	sensor, err := app.GetDevice(ctx, id)
 	log.Debug("end get sensor")
 
 	if err != nil {
@@ -301,25 +309,25 @@ func composeViewModel(ctx context.Context, id string, app application.DeviceMana
 		Name:              sensor.Name,
 		Latitude:          sensor.Location.Latitude,
 		Longitude:         sensor.Location.Longitude,
-		DeviceProfileName: sensor.DeviceProfile.Name,
+		DeviceProfileName: sensor.SensorProfile.Name,
 		Tenant:            sensor.Tenant,
 		Description:       sensor.Description,
 		Active:            sensor.Active,
 		Types:             types,
 		Organisations:     tenants,
 		DeviceStatus: components.DeviceStatus{
-			BatteryLevel:    sensor.DeviceStatus.BatteryLevel,
-			RSSI:            sensor.DeviceStatus.RSSI,
-			LoRaSNR:         sensor.DeviceStatus.LoRaSNR,
-			Frequency:       sensor.DeviceStatus.Frequency,
-			SpreadingFactor: sensor.DeviceStatus.SpreadingFactor,
-			DR:              sensor.DeviceStatus.DR,
-			ObservedAt:      sensor.DeviceStatus.ObservedAt,
+			BatteryLevel:    sensor.SensorStatus.BatteryLevel,
+			RSSI:            sensor.SensorStatus.RSSI,
+			LoRaSNR:         sensor.SensorStatus.LoRaSNR,
+			Frequency:       sensor.SensorStatus.Frequency,
+			SpreadingFactor: sensor.SensorStatus.SpreadingFactor,
+			DR:              sensor.SensorStatus.DR,
+			ObservedAt:      sensor.SensorStatus.ObservedAt,
 		},
 		DeviceProfiles:   dp,
 		MeasurementTypes: m,
 		Measurements:     mv,
-		Interval:         float32(sensor.DeviceProfile.Interval),
+		Interval:         float32(sensor.SensorProfile.Interval),
 		ObservedAt:       sensor.ObservedAt(),
 	}
 

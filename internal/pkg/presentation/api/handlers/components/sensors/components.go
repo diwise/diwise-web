@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/application/devices"
+	appmeasurements "github.com/diwise/diwise-web/internal/pkg/application/measurements"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
@@ -15,7 +17,12 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewBatteryLevelComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+type sensorComponentsApp interface {
+	devices.Management
+	appmeasurements.Management
+}
+
+func NewBatteryLevelComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorComponentsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := r.Context()
@@ -46,7 +53,7 @@ func NewBatteryLevelComponentHandler(ctx context.Context, l10n LocaleBundle, ass
 	return http.HandlerFunc(fn)
 }
 
-func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorComponentsApp) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -82,14 +89,14 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			log.Error("failed to parse endTimeAt")
 		}
 
-		measurements := application.MeasurementData{
-			Values: []application.MeasurementValue{},
+		measurementData := appmeasurements.Data{
+			Values: []appmeasurements.Value{},
 		}
 
 		if id != "" {
 			//now := time.Now()
 			//today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
-			measurements, err = app.GetMeasurementData(ctx, id, application.WithLastN(true), application.WithTimeRel("between", startTime, endTime), application.WithLimit(100), application.WithReverse(true))
+			measurementData, err = app.GetMeasurementData(ctx, id, application.WithLastN(true), application.WithTimeRel("between", startTime, endTime), application.WithLimit(100), application.WithReverse(true))
 			if err != nil {
 				http.Error(w, "could not fetch measurement data", http.StatusBadRequest)
 				return
@@ -101,7 +108,7 @@ func NewMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 		dataset := components.NewChartDataset("", isDark)
 
 		previousValue := 0
-		for _, v := range measurements.Values {
+		for _, v := range measurementData.Values {
 			if dataset.Label == "" {
 				dataset.Label = v.Unit
 			}
@@ -190,7 +197,7 @@ type chartResponse struct {
 	EndTimeAt string                `json:"endTimeAt"`
 }
 
-func NewStatusChartsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewStatusChartsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorComponentsApp) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {

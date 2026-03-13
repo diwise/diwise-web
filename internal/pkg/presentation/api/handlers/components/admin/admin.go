@@ -7,7 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/application/admin"
+	"github.com/diwise/diwise-web/internal/pkg/application/devices"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
@@ -15,7 +16,7 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app admin.Management) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := r.Context()
@@ -25,7 +26,7 @@ func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, a
 		sensorType := r.URL.Query().Get("sensorType")
 		deviceProfiles := app.GetDeviceProfiles(ctx)
 
-		i := slices.IndexFunc(deviceProfiles, func(p application.DeviceProfile) bool {
+		i := slices.IndexFunc(deviceProfiles, func(p devices.SensorProfile) bool {
 			return p.Decoder == sensorType
 		})
 
@@ -56,7 +57,7 @@ func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, a
 	return http.HandlerFunc(fn)
 }
 
-func NewErrorPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewErrorPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app admin.Management) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +77,7 @@ func NewErrorPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 	return http.HandlerFunc(fn)
 }
 
-func NewAdminPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewAdminPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app admin.Management) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {

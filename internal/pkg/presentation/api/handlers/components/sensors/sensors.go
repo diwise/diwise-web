@@ -11,7 +11,8 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/application/admin"
+	"github.com/diwise/diwise-web/internal/pkg/application/devices"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
@@ -19,7 +20,12 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+type sensorsApp interface {
+	admin.Management
+	devices.Management
+}
+
+func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +56,7 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 		startTime := time.Now().UnixMilli()
 		var totalTime int64 = 0
 
-		result, err := app.GetSensors(ctx, offset, limit, args)
+		result, err := app.GetDevices(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
 			return
@@ -59,7 +65,7 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 		fetchTime := time.Now().UnixMilli() - startTime
 		totalTime += fetchTime
 
-		log.Debug(fmt.Sprintf("fetched %d sensors in %dms", len(result.Sensors), fetchTime))
+		log.Debug(fmt.Sprintf("fetched %d sensors in %dms", len(result.Devices), fetchTime))
 
 		pageIndex_, _ := strconv.Atoi(pageIndex)
 		pageLast := int(math.Ceil(float64(result.TotalRecords) / float64(limit)))
@@ -71,7 +77,7 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			DeviceProfiles: make([]string, 0),
 		}
 
-		for _, sensor := range result.Sensors {
+		for _, sensor := range result.Devices {
 			tvm := toViewModel(sensor)
 			tvm.BatteryLevel = getBatteryLevel(sensor)
 			model.Sensors = append(model.Sensors, tvm)
@@ -124,7 +130,7 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 	return http.HandlerFunc(fn)
 }
 
-func NewSensorsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := helpers.Decorate(
@@ -139,7 +145,7 @@ func NewSensorsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFun
 		args := r.URL.Query()
 		helpers.SanitizeParams(args, "page", "limit", "offset")
 
-		result, err := app.GetSensors(ctx, offset, limit, args)
+		result, err := app.GetDevices(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
 			return
@@ -154,7 +160,7 @@ func NewSensorsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFun
 			Pageing:    getPaging(pageIndex_, pageLast, limit, result.Count, result.TotalRecords, offset, helpers.PagerIndexes(pageIndex_, pageLast), args),
 		}
 
-		for _, sensor := range result.Sensors {
+		for _, sensor := range result.Devices {
 			tvm := toViewModel(sensor)
 			tvm.BatteryLevel = getBatteryLevel(sensor)
 			model.Sensors = append(model.Sensors, tvm)
@@ -175,7 +181,7 @@ func NewSensorsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFun
 	return http.HandlerFunc(fn)
 }
 
-func NewSensorsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := helpers.Decorate(
@@ -200,7 +206,7 @@ func NewSensorsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoader
 			limit = 1000
 		}
 
-		result, err := app.GetSensors(ctx, offset, limit, args)
+		result, err := app.GetDevices(ctx, offset, limit, args)
 		if err != nil {
 			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
 			return
@@ -216,7 +222,7 @@ func NewSensorsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoader
 			MapView:    showMap,
 		}
 
-		for _, sensor := range result.Sensors {
+		for _, sensor := range result.Devices {
 			tvm := toViewModel(sensor)
 			tvm.BatteryLevel = getBatteryLevel(sensor)
 			model.Sensors = append(model.Sensors, tvm)
@@ -246,7 +252,7 @@ func NewSensorsDataList(_ context.Context, l10n LocaleBundle, assets AssetLoader
 	return http.HandlerFunc(fn)
 }
 
-func getStatistics(ctx context.Context, app application.DeviceManagement) (components.StatisticsViewModel, error) {
+func getStatistics(ctx context.Context, app sensorsApp) (components.StatisticsViewModel, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 
@@ -264,10 +270,10 @@ func getStatistics(ctx context.Context, app application.DeviceManagement) (compo
 	}, nil
 }
 
-func getBatteryLevel(sensor application.Sensor) int {
-	if sensor.DeviceStatus != nil {
-		if sensor.DeviceStatus.BatteryLevel != 0 {
-			return sensor.DeviceStatus.BatteryLevel
+func getBatteryLevel(sensor devices.Device) int {
+	if sensor.SensorStatus != nil {
+		if sensor.SensorStatus.BatteryLevel != 0 {
+			return sensor.SensorStatus.BatteryLevel
 		}
 	}
 
@@ -291,12 +297,12 @@ func getBatteryLevel(sensor application.Sensor) int {
 	*/
 }
 
-func toViewModel(sensor application.Sensor) components.SensorViewModel {
+func toViewModel(sensor devices.Device) components.SensorViewModel {
 
 	lastSeen := time.Time{}
 
-	if sensor.DeviceStatus != nil {
-		lastSeen = sensor.DeviceStatus.ObservedAt
+	if sensor.SensorStatus != nil {
+		lastSeen = sensor.SensorStatus.ObservedAt
 	}
 
 	if sensor.DeviceState != nil {
@@ -315,8 +321,8 @@ func toViewModel(sensor application.Sensor) components.SensorViewModel {
 		Longitude:    sensor.Location.Longitude,
 	}
 
-	if sensor.DeviceProfile != nil {
-		s.Type = sensor.DeviceProfile.Name
+	if sensor.SensorProfile != nil {
+		s.Type = sensor.SensorProfile.Name
 	}
 	if sensor.DeviceState != nil {
 		s.Online = sensor.DeviceState.Online

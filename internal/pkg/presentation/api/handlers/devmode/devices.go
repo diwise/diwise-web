@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/application/common"
 )
 
 var testDevices = []testDevice{
@@ -113,7 +113,7 @@ func deviceJson(active, online bool, sID, dID, tenant, name, profilename string,
 	return fmt.Sprintf(deviceJsonFormat, active, sID, dID, tenant, name, loc.lat, loc.lon, profilename, online)
 }
 
-func newDeviceResponseFromFilters(limit int, filters ...func(d *testDevice) bool) application.ApiResponse {
+func newDeviceResponseFromFilters(limit int, filters ...func(d *testDevice) bool) common.ApiResponse {
 	var totalCount int
 	jsons := make([]string, 0, len(testDevices))
 
@@ -148,20 +148,20 @@ func newDeviceResponseFromFilters(limit int, filters ...func(d *testDevice) bool
 	return newResponseFromJsons(totalCount, jsons)
 }
 
-func newResponseFromJsons(totalRecords int, jsons []string) application.ApiResponse {
+func newResponseFromJsons(totalRecords int, jsons []string) common.ApiResponse {
 	zero := uint64(0)
 	bignum := uint64(9223372036854775807)
 	count := uint64(len(jsons))
 
-	response := application.ApiResponse{
-		Meta: &application.Meta{
+	response := common.ApiResponse{
+		Meta: &common.Meta{
 			Count:        count,
 			TotalRecords: uint64(totalRecords),
 			Offset:       &zero,
 			Limit:        &bignum,
 		},
 		Data:  []byte("[" + strings.Join(jsons, ",") + "]"),
-		Links: &application.Links{},
+		Links: &common.Links{},
 	}
 
 	return response

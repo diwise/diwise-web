@@ -10,7 +10,9 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/application/admin"
+	"github.com/diwise/diwise-web/internal/pkg/application/common"
+	appthings "github.com/diwise/diwise-web/internal/pkg/application/things"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 
@@ -18,7 +20,12 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+type thingDetailsApp interface {
+	admin.Management
+	appthings.Management
+}
+
+func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingDetailsApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +45,7 @@ func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoa
 	return http.HandlerFunc(fn)
 }
 
-func NewThingDetailsComponentHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingDetailsComponentHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingDetailsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		ctx := r.Context()
@@ -94,7 +101,7 @@ func NewThingDetailsComponentHandler(_ context.Context, l10n LocaleBundle, asset
 	return http.HandlerFunc(fn)
 }
 
-func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFunc, app application.ThingManagement) (context.Context, templ.Component, error) {
+func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFunc, app thingDetailsApp) (context.Context, templ.Component, error) {
 	ctx := r.Context()
 
 	id := r.PathValue("id")
@@ -169,7 +176,7 @@ func newThingDetails(r *http.Request, localizer Localizer, assets AssetLoaderFun
 	return ctx, components.ThingDetails(localizer, assets, thingDetailsViewModel), nil
 }
 
-func DeleteThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func DeleteThingComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingDetailsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(r.Context(),
 			components.CurrentComponent, "things",
@@ -216,21 +223,21 @@ func formToFields(form url.Values) map[string]any {
 		switch k {
 		case "longitude":
 			if _, ok := fields["location"]; !ok {
-				fields["location"] = application.Location{}
+				fields["location"] = common.Location{}
 			}
 
 			if f, ok := asFloat(v); ok {
-				loc := fields["location"].(application.Location)
+				loc := fields["location"].(common.Location)
 				loc.Longitude = f
 				fields["location"] = loc
 			}
 		case "latitude":
 			if _, ok := fields["location"]; !ok {
-				fields["location"] = application.Location{}
+				fields["location"] = common.Location{}
 			}
 
 			if f, ok := asFloat(v); ok {
-				loc := fields["location"].(application.Location)
+				loc := fields["location"].(common.Location)
 				loc.Latitude = f
 				fields["location"] = loc
 			}
@@ -246,13 +253,13 @@ func formToFields(form url.Values) map[string]any {
 			fields["description"] = strings.TrimSpace(v)
 		case "currentDevice":
 			refs := strings.Split(v, ",")
-			devices := []application.Device{}
+			devices := []appthings.RefDevice{}
 			for _, r := range refs {
-				exists := slices.ContainsFunc(devices, func(d application.Device) bool {
+				exists := slices.ContainsFunc(devices, func(d appthings.RefDevice) bool {
 					return d.DeviceID == strings.TrimSpace(r)
 				})
 				if !exists {
-					devices = append(devices, application.Device{DeviceID: strings.TrimSpace(r)})
+					devices = append(devices, appthings.RefDevice{DeviceID: strings.TrimSpace(r)})
 				}
 			}
 			fields["refDevices"] = devices

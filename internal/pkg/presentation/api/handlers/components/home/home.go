@@ -11,13 +11,23 @@ import (
 	"time"
 
 	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/pkg/application/alarms"
+	"github.com/diwise/diwise-web/internal/pkg/application/common"
+	"github.com/diwise/diwise-web/internal/pkg/application/devices"
+	"github.com/diwise/diwise-web/internal/pkg/application/measurements"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/web/components"
 
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+type homeApp interface {
+	alarms.Management
+	devices.Management
+	measurements.Management
+}
+
+func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app homeApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -67,7 +77,7 @@ func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc,
 	return http.HandlerFunc(fn)
 }
 
-func NewAlarmsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewAlarmsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app homeApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		ctx := helpers.Decorate(
@@ -107,7 +117,7 @@ func NewAlarmsTable(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 	return http.HandlerFunc(fn)
 }
 
-func NewOverviewCardsHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewOverviewCardsHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app homeApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
@@ -115,7 +125,7 @@ func NewOverviewCardsHandler(_ context.Context, l10n LocaleBundle, assets AssetL
 		stats, err := app.GetStatistics(ctx)
 
 		if err != nil {
-			if errors.Is(err, application.ErrUnauthorized) {
+			if errors.Is(err, common.ErrUnauthorized) {
 				http.Error(w, "not authorized", http.StatusUnauthorized)
 			} else {
 				http.Error(w, "could not compose view model", http.StatusInternalServerError)
@@ -137,7 +147,7 @@ func NewOverviewCardsHandler(_ context.Context, l10n LocaleBundle, assets AssetL
 	return http.HandlerFunc(fn)
 }
 
-func NewUsageHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewUsageHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app homeApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		//localizer := l10n.For(r.Header.Get("Accept-Language"))
@@ -147,7 +157,7 @@ func NewUsageHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFun
 
 		datasets, max, err := getUsageData(isDark, ctx, app)
 		if err != nil {
-			if errors.Is(err, application.ErrUnauthorized) {
+			if errors.Is(err, common.ErrUnauthorized) {
 				http.Error(w, "not authorized", http.StatusUnauthorized)
 			} else {
 				http.Error(w, "could not compose view model", http.StatusInternalServerError)
@@ -162,7 +172,7 @@ func NewUsageHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFun
 	return http.HandlerFunc(fn)
 }
 
-func getUsageData(isDark bool, ctx context.Context, app application.DeviceManagement) ([]components.ChartDataset, uint, error) {
+func getUsageData(isDark bool, ctx context.Context, app homeApp) ([]components.ChartDataset, uint, error) {
 	daysInMonth := func(ts time.Time) int {
 		return time.Date(ts.Year(), ts.Month()+1, 1, 0, 0, 0, 0, time.UTC).AddDate(0, 0, -1).Day()
 	}
