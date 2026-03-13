@@ -12,6 +12,7 @@ import (
 
 type SensorDetailsViewModel struct {
 	DeviceID          string
+	SensorID          string
 	DevEUI            string
 	Name              string
 	Latitude          float64
@@ -377,6 +378,19 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 						</div>
 						<div class="flex flex-col items-start self-stretch gap-6 py-6 px-9">
 							//Uppgifter
+							<div class="flex flex-start gap-10 self-stretch">
+								<div class="flex flex-col gap-2 flex-[1_0_0]">
+									<div class="font-bold">{ l10n.Get("sensorID") }</div>
+									<div class="flex items-center gap-2">
+										<input id="sensor-id-input" type="text" name="sensorID" value={ sensor.SensorID } disabled class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2 disabled:opacity-70" placeholder="SensorID"/>
+										<button
+											type="button"
+											class="h-[40px] px-3 rounded-xl border border-input-surface dark:border-white-50 whitespace-nowrap"
+											onclick="navigator.clipboard && navigator.clipboard.writeText(document.getElementById('sensor-id-input')?.value || '')"
+										>{ l10n.Get("copy") }</button>
+									</div>
+								</div>
+							</div>
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("name") }</div>
