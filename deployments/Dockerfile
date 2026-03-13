@@ -20,7 +20,7 @@ RUN go mod download
 COPY . .
 
 RUN templ generate
-RUN ./tailwindcss -c ./internal/pkg/presentation/web/css/tailwind.config.js -i ./internal/pkg/presentation/web/css/input.css -o ./assets/css/diwise.css
+RUN ./tailwindcss -c ./internal/presentation/web/css/tailwind.config.js -i ./internal/presentation/web/css/input.css -o ./assets/css/diwise.css
 
 WORKDIR /app/cmd/diwise-web
 
