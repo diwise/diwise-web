@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 
 module.exports = {
-    content: ["./internal/pkg/presentation/web/components/**/*.templ"],
+    content: ["./internal/presentation/web/components/**/*.templ"],
     darkMode: 'class',
     theme: {
       extend: {
