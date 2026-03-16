@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/diwise/diwise-web/internal/application/common"
+	"github.com/diwise/diwise-web/internal/application/client"
 )
 
 type Management interface {
 	GetMeasurementInfo(ctx context.Context, id string) ([]Value, error)
-	GetMeasurementData(ctx context.Context, id string, params ...common.InputParam) (Data, error)
+	GetMeasurementData(ctx context.Context, id string, params ...client.InputParam) (Data, error)
 }
 
 type Data struct {

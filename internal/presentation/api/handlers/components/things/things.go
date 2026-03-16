@@ -14,7 +14,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application/admin"
-	"github.com/diwise/diwise-web/internal/application/common"
+	"github.com/diwise/diwise-web/internal/application/client"
 	appthings "github.com/diwise/diwise-web/internal/application/things"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/presentation/web/components"
@@ -175,7 +175,7 @@ func NewCreateThingComponentHandler(ctx context.Context, l10n LocaleBundle, asse
 			SubType:     thingSubType,
 			Name:        thingName,
 			Description: thingDesc,
-			Location: common.Location{
+			Location: client.Location{
 				Latitude:  0,
 				Longitude: 0,
 			},

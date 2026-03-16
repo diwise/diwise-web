@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/url"
 
-	"github.com/diwise/diwise-web/internal/application/common"
+	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 	"go.opentelemetry.io/otel"
 )
@@ -13,10 +13,10 @@ import (
 var tracer = otel.Tracer("diwise-web/app/measurements")
 
 type Service struct {
-	client *common.Client
+	client *client.Client
 }
 
-func NewService(client *common.Client) *Service {
+func NewService(client *client.Client) *Service {
 	return &Service{client: client}
 }
 
@@ -42,7 +42,7 @@ func (s *Service) GetMeasurementInfo(ctx context.Context, id string) ([]Value, e
 	return info, nil
 }
 
-func (s *Service) GetMeasurementData(ctx context.Context, id string, params ...common.InputParam) (Data, error) {
+func (s *Service) GetMeasurementData(ctx context.Context, id string, params ...client.InputParam) (Data, error) {
 	var err error
 	ctx, span := tracer.Start(ctx, "get-measurementdata")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()

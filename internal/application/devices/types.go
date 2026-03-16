@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/diwise/diwise-web/internal/application/common"
+	"github.com/diwise/diwise-web/internal/application/client"
 )
 
 type Management interface {
@@ -72,7 +72,7 @@ type Device struct {
 	Active      bool            `json:"active"`
 	Name        string          `json:"name,omitzero"`
 	Description string          `json:"description,omitzero"`
-	Location    common.Location `json:"location"`
+	Location    client.Location `json:"location"`
 	Environment *string         `json:"environment,omitzero"`
 	Source      string          `json:"source,omitzero"`
 	Tenant      string          `json:"tenant"`
@@ -81,7 +81,7 @@ type Device struct {
 	DeviceState *DeviceState `json:"deviceState,omitempty"`
 
 	Types    []Type            `json:"types,omitempty"`
-	Metadata []common.Metadata `json:"metadata,omitempty"`
+	Metadata []client.Metadata `json:"metadata,omitempty"`
 
 	SensorProfile *SensorProfile `json:"sensorProfile,omitempty"`
 	SensorStatus  *SensorStatus  `json:"sensorStatus,omitempty"`

@@ -12,7 +12,7 @@ import (
 
 	"github.com/diwise/diwise-web/internal/application/admin"
 	"github.com/diwise/diwise-web/internal/application/alarms"
-	"github.com/diwise/diwise-web/internal/application/common"
+	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
 	"github.com/diwise/diwise-web/internal/application/things"
@@ -25,7 +25,7 @@ import (
 var tracer = otel.Tracer("diwise-web/app")
 
 type App struct {
-	client       *common.Client
+	client       *client.Client
 	admin        *admin.Service
 	alarms       *alarms.Service
 	devices      *devices.Service
@@ -35,7 +35,7 @@ type App struct {
 
 func New(ctx context.Context, devmgmt, thingsURL, adminURL, alarmsURL, measurementURL string) (*App, error) {
 	_ = ctx
-	client := common.NewClient(devmgmt, thingsURL, adminURL, alarmsURL, measurementURL)
+	client := client.NewClient(devmgmt, thingsURL, adminURL, alarmsURL, measurementURL)
 	return &App{
 		client:       client,
 		admin:        admin.NewService(client),
@@ -46,16 +46,16 @@ func New(ctx context.Context, devmgmt, thingsURL, adminURL, alarmsURL, measureme
 	}, nil
 }
 
-func WithReverse(reverse bool) common.InputParam { return common.WithReverse(reverse) }
-func WithLimit(limit int) common.InputParam      { return common.WithLimit(limit) }
-func WithLastN(lastN bool) common.InputParam     { return common.WithLastN(lastN) }
-func WithTimeRel(timeRel string, timeAt, endTimeAt time.Time) common.InputParam {
-	return common.WithTimeRel(timeRel, timeAt, endTimeAt)
+func WithReverse(reverse bool) client.InputParam { return client.WithReverse(reverse) }
+func WithLimit(limit int) client.InputParam      { return client.WithLimit(limit) }
+func WithLastN(lastN bool) client.InputParam     { return client.WithLastN(lastN) }
+func WithTimeRel(timeRel string, timeAt, endTimeAt time.Time) client.InputParam {
+	return client.WithTimeRel(timeRel, timeAt, endTimeAt)
 }
-func WithAggrMethods(methods ...string) common.InputParam { return common.WithAggrMethods(methods...) }
-func WithTimeUnit(timeUnit string) common.InputParam      { return common.WithTimeUnit(timeUnit) }
-func WithAfter(timeAt time.Time) common.InputParam        { return common.WithAfter(timeAt) }
-func WithBoolValue(boolValue bool) common.InputParam      { return common.WithBoolValue(boolValue) }
+func WithAggrMethods(methods ...string) client.InputParam { return client.WithAggrMethods(methods...) }
+func WithTimeUnit(timeUnit string) client.InputParam      { return client.WithTimeUnit(timeUnit) }
+func WithAfter(timeAt time.Time) client.InputParam        { return client.WithAfter(timeAt) }
+func WithBoolValue(boolValue bool) client.InputParam      { return client.WithBoolValue(boolValue) }
 
 func (a *App) GetDevice(ctx context.Context, id string) (devices.Device, error) {
 	return a.devices.GetDevice(ctx, id)
@@ -101,7 +101,7 @@ func (a *App) GetMeasurementInfo(ctx context.Context, id string) ([]measurements
 	return a.measurements.GetMeasurementInfo(ctx, id)
 }
 
-func (a *App) GetMeasurementData(ctx context.Context, id string, params ...common.InputParam) (measurements.Data, error) {
+func (a *App) GetMeasurementData(ctx context.Context, id string, params ...client.InputParam) (measurements.Data, error) {
 	return a.measurements.GetMeasurementData(ctx, id, params...)
 }
 

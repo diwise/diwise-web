@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/diwise/diwise-web/internal/application/common"
+	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 	"go.opentelemetry.io/otel"
 )
@@ -17,10 +17,10 @@ import (
 var tracer = otel.Tracer("diwise-web/app/things")
 
 type Service struct {
-	client *common.Client
+	client *client.Client
 }
 
-func NewService(client *common.Client) *Service {
+func NewService(client *client.Client) *Service {
 	return &Service{client: client}
 }
 

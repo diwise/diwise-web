@@ -11,7 +11,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application/admin"
-	"github.com/diwise/diwise-web/internal/application/common"
+	"github.com/diwise/diwise-web/internal/application/client"
 	appthings "github.com/diwise/diwise-web/internal/application/things"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	"github.com/diwise/diwise-web/internal/presentation/web/components"
@@ -223,21 +223,21 @@ func formToFields(form url.Values) map[string]any {
 		switch k {
 		case "longitude":
 			if _, ok := fields["location"]; !ok {
-				fields["location"] = common.Location{}
+				fields["location"] = client.Location{}
 			}
 
 			if f, ok := asFloat(v); ok {
-				loc := fields["location"].(common.Location)
+				loc := fields["location"].(client.Location)
 				loc.Longitude = f
 				fields["location"] = loc
 			}
 		case "latitude":
 			if _, ok := fields["location"]; !ok {
-				fields["location"] = common.Location{}
+				fields["location"] = client.Location{}
 			}
 
 			if f, ok := asFloat(v); ok {
-				loc := fields["location"].(common.Location)
+				loc := fields["location"].(client.Location)
 				loc.Latitude = f
 				fields["location"] = loc
 			}

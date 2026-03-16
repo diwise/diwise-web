@@ -12,7 +12,7 @@ import (
 
 	"github.com/diwise/diwise-web/internal/application"
 	"github.com/diwise/diwise-web/internal/application/alarms"
-	"github.com/diwise/diwise-web/internal/application/common"
+	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
@@ -125,7 +125,7 @@ func NewOverviewCardsHandler(_ context.Context, l10n LocaleBundle, assets AssetL
 		stats, err := app.GetStatistics(ctx)
 
 		if err != nil {
-			if errors.Is(err, common.ErrUnauthorized) {
+			if errors.Is(err, client.ErrUnauthorized) {
 				http.Error(w, "not authorized", http.StatusUnauthorized)
 			} else {
 				http.Error(w, "could not compose view model", http.StatusInternalServerError)
@@ -157,7 +157,7 @@ func NewUsageHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFun
 
 		datasets, max, err := getUsageData(isDark, ctx, app)
 		if err != nil {
-			if errors.Is(err, common.ErrUnauthorized) {
+			if errors.Is(err, client.ErrUnauthorized) {
 				http.Error(w, "not authorized", http.StatusUnauthorized)
 			} else {
 				http.Error(w, "could not compose view model", http.StatusInternalServerError)

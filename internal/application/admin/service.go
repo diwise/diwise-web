@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/url"
 
-	"github.com/diwise/diwise-web/internal/application/common"
+	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 	"go.opentelemetry.io/otel"
@@ -19,10 +19,10 @@ type Management interface {
 }
 
 type Service struct {
-	client *common.Client
+	client *client.Client
 }
 
-func NewService(client *common.Client) *Service {
+func NewService(client *client.Client) *Service {
 	return &Service{client: client}
 }
 

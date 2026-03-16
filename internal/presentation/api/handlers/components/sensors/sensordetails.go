@@ -11,7 +11,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application/admin"
-	"github.com/diwise/diwise-web/internal/application/common"
+	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
@@ -331,10 +331,10 @@ func NewAttachSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBund
 			status := http.StatusInternalServerError
 			errMsg := "Kunde inte koppla sensorn"
 			switch {
-			case errors.Is(err, common.ErrNotFound):
+			case errors.Is(err, client.ErrNotFound):
 				status = http.StatusNotFound
 				errMsg = "Enheten hittades inte"
-			case errors.Is(err, common.ErrConflict):
+			case errors.Is(err, client.ErrConflict):
 				status = http.StatusConflict
 				errMsg = "SensorID är redan kopplad till en annan enhet"
 			}
@@ -347,10 +347,10 @@ func NewAttachSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBund
 			status := http.StatusInternalServerError
 			errMsg := "Kunde inte uppdatera sensorprofil"
 			switch {
-			case errors.Is(err, common.ErrNotFound):
+			case errors.Is(err, client.ErrNotFound):
 				status = http.StatusNotFound
 				errMsg = "Sensorn hittades inte"
-			case errors.Is(err, common.ErrConflict):
+			case errors.Is(err, client.ErrConflict):
 				status = http.StatusConflict
 				errMsg = "Ogiltig sensorprofil"
 			}

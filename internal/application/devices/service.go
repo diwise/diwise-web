@@ -8,7 +8,7 @@ import (
 	"maps"
 	"net/url"
 
-	"github.com/diwise/diwise-web/internal/application/common"
+	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 	"go.opentelemetry.io/otel"
 )
@@ -16,10 +16,10 @@ import (
 var tracer = otel.Tracer("diwise-web/app/devices")
 
 type Service struct {
-	client *common.Client
+	client *client.Client
 }
 
-func NewService(client *common.Client) *Service {
+func NewService(client *client.Client) *Service {
 	return &Service{client: client}
 }
 
@@ -28,7 +28,7 @@ func (s *Service) GetDevice(ctx context.Context, id string) (Device, error) {
 	ctx, span := tracer.Start(ctx, "get-device")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
-	var res *common.ApiResponse
+	var res *client.ApiResponse
 	res, err = s.client.Get(ctx, s.client.DeviceManagementURL(), id, url.Values{})
 	if err != nil {
 		return Device{}, err
@@ -53,7 +53,7 @@ func (s *Service) GetDevices(ctx context.Context, offset, limit int, args map[st
 	params.Add("offset", fmt.Sprintf("%d", offset))
 	maps.Copy(params, args)
 
-	var res *common.ApiResponse
+	var res *client.ApiResponse
 	res, err = s.client.Get(ctx, s.client.DeviceManagementURL(), "", params)
 	if err != nil {
 		return DeviceResult{}, err

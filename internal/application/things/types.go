@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/diwise/diwise-web/internal/application/common"
+	"github.com/diwise/diwise-web/internal/application/client"
 )
 
 type Management interface {
@@ -28,7 +28,7 @@ type Thing struct {
 	Name            string          `json:"name"`
 	AlternativeName string          `json:"alternativeName,omitempty"`
 	Description     string          `json:"description"`
-	Location        common.Location `json:"location"`
+	Location        client.Location `json:"location"`
 	RefDevices      []RefDevice     `json:"refDevices,omitempty"`
 	Tags            []string        `json:"tags,omitempty"`
 	Tenant          string          `json:"tenant"`
@@ -84,7 +84,7 @@ func (t *Thing) UnmarshalJSON(data []byte) error {
 		Name            string          `json:"name"`
 		AlternativeName string          `json:"alternativeName,omitempty"`
 		Description     string          `json:"description"`
-		Location        common.Location `json:"location"`
+		Location        client.Location `json:"location"`
 		RefDevices      []RefDevice     `json:"refDevices,omitempty"`
 		Tags            []string        `json:"tags,omitempty"`
 		Tenant          string          `json:"tenant"`
