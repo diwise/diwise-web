@@ -69,6 +69,14 @@ func (a *App) UpdateDevice(ctx context.Context, deviceID string, fields map[stri
 	return a.devices.UpdateDevice(ctx, deviceID, fields)
 }
 
+func (a *App) Attach(ctx context.Context, deviceID string) error {
+	return a.devices.Attach(ctx, deviceID)
+}
+
+func (a *App) Deattach(ctx context.Context, deviceID string) error {
+	return a.devices.Deattach(ctx, deviceID)
+}
+
 func (a *App) GetSensorStatus(ctx context.Context, id string) ([]devices.SensorStatus, error) {
 	return a.devices.GetSensorStatus(ctx, id)
 }

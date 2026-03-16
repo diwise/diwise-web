@@ -20,6 +20,7 @@ import (
 
 var ErrNotFound = fmt.Errorf("not found")
 var ErrUnauthorized = fmt.Errorf("unauthorized")
+var ErrConflict = fmt.Errorf("conflict")
 
 type Meta struct {
 	TotalRecords uint64  `json:"totalRecords"`
@@ -95,6 +96,7 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 		return nil, fmt.Errorf("failed to create http request: %s", err.Error())
 	}
 	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Accept", "application/json")
 
 	log.Debug("GET", "url", u.String())
 	resp, err := c.httpClient.Do(req)
@@ -144,6 +146,7 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
 	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -157,6 +160,9 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("request failed: %w", ErrNotFound)
+	}
+	if resp.StatusCode == http.StatusConflict {
+		return fmt.Errorf("request failed: %w", ErrConflict)
 	}
 	if resp.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("request failed: %d", resp.StatusCode)
@@ -176,6 +182,7 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
 	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -189,6 +196,45 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("request failed: %w", ErrNotFound)
+	}
+	if resp.StatusCode == http.StatusConflict {
+		return fmt.Errorf("request failed: %w", ErrConflict)
+	}
+	if resp.StatusCode >= http.StatusBadRequest {
+		return fmt.Errorf("request failed: %d", resp.StatusCode)
+	}
+
+	return nil
+}
+
+func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
+	u, err := url.Parse(strings.TrimSuffix(baseURL, "/"))
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u.String(), bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("failed to create http request: %w", err)
+	}
+	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send put request: %s", err.Error())
+	}
+	defer resp.Body.Close()
+	_, _ = io.Copy(io.Discard, resp.Body)
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		return fmt.Errorf("request failed: %w", ErrUnauthorized)
+	}
+	if resp.StatusCode == http.StatusNotFound {
+		return fmt.Errorf("request failed: %w", ErrNotFound)
+	}
+	if resp.StatusCode == http.StatusConflict {
+		return fmt.Errorf("request failed: %w", ErrConflict)
 	}
 	if resp.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("request failed: %d", resp.StatusCode)

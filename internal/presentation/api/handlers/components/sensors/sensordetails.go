@@ -1,13 +1,17 @@
 package sensors
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application/admin"
+	"github.com/diwise/diwise-web/internal/application/common"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
@@ -165,6 +169,198 @@ func NewEditSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 	return http.HandlerFunc(fn)
 }
 
+func NewSensorIDDialogComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			http.Error(w, "no id found in url", http.StatusBadRequest)
+			return
+		}
+
+		ctx, cancel := context.WithDeadline(r.Context(), time.Now().Add(10*time.Second))
+		defer cancel()
+
+		ctx = helpers.Decorate(ctx,
+			components.CurrentComponent, "sensors",
+		)
+
+		detailsViewModel, err := composeViewModel(ctx, id, app)
+		if err != nil {
+			http.Error(w, "could not compose view model", http.StatusInternalServerError)
+			return
+		}
+
+		component := components.SensorIDDialogContent(localizer, id, detailsViewModel.SensorID, "", "")
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func NewDetachSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			http.Error(w, "no id found in url", http.StatusBadRequest)
+			return
+		}
+
+		ctx, cancel := context.WithDeadline(r.Context(), time.Now().Add(10*time.Second))
+		defer cancel()
+
+		ctx = helpers.Decorate(ctx,
+			components.CurrentComponent, "sensors",
+		)
+
+		if err := app.Deattach(ctx, id); err != nil {
+			http.Error(w, "could not detach sensor", http.StatusInternalServerError)
+			return
+		}
+
+		detailsViewModel, err := composeViewModel(ctx, id, app)
+		if err != nil {
+			http.Error(w, "could not compose view model", http.StatusInternalServerError)
+			return
+		}
+
+		tenants := app.GetTenants(ctx)
+		deviceProfiles := app.GetDeviceProfiles(ctx)
+
+		dp := []components.DeviceProfile{}
+		for _, p := range deviceProfiles {
+			types := []string{}
+			if p.Types != nil {
+				types = *p.Types
+			}
+			dp = append(dp, components.DeviceProfile{
+				Name:     p.Name,
+				Decoder:  p.Decoder,
+				Interval: p.Interval,
+				Types:    types,
+			})
+		}
+
+		detailsViewModel.Organisations = tenants
+		detailsViewModel.DeviceProfiles = dp
+
+		component := components.EditSensorDetails(localizer, assets, *detailsViewModel)
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func NewAttachSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			http.Error(w, "", http.StatusBadRequest)
+			return
+		}
+
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		ctx, cancel := context.WithDeadline(r.Context(), time.Now().Add(10*time.Second))
+		defer cancel()
+
+		ctx = helpers.Decorate(ctx,
+			components.CurrentComponent, "sensors",
+		)
+
+		writeDialogError := func(status int, deviceID, currentSensorID, attemptedSensorID, msg string) {
+			component := components.SensorIDDialogContent(localizer, deviceID, currentSensorID, attemptedSensorID, msg)
+			var b bytes.Buffer
+			if err := component.Render(ctx, &b); err != nil {
+				http.Error(w, "could not render dialog", http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.WriteHeader(status)
+			_, _ = w.Write(b.Bytes())
+		}
+
+		id := r.URL.Query().Get("id")
+		if id == "" {
+			writeDialogError(http.StatusBadRequest, "", "", "", "Kunde inte hitta deviceID")
+			return
+		}
+
+		sensorID := strings.TrimSpace(r.FormValue("newSensorID"))
+		if sensorID == "" {
+			detailsViewModel, _ := composeViewModel(ctx, id, app)
+			currentSensorID := ""
+			if detailsViewModel != nil {
+				currentSensorID = detailsViewModel.SensorID
+			}
+			writeDialogError(http.StatusBadRequest, id, currentSensorID, sensorID, "SensorID kan inte vara tomt")
+			return
+		}
+
+		ctx = devices.WithAttachSensorID(ctx, sensorID)
+
+		if err := app.Attach(ctx, id); err != nil {
+			detailsViewModel, _ := composeViewModel(ctx, id, app)
+			currentSensorID := ""
+			if detailsViewModel != nil {
+				currentSensorID = detailsViewModel.SensorID
+			}
+
+			status := http.StatusInternalServerError
+			errMsg := "Kunde inte koppla sensorn"
+			switch {
+			case errors.Is(err, common.ErrNotFound):
+				status = http.StatusNotFound
+				errMsg = "Enheten hittades inte"
+			case errors.Is(err, common.ErrConflict):
+				status = http.StatusConflict
+				errMsg = "SensorID är redan kopplad till en annan enhet"
+			}
+
+			writeDialogError(status, id, currentSensorID, sensorID, errMsg)
+			return
+		}
+
+		detailsViewModel, err := composeViewModel(ctx, id, app)
+		if err != nil {
+			http.Error(w, "could not compose view model", http.StatusInternalServerError)
+			return
+		}
+
+		tenants := app.GetTenants(ctx)
+		deviceProfiles := app.GetDeviceProfiles(ctx)
+
+		dp := []components.DeviceProfile{}
+		for _, p := range deviceProfiles {
+			types := []string{}
+			if p.Types != nil {
+				types = *p.Types
+			}
+			dp = append(dp, components.DeviceProfile{
+				Name:     p.Name,
+				Decoder:  p.Decoder,
+				Interval: p.Interval,
+				Types:    types,
+			})
+		}
+
+		detailsViewModel.Organisations = tenants
+		detailsViewModel.DeviceProfiles = dp
+
+		component := components.EditSensorDetails(localizer, assets, *detailsViewModel)
+		w.Header().Set("HX-Retarget", "#sensor-view")
+		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
 func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
@@ -218,8 +414,8 @@ func NewSaveSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle
 					if f, ok := asFloat(v); ok {
 						fields[k] = f
 					}
-				case "sensorType":
-					fields["deviceProfile"] = v
+				//case "sensorType":
+				//	fields["sensorProfile"] = v
 				case "organisation":
 					fields["tenant"] = v
 				case "environment":

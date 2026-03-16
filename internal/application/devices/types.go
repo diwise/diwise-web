@@ -11,8 +11,21 @@ type Management interface {
 	GetDevice(ctx context.Context, id string) (Device, error)
 	GetDevices(ctx context.Context, offset, limit int, args map[string][]string) (DeviceResult, error)
 	UpdateDevice(ctx context.Context, deviceID string, fields map[string]any) error
+	Attach(ctx context.Context, deviceID string) error
+	Deattach(ctx context.Context, deviceID string) error
 	GetSensorStatus(ctx context.Context, id string) ([]SensorStatus, error)
 	GetStatistics(ctx context.Context) (Statistics, error)
+}
+
+type attachSensorIDKey struct{}
+
+func WithAttachSensorID(ctx context.Context, sensorID string) context.Context {
+	return context.WithValue(ctx, attachSensorIDKey{}, sensorID)
+}
+
+func AttachSensorIDFromContext(ctx context.Context) (string, bool) {
+	sensorID, ok := ctx.Value(attachSensorIDKey{}).(string)
+	return sensorID, ok
 }
 
 type Statistics struct {

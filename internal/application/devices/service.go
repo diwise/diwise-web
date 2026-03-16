@@ -107,6 +107,36 @@ func (s *Service) UpdateDevice(ctx context.Context, deviceID string, fields map[
 	return s.client.Patch(ctx, s.client.DeviceManagementURL(), deviceID, b)
 }
 
+func (s *Service) Attach(ctx context.Context, deviceID string) error {
+	var err error
+	ctx, span := tracer.Start(ctx, "attach-sensor")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	sensorID, ok := AttachSensorIDFromContext(ctx)
+	if !ok || sensorID == "" {
+		return fmt.Errorf("missing sensorID")
+	}
+
+	body, err := json.Marshal(map[string]string{"sensorID": sensorID})
+	if err != nil {
+		return err
+	}
+
+	endpoint := fmt.Sprintf("%s/%s/sensor", s.client.DeviceManagementURL(), deviceID)
+	err = s.client.Put(ctx, endpoint, body)
+	return err
+}
+
+func (s *Service) Deattach(ctx context.Context, deviceID string) error {
+	var err error
+	ctx, span := tracer.Start(ctx, "deattach-sensor")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	endpoint := fmt.Sprintf("%s/%s/sensor", s.client.DeviceManagementURL(), deviceID)
+	err = s.client.Delete(ctx, endpoint)
+	return err
+}
+
 func (s *Service) GetStatistics(ctx context.Context) (Statistics, error) {
 	var err error
 	ctx, span := tracer.Start(ctx, "get-statistics")
