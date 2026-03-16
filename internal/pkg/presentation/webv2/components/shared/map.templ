@@ -299,16 +299,36 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                 return { iconUrl };
             }
 
-            function getColorByState(state) {
+            function getColorByState(state, isDarkMode) {
                 switch(state) {
                     case "red":
-                        return { colorClass: 'bg-red-600 dark:bg-err-prim-surf', lightipColor: '#D62E2E', darktipColor: '#FBC1C1' };
+                        return {
+                            backgroundColor: isDarkMode ? '#FBC1C1' : '#D62E2E',
+                            textColor: isDarkMode ? '#1F1F25' : '#FFFFFF',
+                            lightipColor: '#D62E2E',
+                            darktipColor: '#FBC1C1',
+                        };
                     case "orange":
-                        return { colorClass: 'bg-orange-600 dark:bg-primary-surface-orange-accent', lightipColor: '#DB6900', darktipColor: '#FFA34D' };
+                        return {
+                            backgroundColor: isDarkMode ? '#FFA34D' : '#DB6900',
+                            textColor: isDarkMode ? '#1F1F25' : '#FFFFFF',
+                            lightipColor: '#DB6900',
+                            darktipColor: '#FFA34D',
+                        };
                     case "green":
-                        return { colorClass: 'bg-green-700 dark:bg-primary-surface-green-accent', lightipColor: '#00733B', darktipColor: '#AAD4BF' };
+                        return {
+                            backgroundColor: isDarkMode ? '#AAD4BF' : '#00733B',
+                            textColor: isDarkMode ? '#1F1F25' : '#FFFFFF',
+                            lightipColor: '#00733B',
+                            darktipColor: '#AAD4BF',
+                        };
                     default:
-                        return { colorClass: 'bg-primary-dark dark:bg-white', lightipColor: '#1F1F25', darktipColor: '#FFFFFF' };
+                        return {
+                            backgroundColor: isDarkMode ? '#FFFFFF' : '#1F1F25',
+                            textColor: isDarkMode ? '#1F1F25' : '#FFFFFF',
+                            lightipColor: '#1F1F25',
+                            darktipColor: '#FFFFFF',
+                        };
                 }
             }
 
@@ -355,7 +375,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                         data.features.forEach(feature => {
                                 const type = feature.properties.type.toLowerCase();
                                 const subtype = feature.properties.subtype !== undefined ? feature.properties.subtype.toLowerCase() : '';
-                                const { colorClass, lightipColor, darktipColor } = getColorByState(feature.properties.state);
+                                const { backgroundColor, textColor, lightipColor, darktipColor } = getColorByState(feature.properties.state, isDarkMode);
                                 const tipColor = isDarkMode ? darktipColor : lightipColor;
                                 const tipIcon = generateTipIcon(tipColor)
                                 const { iconUrl } = getIconByTypeAndTheme(type, subtype, isDarkMode);
@@ -377,9 +397,9 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                         const divIcon = leaflet.divIcon({
                                             className: '',
                                             html:   '<div class="flex flex-col items-center opacity-100">' +
-                                                        '<div class="flex flex-col items-center justify-center opacity-100 ' + colorClass + ' text-white dark:text-primary-dark p-2 rounded-lg shadow-md gap-2">' +
+                                                        '<div class="flex flex-col items-center justify-center opacity-100 p-2 rounded-lg shadow-md gap-2" style="background-color:' + backgroundColor + ';color:' + textColor + ';">' +
                                                             '<div class="flex flex-row items-center gap-2">' +
-                                                                '<img class="opacity-100" src="' + iconUrl + '">' + fillingLevelHtml + temperatureHTML + 
+                                                                '<img class="opacity-100" style="width:16px;height:16px;display:block;opacity:1;" src="' + iconUrl + '">' + fillingLevelHtml + temperatureHTML + 
                                                             '</div>' +
                                                         '</div>' +
                                                         '<div class="flex items-center">' + tipIcon + '</div>' +

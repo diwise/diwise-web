@@ -343,6 +343,9 @@
   .my-auto {
     margin-block: auto;
   }
+  .mt-0\.5 {
+    margin-top: calc(var(--spacing) * 0.5);
+  }
   .mt-2 {
     margin-top: calc(var(--spacing) * 2);
   }
@@ -546,6 +549,9 @@
   }
   .max-h-\[300px\] {
     max-height: 300px;
+  }
+  .min-h-36 {
+    min-height: calc(var(--spacing) * 36);
   }
   .min-h-44 {
     min-height: calc(var(--spacing) * 44);

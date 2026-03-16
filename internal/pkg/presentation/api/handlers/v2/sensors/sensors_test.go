@@ -1,9 +1,11 @@
 package sensors
 
 import (
+	"net/http"
 	"net/url"
 	"testing"
 
+	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/matryer/is"
 )
 
@@ -29,4 +31,55 @@ func TestNormalizeTypeFilterPreservesRepeatedValues(t *testing.T) {
 
 	is.Equal([]string{"elsys", "milesight"}, selected)
 	is.Equal("type=elsys&type=milesight", params.Encode())
+}
+
+func TestBuildSensorUpdateFieldsMapsEditForm(t *testing.T) {
+	is := is.New(t)
+
+	form := url.Values{
+		"id":                       {"device-1"},
+		"name":                     {"Temperature"},
+		"description":              {"Outdoor sensor"},
+		"sensorType":               {"decoder-x"},
+		"organisation":             {"tenant-a"},
+		"environment":              {"air"},
+		"interval":                 {"24"},
+		"latitude":                 {"57.708870"},
+		"longitude":                {"11.974560"},
+		"active":                   {"on"},
+		"measurementType-option[]": {"urn:1", "urn:2"},
+	}
+	req := &http.Request{Form: form}
+
+	fields := buildSensorUpdateFields(req)
+
+	is.Equal("device-1", fields["deviceID"])
+	is.Equal("Temperature", fields["name"])
+	is.Equal("Outdoor sensor", fields["description"])
+	is.Equal("decoder-x", fields["deviceProfile"])
+	is.Equal("tenant-a", fields["tenant"])
+	is.Equal("air", fields["environment"])
+	is.Equal("24", fields["interval"])
+	is.Equal(true, fields["active"])
+	is.Equal(57.70887, fields["latitude"])
+	is.Equal(11.97456, fields["longitude"])
+	is.Equal([]string{"urn:1", "urn:2"}, fields["types"])
+}
+
+func TestMeasurementTypeOptionsUsesMatchingProfileAndSelection(t *testing.T) {
+	is := is.New(t)
+
+	profiles := []application.DeviceProfile{
+		{Name: "Weather", Decoder: "weather-decoder", Types: &[]string{"sensor:temperature", "sensor:humidity"}},
+	}
+
+	options := measurementTypeOptions(nil, profiles, "weather-decoder", []string{"sensor:humidity"})
+
+	is.Equal(2, len(options))
+	is.Equal("sensor:humidity", options[0].Value)
+	is.Equal("humidity", options[0].Label)
+	is.Equal(true, options[0].Selected)
+	is.Equal("sensor:temperature", options[1].Value)
+	is.Equal("temperature", options[1].Label)
+	is.Equal(false, options[1].Selected)
 }

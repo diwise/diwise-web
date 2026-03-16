@@ -205,10 +205,12 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /v2/components/tables/alarms", RequireHX(homev2.NewAlarmsTable(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /v2/sensors", sensorsv2.NewSensorsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /v2/sensors/{id}", sensorsv2.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("POST /v2/sensors/{id}", sensorsv2.NewSaveSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
 	r.Handle("GET /v2/components/sensors/list", RequireHX(sensorsv2.NewSensorsDataList(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /v2/components/tables/sensors", RequireHX(sensorsv2.NewSensorsTable(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /v2/components/sensors/{id}/status", RequireHX(sensorsv2.NewStatusChartsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /v2/components/measurements", RequireHX(sensorsv2.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /v2/components/sensors/edit/measurement-types", RequireHX(sensorsv2.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.HandleFunc("GET /v2/login", authv2.NewLoginRedirect())
 	r.HandleFunc("GET /v2/logout", authv2.NewLogoutRedirect())
 
