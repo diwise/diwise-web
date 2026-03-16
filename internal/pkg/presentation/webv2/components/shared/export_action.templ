@@ -1,33 +1,206 @@
 package shared
 
 import (
+	"strings"
+
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/popover"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/utils"
 	. "github.com/diwise/frontend-toolkit"
 )
 
 type ExportActionProps struct {
 	Href       string
+	Form       string
 	Target     string
-	ButtonType button.Type
+	Fields     []string
 	Class      string
 	Attributes templ.Attributes
 }
 
 templ ExportAction(l10n Localizer, props ExportActionProps) {
-	{{ className := "rounded-xl px-4" }}
+	{{
+		className := "rounded-xl"
+		tooltipID := "export-tooltip-" + strings.ReplaceAll(utils.RandomID(), "_", "-")
+	}}
 	if props.Class != "" {
 		{{ className += " " + props.Class }}
 	}
-	@button.Button(button.Props{
-		Href:    props.Href,
-		Target:  props.Target,
-		Type:    props.ButtonType,
-		Variant: button.VariantOutline,
-		Class:   className,
-		Attributes: props.Attributes,
+	@popover.Trigger(popover.TriggerProps{
+		For:         tooltipID,
+		TriggerType: popover.TriggerTypeHover,
+		Class:       "inline-flex",
 	}) {
-		@icon.CloudDownload(icon.Props{Size: 16})
-		{ l10n.Get("export") }
+		@button.Button(button.Props{
+			Type:    button.TypeButton,
+			Variant: button.VariantOutline,
+			Size:    button.SizeIcon,
+			Class:   className,
+			Attributes: mergeAttrs(
+				templ.Attributes{
+					"aria-label":         l10n.Get("export"),
+					"title":              l10n.Get("export"),
+					"data-export-href":   exportHref(props.Href),
+					"data-export-form":   props.Form,
+					"data-export-fields": strings.Join(props.Fields, ","),
+					"data-export-target": exportTarget(props.Target),
+					"onclick":            "return window.diwiseExportAction(this);",
+				},
+				props.Attributes,
+			),
+		}) {
+			@icon.CloudDownload(icon.Props{Size: 16})
+		}
 	}
+	@popover.Content(popover.ContentProps{
+		ID:            tooltipID,
+		Placement:     popover.PlacementBottom,
+		Offset:        10,
+		ShowArrow:     true,
+		HoverDelay:    80,
+		HoverOutDelay: 120,
+		Class:         "rounded-xl border-border/80 bg-popover px-3 py-2 text-xs font-medium leading-5 shadow-lg",
+	}) {
+		<p>{ l10n.Get("export") }</p>
+	}
+	@ExportActionScript()
+}
+
+func mergeAttrs(base, extra templ.Attributes) templ.Attributes {
+	if len(base) == 0 && len(extra) == 0 {
+		return nil
+	}
+
+	merged := templ.Attributes{}
+	for key, value := range base {
+		merged[key] = value
+	}
+	for key, value := range extra {
+		merged[key] = value
+	}
+
+	return merged
+}
+
+func exportHref(href string) string {
+	if strings.TrimSpace(href) == "" {
+		return "/admin/export?redirected=true"
+	}
+	if strings.Contains(href, "redirected=") {
+		return href
+	}
+	if strings.Contains(href, "?") {
+		return href + "&redirected=true"
+	}
+	return href + "?redirected=true"
+}
+
+func exportTarget(target string) string {
+	if strings.TrimSpace(target) == "" {
+		return "_blank"
+	}
+	return target
+}
+
+templ ExportActionScript() {
+	<script nonce={ templ.GetNonce(ctx) }>
+		(function() {
+			if (window.diwiseExportAction) {
+				return;
+			}
+
+			window.diwiseExportAction = function(trigger) {
+				const baseHref = trigger?.dataset?.exportHref;
+				if (!baseHref) {
+					return true;
+				}
+
+				const target = trigger.dataset.exportTarget || '_blank';
+				const formID = trigger.dataset.exportForm || '';
+				const allowedFields = new Set(
+					(trigger.dataset.exportFields || '')
+						.split(',')
+						.map((value) => value.trim())
+						.filter(Boolean),
+				);
+
+				let url;
+				try {
+					url = new URL(baseHref, window.location.origin);
+				} catch (_error) {
+					return true;
+				}
+
+				if (!formID || allowedFields.size === 0) {
+					openExportTarget(url.toString(), target);
+					return false;
+				}
+
+				const form = document.getElementById(formID);
+				if (!form) {
+					openExportTarget(url.toString(), target);
+					return false;
+				}
+
+				const appendValue = (name, value, splitCSV) => {
+					const trimmed = (value || '').trim();
+					if (!trimmed) {
+						return;
+					}
+
+					if (splitCSV) {
+						trimmed
+							.split(',')
+							.map((part) => part.trim())
+							.filter(Boolean)
+							.forEach((part) => url.searchParams.append(name, part));
+						return;
+					}
+
+					url.searchParams.append(name, trimmed);
+				};
+
+				allowedFields.forEach((fieldName) => {
+					const elements = form.querySelectorAll(`[name="${cssEscape(fieldName)}"]`);
+					if (!elements.length) {
+						return;
+					}
+
+					elements.forEach((element) => {
+						if (!element || element.disabled) {
+							return;
+						}
+
+						const type = (element.getAttribute('type') || '').toLowerCase();
+						if ((type === 'checkbox' || type === 'radio') && !element.checked) {
+							return;
+						}
+
+						appendValue(fieldName, element.value, type === 'hidden');
+					});
+				});
+
+				openExportTarget(url.toString(), target);
+				return false;
+			};
+
+			function openExportTarget(href, target) {
+				if (target === '_self') {
+					window.location.assign(href);
+					return;
+				}
+
+				window.open(href, target, 'noopener');
+			}
+
+			function cssEscape(value) {
+				if (window.CSS && typeof window.CSS.escape === 'function') {
+					return window.CSS.escape(value);
+				}
+
+				return String(value).replace(/["\\]/g, '\\$&');
+			}
+		})();
+	</script>
 }

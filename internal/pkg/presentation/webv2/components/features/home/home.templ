@@ -6,6 +6,7 @@ import (
 
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/skeleton"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
@@ -44,7 +45,7 @@ templ Home(l10n Localizer, viewModel HomeViewModel) {
 	<div class="flex flex-col gap-14">
 		<div class="grid gap-10 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-stretch">
 			<section class="flex h-full flex-col gap-6">
-				@SectionHeading(l10n.Get("overview"), shared.SVG("map-pin", shared.Size(32), shared.NoFill(), shared.Box(24, 24), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}), shared.ClassNames("shrink-0", "stroke-black", "dark:stroke-white")))
+				@SectionHeading(l10n.Get("overview"), icon.MapPin(icon.Props{Size: 32, Class: "shrink-0 text-black dark:text-white"}))
 				<div hx-get="/v2/components/home/statistics" hx-trigger="load, every 1m" class="flex w-full flex-1">
 					@OverviewCardsSkeleton()
 				</div>
@@ -53,7 +54,7 @@ templ Home(l10n Localizer, viewModel HomeViewModel) {
 				@separator.Separator(separator.Props{Orientation: separator.OrientationVertical, Class: "h-full [&_span:last-child]:hidden"})
 			</div>
 			<section class="flex h-full flex-col gap-6">
-				@SectionHeading(l10n.Get("measurementperday"), shared.SVG("chartline", shared.Size(32), shared.NoFill(), shared.Box(24, 24), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"}), shared.ClassNames("shrink-0", "stroke-black", "dark:stroke-white")))
+				@SectionHeading(l10n.Get("measurementperday"), icon.Icon("chart-column")(icon.Props{Size: 32, Class: "shrink-0 text-black dark:text-white"}))
 				@card.Card(card.Props{Class: "h-full overflow-hidden rounded-2xl border border-border/80 bg-white shadow dark:bg-gray-800"}) {
 					@card.Content(card.ContentProps{Class: "flex h-full p-6"}) {
 						<div
@@ -74,12 +75,12 @@ templ Home(l10n Localizer, viewModel HomeViewModel) {
 templ OverviewCards(l10n Localizer, stats OverviewStats) {
 	<div class="flex w-full flex-1 flex-col gap-5">
 		<div class="grid flex-1 gap-5 md:grid-cols-2">
-			@OverviewCard(l10n.Get("numberofsensors"), "/v2/sensors", stats.Total, shared.SVG("rss", shared.Size(32), shared.ClassNames("shrink-0")))
-			@OverviewCard(l10n.Get("activesensors"), "/v2/sensors?active=true", stats.Active, shared.SVG("rss", shared.Size(32), shared.OKStyle(), shared.ClassNames("shrink-0")))
+			@OverviewCard(l10n.Get("numberofsensors"), "/v2/sensors", stats.Total, icon.Rss(icon.Props{Size: 32, Class: "shrink-0 text-primary-dark dark:text-zinc-100"}))
+			@OverviewCard(l10n.Get("activesensors"), "/v2/sensors?active=true", stats.Active, icon.Rss(icon.Props{Size: 32, Class: "shrink-0 text-green-700 dark:text-green-500"}))
 		</div>
 		<div class="grid flex-1 gap-5 md:grid-cols-2">
-			@OverviewCard(l10n.Get("inactivesensors"), "/v2/sensors?active=false", stats.Inactive, shared.SVG("rss", shared.Size(32), shared.AlertStyle(), shared.ClassNames("shrink-0")))
-			@OverviewCard(l10n.Get("unknownsensors"), "/v2/sensors?type=unknown", stats.Unknown, shared.SVG("rss", shared.Size(32), shared.WarningStyle(), shared.ClassNames("shrink-0")))
+			@OverviewCard(l10n.Get("inactivesensors"), "/v2/sensors?active=false", stats.Inactive, icon.Rss(icon.Props{Size: 32, Class: "shrink-0 text-red-700 dark:text-red-500"}))
+			@OverviewCard(l10n.Get("unknownsensors"), "/v2/sensors?type=unknown", stats.Unknown, icon.Rss(icon.Props{Size: 32, Class: "shrink-0 text-orange-400 dark:text-amber-500"}))
 		</div>
 	</div>
 }
@@ -126,7 +127,7 @@ templ OverviewCard(title, href string, count int, leading templ.Component) {
 					</div>
 				</div>
 				<div class="ml-auto flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-surface dark:bg-white">
-					@shared.SVG("arrow-right", shared.Size(16), shared.Box(24, 24), shared.ClassNames("fill-black", "stroke-black", "dark:fill-black", "dark:stroke-black"))
+					@icon.ArrowRight(icon.Props{Size: 16, Class: "text-black"})
 				</div>
 			}
 		}
@@ -139,7 +140,7 @@ templ AlarmsTableSection(l10n Localizer, viewModel HomeViewModel) {
 		{{ rightFooter = shared.PagingControl(l10n, shared.PagingControlProps(viewModel.Paging)) }}
 	}
 	<section id="tableview" class="flex flex-col gap-6">
-		@SectionHeading(l10n.Get("information"), shared.SVG("alert-triangle", shared.Size(24), shared.ClassNames("fill-black", "dark:fill-white")))
+		@SectionHeading(l10n.Get("information"), icon.TriangleAlert(icon.Props{Size: 24, Class: "text-black dark:text-white"}))
 		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-0 bg-transparent shadow-none"}) {
 			@card.Content(card.ContentProps{Class: "space-y-6 p-0"}) {
 				<div class="overflow-x-auto">

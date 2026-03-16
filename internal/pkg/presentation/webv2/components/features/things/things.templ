@@ -243,7 +243,9 @@ templ ThingsTableSection(l10n Localizer, viewModel ThingsPageViewModel) {
 			</div>
 			@shared.ExportAction(l10n, shared.ExportActionProps{
 				Href:   "/admin/export?export=things&accept=text/csv",
+				Form:   "things-filters-form",
 				Target: "_blank",
+				Fields: []string{"type", "tags"},
 			})
 		</div>
 		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-0 bg-transparent shadow-none"}) {

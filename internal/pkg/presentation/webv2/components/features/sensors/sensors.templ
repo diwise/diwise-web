@@ -10,6 +10,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
@@ -73,7 +74,7 @@ type FiltersViewModel struct {
 templ SensorsPage(l10n Localizer, viewModel SensorsPageViewModel) {
 	<div class="flex flex-col gap-10">
 		<section class="flex flex-col gap-6">
-			@SectionHeading(l10n.Get("sensors"), shared.SVG("rss", shared.Size(28)))
+			@SectionHeading(l10n.Get("sensors"), icon.Rss(icon.Props{Size: 28, Class: "text-primary-dark dark:text-zinc-100"}))
 			@StatisticsCards(l10n, viewModel.Statistics)
 		</section>
 		<section class="flex flex-col gap-6">
@@ -95,10 +96,10 @@ templ SensorsDataList(l10n Localizer, viewModel SensorsPageViewModel) {
 
 templ StatisticsCards(l10n Localizer, stats StatisticsViewModel) {
 	<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-		@StatisticCard(l10n.Get("total"), stats.Total, shared.SVG("rss", shared.Size(24)))
-		@StatisticCard(l10n.Get("active"), stats.Active, shared.SVG("rss", shared.Size(24), shared.OKStyle()))
-		@StatisticCard(l10n.Get("inactive"), stats.Inactive, shared.SVG("rss", shared.Size(24), shared.AlertStyle()))
-		@StatisticCard(l10n.Get("unknown"), stats.Unknown, shared.SVG("rss", shared.Size(24), shared.WarningStyle()))
+		@StatisticCard(l10n.Get("total"), stats.Total, icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}))
+		@StatisticCard(l10n.Get("active"), stats.Active, icon.Rss(icon.Props{Size: 24, Class: "text-green-700 dark:text-green-500"}))
+		@StatisticCard(l10n.Get("inactive"), stats.Inactive, icon.Rss(icon.Props{Size: 24, Class: "text-red-700 dark:text-red-500"}))
+		@StatisticCard(l10n.Get("unknown"), stats.Unknown, icon.Rss(icon.Props{Size: 24, Class: "text-orange-400 dark:text-amber-500"}))
 	</div>
 }
 
@@ -544,7 +545,9 @@ templ SensorsTableSection(l10n Localizer, viewModel SensorsPageViewModel) {
 			</div>
 			@shared.ExportAction(l10n, shared.ExportActionProps{
 				Href:   "/admin/export?export=devices&accept=text/csv",
+				Form:   "sensors-filters-form",
 				Target: "_blank",
+				Fields: []string{"search", "type", "active", "online", "lastseen"},
 			})
 		</div>
 		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-0 bg-transparent shadow-none"}) {

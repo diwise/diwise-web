@@ -160,7 +160,7 @@ templ EditThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
 templ ThingDetailsPropertiesSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	@ThingViewSection(
 		l10n.Get("details"),
-		shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("black", "white"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+		icon.Info(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
 		<div class="flex flex-col gap-4 py-6 px-8 text-foreground">
 			@ThingDetailRow(l10n.Get("id"), model.Thing.ID)
@@ -190,7 +190,7 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 	{{ endTime := measurementEndValue(model.LatestValues) }}
 	@ThingSectionCard(
 		l10n.Get("statistics"),
-		shared.SVG("chartline", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("black", "white"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+		icon.Icon("chart-column")(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
 		<div class="flex flex-col gap-6 py-6 px-8">
 			if len(model.MeasurementOptions) == 0 {
@@ -203,6 +203,7 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 					<input type="hidden" name="accept" value="text/csv"/>
 					<input type="hidden" name="thingid" value={ model.Thing.ID }/>
 					<input id="thingMeasurement" type="hidden" name="measurement" value={ model.SelectedMeasurement }/>
+					<input id="thingTab" type="hidden" name="tab" value={ model.SelectedMeasurement }/>
 					@tabs.Tabs(tabs.Props{ID: "thingMeasurementTabs", Class: "gap-0"}) {
 						@tabs.List(tabs.ListProps{Class: "h-auto w-full flex-wrap justify-start rounded-none border-b border-border/70 bg-transparent p-0"}) {
 							for _, option := range model.MeasurementOptions {
@@ -215,7 +216,7 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 										"hx-target":  "#thingMeasurementPanel",
 										"hx-include": "#thing-stats-form",
 										"hx-trigger": "click",
-										"onclick":    fmt.Sprintf("document.getElementById('thingMeasurement').value='%s';", option.Value),
+										"onclick":    fmt.Sprintf("document.getElementById('thingMeasurement').value='%s';document.getElementById('thingTab').value='%s';", option.Value, option.Value),
 									},
 								}) {
 									@MeasurementTabIcon(option.Value)
@@ -237,10 +238,10 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 										<div class="flex shrink-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-end">
 											<div class="flex flex-col justify-end">
 												@shared.ExportAction(l10n, shared.ExportActionProps{
-													ButtonType: button.TypeSubmit,
-													Attributes: templ.Attributes{
-														"formtarget": "_blank",
-													},
+													Href:   "/admin/export?export=thing&accept=text/csv",
+													Form:   "thing-stats-form",
+													Target: "_blank",
+													Fields: []string{"thingid", "tab", "timeAt", "endTimeAt"},
 												})
 											</div>
 											<div class="flex flex-col gap-2">
@@ -372,7 +373,7 @@ templ ThingMeasurementSummary(l10n Localizer, measurement LatestMeasurementViewM
 templ ThingDetailsLocationSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	@ThingViewSection(
 		l10n.Get("location"),
-		shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("black", "white"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
 		<div class="flex w-full flex-col gap-6 py-6 px-8 text-foreground">
 			@ThingDetailRow(l10n.Get("latitude"), formatCoordinate(model.Thing.Latitude))
@@ -391,7 +392,7 @@ templ ThingDetailsLocationSection(l10n Localizer, model ThingDetailsPageViewMode
 }
 
 templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
-	@ThingSectionCard(l10n.Get("details"), shared.SVG("info", shared.Size(24))) {
+	@ThingSectionCard(l10n.Get("details"), icon.Info(icon.Props{Size: 24, Class: "text-black dark:text-white"})) {
 		<div class="grid gap-6 py-6 px-8">
 			<div class="grid gap-6 md:grid-cols-2">
 				@ThingEditField(l10n.Get("name")) {
@@ -449,7 +450,7 @@ templ EditThingMeasurementSettingsSection(l10n Localizer, model ThingDetailsPage
 	if len(fields) == 0 {
 		return
 	}
-	@ThingSectionCard(l10n.Get("measurements"), shared.SVG("chartline", shared.Size(24))) {
+	@ThingSectionCard(l10n.Get("measurements"), icon.Icon("chart-column")(icon.Props{Size: 24, Class: "text-black dark:text-white"})) {
 		<div class="grid gap-6 py-6 px-8 md:grid-cols-2">
 			for _, field := range fields {
 				@ThingNumericField(field)
@@ -492,7 +493,7 @@ templ ThingNumericField(field ThingMeasurementField) {
 templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	@ThingSectionCard(
 		l10n.Get("location"),
-		shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("black", "white"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
 		<div class="flex flex-col gap-6 py-6 px-8">
 			<div class="grid gap-6 md:grid-cols-2">
