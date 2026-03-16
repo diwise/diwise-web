@@ -542,12 +542,10 @@ templ SensorsTableSection(l10n Localizer, viewModel SensorsPageViewModel) {
 			<div class="text-sm text-muted-foreground">
 				{ l10n.Get("show") } { fmt.Sprintf("%d", len(viewModel.Sensors)) } { l10n.Get("sensorsof") } { fmt.Sprintf("%d", viewModel.Paging.TotalCount) }
 			</div>
-			<a
-				href="/admin/export?export=devices&accept=text/csv"
-				class="text-sm font-medium text-foreground underline-offset-4 hover:underline"
-			>
-				{ l10n.Get("export") }
-			</a>
+			@shared.ExportAction(l10n, shared.ExportActionProps{
+				Href:   "/admin/export?export=devices&accept=text/csv",
+				Target: "_blank",
+			})
 		</div>
 		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-0 bg-transparent shadow-none"}) {
 			<div class="overflow-x-auto">
@@ -641,7 +639,12 @@ func SensorsMap(l10n Localizer, model SensorsPageViewModel) templ.Component {
 }
 
 templ SensorRow(l10n Localizer, sensor SensorViewModel) {
-	@table.Row(table.RowProps{Class: "border-border/70 hover:bg-background-100 dark:hover:bg-white/10"}) {
+	@shared.ClickableTableRow(shared.ClickableTableRowProps{
+		Href:    fmt.Sprintf("/v2/sensors/%s", sensor.DeviceID),
+		Target:  "#app-shell",
+		Swap:    "outerHTML",
+		Replace: true,
+	}) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			<div class="inline-flex items-center gap-2">
 				<span class={ onlineIndicatorClass(sensor.Online) }></span>
@@ -653,20 +656,13 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel) {
 			</div>
 		}
 		@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
-			<a
-				href={ templ.SafeURL(fmt.Sprintf("/v2/sensors/%s", sensor.DeviceID)) }
-				hx-get={ fmt.Sprintf("/v2/sensors/%s", sensor.DeviceID) }
-				hx-target="#app-shell"
-				hx-swap="outerHTML"
-				hx-replace-url="true"
-				class="font-bold text-foreground hover:underline"
-			>
+			<span class="font-bold text-foreground">
 				if sensor.Name != "" {
 					{ sensor.Name }
 				} else {
 					{ sensor.DeviceID }
 				}
-			</a>
+			</span>
 		}
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			if sensor.Active {

@@ -1,0 +1,826 @@
+package things
+
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/tabs"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+type ThingDetailsPageViewModel struct {
+	Thing          ThingViewModel
+	LatestValues   []LatestMeasurementViewModel
+	ConnectedNames []string
+	Organisations  []string
+	TagOptions     []string
+	MeasurementOptions []MeasurementOption
+	SelectedMeasurement string
+}
+
+type LatestMeasurementViewModel struct {
+	ID          string
+	Label       string
+	Timestamp   time.Time
+	Unit        string
+	Value       *float64
+	BoolValue   *bool
+	StringValue string
+}
+
+type MeasurementOption struct {
+	Value string
+	Label string
+}
+
+type ThingMeasurementPanelProps struct {
+	Chart templ.Component
+	Rows  []MeasurementTableRow
+	Empty bool
+}
+
+type MeasurementTableRow struct {
+	Timestamp string
+	Value     string
+}
+
+templ ThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
+	<div id="thing-view" class="flex flex-col gap-8">
+		@ThingDetailsHeader(l10n, model)
+		@ThingDetailsMeasurementsSection(l10n, model)
+		<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
+			<div class="flex flex-1 flex-col gap-8">
+				@ThingDetailsPropertiesSection(l10n, model)
+			</div>
+			<div class="hidden self-stretch border-l border-border/70 lg:block"></div>
+			<div class="flex w-full flex-1 flex-col gap-8">
+				@ThingDetailsLocationSection(l10n, model)
+			</div>
+		</div>
+	</div>
+}
+
+templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
+	<form action={ fmt.Sprintf("/v2/things/%s", model.Thing.ID) } method="post" class="flex flex-col gap-8">
+		@EditThingDetailsHeader(l10n, model)
+		<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
+			<div class="flex flex-1 flex-col gap-8">
+				@EditThingDetailsSection(l10n, model)
+				@EditThingMeasurementSettingsSection(l10n, model)
+			</div>
+			<div class="hidden self-stretch border-l border-border/70 lg:block"></div>
+			<div class="flex w-full flex-1 flex-col gap-8">
+				@EditThingLocationSection(l10n, model)
+			</div>
+		</div>
+		<div class="flex items-center justify-end gap-3">
+			@button.Button(button.Props{
+				Href:    fmt.Sprintf("/v2/things/%s", model.Thing.ID),
+				Variant: button.VariantOutline,
+				Class:   "rounded-xl px-4",
+			}) {
+				{ l10n.Get("cancel") }
+			}
+			@button.Button(button.Props{
+				Type:    button.TypeSubmit,
+				Variant: button.VariantDefault,
+				Class:   "rounded-xl px-4",
+			}) {
+				{ l10n.Get("save") }
+			}
+		</div>
+	</form>
+}
+
+templ ThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
+	<div class="flex flex-col gap-4">
+		<a
+			href="/v2/things"
+			hx-get="/v2/things"
+			hx-target="#app-shell"
+			hx-swap="outerHTML"
+			hx-replace-url="true"
+			class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+		>
+			<span aria-hidden="true">←</span>
+			<span>{ l10n.Get("things") }</span>
+		</a>
+		<div class="flex items-center justify-between gap-4">
+			<div class="flex items-center gap-3">
+				<h1 class="text-3xl font-bold font-heading text-foreground">{ thingDisplayName(model.Thing) }</h1>
+				@ThingWarningBadge(l10n, model.Thing.HasWarning())
+			</div>
+			@button.Button(button.Props{
+				Href:    fmt.Sprintf("/v2/things/%s?mode=edit", model.Thing.ID),
+				Variant: button.VariantOutline,
+				Class:   "rounded-xl px-4",
+				Attributes: templ.Attributes{
+					"hx-get":         fmt.Sprintf("/v2/things/%s?mode=edit", model.Thing.ID),
+					"hx-target":      "#app-shell",
+					"hx-swap":        "outerHTML",
+					"hx-replace-url": "true",
+				},
+			}) {
+				{ l10n.Get("edit") }
+			}
+		</div>
+	</div>
+}
+
+templ EditThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
+	<div class="flex flex-col gap-4">
+		<a
+			href={ string(templ.SafeURL(fmt.Sprintf("/v2/things/%s", model.Thing.ID))) }
+			hx-get={ string(templ.SafeURL(fmt.Sprintf("/v2/things/%s", model.Thing.ID))) }
+			hx-target="#app-shell"
+			hx-swap="outerHTML"
+			hx-replace-url="true"
+			class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+		>
+			<span aria-hidden="true">←</span>
+			<span>{ l10n.Get("things") }</span>
+		</a>
+		<div class="flex items-center justify-between gap-4">
+			<div class="flex items-center gap-3">
+				<h1 class="text-3xl font-bold font-heading text-foreground">{ l10n.Get("edit") } { thingDisplayName(model.Thing) }</h1>
+			</div>
+			@ThingWarningBadge(l10n, model.Thing.HasWarning())
+		</div>
+	</div>
+}
+
+templ ThingDetailsPropertiesSection(l10n Localizer, model ThingDetailsPageViewModel) {
+	@ThingViewSection(
+		l10n.Get("details"),
+		shared.SVG("info", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("black", "white"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+	) {
+		<div class="flex flex-col gap-4 py-6 px-8 text-foreground">
+			@ThingDetailRow(l10n.Get("id"), model.Thing.ID)
+			@ThingDetailRow(l10n.Get("thingtype"), displayThingType(l10n, model.Thing))
+			if strings.TrimSpace(model.Thing.Name) == "" {
+				@ThingDetailRowMissing(l10n.Get("name"), l10n.Get("missing"))
+			} else {
+				@ThingDetailRow(l10n.Get("name"), model.Thing.Name)
+			}
+			if strings.TrimSpace(model.Thing.AlternativeName) != "" {
+				@ThingDetailRow(l10n.Get("alternativeName"), model.Thing.AlternativeName)
+			}
+			if strings.TrimSpace(model.Thing.Description) == "" {
+				@ThingDetailRowMissing(l10n.Get("description"), l10n.Get("missing"))
+			} else {
+				@ThingDetailRow(l10n.Get("description"), model.Thing.Description)
+			}
+			@ThingConnectedSensorRow(l10n, model)
+			@ThingDetailRow(l10n.Get("organisation"), model.Thing.Tenant)
+			@ThingTagRow(l10n, model.Thing.Tags)
+		</div>
+	}
+}
+
+templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageViewModel) {
+	{{ startTime := measurementStartValue(model.LatestValues) }}
+	{{ endTime := measurementEndValue(model.LatestValues) }}
+	@ThingSectionCard(
+		l10n.Get("statistics"),
+		shared.SVG("chartline", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("black", "white"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+	) {
+		<div class="flex flex-col gap-6 py-6 px-8">
+			if len(model.MeasurementOptions) == 0 {
+				<div class="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+					{ l10n.Get("missingdata") }
+				</div>
+			} else {
+				<form id="thing-stats-form" action="/admin/export" method="get" class="flex flex-col gap-6">
+					<input type="hidden" name="export" value="thing"/>
+					<input type="hidden" name="accept" value="text/csv"/>
+					<input type="hidden" name="thingid" value={ model.Thing.ID }/>
+					<input id="thingMeasurement" type="hidden" name="measurement" value={ model.SelectedMeasurement }/>
+					@tabs.Tabs(tabs.Props{ID: "thingMeasurementTabs", Class: "gap-0"}) {
+						@tabs.List(tabs.ListProps{Class: "h-auto w-full flex-wrap justify-start rounded-none border-b border-border/70 bg-transparent p-0"}) {
+							for _, option := range model.MeasurementOptions {
+								@tabs.Trigger(tabs.TriggerProps{
+									Value:    option.Value,
+									IsActive: option.Value == model.SelectedMeasurement,
+									Class:    "min-h-11 flex-none rounded-t-xl rounded-b-none border-b-2 border-transparent bg-transparent px-4 py-3.5 text-sm text-muted-foreground shadow-none data-[tui-tabs-state=active]:border-border data-[tui-tabs-state=active]:bg-background/60 data-[tui-tabs-state=active]:shadow-none dark:data-[tui-tabs-state=active]:bg-background/20",
+									Attributes: templ.Attributes{
+										"hx-get":     fmt.Sprintf("/v2/components/things/%s/measurements", model.Thing.ID),
+										"hx-target":  "#thingMeasurementPanel",
+										"hx-include": "#thing-stats-form",
+										"hx-trigger": "click",
+										"onclick":    fmt.Sprintf("document.getElementById('thingMeasurement').value='%s';", option.Value),
+									},
+								}) {
+									@MeasurementTabIcon(option.Value)
+									<span>{ LocalizedMeasurementLabel(l10n, option.Label) }</span>
+								}
+							}
+						}
+						<div class="py-6">
+							for _, option := range model.MeasurementOptions {
+								@tabs.Content(tabs.ContentProps{
+									Value:    option.Value,
+									IsActive: option.Value == model.SelectedMeasurement,
+									Class:    "outline-none",
+								}) {
+									<div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+										<div class="min-w-0 flex-1">
+											@ThingMeasurementSummary(l10n, latestMeasurementForOption(model.LatestValues, option.Value), option.Label)
+										</div>
+										<div class="flex shrink-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-end">
+											<div class="flex flex-col justify-end">
+												@shared.ExportAction(l10n, shared.ExportActionProps{
+													ButtonType: button.TypeSubmit,
+													Attributes: templ.Attributes{
+														"formtarget": "_blank",
+													},
+												})
+											</div>
+											<div class="flex flex-col gap-2">
+												<label for="thingTimeAt" class="text-sm font-medium text-foreground">{ l10n.Get("timeinterval") }</label>
+												<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+													@input.Input(input.Props{
+														ID:    "thingTimeAt",
+														Name:  "timeAt",
+														Type:  input.TypeDateTime,
+														Value: startTime,
+														Class: "h-9 w-full max-w-[220px] rounded-xl bg-background",
+														Attributes: templ.Attributes{
+															"hx-get":     fmt.Sprintf("/v2/components/things/%s/measurements", model.Thing.ID),
+															"hx-target":  "#thingMeasurementPanel",
+															"hx-include": "#thing-stats-form",
+															"hx-trigger": "change",
+														},
+													})
+													<span class="hidden text-muted-foreground sm:block">-</span>
+													@input.Input(input.Props{
+														ID:    "thingEndTimeAt",
+														Name:  "endTimeAt",
+														Type:  input.TypeDateTime,
+														Value: endTime,
+														Class: "h-9 w-full max-w-[220px] rounded-xl bg-background",
+														Attributes: templ.Attributes{
+															"hx-get":     fmt.Sprintf("/v2/components/things/%s/measurements", model.Thing.ID),
+															"hx-target":  "#thingMeasurementPanel",
+															"hx-include": "#thing-stats-form",
+															"hx-trigger": "change",
+														},
+													})
+												</div>
+											</div>
+											<div class="flex flex-col gap-2">
+												<div class="text-sm font-medium text-foreground">&nbsp;</div>
+												<input id="thingStatisticsView" type="hidden" value="chart"/>
+												@shared.ChartOrTableToggle(l10n, shared.ChartOrTableToggleProps{
+													BaseID:        "thing-statistics-toggle",
+													HiddenInputID: "thingStatisticsView",
+													ChartView:     true,
+													ChartLabel:    l10n.Get("graph"),
+													TableLabel:    l10n.Get("table"),
+												})
+											</div>
+										</div>
+									</div>
+								}
+							}
+						</div>
+					}
+				</form>
+					<div
+						id="thingMeasurementPanel"
+						hx-get={ fmt.Sprintf("/v2/components/things/%s/measurements", model.Thing.ID) }
+						hx-include="#thing-stats-form"
+					hx-trigger="load"
+				>
+					<div class="h-[420px] w-full rounded-2xl border border-border/70 bg-background/40"></div>
+				</div>
+			}
+		</div>
+	}
+}
+
+templ ThingMeasurementCard(l10n Localizer, measurement LatestMeasurementViewModel) {
+	<div class="rounded-2xl border border-border/70 bg-background/60 p-4">
+		<div class="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{ LocalizedMeasurementLabel(l10n, measurement.Label) }</div>
+		<div class="mt-2 text-lg font-semibold text-foreground">{ formatLatestMeasurement(measurement) }</div>
+		<div class="mt-2 text-xs text-muted-foreground">{ formatThingTimestamp(measurement.Timestamp) }</div>
+	</div>
+}
+
+templ ThingMeasurementPanel(l10n Localizer, props ThingMeasurementPanelProps) {
+	if props.Empty {
+		<div class="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+			{ l10n.Get("missingdata") }
+		</div>
+	} else {
+		<div class="flex flex-col gap-4">
+			<div id="thingMeasurementChartWrapper" class="h-[420px] w-full">
+				@props.Chart
+			</div>
+			<div id="thingMeasurementTableWrapper" class="hidden overflow-x-auto">
+				<table class="min-w-full text-left text-sm">
+					<thead class="border-b border-border/70">
+						<tr>
+							<th class="px-4 py-3">{ l10n.Get("time") }</th>
+							<th class="px-4 py-3">{ l10n.Get("value") }</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, row := range props.Rows {
+							<tr class="border-b border-border/50">
+								<td class="px-4 py-3">{ row.Timestamp }</td>
+								<td class="px-4 py-3">{ row.Value }</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+			<script nonce={ templ.GetNonce(ctx) }>
+				(() => {
+					const hidden = document.getElementById('thingStatisticsView');
+					if (hidden && sessionStorage.getItem('thingStatisticsView') === 'table') {
+						setTwoStateIconToggle('thingStatisticsView', 'thing-statistics-toggle-left', 'thing-statistics-toggle-right', false, 'chart', 'table', 'thingStatisticsView');
+					}
+				})();
+			</script>
+		</div>
+	}
+}
+
+templ ThingMeasurementChartComponent(config shared.AdvancedChartConfig) {
+	@shared.AdvancedChart(shared.AdvancedChartProps{
+		ID:     "thing-measurement-chart",
+		Class:  "h-full w-full",
+		Config: config,
+	})
+}
+
+templ ThingMeasurementSummary(l10n Localizer, measurement LatestMeasurementViewModel, fallbackLabel string) {
+	<div class="flex flex-col gap-2">
+		<div class="text-sm text-muted-foreground">{ LocalizedMeasurementLabel(l10n, fallbackMeasurementLabel(measurement, fallbackLabel)) }</div>
+		<div class="text-3xl font-bold font-heading text-foreground">{ formatLatestMeasurement(measurement) }</div>
+	</div>
+}
+
+templ ThingDetailsLocationSection(l10n Localizer, model ThingDetailsPageViewModel) {
+	@ThingViewSection(
+		l10n.Get("location"),
+		shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("black", "white"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+	) {
+		<div class="flex w-full flex-col gap-6 py-6 px-8 text-foreground">
+			@ThingDetailRow(l10n.Get("latitude"), formatCoordinate(model.Thing.Latitude))
+			@ThingDetailRow(l10n.Get("longitude"), formatCoordinate(model.Thing.Longitude))
+			if model.Thing.Latitude != 0 && model.Thing.Longitude != 0 {
+				<div class="w-full overflow-hidden rounded-2xl">
+					@shared.Map("medium", false, false, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+				</div>
+			} else {
+				<div class="italic text-muted-foreground">
+					{ l10n.Get("missing") }
+				</div>
+			}
+		</div>
+	}
+}
+
+templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
+	@ThingSectionCard(l10n.Get("details"), shared.SVG("info", shared.Size(24))) {
+		<div class="grid gap-6 py-6 px-8">
+			<div class="grid gap-6 md:grid-cols-2">
+				@ThingEditField(l10n.Get("name")) {
+					@input.Input(input.Props{Name: "name", Value: model.Thing.Name, Class: "h-10 rounded-xl bg-background"})
+				}
+				@ThingEditField(l10n.Get("alternativeName")) {
+					@input.Input(input.Props{Name: "alternativeName", Value: model.Thing.AlternativeName, Class: "h-10 rounded-xl bg-background"})
+				}
+			</div>
+			<div class="grid gap-6 md:grid-cols-2">
+				@ThingEditField(l10n.Get("organisation")) {
+					<select name="organisation" class="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none">
+						for _, organisation := range model.Organisations {
+							<option value={ organisation } selected?={ organisation == model.Thing.Tenant }>{ organisation }</option>
+						}
+					</select>
+				}
+				@ThingEditField(l10n.Get("thingtype")) {
+					<div class="flex h-10 items-center rounded-xl border border-border/70 bg-background/60 px-3 text-sm text-foreground">
+						{ displayThingType(l10n, model.Thing) }
+					</div>
+				}
+			</div>
+			<div class="grid gap-6 md:grid-cols-2">
+				@ThingEditField(l10n.Get("tags")) {
+					@input.Input(input.Props{
+						Name:        "tags",
+						Value:       strings.Join(model.Thing.Tags, ", "),
+						Placeholder: l10n.Get("tags"),
+						Class:       "h-10 rounded-xl bg-background",
+					})
+				}
+				@ThingEditField(l10n.Get("sensorconnected")) {
+					@input.Input(input.Props{
+						Name:        "currentDevice",
+						Value:       strings.Join(model.ConnectedNames, ", "),
+						Placeholder: l10n.Get("sensorconnected"),
+						Class:       "h-10 rounded-xl bg-background",
+					})
+				}
+			</div>
+			@ThingEditField(l10n.Get("description")) {
+				<textarea
+					name="description"
+					class="flex min-h-36 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground"
+					placeholder={ l10n.Get("description") }
+				>{ model.Thing.Description }</textarea>
+			}
+		</div>
+	}
+}
+
+templ EditThingMeasurementSettingsSection(l10n Localizer, model ThingDetailsPageViewModel) {
+	{{ fields := thingMeasurementFields(l10n, model.Thing) }}
+	if len(fields) == 0 {
+		return
+	}
+	@ThingSectionCard(l10n.Get("measurements"), shared.SVG("chartline", shared.Size(24))) {
+		<div class="grid gap-6 py-6 px-8 md:grid-cols-2">
+			for _, field := range fields {
+				@ThingNumericField(field)
+			}
+		</div>
+	}
+}
+
+type ThingMeasurementField struct {
+	Label string
+	Name  string
+	Value string
+	Unit  string
+	Step  string
+	Min   string
+	Max   string
+}
+
+templ ThingNumericField(field ThingMeasurementField) {
+	@ThingEditField(field.Label) {
+		<div class="flex items-center gap-3">
+		@input.Input(input.Props{
+			Name:  field.Name,
+			Type:  input.TypeNumber,
+			Value: field.Value,
+			Class: "h-10 rounded-xl bg-background",
+			Attributes: templ.Attributes{
+				"step": field.Step,
+				"min":  field.Min,
+				"max":  field.Max,
+			},
+		})
+			if field.Unit != "" {
+				<span class="text-sm text-muted-foreground">{ field.Unit }</span>
+			}
+		</div>
+	}
+}
+
+templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) {
+	@ThingSectionCard(
+		l10n.Get("location"),
+		shared.SVG("map-pin", shared.Size(24), shared.NoFill(), shared.Box(24, 24), shared.StrokeColor("black", "white"), shared.Stroke(templ.Attributes{"stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round"})),
+	) {
+		<div class="flex flex-col gap-6 py-6 px-8">
+			<div class="grid gap-6 md:grid-cols-2">
+				@ThingEditField(l10n.Get("latitude")) {
+					@input.Input(input.Props{
+						Name:  "latitude",
+						Type:  input.TypeNumber,
+						Value: formatCoordinate(model.Thing.Latitude),
+						Class: "h-10 rounded-xl bg-background",
+						Attributes: templ.Attributes{
+							"min":  "-90",
+							"max":  "90",
+							"step": "0.000001",
+						},
+					})
+				}
+				@ThingEditField(l10n.Get("longitude")) {
+					@input.Input(input.Props{
+						Name:  "longitude",
+						Type:  input.TypeNumber,
+						Value: formatCoordinate(model.Thing.Longitude),
+						Class: "h-10 rounded-xl bg-background",
+						Attributes: templ.Attributes{
+							"min":  "-180",
+							"max":  "180",
+							"step": "0.000001",
+						},
+					})
+				}
+			</div>
+			@shared.Map("medium", false, true, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+		</div>
+	}
+}
+
+templ ThingEditField(label string) {
+	<div class="flex flex-col gap-2">
+		<label class="text-sm font-medium text-foreground">{ label }</label>
+		{ children... }
+	</div>
+}
+
+templ ThingSectionCard(title string, leading templ.Component) {
+	@card.Card(card.Props{Class: "rounded-3xl border-border/80 bg-card/90 shadow-sm"}) {
+		@card.Content(card.ContentProps{Class: "p-6"}) {
+			<div class="flex items-center gap-3 self-stretch">
+				@leading
+				<h2 class="text-xl font-bold font-heading text-foreground">{ title }</h2>
+				<div class="min-w-8 flex-1">
+					@separator.Separator(separator.Props{Class: "[&_span:last-child]:hidden"})
+				</div>
+			</div>
+			{ children... }
+		}
+	}
+}
+
+templ ThingViewSection(title string, leading templ.Component) {
+	<div class="flex flex-col items-stretch self-stretch">
+		<div class="flex items-center gap-3 self-stretch">
+			@leading
+			<h2 class="text-xl font-bold font-heading text-foreground">{ title }</h2>
+			<div class="min-w-8 flex-1">
+				@separator.Separator(separator.Props{Class: "[&_span:last-child]:hidden"})
+			</div>
+		</div>
+		{ children... }
+	</div>
+}
+
+templ ThingDetailRow(label, value string) {
+	<div class="flex flex-wrap items-start gap-2">
+		<div class="font-bold">{ label }</div>
+		<div>{ fallbackValue(value) }</div>
+	</div>
+}
+
+templ ThingDetailRowMissing(label, value string) {
+	<div class="flex flex-wrap items-start gap-2">
+		<div class="font-bold">{ label }</div>
+		<div class="italic text-muted-foreground">{ value }</div>
+	</div>
+}
+
+templ ThingConnectedSensorRow(l10n Localizer, model ThingDetailsPageViewModel) {
+	<div class="flex flex-wrap items-start gap-2">
+		<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
+		if len(model.ConnectedNames) == 0 {
+			<div class="italic text-muted-foreground">{ l10n.Get("sensormissing") }</div>
+		} else {
+			for _, sensorID := range model.ConnectedNames {
+				<a
+					href={ string(templ.SafeURL(fmt.Sprintf("/v2/sensors/%s", sensorID))) }
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("/v2/sensors/%s", sensorID))) }
+					hx-target="#app-shell"
+					hx-swap="outerHTML"
+					hx-replace-url="true"
+					class="underline underline-offset-4"
+				>
+					{ sensorID }
+				</a>
+			}
+		}
+	</div>
+}
+
+templ ThingTagRow(l10n Localizer, tags []string) {
+	<div class="flex flex-wrap items-start gap-2">
+		<div class="font-bold">{ l10n.Get("tags") }</div>
+		if len(tags) == 0 {
+			<div class="italic text-muted-foreground">{ l10n.Get("missing") }</div>
+		} else {
+			<div class="flex flex-wrap gap-2">
+				for _, tag := range tags {
+					@badge.Badge(badge.Props{Variant: badge.VariantSecondary, Class: "rounded-full px-3 py-1"}) {
+						{ tag }
+					}
+				}
+			</div>
+		}
+	</div>
+}
+
+type ThingKeyValueItem struct {
+	Label string
+	Value string
+}
+
+templ ThingKeyValueGrid(items []ThingKeyValueItem) {
+	<div class="grid gap-4 sm:grid-cols-2">
+		for _, item := range items {
+			<div class="rounded-2xl border border-border/70 bg-background/60 p-4">
+				<div class="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{ item.Label }</div>
+				<div class="mt-2 break-words text-sm font-medium text-foreground">{ fallbackValue(item.Value) }</div>
+			</div>
+		}
+	</div>
+}
+
+templ ThingWarningBadge(l10n Localizer, warning bool) {
+	if warning {
+		@badge.Badge(badge.Props{Variant: badge.VariantSecondary, Class: "rounded-full px-3 py-1 text-xs"}) {
+			{ l10n.Get("missingdata") }
+		}
+	}
+}
+
+func thingDisplayName(thing ThingViewModel) string {
+	if strings.TrimSpace(thing.Name) != "" {
+		return thing.Name
+	}
+	return thing.ID
+}
+
+func formatLatestMeasurement(measurement LatestMeasurementViewModel) string {
+	if measurement.Value != nil {
+		if measurement.Unit != "" {
+			return fmt.Sprintf("%.1f %s", *measurement.Value, measurement.Unit)
+		}
+		return fmt.Sprintf("%.1f", *measurement.Value)
+	}
+	if measurement.BoolValue != nil {
+		return fmt.Sprintf("%t", *measurement.BoolValue)
+	}
+	if measurement.StringValue != "" {
+		return measurement.StringValue
+	}
+	return "-"
+}
+
+func measurementEndValue(measurements []LatestMeasurementViewModel) string {
+	if len(measurements) == 0 {
+		now := time.Now()
+		return time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 0, 0, now.Location()).Format("2006-01-02T15:04")
+	}
+
+	latest := measurements[0].Timestamp
+	for _, measurement := range measurements[1:] {
+		if measurement.Timestamp.After(latest) {
+			latest = measurement.Timestamp
+		}
+	}
+
+	return time.Date(latest.Year(), latest.Month(), latest.Day(), 23, 59, 0, 0, latest.Location()).Format("2006-01-02T15:04")
+}
+
+func measurementStartValue(measurements []LatestMeasurementViewModel) string {
+	if len(measurements) == 0 {
+		return time.Now().Add(-24 * time.Hour).Format("2006-01-02T15:04")
+	}
+
+	latest, err := time.Parse("2006-01-02T15:04", measurementEndValue(measurements))
+	if err != nil {
+		return time.Now().Add(-24 * time.Hour).Format("2006-01-02T15:04")
+	}
+
+	return time.Date(latest.Year(), latest.Month(), latest.Day(), 0, 0, 0, 0, latest.Location()).Format("2006-01-02T15:04")
+}
+
+func LocalizedMeasurementLabel(l10n Localizer, label string) string {
+	if label == "" {
+		return "-"
+	}
+	switch label {
+	case "3435-0":
+		return fmt.Sprintf("%s (%%)", l10n.Get("fillinglevel"))
+	case "3435-1":
+		return fmt.Sprintf("%s (m)", l10n.Get("fillinglevel"))
+	}
+	return l10n.Get(label)
+}
+
+func latestMeasurementForOption(values []LatestMeasurementViewModel, option string) LatestMeasurementViewModel {
+	for _, value := range values {
+		if value.Label == option {
+			return value
+		}
+	}
+	return LatestMeasurementViewModel{Label: option}
+}
+
+func fallbackMeasurementLabel(measurement LatestMeasurementViewModel, fallback string) string {
+	if measurement.Label != "" {
+		return measurement.Label
+	}
+	return fallback
+}
+
+templ MeasurementTabIcon(label string) {
+	if measurementTabIcon(label) != "" {
+		@icon.Icon(measurementTabIcon(label))(icon.Props{Size: 16})
+	}
+}
+
+func measurementTabIcon(label string) string {
+	prefix := label
+	if idx := strings.Index(label, "-"); idx > 0 {
+		prefix = label[:idx]
+	}
+
+	switch prefix {
+	case "3":
+		return "rss"
+	case "10351":
+		return "door-open"
+	case "3200":
+		return "file-digit"
+	case "3301":
+		return "lightbulb"
+	case "3302":
+		return "ghost"
+	case "3303":
+		return "thermometer"
+	case "3304":
+		return "droplet"
+	case "3323":
+		return "gauge"
+	case "3327":
+		return "shuffle"
+	case "3328":
+		return "battery-charging"
+	case "3330":
+		return "gauge"
+	case "3331":
+		return "zap"
+	case "3350":
+		return "timer"
+	case "3411":
+		return "battery"
+	case "3424":
+		return "droplet"
+	case "3428":
+		return "cloud-sun"
+	case "3434":
+		return "users"
+	case "3435":
+		return "trash-2"
+	default:
+		return ""
+	}
+}
+
+func formatThingTimestamp(value time.Time) string {
+	if value.IsZero() {
+		return "-"
+	}
+	return value.Format("2006-01-02, 15:04")
+}
+
+func formatCoordinate(value float64) string {
+	if value == 0 {
+		return "-"
+	}
+	return fmt.Sprintf("%.6f", value)
+}
+
+func thingMeasurementFields(l10n Localizer, thing ThingViewModel) []ThingMeasurementField {
+	value := func(key string) string {
+		if number, ok := thing.GetFloat(key); ok {
+			return fmt.Sprintf("%.2f", number)
+		}
+		return "0.00"
+	}
+
+	kind := strings.ToLower(strings.TrimSpace(thing.SubType))
+	if kind == "" {
+		kind = strings.ToLower(strings.TrimSpace(thing.Type))
+	}
+
+	switch kind {
+	case "container", "wastecontainer":
+		return []ThingMeasurementField{
+			{Label: l10n.Get("maxcontainerheight"), Name: "maxd", Value: value("maxd"), Unit: l10n.Get("m"), Step: "0.01"},
+			{Label: l10n.Get("maxfillinglevel"), Name: "maxl", Value: value("maxl"), Unit: l10n.Get("m"), Step: "0.01"},
+		}
+	case "sandstorage":
+		return []ThingMeasurementField{
+			{Label: l10n.Get("maxcontainerheight"), Name: "maxd", Value: value("maxd"), Unit: l10n.Get("m"), Step: "0.01"},
+			{Label: l10n.Get("maxfillinglevel"), Name: "maxl", Value: value("maxl"), Unit: l10n.Get("m"), Step: "0.01"},
+			{Label: l10n.Get("angle"), Name: "angle", Value: value("angle"), Unit: l10n.Get("degrees"), Step: "1", Min: "0", Max: "90"},
+		}
+	case "combinedseweroverflow", "sewer":
+		return []ThingMeasurementField{
+			{Label: l10n.Get("maxdistancesewer"), Name: "maxd", Value: value("maxd"), Unit: l10n.Get("m"), Step: "0.01"},
+			{Label: l10n.Get("maxwaterlevel"), Name: "maxl", Value: value("maxl"), Unit: l10n.Get("m"), Step: "0.01"},
+			{Label: l10n.Get("offset"), Name: "offset", Value: value("offset"), Unit: l10n.Get("m"), Step: "0.01"},
+		}
+	default:
+		return nil
+	}
+}

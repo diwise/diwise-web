@@ -134,10 +134,15 @@ templ AdvancedChart(props AdvancedChartProps) {
 	{{ dataID := p.ID + "-config" }}
 	<div
 		id={ p.ID }
-		class={ utils.TwMerge("relative", p.Class) }
+		class={ utils.TwMerge("relative min-w-0 overflow-hidden", p.Class) }
 		{ p.Attributes... }
 	>
-		<canvas id={ p.ID + "-canvas" } data-app-chart-id={ dataID }></canvas>
+		<canvas
+			id={ p.ID + "-canvas" }
+			data-app-chart-id={ dataID }
+			class="block h-full w-full max-w-full"
+			style="max-width: 100%;"
+		></canvas>
 	</div>
 	@templ.JSONScript(dataID, p.Config)
 }

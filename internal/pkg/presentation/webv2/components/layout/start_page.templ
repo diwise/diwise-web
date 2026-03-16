@@ -10,6 +10,7 @@ import (
 	ui "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/tabs"
 	. "github.com/diwise/frontend-toolkit"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/authz"
@@ -35,6 +36,7 @@ templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, main
 				window.__diwiseLeaflet = window.L;
 			</script>
 			@ui.TemplUIScripts()
+			@tabs.Script()
 			@shared.ChartBaseScript()
 			<script defer src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js" nonce={ csp.Nonce(ctx) }></script>
 			<script defer src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js" nonce={ csp.Nonce(ctx) }></script>

@@ -119,7 +119,7 @@ type MeasurementViewModel struct {
 templ ThingsPage(l10n Localizer, viewModel ThingsPageViewModel) {
 	<div class="flex flex-col gap-10">
 		<section class="flex flex-col gap-6">
-			@SectionHeading(l10n.Get("things"), shared.SVG("map-pin", shared.Size(28)))
+			@SectionHeading(l10n.Get("things"), icon.Shapes(icon.Props{Size: 28, Class: "text-black dark:text-white"}))
 		</section>
 		<section class="flex flex-col gap-6">
 			@Filters(l10n, viewModel)
@@ -241,12 +241,10 @@ templ ThingsTableSection(l10n Localizer, viewModel ThingsPageViewModel) {
 			<div class="text-sm text-muted-foreground">
 				{ l10n.Get("show") } { fmt.Sprintf("%d", len(viewModel.Things)) } { l10n.Get("thingsof") } { fmt.Sprintf("%d", viewModel.Paging.TotalCount) }
 			</div>
-			<a
-				href="/admin/export?export=things&accept=text/csv"
-				class="text-sm font-medium text-foreground underline-offset-4 hover:underline"
-			>
-				{ l10n.Get("export") }
-			</a>
+			@shared.ExportAction(l10n, shared.ExportActionProps{
+				Href:   "/admin/export?export=things&accept=text/csv",
+				Target: "_blank",
+			})
 		</div>
 		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-0 bg-transparent shadow-none"}) {
 			<div class="overflow-x-auto">
@@ -292,7 +290,12 @@ templ ThingsTableSection(l10n Localizer, viewModel ThingsPageViewModel) {
 }
 
 templ ThingRow(l10n Localizer, thing ThingViewModel) {
-	@table.Row(table.RowProps{Class: "border-border/70"}) {
+	@shared.ClickableTableRow(shared.ClickableTableRowProps{
+		Href:    fmt.Sprintf("/v2/things/%s", thing.ID),
+		Target:  "#app-shell",
+		Swap:    "outerHTML",
+		Replace: true,
+	}) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			<span class="font-bold text-foreground">
 				if strings.TrimSpace(thing.Name) != "" {
@@ -509,7 +512,7 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) shared.FeatureC
 		feature.AddProperty("name", thing.Name)
 		feature.AddProperty("latitude", thing.Latitude)
 		feature.AddProperty("longitude", thing.Longitude)
-		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ID))
+		feature.AddProperty("url", fmt.Sprintf("/v2/things/%s", thing.ID))
 		feature.AddProperty("missingdata", thing.HasWarning())
 
 		if thing.Description != "" {

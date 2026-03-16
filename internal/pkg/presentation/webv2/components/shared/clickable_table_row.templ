@@ -1,0 +1,46 @@
+package shared
+
+import (
+	"fmt"
+
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
+)
+
+type ClickableTableRowProps struct {
+	Class   string
+	Href    string
+	Target  string
+	Swap    string
+	Replace bool
+}
+
+templ ClickableTableRow(props ClickableTableRowProps) {
+	{{ attrs := templ.Attributes{
+		"tabindex": "0",
+		"role":     "link",
+	} }}
+	{{ className := "cursor-pointer border-border/70 hover:bg-gray-100 hover:[&_td]:bg-gray-100 dark:border-white dark:bg-opacity-20 dark:hover:bg-white/10 dark:hover:[&_td]:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:[&_td]:bg-gray-100 dark:focus-visible:[&_td]:bg-white/10" }}
+	if props.Class != "" {
+		{{ className += " " + props.Class }}
+	}
+	if props.Href != "" {
+		{{ attrs["hx-get"] = props.Href }}
+		{{ attrs["onclick"] = fmt.Sprintf("window.location.href='%s';", props.Href) }}
+		{{ attrs["onkeydown"] = fmt.Sprintf("if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href='%s'; }", props.Href) }}
+	}
+	if props.Target != "" {
+		{{ attrs["hx-target"] = props.Target }}
+	}
+	if props.Swap != "" {
+		{{ attrs["hx-swap"] = props.Swap }}
+	}
+	if props.Replace {
+		{{ attrs["hx-replace-url"] = "true" }}
+	}
+	@table.Row(table.RowProps{
+		Class:      className,
+		Attributes: attrs,
+	}) {
+		{ children... }
+	}
+}

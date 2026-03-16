@@ -1,0 +1,33 @@
+package shared
+
+import (
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+type ExportActionProps struct {
+	Href       string
+	Target     string
+	ButtonType button.Type
+	Class      string
+	Attributes templ.Attributes
+}
+
+templ ExportAction(l10n Localizer, props ExportActionProps) {
+	{{ className := "rounded-xl px-4" }}
+	if props.Class != "" {
+		{{ className += " " + props.Class }}
+	}
+	@button.Button(button.Props{
+		Href:    props.Href,
+		Target:  props.Target,
+		Type:    props.ButtonType,
+		Variant: button.VariantOutline,
+		Class:   className,
+		Attributes: props.Attributes,
+	}) {
+		@icon.CloudDownload(icon.Props{Size: 16})
+		{ l10n.Get("export") }
+	}
+}

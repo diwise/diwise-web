@@ -183,18 +183,16 @@ templ AlarmsTableSection(l10n Localizer, viewModel HomeViewModel) {
 }
 
 templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
-	@table.Row(table.RowProps{Class: "border-border/70 hover:bg-background-100 dark:hover:bg-white/10"}) {
+	@shared.ClickableTableRow(shared.ClickableTableRowProps{
+		Href:    fmt.Sprintf("/v2/sensors/%s", alarm.DeviceID),
+		Target:  "#app-shell",
+		Swap:    "outerHTML",
+		Replace: true,
+	}) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
-			<a
-				href={ templ.SafeURL(fmt.Sprintf("/v2/sensors/%s", alarm.DeviceID)) }
-				hx-get={ fmt.Sprintf("/v2/sensors/%s", alarm.DeviceID) }
-				hx-target="#app-shell"
-				hx-swap="outerHTML"
-				hx-replace-url="true"
-				class="font-bold text-foreground hover:underline"
-			>
+			<span class="font-bold text-foreground">
 				{ alarm.DeviceID }
-			</a>
+			</span>
 		}
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			<div class="flex flex-wrap gap-2">
