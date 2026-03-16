@@ -13,7 +13,6 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	. "github.com/diwise/frontend-toolkit"
@@ -74,7 +73,7 @@ type FiltersViewModel struct {
 templ SensorsPage(l10n Localizer, viewModel SensorsPageViewModel) {
 	<div class="flex flex-col gap-10">
 		<section class="flex flex-col gap-6">
-			@SectionHeading(l10n.Get("sensors"), icon.Rss(icon.Props{Size: 28, Class: "text-primary-dark dark:text-zinc-100"}))
+			@shared.SectionHeading(l10n.Get("sensors"), icon.Rss(icon.Props{Size: 28, Class: "text-primary-dark dark:text-zinc-100"}))
 			@StatisticsCards(l10n, viewModel.Statistics)
 		</section>
 		<section class="flex flex-col gap-6">
@@ -118,20 +117,18 @@ templ StatisticCard(title string, count int, leading templ.Component) {
 }
 
 templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
-	@card.Card(card.Props{Class: "rounded-2xl border-border/80 bg-card/80 shadow-sm"}) {
-		@card.Content(card.ContentProps{Class: "p-5"}) {
-			<div class="mb-4 flex justify-end">
-				@shared.TableOrMapToggle(l10n, shared.TableOrMapToggleProps{
-					BaseID:        "sensors-view-mode",
-					HiddenInputID: "mapview",
-					TargetURL:     "/v2/components/sensors/list",
-					TargetID:      "#tableOrMap",
-					Include:       "#sensors-filters-form",
-					MapView:       viewModel.MapView,
-					TableLabel:    l10n.Get("table"),
-					MapLabel:      l10n.Get("map"),
-				})
-			</div>
+	@shared.ListFiltersCard(
+		shared.TableOrMapToggle(l10n, shared.TableOrMapToggleProps{
+			BaseID:        "sensors-view-mode",
+			HiddenInputID: "mapview",
+			TargetURL:     "/v2/components/sensors/list",
+			TargetID:      "#tableOrMap",
+			Include:       "#sensors-filters-form",
+			MapView:       viewModel.MapView,
+			TableLabel:    l10n.Get("table"),
+			MapLabel:      l10n.Get("map"),
+		}),
+	) {
 			<form
 				id="sensors-filters-form"
 				class="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,1fr))]"
@@ -161,18 +158,18 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 							Name:              "type",
 							Multiple:          true,
 							SelectedCountText: l10n.Get("selecteditemcount"),
-							Class: filterTriggerClass(),
+							Class: shared.FilterTriggerClass(),
 							Attributes: templ.Attributes{
 								"data-filter-label": l10n.Get("type"),
 							},
 						}) {
 							@selectbox.Value(selectbox.ValueProps{
 								Placeholder: l10n.Get("type"),
-								Class:       filterTriggerValueClass(len(viewModel.Filters.SelectedTypes) > 0),
+								Class:       shared.FilterTriggerValueClass(len(viewModel.Filters.SelectedTypes) > 0),
 							})
 						}
 						@selectbox.Content(selectbox.ContentProps{
-							Class:    filterDropdownContentClass(),
+							Class:    shared.FilterDropdownContentClass(),
 							NoSearch: true,
 						}) {
 							@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
@@ -180,7 +177,7 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 									@selectbox.Item(selectbox.ItemProps{
 										Value:    profile,
 										Selected: filterContains(viewModel.Filters.SelectedTypes, profile),
-										Class:    filterDropdownItemClass(filterContains(viewModel.Filters.SelectedTypes, profile)),
+										Class:    shared.FilterDropdownItemClass(filterContains(viewModel.Filters.SelectedTypes, profile)),
 									}) {
 										{ l10n.Get(profile) }
 									}
@@ -193,32 +190,32 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 					@selectbox.SelectBox(selectbox.Props{ID: "active-filter"}) {
 						@selectbox.Trigger(selectbox.TriggerProps{
 							Name:  "active",
-							Class: filterTriggerClass(),
+							Class: shared.FilterTriggerClass(),
 							Attributes: templ.Attributes{
 								"data-filter-label": l10n.Get("status"),
 							},
 						}) {
 							@selectbox.Value(selectbox.ValueProps{
 								Placeholder: l10n.Get("status"),
-								Class:       filterTriggerValueClass(viewModel.Filters.Active != ""),
+								Class:       shared.FilterTriggerValueClass(viewModel.Filters.Active != ""),
 							})
 						}
 						@selectbox.Content(selectbox.ContentProps{
-							Class:    filterDropdownContentClass(),
+							Class:    shared.FilterDropdownContentClass(),
 							NoSearch: true,
 						}) {
 							@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
 								@selectbox.Item(selectbox.ItemProps{
 									Value:    "true",
 									Selected: viewModel.Filters.Active == "true",
-									Class:    filterDropdownItemClass(viewModel.Filters.Active == "true"),
+									Class:    shared.FilterDropdownItemClass(viewModel.Filters.Active == "true"),
 								}) {
 									{ l10n.Get("active") }
 								}
 								@selectbox.Item(selectbox.ItemProps{
 									Value:    "false",
 									Selected: viewModel.Filters.Active == "false",
-									Class:    filterDropdownItemClass(viewModel.Filters.Active == "false"),
+									Class:    shared.FilterDropdownItemClass(viewModel.Filters.Active == "false"),
 								}) {
 									{ l10n.Get("inactive") }
 								}
@@ -230,32 +227,32 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 					@selectbox.SelectBox(selectbox.Props{ID: "online-filter"}) {
 						@selectbox.Trigger(selectbox.TriggerProps{
 							Name:  "online",
-							Class: filterTriggerClass(),
+							Class: shared.FilterTriggerClass(),
 							Attributes: templ.Attributes{
 								"data-filter-label": l10n.Get("online"),
 							},
 						}) {
 							@selectbox.Value(selectbox.ValueProps{
 								Placeholder: l10n.Get("online"),
-								Class:       filterTriggerValueClass(viewModel.Filters.Online != ""),
+								Class:       shared.FilterTriggerValueClass(viewModel.Filters.Online != ""),
 							})
 						}
 						@selectbox.Content(selectbox.ContentProps{
-							Class:    filterDropdownContentClass(),
+							Class:    shared.FilterDropdownContentClass(),
 							NoSearch: true,
 						}) {
 							@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
 								@selectbox.Item(selectbox.ItemProps{
 									Value:    "true",
 									Selected: viewModel.Filters.Online == "true",
-									Class:    filterDropdownItemClass(viewModel.Filters.Online == "true"),
+									Class:    shared.FilterDropdownItemClass(viewModel.Filters.Online == "true"),
 								}) {
 									{ l10n.Get("online") }
 								}
 								@selectbox.Item(selectbox.ItemProps{
 									Value:    "false",
 									Selected: viewModel.Filters.Online == "false",
-									Class:    filterDropdownItemClass(viewModel.Filters.Online == "false"),
+									Class:    shared.FilterDropdownItemClass(viewModel.Filters.Online == "false"),
 								}) {
 									{ l10n.Get("offline") }
 								}
@@ -276,7 +273,8 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 					})
 				</div>
 			</form>
-			<div class="mt-4">
+	}
+		<div class="mt-4">
 				<div
 					id="selected-filters-summary"
 					data-selected-filters-label={ l10n.Get("selectedfilters") }
@@ -289,8 +287,8 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 				>
 					@ActiveFilterSummary(l10n, viewModel.Filters)
 				</div>
-			</div>
-			<script nonce={ csp.Nonce(ctx) }>
+		</div>
+		<script nonce={ csp.Nonce(ctx) }>
 				(function() {
 					const form = document.getElementById('sensors-filters-form');
 					const summary = document.getElementById('selected-filters-summary');
@@ -479,9 +477,7 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 					document.body.addEventListener('htmx:afterSwap', renderSummary);
 					renderSummary();
 				})();
-			</script>
-		}
-	}
+		</script>
 }
 
 templ ActiveFilterSummary(l10n Localizer, filters FiltersViewModel) {
@@ -538,61 +534,56 @@ templ SensorsTableSection(l10n Localizer, viewModel SensorsPageViewModel) {
 			TargetID:  viewModel.Paging.TargetID,
 		}) }}
 	}
-	<section id="tableview" class="flex flex-col gap-5">
-		<div class="flex items-center justify-between gap-4">
-			<div class="text-sm text-muted-foreground">
-				{ l10n.Get("show") } { fmt.Sprintf("%d", len(viewModel.Sensors)) } { l10n.Get("sensorsof") } { fmt.Sprintf("%d", viewModel.Paging.TotalCount) }
-			</div>
-			@shared.ExportAction(l10n, shared.ExportActionProps{
+	@shared.DataTableSection(
+		shared.DataTableHeader(
+			shared.DataTableSummary(fmt.Sprintf("%s %d %s %d", l10n.Get("show"), len(viewModel.Sensors), l10n.Get("sensorsof"), viewModel.Paging.TotalCount)),
+			shared.ExportAction(l10n, shared.ExportActionProps{
 				Href:   "/admin/export?export=devices&accept=text/csv",
 				Form:   "sensors-filters-form",
 				Target: "_blank",
 				Fields: []string{"search", "type", "active", "online", "lastseen"},
-			})
-		</div>
-		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-0 bg-transparent shadow-none"}) {
-			<div class="overflow-x-auto">
-				@table.Table(table.Props{Class: "min-w-[860px]"}) {
-					@table.Header() {
-						@table.Row() {
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("online") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("status") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("type") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("deveui") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("batterylevel") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("lastseen") } }
+			}),
+		),
+		shared.TableFooter(
+			shared.PageSizeControl(shared.PageSizeControlProps{
+				FormID:    "page-size-form",
+				Label:     l10n.Get("rowsPerPage"),
+				TargetURL: viewModel.Paging.TargetURL,
+				TargetID:  viewModel.Paging.TargetID,
+				Include:   "#sensors-filters-form",
+				PageSize:  viewModel.Paging.PageSize,
+				Options:   []int{5, 10, 15, 50, 100},
+			}),
+			rightFooter,
+		),
+	) {
+		@table.Table(table.Props{Class: "min-w-[860px]"}) {
+			@table.Header() {
+				@table.Row() {
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("online") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("status") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("type") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("deveui") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("batterylevel") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("lastseen") } }
+				}
+			}
+			@table.Body() {
+				if len(viewModel.Sensors) == 0 {
+					@table.Row() {
+						@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "7"}}) {
+							{ l10n.Get("nosensors") }
 						}
 					}
-					@table.Body() {
-						if len(viewModel.Sensors) == 0 {
-							@table.Row() {
-								@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "7"}}) {
-									{ l10n.Get("nosensors") }
-								}
-							}
-						} else {
-							for _, sensor := range viewModel.Sensors {
-								@SensorRow(l10n, sensor)
-							}
-						}
+				} else {
+					for _, sensor := range viewModel.Sensors {
+						@SensorRow(l10n, sensor)
 					}
 				}
-			</div>
-			@shared.TableFooter(
-				shared.PageSizeControl(shared.PageSizeControlProps{
-					FormID:    "page-size-form",
-					Label:     l10n.Get("rowsPerPage"),
-					TargetURL: viewModel.Paging.TargetURL,
-					TargetID:  viewModel.Paging.TargetID,
-					Include:   "#sensors-filters-form",
-					PageSize:  viewModel.Paging.PageSize,
-					Options:   []int{5, 10, 15, 50, 100},
-				}),
-				rightFooter,
-			)
+			}
 		}
-	</section>
+	}
 }
 
 func sensorsToMapFeature(l10n Localizer, model SensorsPageViewModel) shared.FeatureCollection {
@@ -705,16 +696,6 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel) {
 	}
 }
 
-templ SectionHeading(title string, leading templ.Component) {
-	<div class="flex items-center gap-3 self-stretch">
-		@leading
-		<h2 class="text-2xl font-bold font-heading leading-loose whitespace-nowrap text-primary-dark dark:text-white">{ title }</h2>
-		<div class="min-w-8 flex-1">
-			@separator.Separator(separator.Props{Class: "[&_span:last-child]:hidden"})
-		</div>
-	</div>
-}
-
 func formatBattery(level int) string {
 	switch {
 	case level > 100:
@@ -738,28 +719,6 @@ func boolString(value bool) string {
 		return "true"
 	}
 	return "false"
-}
-
-func filterTriggerClass() string {
-	return "h-10 w-full justify-between rounded-xl bg-background px-3 text-sm shadow-xs"
-}
-
-func filterTriggerValueClass(hasValue bool) string {
-	if hasValue {
-		return "grow text-foreground"
-	}
-	return "grow text-muted-foreground"
-}
-
-func filterDropdownContentClass() string {
-	return "rounded-xl border-border/80 p-0 shadow-lg"
-}
-
-func filterDropdownItemClass(selected bool) string {
-	if selected {
-		return "rounded-lg font-medium"
-	}
-	return "rounded-lg"
 }
 
 func countActiveFilters(filters FiltersViewModel) int {

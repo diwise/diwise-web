@@ -8,11 +8,9 @@ import (
 
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/progress"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -119,7 +117,7 @@ type MeasurementViewModel struct {
 templ ThingsPage(l10n Localizer, viewModel ThingsPageViewModel) {
 	<div class="flex flex-col gap-10">
 		<section class="flex flex-col gap-6">
-			@SectionHeading(l10n.Get("things"), icon.Shapes(icon.Props{Size: 28, Class: "text-black dark:text-white"}))
+			@shared.SectionHeading(l10n.Get("things"), icon.Shapes(icon.Props{Size: 28, Class: "text-black dark:text-white"}))
 		</section>
 		<section class="flex flex-col gap-6">
 			@Filters(l10n, viewModel)
@@ -139,20 +137,18 @@ templ ThingsDataList(l10n Localizer, viewModel ThingsPageViewModel) {
 }
 
 templ Filters(l10n Localizer, viewModel ThingsPageViewModel) {
-	@card.Card(card.Props{Class: "rounded-2xl border-border/80 bg-card/80 shadow-sm"}) {
-		@card.Content(card.ContentProps{Class: "p-5"}) {
-			<div class="mb-4 flex justify-end">
-				@shared.TableOrMapToggle(l10n, shared.TableOrMapToggleProps{
-					BaseID:        "things-view-mode",
-					HiddenInputID: "mapview",
-					TargetURL:     "/v2/components/things/list",
-					TargetID:      "#tableOrMap",
-					Include:       "#things-filters-form",
-					MapView:       viewModel.MapView,
-					TableLabel:    l10n.Get("table"),
-					MapLabel:      l10n.Get("map"),
-				})
-			</div>
+	@shared.ListFiltersCard(
+		shared.TableOrMapToggle(l10n, shared.TableOrMapToggleProps{
+			BaseID:        "things-view-mode",
+			HiddenInputID: "mapview",
+			TargetURL:     "/v2/components/things/list",
+			TargetID:      "#tableOrMap",
+			Include:       "#things-filters-form",
+			MapView:       viewModel.MapView,
+			TableLabel:    l10n.Get("table"),
+			MapLabel:      l10n.Get("map"),
+		}),
+	) {
 			<form
 				id="things-filters-form"
 				class="grid gap-4 lg:grid-cols-2"
@@ -169,20 +165,20 @@ templ Filters(l10n Localizer, viewModel ThingsPageViewModel) {
 							Name:              "type",
 							Multiple:          true,
 							SelectedCountText: l10n.Get("selecteditemcount"),
-							Class:             filterTriggerClass(),
+							Class:             shared.FilterTriggerClass(),
 						}) {
 							@selectbox.Value(selectbox.ValueProps{
 								Placeholder: l10n.Get("type"),
-								Class:       filterTriggerValueClass(len(viewModel.Filters.SelectedTypes) > 0),
+								Class:       shared.FilterTriggerValueClass(len(viewModel.Filters.SelectedTypes) > 0),
 							})
 						}
-						@selectbox.Content(selectbox.ContentProps{Class: filterDropdownContentClass(), NoSearch: true}) {
+						@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
 							@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
 								for _, option := range viewModel.TypeOptions {
 									@selectbox.Item(selectbox.ItemProps{
 										Value:    option.Value,
 										Selected: contains(viewModel.Filters.SelectedTypes, option.Value),
-										Class:    filterDropdownItemClass(contains(viewModel.Filters.SelectedTypes, option.Value)),
+										Class:    shared.FilterDropdownItemClass(contains(viewModel.Filters.SelectedTypes, option.Value)),
 									}) {
 										{ l10n.Get(option.Label) }
 									}
@@ -197,20 +193,20 @@ templ Filters(l10n Localizer, viewModel ThingsPageViewModel) {
 							Name:              "tags",
 							Multiple:          true,
 							SelectedCountText: l10n.Get("selecteditemcount"),
-							Class:             filterTriggerClass(),
+							Class:             shared.FilterTriggerClass(),
 						}) {
 							@selectbox.Value(selectbox.ValueProps{
 								Placeholder: l10n.Get("tags"),
-								Class:       filterTriggerValueClass(len(viewModel.Filters.SelectedTags) > 0),
+								Class:       shared.FilterTriggerValueClass(len(viewModel.Filters.SelectedTags) > 0),
 							})
 						}
-						@selectbox.Content(selectbox.ContentProps{Class: filterDropdownContentClass(), NoSearch: true}) {
+						@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
 							@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
 								for _, option := range viewModel.TagOptions {
 									@selectbox.Item(selectbox.ItemProps{
 										Value:    option.Value,
 										Selected: contains(viewModel.Filters.SelectedTags, option.Value),
-										Class:    filterDropdownItemClass(contains(viewModel.Filters.SelectedTags, option.Value)),
+										Class:    shared.FilterDropdownItemClass(contains(viewModel.Filters.SelectedTags, option.Value)),
 									}) {
 										{ option.Value }
 									}
@@ -220,7 +216,6 @@ templ Filters(l10n Localizer, viewModel ThingsPageViewModel) {
 					}
 				</div>
 			</form>
-		}
 	}
 }
 
@@ -236,59 +231,54 @@ templ ThingsTableSection(l10n Localizer, viewModel ThingsPageViewModel) {
 			TargetID:  viewModel.Paging.TargetID,
 		}) }}
 	}
-	<section id="tableview" class="flex flex-col gap-5">
-		<div class="flex items-center justify-between gap-4">
-			<div class="text-sm text-muted-foreground">
-				{ l10n.Get("show") } { fmt.Sprintf("%d", len(viewModel.Things)) } { l10n.Get("thingsof") } { fmt.Sprintf("%d", viewModel.Paging.TotalCount) }
-			</div>
-			@shared.ExportAction(l10n, shared.ExportActionProps{
+	@shared.DataTableSection(
+		shared.DataTableHeader(
+			shared.DataTableSummary(fmt.Sprintf("%s %d %s %d", l10n.Get("show"), len(viewModel.Things), l10n.Get("thingsof"), viewModel.Paging.TotalCount)),
+			shared.ExportAction(l10n, shared.ExportActionProps{
 				Href:   "/admin/export?export=things&accept=text/csv",
 				Form:   "things-filters-form",
 				Target: "_blank",
 				Fields: []string{"type", "tags"},
-			})
-		</div>
-		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-0 bg-transparent shadow-none"}) {
-			<div class="overflow-x-auto">
-				@table.Table(table.Props{Class: "min-w-[860px]"}) {
-					@table.Header() {
-						@table.Row() {
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("type") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("status") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("tags") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("organisation") } }
+			}),
+		),
+		shared.TableFooter(
+			shared.PageSizeControl(shared.PageSizeControlProps{
+				FormID:    "things-page-size-form",
+				Label:     l10n.Get("rowsPerPage"),
+				TargetURL: viewModel.Paging.TargetURL,
+				TargetID:  viewModel.Paging.TargetID,
+				Include:   "#things-filters-form",
+				PageSize:  viewModel.Paging.PageSize,
+				Options:   []int{5, 10, 15, 50, 100},
+			}),
+			rightFooter,
+		),
+	) {
+		@table.Table(table.Props{Class: "min-w-[860px]"}) {
+			@table.Header() {
+				@table.Row() {
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("type") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("status") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("tags") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("organisation") } }
+				}
+			}
+			@table.Body() {
+				if len(viewModel.Things) == 0 {
+					@table.Row() {
+						@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "5"}}) {
+							{ l10n.Get("missing") }
 						}
 					}
-					@table.Body() {
-						if len(viewModel.Things) == 0 {
-							@table.Row() {
-								@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "5"}}) {
-									{ l10n.Get("missing") }
-								}
-							}
-						} else {
-							for _, thing := range viewModel.Things {
-								@ThingRow(l10n, thing)
-							}
-						}
+				} else {
+					for _, thing := range viewModel.Things {
+						@ThingRow(l10n, thing)
 					}
 				}
-			</div>
-			@shared.TableFooter(
-				shared.PageSizeControl(shared.PageSizeControlProps{
-					FormID:    "things-page-size-form",
-					Label:     l10n.Get("rowsPerPage"),
-					TargetURL: viewModel.Paging.TargetURL,
-					TargetID:  viewModel.Paging.TargetID,
-					Include:   "#things-filters-form",
-					PageSize:  viewModel.Paging.PageSize,
-					Options:   []int{5, 10, 15, 50, 100},
-				}),
-				rightFooter,
-			)
+			}
 		}
-	</section>
+	}
 }
 
 templ ThingRow(l10n Localizer, thing ThingViewModel) {
@@ -637,43 +627,11 @@ func thingsToMapFeature(l10n Localizer, things []ThingViewModel) shared.FeatureC
 	return shared.NewFeatureCollection(features)
 }
 
-templ SectionHeading(title string, leading templ.Component) {
-	<div class="flex items-center gap-3 self-stretch">
-		@leading
-		<h2 class="text-2xl font-bold font-heading leading-loose whitespace-nowrap text-primary-dark dark:text-white">{ title }</h2>
-		<div class="min-w-8 flex-1">
-			@separator.Separator(separator.Props{Class: "[&_span:last-child]:hidden"})
-		</div>
-	</div>
-}
-
 func boolString(value bool) string {
 	if value {
 		return "true"
 	}
 	return "false"
-}
-
-func filterTriggerClass() string {
-	return "h-10 w-full justify-between rounded-xl bg-background px-3 text-sm shadow-xs"
-}
-
-func filterTriggerValueClass(hasValue bool) string {
-	if hasValue {
-		return "grow text-foreground"
-	}
-	return "grow text-muted-foreground"
-}
-
-func filterDropdownContentClass() string {
-	return "rounded-xl border-border/80 p-0 shadow-lg"
-}
-
-func filterDropdownItemClass(selected bool) string {
-	if selected {
-		return "font-medium"
-	}
-	return ""
 }
 
 func contains(values []string, expected string) bool {

@@ -45,7 +45,7 @@ templ Home(l10n Localizer, viewModel HomeViewModel) {
 	<div class="flex flex-col gap-14">
 		<div class="grid gap-10 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-stretch">
 			<section class="flex h-full flex-col gap-6">
-				@SectionHeading(l10n.Get("overview"), icon.MapPin(icon.Props{Size: 32, Class: "shrink-0 text-black dark:text-white"}))
+				@shared.SectionHeading(l10n.Get("overview"), icon.MapPin(icon.Props{Size: 32, Class: "shrink-0 text-black dark:text-white"}))
 				<div hx-get="/v2/components/home/statistics" hx-trigger="load, every 1m" class="flex w-full flex-1">
 					@OverviewCardsSkeleton()
 				</div>
@@ -54,7 +54,7 @@ templ Home(l10n Localizer, viewModel HomeViewModel) {
 				@separator.Separator(separator.Props{Orientation: separator.OrientationVertical, Class: "h-full [&_span:last-child]:hidden"})
 			</div>
 			<section class="flex h-full flex-col gap-6">
-				@SectionHeading(l10n.Get("measurementperday"), icon.Icon("chart-column")(icon.Props{Size: 32, Class: "shrink-0 text-black dark:text-white"}))
+				@shared.SectionHeading(l10n.Get("measurementperday"), icon.Icon("chart-column")(icon.Props{Size: 32, Class: "shrink-0 text-black dark:text-white"}))
 				@card.Card(card.Props{Class: "h-full overflow-hidden rounded-2xl border border-border/80 bg-white shadow dark:bg-gray-800"}) {
 					@card.Content(card.ContentProps{Class: "flex h-full p-6"}) {
 						<div
@@ -139,48 +139,43 @@ templ AlarmsTableSection(l10n Localizer, viewModel HomeViewModel) {
 	if viewModel.Paging.PageLast > 1 {
 		{{ rightFooter = shared.PagingControl(l10n, shared.PagingControlProps(viewModel.Paging)) }}
 	}
-	<section id="tableview" class="flex flex-col gap-6">
-		@SectionHeading(l10n.Get("information"), icon.TriangleAlert(icon.Props{Size: 24, Class: "text-black dark:text-white"}))
-		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-0 bg-transparent shadow-none"}) {
-			@card.Content(card.ContentProps{Class: "space-y-6 p-0"}) {
-				<div class="overflow-x-auto">
-					@table.Table(table.Props{Class: "min-w-[640px]"}) {
-						@table.Header() {
-							@table.Row() {
-								@table.Head(table.HeadProps{Class: "px-6 py-3 font-medium text-muted-foreground"}) { { l10n.Get("sensorID") } }
-								@table.Head(table.HeadProps{Class: "min-w-[200px] px-6 py-3 font-medium text-muted-foreground"}) { { l10n.Get("description") } }
-								@table.Head(table.HeadProps{Class: "px-6 py-3 font-medium text-muted-foreground"}) { { l10n.Get("pointoftime") } }
-							}
-						}
-						@table.Body() {
-							if len(viewModel.Alarms) == 0 {
-								@table.Row() {
-									@table.Cell(table.CellProps{Class: "px-4 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "3"}}) {
-										{ l10n.Get("noalarms") }
-									}
-								}
-							} else {
-								for _, alarm := range viewModel.Alarms {
-									@AlarmRow(l10n, alarm)
-								}
-							}
+	@shared.DataTableSection(
+		shared.SectionHeading(l10n.Get("information"), icon.TriangleAlert(icon.Props{Size: 24, Class: "text-black dark:text-white"})),
+		shared.TableFooter(
+			shared.PageSizeControl(shared.PageSizeControlProps{
+				FormID:    "home-page-size-form",
+				Label:     l10n.Get("rowsPerPage"),
+				TargetURL: viewModel.Paging.TargetURL,
+				TargetID:  viewModel.Paging.TargetID,
+				PageSize:  viewModel.Paging.PageSize,
+				Options:   []int{5, 10, 15, 50, 100},
+			}),
+			rightFooter,
+		),
+	) {
+		@table.Table(table.Props{Class: "min-w-[640px]"}) {
+			@table.Header() {
+				@table.Row() {
+					@table.Head(table.HeadProps{Class: "px-6 py-3 font-medium text-muted-foreground"}) { { l10n.Get("sensorID") } }
+					@table.Head(table.HeadProps{Class: "min-w-[200px] px-6 py-3 font-medium text-muted-foreground"}) { { l10n.Get("description") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3 font-medium text-muted-foreground"}) { { l10n.Get("pointoftime") } }
+				}
+			}
+			@table.Body() {
+				if len(viewModel.Alarms) == 0 {
+					@table.Row() {
+						@table.Cell(table.CellProps{Class: "px-4 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "3"}}) {
+							{ l10n.Get("noalarms") }
 						}
 					}
-				</div>
-				@shared.TableFooter(
-					shared.PageSizeControl(shared.PageSizeControlProps{
-						FormID:    "home-page-size-form",
-						Label:     l10n.Get("rowsPerPage"),
-						TargetURL: viewModel.Paging.TargetURL,
-						TargetID:  viewModel.Paging.TargetID,
-						PageSize:  viewModel.Paging.PageSize,
-						Options:   []int{5, 10, 15, 50, 100},
-					}),
-					rightFooter,
-				)
+				} else {
+					for _, alarm := range viewModel.Alarms {
+						@AlarmRow(l10n, alarm)
+					}
+				}
 			}
 		}
-	</section>
+	}
 }
 
 templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
@@ -208,16 +203,6 @@ templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
 			{ alarm.ObservedAt.Format("2006-01-02, 15:04") }
 		}
 	}
-}
-
-templ SectionHeading(title string, leading templ.Component) {
-	<div class="flex items-center gap-3 self-stretch">
-		@leading
-		<h2 class="text-2xl font-bold font-heading leading-loose whitespace-nowrap text-primary-dark dark:text-white">{ title }</h2>
-		<div class="min-w-8 flex-1">
-			@separator.Separator(separator.Props{Class: "[&_span:last-child]:hidden"})
-		</div>
-	</div>
 }
 
 func UsageChart(_ bool, data shared.AdvancedChartData) templ.Component {

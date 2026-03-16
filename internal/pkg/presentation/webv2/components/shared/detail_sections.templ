@@ -1,0 +1,32 @@
+package shared
+
+import (
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
+)
+
+templ DetailSectionHeading(title string, leading templ.Component) {
+	<div class="flex items-center gap-3 self-stretch">
+		@leading
+		<h2 class="text-xl font-bold font-heading text-foreground">{ title }</h2>
+		<div class="min-w-8 flex-1">
+			@separator.Separator(separator.Props{Class: "[&_span:last-child]:hidden"})
+		</div>
+	</div>
+}
+
+templ DetailSectionCard(title string, leading templ.Component) {
+	@card.Card(card.Props{Class: "rounded-3xl border-border/80 bg-card/90 shadow-sm"}) {
+		@card.Content(card.ContentProps{Class: "p-6"}) {
+			@DetailSectionHeading(title, leading)
+			{ children... }
+		}
+	}
+}
+
+templ DetailSection(title string, leading templ.Component) {
+	<div class="flex flex-col items-stretch self-stretch">
+		@DetailSectionHeading(title, leading)
+		{ children... }
+	</div>
+}

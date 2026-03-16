@@ -9,11 +9,9 @@ import (
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
 	. "github.com/diwise/frontend-toolkit"
 )
 
@@ -198,7 +196,7 @@ templ EditSensorDetailsHeader(l10n Localizer, sensor SensorDetailsPageViewModel)
 }
 
 templ EditSensorDetailsFormSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
-	@SectionCard(
+	@shared.DetailSectionCard(
 		l10n.Get("details"),
 		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
 	) {
@@ -270,7 +268,7 @@ templ EditSensorDetailsFormSection(l10n Localizer, sensor SensorDetailsPageViewM
 }
 
 templ EditSensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
-	@SectionCard(
+	@shared.DetailSectionCard(
 		l10n.Get("status"),
 		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
 	) {
@@ -285,7 +283,7 @@ templ EditSensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageVie
 }
 
 templ EditSensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
-	@SectionCard(
+	@shared.DetailSectionCard(
 		l10n.Get("location"),
 		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
@@ -395,7 +393,7 @@ templ StatusBadge(l10n Localizer, active bool) {
 }
 
 templ SensorDetailsPropertiesSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
-	@SectionCard(
+	@shared.DetailSectionCard(
 		l10n.Get("details"),
 		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
 	) {
@@ -414,7 +412,7 @@ templ SensorDetailsPropertiesSection(l10n Localizer, sensor SensorDetailsPageVie
 }
 
 templ SensorDetailsMetadataSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
-	@SectionCard(
+	@shared.DetailSectionCard(
 		l10n.Get("Metadata"),
 		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
 	) {
@@ -427,7 +425,7 @@ templ SensorDetailsMetadataSection(l10n Localizer, sensor SensorDetailsPageViewM
 templ SensorDetailsMeasurementSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
 	{{ startTime := measurementStartValue(sensor.Measurements) }}
 	{{ endTime := measurementEndValue(sensor.Measurements) }}
-	@SectionCard(
+	@shared.DetailSectionCard(
 		l10n.Get("measurementvalues"),
 		icon.Icon("chart-column")(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
@@ -500,7 +498,7 @@ templ SensorDetailsMeasurementSection(l10n Localizer, sensor SensorDetailsPageVi
 }
 
 templ SensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
-	@SectionCard(
+	@shared.DetailSectionCard(
 		l10n.Get("location"),
 		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
@@ -521,7 +519,7 @@ templ SensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageViewM
 }
 
 templ SensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
-	@SectionCard(
+	@shared.DetailSectionCard(
 		l10n.Get("Status"),
 		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
 	) {
@@ -536,21 +534,6 @@ templ SensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageViewMod
 				<div class="h-full w-full rounded-2xl border border-border/70 bg-background/40"></div>
 			</div>
 		</div>
-	}
-}
-
-templ SectionCard(title string, icon templ.Component) {
-	@card.Card(card.Props{Class: "rounded-3xl border-border/80 bg-card/90 shadow-sm"}) {
-		@card.Content(card.ContentProps{Class: "p-6"}) {
-			<div class="flex items-center gap-3 self-stretch">
-				@icon
-				<h2 class="text-xl font-bold font-heading text-foreground">{ title }</h2>
-				<div class="min-w-8 flex-1">
-					@separator.Separator(separator.Props{Class: "[&_span:last-child]:hidden"})
-				</div>
-			</div>
-			{ children... }
-		}
 	}
 }
 

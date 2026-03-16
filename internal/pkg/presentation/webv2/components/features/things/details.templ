@@ -8,10 +8,8 @@ import (
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/tabs"
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -158,7 +156,7 @@ templ EditThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
 }
 
 templ ThingDetailsPropertiesSection(l10n Localizer, model ThingDetailsPageViewModel) {
-	@ThingViewSection(
+	@shared.DetailSection(
 		l10n.Get("details"),
 		icon.Info(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
@@ -188,7 +186,7 @@ templ ThingDetailsPropertiesSection(l10n Localizer, model ThingDetailsPageViewMo
 templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	{{ startTime := measurementStartValue(model.LatestValues) }}
 	{{ endTime := measurementEndValue(model.LatestValues) }}
-	@ThingSectionCard(
+	@shared.DetailSectionCard(
 		l10n.Get("statistics"),
 		icon.Icon("chart-column")(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
@@ -371,7 +369,7 @@ templ ThingMeasurementSummary(l10n Localizer, measurement LatestMeasurementViewM
 }
 
 templ ThingDetailsLocationSection(l10n Localizer, model ThingDetailsPageViewModel) {
-	@ThingViewSection(
+	@shared.DetailSection(
 		l10n.Get("location"),
 		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
@@ -392,7 +390,7 @@ templ ThingDetailsLocationSection(l10n Localizer, model ThingDetailsPageViewMode
 }
 
 templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
-	@ThingSectionCard(l10n.Get("details"), icon.Info(icon.Props{Size: 24, Class: "text-black dark:text-white"})) {
+	@shared.DetailSectionCard(l10n.Get("details"), icon.Info(icon.Props{Size: 24, Class: "text-black dark:text-white"})) {
 		<div class="grid gap-6 py-6 px-8">
 			<div class="grid gap-6 md:grid-cols-2">
 				@ThingEditField(l10n.Get("name")) {
@@ -450,7 +448,7 @@ templ EditThingMeasurementSettingsSection(l10n Localizer, model ThingDetailsPage
 	if len(fields) == 0 {
 		return
 	}
-	@ThingSectionCard(l10n.Get("measurements"), icon.Icon("chart-column")(icon.Props{Size: 24, Class: "text-black dark:text-white"})) {
+	@shared.DetailSectionCard(l10n.Get("measurements"), icon.Icon("chart-column")(icon.Props{Size: 24, Class: "text-black dark:text-white"})) {
 		<div class="grid gap-6 py-6 px-8 md:grid-cols-2">
 			for _, field := range fields {
 				@ThingNumericField(field)
@@ -491,7 +489,7 @@ templ ThingNumericField(field ThingMeasurementField) {
 }
 
 templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) {
-	@ThingSectionCard(
+	@shared.DetailSectionCard(
 		l10n.Get("location"),
 		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
@@ -532,34 +530,6 @@ templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) 
 templ ThingEditField(label string) {
 	<div class="flex flex-col gap-2">
 		<label class="text-sm font-medium text-foreground">{ label }</label>
-		{ children... }
-	</div>
-}
-
-templ ThingSectionCard(title string, leading templ.Component) {
-	@card.Card(card.Props{Class: "rounded-3xl border-border/80 bg-card/90 shadow-sm"}) {
-		@card.Content(card.ContentProps{Class: "p-6"}) {
-			<div class="flex items-center gap-3 self-stretch">
-				@leading
-				<h2 class="text-xl font-bold font-heading text-foreground">{ title }</h2>
-				<div class="min-w-8 flex-1">
-					@separator.Separator(separator.Props{Class: "[&_span:last-child]:hidden"})
-				</div>
-			</div>
-			{ children... }
-		}
-	}
-}
-
-templ ThingViewSection(title string, leading templ.Component) {
-	<div class="flex flex-col items-stretch self-stretch">
-		<div class="flex items-center gap-3 self-stretch">
-			@leading
-			<h2 class="text-xl font-bold font-heading text-foreground">{ title }</h2>
-			<div class="min-w-8 flex-1">
-				@separator.Separator(separator.Props{Class: "[&_span:last-child]:hidden"})
-			</div>
-		</div>
 		{ children... }
 	</div>
 }
