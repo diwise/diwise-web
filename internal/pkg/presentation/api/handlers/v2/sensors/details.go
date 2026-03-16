@@ -34,7 +34,7 @@ func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		editMode := r.URL.Query().Get("mode") == "edit"
-		model, err := composeDetailsModel(ctx, id, app, editMode)
+		model, err := composeDetailsModel(ctx, id, app, localizer, editMode)
 		if err != nil {
 			http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
 			return
@@ -80,7 +80,7 @@ func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, _
 		sensorType := r.URL.Query().Get("sensorType")
 
 		component := featuresensors.MeasurementTypeOptionsField(localizer, featuresensors.MeasurementTypeOptionsProps{
-			Options: measurementTypeOptions(localizer, app.GetDeviceProfiles(r.Context()), sensorType, nil),
+			Options: measurementTypeOptions(localizer, app.GetDeviceProfiles(r.Context()), sensorType, nil, nil),
 		})
 		helpers.WriteComponentResponse(r.Context(), w, r, component, 8*1024, 0)
 	}
@@ -110,7 +110,7 @@ func buildSensorUpdateFields(r *http.Request) map[string]any {
 	if value := strings.TrimSpace(r.Form.Get("interval")); value != "" {
 		fields["interval"] = value
 	}
-	if values := r.Form["measurementType-option[]"]; len(values) > 0 {
+	if values := normalizeMeasurementTypeValues(r.Form["measurementType-option[]"]); len(values) > 0 {
 		fields["types"] = values
 	}
 
@@ -128,7 +128,26 @@ func buildSensorUpdateFields(r *http.Request) map[string]any {
 	return fields
 }
 
-func composeDetailsModel(ctx context.Context, id string, app application.DeviceManagement, includeEditOptions bool) (featuresensors.SensorDetailsPageViewModel, error) {
+func normalizeMeasurementTypeValues(values []string) []string {
+	if len(values) == 0 {
+		return nil
+	}
+
+	normalized := make([]string, 0, len(values))
+	for _, value := range values {
+		for _, part := range strings.Split(value, ",") {
+			part = strings.TrimSpace(part)
+			if part == "" || slices.Contains(normalized, part) {
+				continue
+			}
+			normalized = append(normalized, part)
+		}
+	}
+
+	return normalized
+}
+
+func composeDetailsModel(ctx context.Context, id string, app application.DeviceManagement, l10n Localizer, includeEditOptions bool) (featuresensors.SensorDetailsPageViewModel, error) {
 	sensor, err := app.GetSensor(ctx, id)
 	if err != nil {
 		return featuresensors.SensorDetailsPageViewModel{}, err
@@ -218,7 +237,7 @@ func composeDetailsModel(ctx context.Context, id string, app application.DeviceM
 	if includeEditOptions {
 		model.Organisations = app.GetTenants(ctx)
 		model.DeviceProfiles = deviceProfileOptions(app.GetDeviceProfiles(ctx))
-		model.TypeOptions = measurementTypeOptions(nil, app.GetDeviceProfiles(ctx), model.DeviceProfileName, model.Types)
+		model.TypeOptions = measurementTypeOptions(l10n, app.GetDeviceProfiles(ctx), model.DeviceProfileName, model.Types, sensorTypeLabels(sensor.Types))
 	}
 
 	return model, nil
@@ -240,7 +259,7 @@ func deviceProfileOptions(profiles []application.DeviceProfile) []featuresensors
 	return options
 }
 
-func measurementTypeOptions(l10n Localizer, profiles []application.DeviceProfile, selectedProfile string, selectedTypes []string) []featuresensors.MeasurementTypeOption {
+func measurementTypeOptions(l10n Localizer, profiles []application.DeviceProfile, selectedProfile string, selectedTypes []string, labels map[string]string) []featuresensors.MeasurementTypeOption {
 	index := slices.IndexFunc(profiles, func(profile application.DeviceProfile) bool {
 		return profile.Name == selectedProfile || profile.Decoder == selectedProfile
 	})
@@ -250,13 +269,14 @@ func measurementTypeOptions(l10n Localizer, profiles []application.DeviceProfile
 
 	options := make([]featuresensors.MeasurementTypeOption, 0, len(*profiles[index].Types))
 	for _, value := range *profiles[index].Types {
-		label := value
-		parts := strings.Split(value, ":")
-		if len(parts) > 1 {
-			label = strings.Join(parts[1:], "-")
-		}
+		label := measurementTypeLabel(value)
 		if l10n != nil {
 			label = l10n.Get(label)
+		}
+		if label == "" || label == value {
+			if fallback := strings.TrimSpace(labels[value]); fallback != "" {
+				label = fallback
+			}
 		}
 
 		options = append(options, featuresensors.MeasurementTypeOption{
@@ -271,4 +291,24 @@ func measurementTypeOptions(l10n Localizer, profiles []application.DeviceProfile
 	})
 
 	return options
+}
+
+func sensorTypeLabels(types []application.Type) map[string]string {
+	labels := make(map[string]string, len(types))
+	for _, tp := range types {
+		if tp.URN == "" || tp.Name == "" {
+			continue
+		}
+		labels[tp.URN] = tp.Name
+	}
+	return labels
+}
+
+func measurementTypeLabel(value string) string {
+	parts := strings.Split(value, ":")
+	if len(parts) > 1 {
+		return strings.Join(parts[1:], "-")
+	}
+
+	return value
 }

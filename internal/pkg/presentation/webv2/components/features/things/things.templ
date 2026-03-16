@@ -1,0 +1,715 @@
+package things
+
+import (
+	"fmt"
+	"slices"
+	"strings"
+	"time"
+
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/progress"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+type ThingsPageViewModel struct {
+	Things      []ThingViewModel
+	Paging      PagingViewModel
+	Filters     FiltersViewModel
+	TypeOptions []TypeOption
+	TagOptions  []TagOption
+	MapView     bool
+}
+
+type PagingViewModel struct {
+	PageIndex  int
+	PageLast   int
+	PageSize   int
+	TotalCount int
+	Query      string
+	TargetURL  string
+	TargetID   string
+}
+
+type FiltersViewModel struct {
+	SelectedTypes []string
+	SelectedTags  []string
+	PageSize      int
+}
+
+type TypeOption struct {
+	Value string
+	Label string
+}
+
+type TagOption struct {
+	Value string
+}
+
+type ThingViewModel struct {
+	ID              string
+	Type            string
+	SubType         string
+	Name            string
+	AlternativeName string
+	Description     string
+	Latitude        float64
+	Longitude       float64
+	RefDevice       []string
+	Tenant          string
+	Tags            []string
+	Measurements    []MeasurementViewModel
+	Latest          map[string]MeasurementViewModel
+	ObservedAt      time.Time
+	Properties      map[string]any
+}
+
+func (t ThingViewModel) HasWarning() bool {
+	return t.ObservedAt.IsZero()
+}
+
+func (t ThingViewModel) GetMeasurementValue(key string) float64 {
+	if t.Properties[key] == nil {
+		return 0.0
+	}
+
+	value, ok := t.Properties[key].(float64)
+	if ok {
+		return value
+	}
+
+	mapped, ok := t.Properties[key].(map[string]any)
+	if !ok {
+		return 0.0
+	}
+
+	value, ok = mapped["v"].(float64)
+	if !ok {
+		return 0.0
+	}
+
+	return value
+}
+
+func (t ThingViewModel) GetFloat(key string) (float64, bool) {
+	value, ok := t.Properties[key].(float64)
+	return value, ok
+}
+
+func (t ThingViewModel) GetBool(key string) (bool, bool) {
+	value, ok := t.Properties[key].(bool)
+	return value, ok
+}
+
+type MeasurementViewModel struct {
+	ID          string
+	Timestamp   time.Time
+	Urn         string
+	BoolValue   *bool
+	StringValue string
+	Unit        string
+	Value       *float64
+}
+
+templ ThingsPage(l10n Localizer, viewModel ThingsPageViewModel) {
+	<div class="flex flex-col gap-10">
+		<section class="flex flex-col gap-6">
+			@SectionHeading(l10n.Get("things"), shared.SVG("map-pin", shared.Size(28)))
+		</section>
+		<section class="flex flex-col gap-6">
+			@Filters(l10n, viewModel)
+			@ThingsDataList(l10n, viewModel)
+		</section>
+	</div>
+}
+
+templ ThingsDataList(l10n Localizer, viewModel ThingsPageViewModel) {
+	<div id="tableOrMap" class="w-full">
+		if viewModel.MapView {
+			@ThingsMap(l10n, viewModel)
+		} else {
+			@ThingsTableSection(l10n, viewModel)
+		}
+	</div>
+}
+
+templ Filters(l10n Localizer, viewModel ThingsPageViewModel) {
+	@card.Card(card.Props{Class: "rounded-2xl border-border/80 bg-card/80 shadow-sm"}) {
+		@card.Content(card.ContentProps{Class: "p-5"}) {
+			<div class="mb-4 flex justify-end">
+				@shared.TableOrMapToggle(l10n, shared.TableOrMapToggleProps{
+					BaseID:        "things-view-mode",
+					HiddenInputID: "mapview",
+					TargetURL:     "/v2/components/things/list",
+					TargetID:      "#tableOrMap",
+					Include:       "#things-filters-form",
+					MapView:       viewModel.MapView,
+					TableLabel:    l10n.Get("table"),
+					MapLabel:      l10n.Get("map"),
+				})
+			</div>
+			<form
+				id="things-filters-form"
+				class="grid gap-4 lg:grid-cols-2"
+				hx-get="/v2/components/things/list"
+				hx-target="#tableOrMap"
+				hx-swap="outerHTML"
+				hx-trigger="change"
+			>
+				<input type="hidden" name="limit" value={ fmt.Sprintf("%d", viewModel.Paging.PageSize) }/>
+				<input type="hidden" id="mapview" name="mapview" value={ boolString(viewModel.MapView) }/>
+				<div class="flex flex-col gap-2">
+					@selectbox.SelectBox(selectbox.Props{ID: "type-filter"}) {
+						@selectbox.Trigger(selectbox.TriggerProps{
+							Name:              "type",
+							Multiple:          true,
+							SelectedCountText: l10n.Get("selecteditemcount"),
+							Class:             filterTriggerClass(),
+						}) {
+							@selectbox.Value(selectbox.ValueProps{
+								Placeholder: l10n.Get("type"),
+								Class:       filterTriggerValueClass(len(viewModel.Filters.SelectedTypes) > 0),
+							})
+						}
+						@selectbox.Content(selectbox.ContentProps{Class: filterDropdownContentClass(), NoSearch: true}) {
+							@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+								for _, option := range viewModel.TypeOptions {
+									@selectbox.Item(selectbox.ItemProps{
+										Value:    option.Value,
+										Selected: contains(viewModel.Filters.SelectedTypes, option.Value),
+										Class:    filterDropdownItemClass(contains(viewModel.Filters.SelectedTypes, option.Value)),
+									}) {
+										{ l10n.Get(option.Label) }
+									}
+								}
+							}
+						}
+					}
+				</div>
+				<div class="flex flex-col gap-2">
+					@selectbox.SelectBox(selectbox.Props{ID: "tag-filter"}) {
+						@selectbox.Trigger(selectbox.TriggerProps{
+							Name:              "tags",
+							Multiple:          true,
+							SelectedCountText: l10n.Get("selecteditemcount"),
+							Class:             filterTriggerClass(),
+						}) {
+							@selectbox.Value(selectbox.ValueProps{
+								Placeholder: l10n.Get("tags"),
+								Class:       filterTriggerValueClass(len(viewModel.Filters.SelectedTags) > 0),
+							})
+						}
+						@selectbox.Content(selectbox.ContentProps{Class: filterDropdownContentClass(), NoSearch: true}) {
+							@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+								for _, option := range viewModel.TagOptions {
+									@selectbox.Item(selectbox.ItemProps{
+										Value:    option.Value,
+										Selected: contains(viewModel.Filters.SelectedTags, option.Value),
+										Class:    filterDropdownItemClass(contains(viewModel.Filters.SelectedTags, option.Value)),
+									}) {
+										{ option.Value }
+									}
+								}
+							}
+						}
+					}
+				</div>
+			</form>
+		}
+	}
+}
+
+templ ThingsTableSection(l10n Localizer, viewModel ThingsPageViewModel) {
+	{{ rightFooter := templ.Component(templ.NopComponent) }}
+	if viewModel.Paging.PageLast > 1 {
+		{{ rightFooter = shared.PagingControl(l10n, shared.PagingControlProps{
+			PageIndex: viewModel.Paging.PageIndex,
+			PageLast:  viewModel.Paging.PageLast,
+			PageSize:  viewModel.Paging.PageSize,
+			Query:     viewModel.Paging.Query,
+			TargetURL: viewModel.Paging.TargetURL,
+			TargetID:  viewModel.Paging.TargetID,
+		}) }}
+	}
+	<section id="tableview" class="flex flex-col gap-5">
+		<div class="flex items-center justify-between gap-4">
+			<div class="text-sm text-muted-foreground">
+				{ l10n.Get("show") } { fmt.Sprintf("%d", len(viewModel.Things)) } { l10n.Get("thingsof") } { fmt.Sprintf("%d", viewModel.Paging.TotalCount) }
+			</div>
+			<a
+				href="/admin/export?export=things&accept=text/csv"
+				class="text-sm font-medium text-foreground underline-offset-4 hover:underline"
+			>
+				{ l10n.Get("export") }
+			</a>
+		</div>
+		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-0 bg-transparent shadow-none"}) {
+			<div class="overflow-x-auto">
+				@table.Table(table.Props{Class: "min-w-[860px]"}) {
+					@table.Header() {
+						@table.Row() {
+							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
+							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("type") } }
+							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("status") } }
+							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("tags") } }
+							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("organisation") } }
+						}
+					}
+					@table.Body() {
+						if len(viewModel.Things) == 0 {
+							@table.Row() {
+								@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "5"}}) {
+									{ l10n.Get("missing") }
+								}
+							}
+						} else {
+							for _, thing := range viewModel.Things {
+								@ThingRow(l10n, thing)
+							}
+						}
+					}
+				}
+			</div>
+			@shared.TableFooter(
+				shared.PageSizeControl(shared.PageSizeControlProps{
+					FormID:    "things-page-size-form",
+					Label:     l10n.Get("rowsPerPage"),
+					TargetURL: viewModel.Paging.TargetURL,
+					TargetID:  viewModel.Paging.TargetID,
+					Include:   "#things-filters-form",
+					PageSize:  viewModel.Paging.PageSize,
+					Options:   []int{5, 10, 15, 50, 100},
+				}),
+				rightFooter,
+			)
+		}
+	</section>
+}
+
+templ ThingRow(l10n Localizer, thing ThingViewModel) {
+	@table.Row(table.RowProps{Class: "border-border/70"}) {
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			<span class="font-bold text-foreground">
+				if strings.TrimSpace(thing.Name) != "" {
+					{ thing.Name }
+				} else {
+					{ thing.ID }
+				}
+			</span>
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			{ displayThingType(l10n, thing) }
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			@ThingStatusCell(l10n, thing)
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			@ThingTags(thing.Tags)
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			{ fallbackValue(thing.Tenant) }
+		}
+	}
+}
+
+func ThingStatusCell(l10n Localizer, thing ThingViewModel) templ.Component {
+	if thing.HasWarning() {
+		return StatusText(l10n.Get("missingdata"), true)
+	}
+
+	switch strings.ToLower(thing.Type) {
+	case "beach", "pointofinterest", "room":
+		return temperatureCell(thing)
+	case "building":
+		return StatusText(fmt.Sprintf("%0.f kWh / %0.f kW", measurementFloat(thing, "energy"), measurementFloat(thing, "power")), false)
+	case "wastecontainer", "container":
+		switch strings.ToLower(thing.SubType) {
+		case "wastecontainer":
+			return wasteContainerCell(l10n, thing)
+		case "sandstorage":
+			return sandStorageCell(l10n, thing)
+		}
+		return templ.NopComponent
+	case "lifebuoy":
+		return boolLabelCell(l10n, thing, "presence", "present", "notPresent")
+	case "desk":
+		return boolLabelCell(l10n, thing, "presence", "occupied", "available")
+	case "passage":
+		return StatusText(fmt.Sprintf("%0.f st", measurementFloat(thing, "passagesToday")), false)
+	case "pumpingstation":
+		return boolLabelCell(l10n, thing, "pumpingObserved", "pumpingObserved", "off")
+	case "sewer":
+		if strings.ToLower(thing.SubType) == "combinedseweroverflow" {
+			return combinedSewerOverflowCell(l10n, thing)
+		}
+		return sewerCell(l10n, thing)
+	case "watermeter":
+		return StatusText(fmt.Sprintf("%0.f m³", measurementFloat(thing, "cumulativeVolume")), false)
+	default:
+		return templ.NopComponent
+	}
+}
+
+templ StatusText(text string, warning bool) {
+	if strings.TrimSpace(text) == "" {
+		return
+	}
+	if warning {
+		@badge.Badge(badge.Props{Variant: badge.VariantSecondary, Class: "inline-flex items-center gap-2 rounded-full px-3 py-1"}) {
+			@icon.TriangleAlert(icon.Props{Size: 14})
+			<span>{ text }</span>
+		}
+	} else {
+		<div class="text-sm text-foreground">{ text }</div>
+	}
+}
+
+func temperatureCell(thing ThingViewModel) templ.Component {
+	if thing.Properties["temperature"] == nil {
+		return templ.NopComponent
+	}
+
+	temp, ok := thing.Properties["temperature"].(float64)
+	if !ok {
+		if mapped, okMap := thing.Properties["temperature"].(map[string]any); okMap {
+			temp, ok = mapped["v"].(float64)
+		}
+	}
+	if !ok {
+		return templ.NopComponent
+	}
+
+	return StatusText(fmt.Sprintf("%0.1f °C", temp), false)
+}
+
+func boolLabelCell(l10n Localizer, thing ThingViewModel, key, trueKey, falseKey string) templ.Component {
+	value, ok := thing.GetBool(key)
+	if !ok {
+		return StatusText(l10n.Get("nodata"), false)
+	}
+	if value {
+		return StatusText(l10n.Get(trueKey), false)
+	}
+	return StatusText(l10n.Get(falseKey), false)
+}
+
+func sewerCell(l10n Localizer, thing ThingViewModel) templ.Component {
+	parts := make([]string, 0, 2)
+	if currentLevel, ok := thing.GetFloat("currentLevel"); ok {
+		parts = append(parts, fmt.Sprintf("%0.1fm", currentLevel))
+	}
+	if percent, ok := thing.GetFloat("percent"); ok {
+		parts = append(parts, fmt.Sprintf("%0.f%%", percent))
+	}
+	if len(parts) == 0 {
+		return templ.NopComponent
+	}
+	return StatusText(fmt.Sprintf("%s: %s", l10n.Get("level"), strings.Join(parts, " / ")), false)
+}
+
+func combinedSewerOverflowCell(l10n Localizer, thing ThingViewModel) templ.Component {
+	value, ok := thing.GetBool("overflowObserved")
+	if !ok {
+		return templ.NopComponent
+	}
+	if value {
+		return StatusText(fmt.Sprintf("%s: %s", l10n.Get("overflow"), l10n.Get("yes")), false)
+	}
+	return StatusText(fmt.Sprintf("%s: %s", l10n.Get("overflow"), l10n.Get("no")), false)
+}
+
+func wasteContainerCell(l10n Localizer, thing ThingViewModel) templ.Component {
+	value, ok := thing.GetFloat("percent")
+	if !ok {
+		return StatusText(l10n.Get("nodata"), false)
+	}
+
+	tone := "warning"
+	switch {
+	case value >= 50:
+		tone = "critical"
+	case value <= 30:
+		tone = "good"
+	}
+
+	return progress.Progress(progress.Props{
+		Value:     int(value),
+		Max:       100,
+		ShowValue: true,
+		Variant:   progressVariant(tone),
+		Class:     "min-w-[180px]",
+	})
+}
+
+func sandStorageCell(l10n Localizer, thing ThingViewModel) templ.Component {
+	value, ok := thing.GetFloat("percent")
+	if !ok {
+		return StatusText(l10n.Get("nodata"), false)
+	}
+
+	tone := "warning"
+	switch {
+	case value <= 50:
+		tone = "critical"
+	case value >= 70:
+		tone = "good"
+	}
+
+	return progress.Progress(progress.Props{
+		Value:     int(value),
+		Max:       100,
+		ShowValue: true,
+		Variant:   progressVariant(tone),
+		Class:     "min-w-[180px]",
+	})
+}
+
+templ ThingTags(tags []string) {
+	if len(tags) == 0 {
+		<span class="text-muted-foreground">-</span>
+	} else {
+		for _, tag := range firstTags(tags, 3) {
+			@badge.Badge(badge.Props{Variant: badge.VariantSecondary, Class: "mr-2 rounded-full px-2 py-1 text-xs"}) {
+				{ tag }
+			}
+		}
+	}
+}
+
+func ThingsMap(l10n Localizer, model ThingsPageViewModel) templ.Component {
+	if !model.MapView {
+		return templ.NopComponent
+	}
+
+	mapData := shared.NewMapData(62.3908, 17.3069)
+	mapData.CurrentView = "thing"
+	return shared.Map("large", true, false, mapData, thingsToMapFeature(l10n, model.Things))
+}
+
+func thingsToMapFeature(l10n Localizer, things []ThingViewModel) shared.FeatureCollection {
+	features := make([]shared.Feature, 0, len(things))
+
+	for _, thing := range things {
+		if thing.Latitude == 0 || thing.Longitude == 0 {
+			continue
+		}
+
+		thingType := strings.ToLower(thing.Type)
+		thingSubType := strings.ToLower(thing.SubType)
+
+		feature := shared.NewFeature(shared.NewPoint(thing.Latitude, thing.Longitude))
+		feature.AddProperty("id", thing.ID)
+		feature.AddProperty("type", thingType)
+		feature.AddProperty("subtype", thingSubType)
+		feature.AddProperty("name", thing.Name)
+		feature.AddProperty("latitude", thing.Latitude)
+		feature.AddProperty("longitude", thing.Longitude)
+		feature.AddProperty("url", fmt.Sprintf("/things/%s", thing.ID))
+		feature.AddProperty("missingdata", thing.HasWarning())
+
+		if thing.Description != "" {
+			feature.AddProperty("description", thing.Description)
+		}
+		if len(thing.Tags) > 0 {
+			feature.AddProperty("tags", thing.Tags)
+		} else {
+			feature.AddProperty("tags", nil)
+		}
+
+		switch thingType {
+		case "pointofinterest", "beach", "room":
+			feature.AddProperty("temperature", fmt.Sprintf("%.1f&nbsp;°C", thing.GetMeasurementValue("temperature")))
+		case "container":
+			fillLevel, ok := thing.GetFloat("percent")
+			if ok {
+				state := "black"
+				if thingSubType == "wastecontainer" {
+					switch {
+					case fillLevel > 49:
+						state = "red"
+					case fillLevel > 30:
+						state = "orange"
+					default:
+						state = "green"
+					}
+				} else {
+					switch {
+					case fillLevel > 70:
+						state = "green"
+					case fillLevel > 50:
+						state = "orange"
+					default:
+						state = "red"
+					}
+				}
+				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", fillLevel))
+				feature.AddProperty("state", state)
+			} else {
+				feature.AddProperty("fillinglevel", "")
+				feature.AddProperty("state", "black")
+			}
+		case "sewer":
+			if overflow, ok := thing.GetBool("overflowObserved"); ok {
+				if overflow {
+					feature.AddProperty("state", l10n.Get("yes"))
+				} else {
+					feature.AddProperty("state", l10n.Get("no"))
+				}
+			} else {
+				feature.AddProperty("state", "black")
+			}
+			if level, ok := thing.GetFloat("percent"); ok && level > 0 {
+				feature.AddProperty("fillinglevel", fmt.Sprintf("%0.f", level))
+			}
+		case "lifebuoy":
+			if presence, ok := thing.GetBool("presence"); ok {
+				if presence {
+					feature.AddProperty("present", l10n.Get("yes"))
+				} else {
+					feature.AddProperty("present", l10n.Get("no"))
+				}
+			} else {
+				feature.AddProperty("text_nodata", l10n.Get("nodata"))
+			}
+		case "desk":
+			if presence, ok := thing.GetBool("presence"); ok {
+				if presence {
+					feature.AddProperty("present", l10n.Get("occupied"))
+				} else {
+					feature.AddProperty("present", l10n.Get("available"))
+				}
+			} else {
+				feature.AddProperty("text_nodata", l10n.Get("nodata"))
+			}
+		case "pumpingstation":
+			if pumping, ok := thing.GetBool("pumpingObserved"); ok {
+				if pumping {
+					feature.AddProperty("pumpingObserved", l10n.Get("yes"))
+				} else {
+					feature.AddProperty("pumpingObserved", l10n.Get("no"))
+				}
+			} else {
+				feature.AddProperty("text_nodata", l10n.Get("nodata"))
+			}
+		case "building":
+			feature.AddProperty("energyandpower", fmt.Sprintf("%0.f kWh / %0.f kW", measurementFloat(thing, "energy"), measurementFloat(thing, "power")))
+		}
+
+		if passages, ok := thing.GetFloat("passagesToday"); ok {
+			feature.AddProperty("passagestoday", passages)
+		}
+		if cumulativeVolume, ok := thing.GetFloat("cumulativeVolume"); ok {
+			feature.AddProperty("cumulativeVolume", fmt.Sprintf("%.0f m³", cumulativeVolume))
+		}
+
+		feature.AddProperty("text_consumption", l10n.Get("consumption"))
+		feature.AddProperty("text_cumulativevolume", l10n.Get("cumulativevolume"))
+		feature.AddProperty("text_description", l10n.Get("description"))
+		feature.AddProperty("text_fillinglevel", l10n.Get("fillinglevel"))
+		feature.AddProperty("text_id", l10n.Get("id"))
+		feature.AddProperty("text_information", l10n.Get("information"))
+		feature.AddProperty("text_present", l10n.Get("present"))
+		feature.AddProperty("text_level", l10n.Get("level"))
+		feature.AddProperty("text_missingdata", l10n.Get("missingdata"))
+		feature.AddProperty("text_moreinformation", l10n.Get("moreinformation"))
+		feature.AddProperty("text_name", l10n.Get("name"))
+		feature.AddProperty("text_overflow", l10n.Get("overflow"))
+		feature.AddProperty("text_passagestoday", l10n.Get("numberofpassagestoday"))
+		feature.AddProperty("text_position", l10n.Get("location"))
+		feature.AddProperty("text_pumping", l10n.Get("pumping"))
+		feature.AddProperty("text_status", l10n.Get("status"))
+		feature.AddProperty("text_tags", l10n.Get("tags"))
+		feature.AddProperty("text_temperature", l10n.Get("temperature"))
+
+		features = append(features, feature)
+	}
+
+	return shared.NewFeatureCollection(features)
+}
+
+templ SectionHeading(title string, leading templ.Component) {
+	<div class="flex items-center gap-3 self-stretch">
+		@leading
+		<h2 class="text-2xl font-bold font-heading leading-loose whitespace-nowrap text-primary-dark dark:text-white">{ title }</h2>
+		<div class="min-w-8 flex-1">
+			@separator.Separator(separator.Props{Class: "[&_span:last-child]:hidden"})
+		</div>
+	</div>
+}
+
+func boolString(value bool) string {
+	if value {
+		return "true"
+	}
+	return "false"
+}
+
+func filterTriggerClass() string {
+	return "h-10 w-full justify-between rounded-xl bg-background px-3 text-sm shadow-xs"
+}
+
+func filterTriggerValueClass(hasValue bool) string {
+	if hasValue {
+		return "grow text-foreground"
+	}
+	return "grow text-muted-foreground"
+}
+
+func filterDropdownContentClass() string {
+	return "rounded-xl border-border/80 p-0 shadow-lg"
+}
+
+func filterDropdownItemClass(selected bool) string {
+	if selected {
+		return "font-medium"
+	}
+	return ""
+}
+
+func contains(values []string, expected string) bool {
+	return slices.Contains(values, expected)
+}
+
+func displayThingType(l10n Localizer, thing ThingViewModel) string {
+	if thing.SubType != "" {
+		return l10n.Get(thing.SubType)
+	}
+	return l10n.Get(thing.Type)
+}
+
+func fallbackValue(value string) string {
+	if strings.TrimSpace(value) == "" {
+		return "-"
+	}
+	return value
+}
+
+func firstTags(tags []string, limit int) []string {
+	if len(tags) <= limit {
+		return tags
+	}
+	return tags[:limit]
+}
+
+func measurementFloat(thing ThingViewModel, key string) float64 {
+	value, _ := thing.GetFloat(key)
+	return value
+}
+
+func progressVariant(tone string) progress.Variant {
+	switch tone {
+	case "critical":
+		return progress.VariantDanger
+	case "warning":
+		return progress.VariantWarning
+	case "good":
+		return progress.VariantSuccess
+	default:
+		return progress.VariantDefault
+	}
+}

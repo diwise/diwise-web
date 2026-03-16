@@ -19,6 +19,7 @@ import (
 	authv2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/auth"
 	homev2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/home"
 	sensorsv2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/sensors"
+	thingsv2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/things"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	webv2utils "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/utils"
 
@@ -206,7 +207,9 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.HandleFunc("GET /v2/sensors", sensorsv2.NewSensorsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /v2/sensors/{id}", sensorsv2.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("POST /v2/sensors/{id}", sensorsv2.NewSaveSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /v2/things", thingsv2.NewThingsPage(ctx, l10n, assetLoader.Load, app))
 	r.Handle("GET /v2/components/sensors/list", RequireHX(sensorsv2.NewSensorsDataList(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /v2/components/things/list", RequireHX(thingsv2.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /v2/components/tables/sensors", RequireHX(sensorsv2.NewSensorsTable(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /v2/components/sensors/{id}/status", RequireHX(sensorsv2.NewStatusChartsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /v2/components/measurements", RequireHX(sensorsv2.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))

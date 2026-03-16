@@ -12,6 +12,7 @@
     --color-orange-400: oklch(75% 0.183 55.934);
     --color-orange-600: oklch(64.6% 0.222 41.116);
     --color-amber-500: oklch(76.9% 0.188 70.08);
+    --color-yellow-500: oklch(79.5% 0.184 86.047);
     --color-green-500: oklch(72.3% 0.219 149.579);
     --color-green-600: oklch(62.7% 0.194 149.214);
     --color-green-700: oklch(52.7% 0.154 150.069);
@@ -343,9 +344,6 @@
   .my-auto {
     margin-block: auto;
   }
-  .mt-0\.5 {
-    margin-top: calc(var(--spacing) * 0.5);
-  }
   .mt-2 {
     margin-top: calc(var(--spacing) * 2);
   }
@@ -451,6 +449,9 @@
     width: calc(var(--spacing) * 12);
     height: calc(var(--spacing) * 12);
   }
+  .h-1 {
+    height: calc(var(--spacing) * 1);
+  }
   .h-2 {
     height: calc(var(--spacing) * 2);
   }
@@ -549,6 +550,9 @@
   }
   .max-h-\[300px\] {
     max-height: 300px;
+  }
+  .min-h-10 {
+    min-height: calc(var(--spacing) * 10);
   }
   .min-h-36 {
     min-height: calc(var(--spacing) * 36);
@@ -655,6 +659,9 @@
   .max-w-5xl {
     max-width: var(--container-5xl);
   }
+  .max-w-64 {
+    max-width: calc(var(--spacing) * 64);
+  }
   .max-w-full {
     max-width: 100%;
   }
@@ -675,6 +682,9 @@
   }
   .min-w-\[108px\] {
     min-width: 108px;
+  }
+  .min-w-\[180px\] {
+    min-width: 180px;
   }
   .min-w-\[200px\] {
     min-width: 200px;
@@ -1164,6 +1174,9 @@
       background-color: color-mix(in oklab, var(--color-white) 85%, transparent);
     }
   }
+  .bg-yellow-500 {
+    background-color: var(--color-yellow-500);
+  }
   .bg-\[url\(\'\/assets\/790b004db41539410fb0ebe8f6d04cab4fc47cc7709b04b0a03353605edc100a\/bg2048\.webp\'\)\] {
     background-image: url('/assets/790b004db41539410fb0ebe8f6d04cab4fc47cc7709b04b0a03353605edc100a/bg2048.webp');
   }
@@ -1377,6 +1390,10 @@
   }
   .text-\[32px\] {
     font-size: 32px;
+  }
+  .leading-5 {
+    --tw-leading: calc(var(--spacing) * 5);
+    line-height: calc(var(--spacing) * 5);
   }
   .leading-10 {
     --tw-leading: calc(var(--spacing) * 10);
@@ -2423,6 +2440,11 @@
   .lg\:flex-\[1_0_0\] {
     @media (width >= 64rem) {
       flex: 1 0 0;
+    }
+  }
+  .lg\:grid-cols-2 {
+    @media (width >= 64rem) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
   .lg\:grid-cols-\[minmax\(0\,1\.5fr\)_repeat\(4\,minmax\(0\,1fr\)\)\] {

@@ -94,16 +94,17 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 	@mapHandle.Once() {
 		<script nonce={ csp.Nonce(ctx) }>
         (()=> {
-            const leaflet = window.L;
-            if (!leaflet || typeof leaflet.tileLayer !== 'function') {
+            // Use the pinned Leaflet reference; the live global `L` is not stable in v2.
+            const Leaflet = window.__diwiseLeaflet || window.L;
+            if (!Leaflet || typeof Leaflet.tileLayer !== 'function' || typeof Leaflet.map !== 'function') {
                 return;
             }
 
-            const lightModeTileLayer = leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            const lightModeTileLayer = Leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                 maxZoom: 16, // 200 meters
             });
 
-            const darkModeTileLayer = leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            const darkModeTileLayer = Leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 maxZoom: 16,
             });
 
@@ -116,13 +117,13 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             
             const showPopup = m.getAttribute('data-show-popup') === 'true';
             const editMode = m.getAttribute('data-edit-mode') === 'true';
-            const map = leaflet.map(mapContainerID).setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
+            const map = Leaflet.map(mapContainerID).setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
             const isDarkMode = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
             let layers = {};
             var newMarker = null;
             
-            leaflet.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
+            Leaflet.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
 
             updateMapForTheme(isDarkMode);
             
@@ -139,7 +140,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                         newMarker.setLatLng(e.latlng);
                     } else {
                         if (latitude.value === "0.000000" && longitude.value === "0.000000") {
-                            newMarker = leaflet.marker(e.latlng, { draggable: true }).addTo(map);
+                            newMarker = Leaflet.marker(e.latlng, { draggable: true }).addTo(map);
 
                             newMarker.on('drag', function (event) {
                                 let position = event.target.getLatLng();
@@ -181,7 +182,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             }
 
             function createMarker(latlng, icon, editMode = false, onDragCallback = null, zIndexOffset = 0) {
-                let marker = leaflet.marker(latlng, {
+                let marker = Leaflet.marker(latlng, {
                     icon: icon,
                     zIndexOffset: zIndexOffset,
                     draggable: editMode
@@ -221,7 +222,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 
             function resetZIndex() {
                 map.eachLayer(function(layer) {
-                    if (layer instanceof leaflet.Marker) {
+                    if (layer instanceof Leaflet.Marker) {
                         layer.setZIndexOffset(0);
                     }
                 });
@@ -369,18 +370,18 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             
             function addFeaturesToMap(gd, m, isDarkMode, editMode) {                                        
                 if (gd && Array.isArray(gd)) {
-                    var bounds = leaflet.latLngBounds();
+                    var bounds = Leaflet.latLngBounds();
                     
                     gd.forEach(data => {
                         data.features.forEach(feature => {
-                                const type = feature.properties.type.toLowerCase();
-                                const subtype = feature.properties.subtype !== undefined ? feature.properties.subtype.toLowerCase() : '';
+                                const type = typeof feature.properties.type === 'string' ? feature.properties.type.toLowerCase() : '';
+                                const subtype = typeof feature.properties.subtype === 'string' ? feature.properties.subtype.toLowerCase() : '';
                                 const { backgroundColor, textColor, lightipColor, darktipColor } = getColorByState(feature.properties.state, isDarkMode);
                                 const tipColor = isDarkMode ? darktipColor : lightipColor;
                                 const tipIcon = generateTipIcon(tipColor)
                                 const { iconUrl } = getIconByTypeAndTheme(type, subtype, isDarkMode);
 
-                                leaflet.geoJSON(feature, {
+                                Leaflet.geoJSON(feature, {
                                     pointToLayer: function(feature, latlng) {
                                         const fillingLevelHtml = feature.properties.missingdata
                                             ? ''
@@ -394,7 +395,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                 ? '<div class="text-sm font-bold">' + feature.properties.temperature + '</div>'
                                                 : '');
 
-                                        const divIcon = leaflet.divIcon({
+                                        const divIcon = Leaflet.divIcon({
                                             className: '',
                                             html:   '<div class="flex flex-col items-center opacity-100">' +
                                                         '<div class="flex flex-col items-center justify-center opacity-100 p-2 rounded-lg shadow-md gap-2" style="background-color:' + backgroundColor + ';color:' + textColor + ';">' +
@@ -435,12 +436,15 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                             var moreinformation = feature.properties.url ? '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div><a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a>' : '';
                                             var outro = '</div></div>';
 
+                                            const featureType = typeof feature.properties.type === 'string' ? feature.properties.type.toLowerCase() : '';
+                                            const featureSubtype = typeof feature.properties.subtype === 'string' ? feature.properties.subtype.toLowerCase() : '';
+
                                             if (cv === "sensor") {
                                                 const sensorpopup = createSensorPopup(feature, intro, location, moreinformation, outro);
                                                 popupContent = sensorpopup;
-                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "container") {
+                                            } else if (cv === "thing" && featureType === "container") {
                                                 var colourClass = "bg-background-200";
-                                                if (feature.properties.subtype.toLowerCase() == "wastecontainer") {                                                    
+                                                if (featureSubtype == "wastecontainer") {                                                    
                                                     if (feature.properties.fillinglevel >= 50) {
                                                         colourClass = "bg-red-600 dark:bg-err-prim-surf";
                                                     } else if (feature.properties.fillinglevel >= 30) {
@@ -449,7 +453,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                         colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
                                                     }
                                                 }
-                                                else if (feature.properties.subtype.toLowerCase() == "sandstorage") {
+                                                else if (featureSubtype == "sandstorage") {
                                                     if (feature.properties.fillinglevel <= 50) {
                                                         colourClass = "bg-red-600 dark:bg-err-prim-surf";
                                                     } else if (feature.properties.fillinglevel >= 70) {
@@ -479,7 +483,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                         '</div>' +
                                                                         moreinformation +
                                                                     outro;
-                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "passage") {
+                                            } else if (cv === "thing" && featureType === "passage") {
                                                 const thingdata = feature.properties.missingdata
                                                 ? '<div class="">' + feature.properties.text_missingdata + '</div>'
                                                 : '<div class="">' + feature.properties.passagestoday + '&nbsp;st</div>'
@@ -495,7 +499,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     '</div>' +
                                                                 outro;
 
-                                            } else if (cv === "thing" && feature.properties.subtype.toLowerCase() === "combinedseweroverflow") {
+                                            } else if (cv === "thing" && featureSubtype === "combinedseweroverflow") {
                                                 const thingdata = feature.properties.missingdata
                                                 ? '<div class="">' + feature.properties.text_missingdata + '</div>'
                                                 : '<div class="">' + feature.properties.state + '</div>'
@@ -512,7 +516,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     '</div>' +
                                                                     moreinformation +
                                                                 outro;
-                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "sewer") {
+                                            } else if (cv === "thing" && featureType === "sewer") {
 
 
                                                 var colourClass = "bg-background-200";                                                
@@ -569,7 +573,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     moreinformation +
                                                                 outro;
                                             */
-                                            } else if (cv === "thing" && feature.properties.subtype.toLowerCase() === "beach" || feature.properties.type.toLowerCase() === "room" || feature.properties.type.toLowerCase() === "pointofinterest") {
+                                            } else if (cv === "thing" && (featureSubtype === "beach" || featureType === "room" || featureType === "pointofinterest")) {
                                                 const thingdata = feature.properties.missingdata
                                                 ? '<div class="">' + feature.properties.text_missingdata + '</div>'
                                                 : '<div class="">' + feature.properties.temperature + '</div>'
@@ -587,7 +591,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     moreinformation +
                                                                 outro;
                                                 
-                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "lifebuoy") {
+                                            } else if (cv === "thing" && featureType === "lifebuoy") {
                                                 const thingdata = feature.properties.missingdata
                                                 ? '<div class="">' + feature.properties.text_missingdata + '</div>'
                                                 : '<div class="">' + feature.properties.present + '</div>'
@@ -604,7 +608,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     '</div>' +
                                                                     moreinformation +
                                                                 outro;
-                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "desk") {
+                                            } else if (cv === "thing" && featureType === "desk") {
                                                 const thingdata = feature.properties.missingdata
                                                 ? '<div class="">' + feature.properties.text_missingdata + '</div>'
                                                 : '<div class="">' + feature.properties.present + '</div>'
@@ -620,7 +624,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     '</div>' +
                                                                     moreinformation +
                                                                 outro;
-                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "watermeter") {
+                                            } else if (cv === "thing" && featureType === "watermeter") {
                                                 const thingdata = feature.properties.missingdata
                                                 ? '<div class="">' + feature.properties.text_missingdata + '</div>'
                                                 : '<div class="">' + feature.properties.cumulativeVolume + '</div>'
@@ -636,7 +640,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     '</div>' +
                                                                     moreinformation +
                                                                 outro;
-                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "building") {
+                                            } else if (cv === "thing" && featureType === "building") {
                                                 const thingdata = feature.properties.missingdata
                                                 ? '<div class="">' + feature.properties.text_missingdata + '</div>'
                                                 : '<div class="">' + feature.properties.energyandpower + '</div>'
@@ -652,7 +656,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     '</div>' +
                                                                     moreinformation +
                                                                 outro;
-                                            } else if (cv === "thing" && feature.properties.type.toLowerCase() === "pumpingstation") {
+                                            } else if (cv === "thing" && featureType === "pumpingstation") {
                                                 const thingdata = feature.properties.missingdata
                                                 ? '<div class="">' + feature.properties.text_missingdata + '</div>'
                                                 : '<div class="">' + feature.properties.pumpingObserved + '</div>'

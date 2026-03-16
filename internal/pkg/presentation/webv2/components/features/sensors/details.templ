@@ -11,6 +11,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -234,14 +235,14 @@ templ EditSensorDetailsFormSection(l10n Localizer, sensor SensorDetailsPageViewM
 				@MeasurementTypeOptionsField(l10n, MeasurementTypeOptionsProps{Options: sensor.TypeOptions})
 			</div>
 			<div class="grid gap-6 md:grid-cols-2">
-				@EditField(l10n.Get("environment")) {
+				@EditFieldWithTooltip(l10n.Get("environment"), l10n.Get("located")) {
 					<select name="environment" class="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none">
 						for _, option := range environmentOptions(l10n) {
 							<option value={ option.Value } selected?={ option.Value == sensor.Environment }>{ option.Label }</option>
 						}
 					</select>
 				}
-				@EditField(l10n.Get("observationinterval")) {
+				@EditFieldWithTooltip(l10n.Get("observationinterval"), l10n.Get("devicenotobservedafter")) {
 					<div class="flex items-center gap-3">
 						@input.Input(input.Props{
 							Name:  "interval",
@@ -330,6 +331,16 @@ templ EditField(label string) {
 	</div>
 }
 
+templ EditFieldWithTooltip(label string, tooltipText string) {
+	<div class="flex flex-col gap-2">
+		<div class="flex items-center gap-2">
+			<label class="text-sm font-medium text-foreground">{ label }</label>
+			@shared.HelpTooltip(tooltipText)
+		</div>
+		{ children... }
+	</div>
+}
+
 templ MeasurementTypeOptionsField(l10n Localizer, props MeasurementTypeOptionsProps) {
 	<div id="measurement-types-field" class="flex flex-col gap-2">
 		<label class="text-sm font-medium text-foreground">{ l10n.Get("measurementtype") }</label>
@@ -338,14 +349,36 @@ templ MeasurementTypeOptionsField(l10n Localizer, props MeasurementTypeOptionsPr
 				{ l10n.Get("chooseMeasurementtype") }
 			</div>
 		} else {
-			<div class="grid gap-3 rounded-2xl border border-border/70 bg-background/60 p-4 sm:grid-cols-2">
-				for _, option := range props.Options {
-					<label class="inline-flex items-start gap-3 text-sm text-foreground">
-						<input type="checkbox" name="measurementType-option[]" value={ option.Value } class="mt-0.5 h-4 w-4 rounded border-input" checked?={ option.Selected }/>
-						<span>{ option.Label }</span>
-					</label>
+			@selectbox.SelectBox(selectbox.Props{ID: "measurement-type-select"}) {
+				@selectbox.Trigger(selectbox.TriggerProps{
+					Name:              "measurementType-option[]",
+					Multiple:          true,
+					ShowPills:         true,
+					SelectedCountText: l10n.Get("selecteditemcount"),
+					Class:             "min-h-10 h-auto justify-between rounded-xl bg-background px-3 py-2 text-left shadow-xs",
+				}) {
+					@selectbox.Value(selectbox.ValueProps{
+						Placeholder: l10n.Get("chooseMeasurementtype"),
+						Class:       "w-full text-sm",
+					})
 				}
-			</div>
+				@selectbox.Content(selectbox.ContentProps{
+					Class:             "rounded-2xl border border-border/80 bg-popover p-0 shadow-xl",
+					SearchPlaceholder: l10n.Get("search"),
+				}) {
+					@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+						for _, option := range props.Options {
+							@selectbox.Item(selectbox.ItemProps{
+								Value:    option.Value,
+								Selected: option.Selected,
+								Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-background-100 data-[tui-selectbox-selected=true]:bg-primary-surface data-[tui-selectbox-selected=true]:text-primary-dark dark:hover:bg-white/10 dark:data-[tui-selectbox-selected=true]:bg-white/10 dark:data-[tui-selectbox-selected=true]:text-white",
+							}) {
+								{ option.Label }
+							}
+						}
+					}
+				}
+			}
 		}
 	</div>
 }

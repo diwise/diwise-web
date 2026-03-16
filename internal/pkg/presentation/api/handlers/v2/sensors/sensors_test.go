@@ -66,6 +66,20 @@ func TestBuildSensorUpdateFieldsMapsEditForm(t *testing.T) {
 	is.Equal([]string{"urn:1", "urn:2"}, fields["types"])
 }
 
+func TestBuildSensorUpdateFieldsSplitsCommaSeparatedMeasurementTypes(t *testing.T) {
+	is := is.New(t)
+
+	form := url.Values{
+		"id":                       {"device-1"},
+		"measurementType-option[]": {"urn:1,urn:2, urn:1"},
+	}
+	req := &http.Request{Form: form}
+
+	fields := buildSensorUpdateFields(req)
+
+	is.Equal([]string{"urn:1", "urn:2"}, fields["types"])
+}
+
 func TestMeasurementTypeOptionsUsesMatchingProfileAndSelection(t *testing.T) {
 	is := is.New(t)
 
@@ -73,7 +87,7 @@ func TestMeasurementTypeOptionsUsesMatchingProfileAndSelection(t *testing.T) {
 		{Name: "Weather", Decoder: "weather-decoder", Types: &[]string{"sensor:temperature", "sensor:humidity"}},
 	}
 
-	options := measurementTypeOptions(nil, profiles, "weather-decoder", []string{"sensor:humidity"})
+	options := measurementTypeOptions(nil, profiles, "weather-decoder", []string{"sensor:humidity"}, nil)
 
 	is.Equal(2, len(options))
 	is.Equal("sensor:humidity", options[0].Value)
@@ -82,4 +96,21 @@ func TestMeasurementTypeOptionsUsesMatchingProfileAndSelection(t *testing.T) {
 	is.Equal("sensor:temperature", options[1].Value)
 	is.Equal("temperature", options[1].Label)
 	is.Equal(false, options[1].Selected)
+}
+
+func TestMeasurementTypeOptionsPrefersProvidedLabels(t *testing.T) {
+	is := is.New(t)
+
+	profiles := []application.DeviceProfile{
+		{Name: "Weather", Decoder: "weather-decoder", Types: &[]string{"guid-1"}},
+	}
+
+	options := measurementTypeOptions(nil, profiles, "weather-decoder", []string{"guid-1"}, map[string]string{
+		"guid-1": "Temperature",
+	})
+
+	is.Equal(1, len(options))
+	is.Equal("guid-1", options[0].Value)
+	is.Equal("Temperature", options[0].Label)
+	is.Equal(true, options[0].Selected)
 }

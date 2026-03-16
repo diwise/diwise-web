@@ -30,6 +30,10 @@ templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, main
 			<script src={ asset("/js/htmx.min.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 			<script src={ asset("/js/htmx-ext-sse.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 			<script src={ asset("/js/leaflet.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+			<script nonce={ csp.Nonce(ctx) }>
+				// Some v2 deferred scripts mutate the global `L`, so pin Leaflet immediately after load.
+				window.__diwiseLeaflet = window.L;
+			</script>
 			@ui.TemplUIScripts()
 			@shared.ChartBaseScript()
 			<script defer src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js" nonce={ csp.Nonce(ctx) }></script>
@@ -114,7 +118,7 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 			<nav class="mt-14 flex flex-col gap-2">
 				@NavItem(l10n.Get("home"), "/v2/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
 				@NavItem(l10n.Get("sensors"), "/v2/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
-				@NavItem(l10n.Get("things"), "/things", false, icon.Shapes(icon.Props{Size: 18}))
+				@NavItem(l10n.Get("things"), "/v2/things", isCurrent(ctx, "things"), icon.Shapes(icon.Props{Size: 18}))
 			</nav>
 			<div class="mt-auto flex flex-col gap-3">
 				@NavItem(l10n.Get("logout"), "/v2/logout", false, icon.LogOut(icon.Props{Size: 18}))
@@ -137,7 +141,7 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 					<div class="ml-auto flex items-center gap-1">
 						@IconNav("/v2/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
 						@IconNav("/v2/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
-						@IconNav("/things", false, icon.Shapes(icon.Props{Size: 18}))
+						@IconNav("/v2/things", isCurrent(ctx, "things"), icon.Shapes(icon.Props{Size: 18}))
 						@IconNav("/v2/logout", false, icon.LogOut(icon.Props{Size: 18}))
 						@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-light rounded-xl dark:hidden"}) {
 							@icon.SunMedium(icon.Props{Size: 18})
