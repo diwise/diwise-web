@@ -69,6 +69,10 @@ func (a *App) UpdateDevice(ctx context.Context, deviceID string, fields map[stri
 	return a.devices.UpdateDevice(ctx, deviceID, fields)
 }
 
+func (a *App) UpdateSensor(ctx context.Context, sensorID string, fields map[string]any) error {
+	return a.devices.UpdateSensor(ctx, sensorID, fields)
+}
+
 func (a *App) Attach(ctx context.Context, deviceID string) error {
 	return a.devices.Attach(ctx, deviceID)
 }

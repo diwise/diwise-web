@@ -107,6 +107,21 @@ func (s *Service) UpdateDevice(ctx context.Context, deviceID string, fields map[
 	return s.client.Patch(ctx, s.client.DeviceManagementURL(), deviceID, b)
 }
 
+func (s *Service) UpdateSensor(ctx context.Context, sensorID string, fields map[string]any) error {
+	var err error
+	ctx, span := tracer.Start(ctx, "update-sensor")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	var b []byte
+	b, err = json.Marshal(fields)
+	if err != nil {
+		return err
+	}
+
+	endpoint := fmt.Sprintf("%s/%s", s.client.SensorsManagementURL(), sensorID)
+	return s.client.Put(ctx, endpoint, b)
+}
+
 func (s *Service) Attach(ctx context.Context, deviceID string) error {
 	var err error
 	ctx, span := tracer.Start(ctx, "attach-sensor")

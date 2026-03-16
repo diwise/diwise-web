@@ -192,7 +192,7 @@ func NewSensorIDDialogComponentHandler(ctx context.Context, l10n LocaleBundle, a
 			return
 		}
 
-		component := components.SensorIDDialogContent(localizer, id, detailsViewModel.SensorID, "", "")
+		component := components.SensorIDDialogContent(localizer, assets, *detailsViewModel, "", detailsViewModel.DeviceProfileName, "")
 		helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
 	}
 
@@ -201,7 +201,7 @@ func NewSensorIDDialogComponentHandler(ctx context.Context, l10n LocaleBundle, a
 
 func NewDetachSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
+		if r.Method != http.MethodPost && r.Method != http.MethodGet {
 			http.Error(w, "", http.StatusBadRequest)
 			return
 		}
@@ -220,6 +220,18 @@ func NewDetachSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBund
 		ctx = helpers.Decorate(ctx,
 			components.CurrentComponent, "sensors",
 		)
+
+		if r.Method == http.MethodGet {
+			detailsViewModel, err := composeViewModel(ctx, id, app)
+			if err != nil {
+				http.Error(w, "could not compose view model", http.StatusInternalServerError)
+				return
+			}
+
+			component := components.DetachSensorConfirmDialog(localizer, assets, *detailsViewModel)
+			helpers.WriteComponentResponse(ctx, w, r, component, 1024, 0)
+			return
+		}
 
 		if err := app.Deattach(ctx, id); err != nil {
 			http.Error(w, "could not detach sensor", http.StatusInternalServerError)
@@ -274,8 +286,17 @@ func NewAttachSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBund
 			components.CurrentComponent, "sensors",
 		)
 
-		writeDialogError := func(status int, deviceID, currentSensorID, attemptedSensorID, msg string) {
-			component := components.SensorIDDialogContent(localizer, deviceID, currentSensorID, attemptedSensorID, msg)
+		loadDialogModel := func(deviceID string) components.SensorDetailsViewModel {
+			vm := components.SensorDetailsViewModel{DeviceID: deviceID}
+			detailsViewModel, err := composeViewModel(ctx, deviceID, app)
+			if err == nil && detailsViewModel != nil {
+				vm = *detailsViewModel
+			}
+			return vm
+		}
+
+		writeDialogError := func(status int, model components.SensorDetailsViewModel, attemptedSensorID, selectedSensorType, msg string) {
+			component := components.SensorIDDialogContent(localizer, assets, model, attemptedSensorID, selectedSensorType, msg)
 			var b bytes.Buffer
 			if err := component.Render(ctx, &b); err != nil {
 				http.Error(w, "could not render dialog", http.StatusInternalServerError)
@@ -288,30 +309,25 @@ func NewAttachSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBund
 
 		id := r.URL.Query().Get("id")
 		if id == "" {
-			writeDialogError(http.StatusBadRequest, "", "", "", "Kunde inte hitta deviceID")
+			writeDialogError(http.StatusBadRequest, components.SensorDetailsViewModel{}, "", "", "Kunde inte hitta deviceID")
 			return
 		}
 
 		sensorID := strings.TrimSpace(r.FormValue("newSensorID"))
+		sensorType := strings.TrimSpace(r.FormValue("sensorType"))
 		if sensorID == "" {
-			detailsViewModel, _ := composeViewModel(ctx, id, app)
-			currentSensorID := ""
-			if detailsViewModel != nil {
-				currentSensorID = detailsViewModel.SensorID
-			}
-			writeDialogError(http.StatusBadRequest, id, currentSensorID, sensorID, "SensorID kan inte vara tomt")
+			writeDialogError(http.StatusBadRequest, loadDialogModel(id), sensorID, sensorType, "SensorID kan inte vara tomt")
+			return
+		}
+
+		if sensorType == "" {
+			writeDialogError(http.StatusBadRequest, loadDialogModel(id), sensorID, sensorType, "Sensorprofil måste väljas")
 			return
 		}
 
 		ctx = devices.WithAttachSensorID(ctx, sensorID)
 
 		if err := app.Attach(ctx, id); err != nil {
-			detailsViewModel, _ := composeViewModel(ctx, id, app)
-			currentSensorID := ""
-			if detailsViewModel != nil {
-				currentSensorID = detailsViewModel.SensorID
-			}
-
 			status := http.StatusInternalServerError
 			errMsg := "Kunde inte koppla sensorn"
 			switch {
@@ -323,7 +339,23 @@ func NewAttachSensorDetailsComponentHandler(ctx context.Context, l10n LocaleBund
 				errMsg = "SensorID är redan kopplad till en annan enhet"
 			}
 
-			writeDialogError(status, id, currentSensorID, sensorID, errMsg)
+			writeDialogError(status, loadDialogModel(id), sensorID, sensorType, errMsg)
+			return
+		}
+
+		if err := app.UpdateSensor(ctx, sensorID, map[string]any{"sensorID": sensorID, "sensorProfileID": sensorType}); err != nil {
+			status := http.StatusInternalServerError
+			errMsg := "Kunde inte uppdatera sensorprofil"
+			switch {
+			case errors.Is(err, common.ErrNotFound):
+				status = http.StatusNotFound
+				errMsg = "Sensorn hittades inte"
+			case errors.Is(err, common.ErrConflict):
+				status = http.StatusConflict
+				errMsg = "Ogiltig sensorprofil"
+			}
+
+			writeDialogError(status, loadDialogModel(id), sensorID, sensorType, errMsg)
 			return
 		}
 

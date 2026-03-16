@@ -51,6 +51,7 @@ type ApiResponse struct {
 
 type Client struct {
 	deviceManagementURL string
+	sensorsManagementURL  string
 	thingManagementURL  string
 	adminURL            string
 	measurementURL      string
@@ -61,6 +62,7 @@ type Client struct {
 func NewClient(devmgmt, things, admin, alarms, measurement string) *Client {
 	return &Client{
 		deviceManagementURL: devmgmt,
+		sensorsManagementURL:  strings.ReplaceAll(devmgmt, "device", "sensor"),
 		thingManagementURL:  things,
 		adminURL:            admin,
 		alarmsURL:           alarms,
@@ -73,6 +75,7 @@ func NewClient(devmgmt, things, admin, alarms, measurement string) *Client {
 }
 
 func (c *Client) DeviceManagementURL() string { return c.deviceManagementURL }
+func (c *Client) SensorsManagementURL() string { return c.sensorsManagementURL }
 func (c *Client) ThingManagementURL() string  { return c.thingManagementURL }
 func (c *Client) AdminURL() string            { return c.adminURL }
 func (c *Client) MeasurementURL() string      { return c.measurementURL }

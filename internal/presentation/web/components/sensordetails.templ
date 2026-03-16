@@ -383,20 +383,8 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 									<div class="font-bold">{ l10n.Get("sensorID") }</div>
 									<div class="flex items-center gap-2">
 										<input id="sensor-id-input" type="text" name="sensorID" value={ sensor.SensorID } disabled class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2 disabled:opacity-70" placeholder="SensorID"/>
-										<button
-											type="button"
-											class="h-[40px] px-3 rounded-xl border border-input-surface dark:border-white-50 whitespace-nowrap"
-											hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/sensors/details/sensorid-dialog?id=%s", sensor.DeviceID))) }
-											hx-target="#sensor-id-dialog-content"
-											hx-swap="innerHTML"
-										>Byt</button>
-										<button
-											type="button"
-											class="h-[40px] px-3 rounded-xl border border-input-surface dark:border-white-50 whitespace-nowrap"
-											hx-post={ string(templ.SafeURL(fmt.Sprintf("/components/sensors/details/detach?id=%s", sensor.DeviceID))) }
-											hx-target="#sensor-view"
-											hx-swap="innerHTML"
-										>Ta bort</button>
+										@Button(Tertiary, l10n.Get("edit"), "pen", Target("#sensor-id-dialog-content"), HxUrl("get", fmt.Sprintf("/components/sensors/details/sensorid-dialog?id=%s", sensor.DeviceID)))
+										@Button(Error, l10n.Get("delete"), "trashcan", Target("#modalDetachSensorContainer"), HxUrl("get", fmt.Sprintf("/components/sensors/details/detach?id=%s", sensor.DeviceID)), Trigger("click"), Swap("innerHTML"))
 									</div>
 								</div>
 							</div>
@@ -418,12 +406,13 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 							<div class="flex flex-start gap-10 self-stretch">
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("sensortype") }</div>
-									<div class="border border-input-surface rounded-xl">
-										<label for="sensorType" class="hidden block text-sm font-medium text-gray-700">
-											{ l10n.Get("pickOption") }
-										</label>
-										@SensorTypeSelect(l10n, asset, "sensorType", sensor.DeviceProfileName, sensor.DeviceProfiles)
-									</div>
+									<input
+										type="text"
+										value={ sensor.DeviceProfileName }
+										disabled
+										class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2 disabled:opacity-70"
+										placeholder="Sensortyp"
+									/>
 								</div>
 								<div class="flex flex-col gap-2 flex-[1_0_0]">
 									<div class="font-bold">{ l10n.Get("measurementtype") }</div>
@@ -576,6 +565,7 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 		<dialog id="sensor-id-dialog" class="w-full max-w-xl rounded-2xl p-0 border border-input-surface dark:border-white-50 bg-white dark:bg-input-surface-dark text-primary-dark dark:text-white">
 			<div id="sensor-id-dialog-content"></div>
 		</dialog>
+		<div id="modalDetachSensorContainer" class="hidden fixed inset-0 bg-gray-30 z-50 flex items-start justify-center"></div>
 	</div>
 	<script nonce={ csp.Nonce(ctx) }>
 		(() => {
@@ -602,43 +592,98 @@ templ EditSensorDetails(l10n Localizer, asset AssetLoaderFunc, sensor SensorDeta
 					}
 				}
 			});
+
+			document.getElementById('modalDetachSensorContainer').addEventListener('htmx:afterSwap', function() {
+				document.getElementById('modalDetachSensorContainer').classList.remove('hidden');
+			});
 		})();
 	</script>
 }
 
-templ SensorIDDialogContent(l10n Localizer, deviceID, currentSensorID, newSensorID, errorMessage string) {
+templ DetachSensorConfirmDialog(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel) {
+	<div id="modalDetachSensor" class="fixed inset-0 bg-gray-30 z-50 flex items-center justify-center">
+		<div class="bg-white rounded-lg shadow-xl w-full max-w-xl p-6">
+			<div class="w-full">
+				<div class="flex items-center w-full justify-between">
+					<div class="flex items-center gap-6 align-middle">
+						<h1 class="text-primary-dark dark:text-white text-2xl font-bold font-heading leading-loose">
+							{ l10n.Get("delete") } sensor { sensor.SensorID }?
+						</h1>
+					</div>
+				</div>
+				<div class="w-full flex py-6 gap-10 text-primary-dark dark:text-white">
+					<div class="flex flex-col items-start gap-20 flex-[1_0_0]">
+						Sensor kopplas bort från enheten.
+					</div>
+				</div>
+				<div class="flex items-center justify-end pt-6">
+					<div class="flex items-center gap-4">
+						<div id="cancelDetachSensorButton">
+							@Button(Secondary, l10n.Get("cancel"), "close", Name("cancel"), BtnType("button"))
+						</div>
+						@Button(Error, l10n.Get("delete"), "trashcan", Name("delete"), Target("#sensor-view"), HxUrl("post", fmt.Sprintf("/components/sensors/details/detach?id=%s", sensor.DeviceID)), Swap("innerHTML"))
+					</div>
+				</div>
+				<script nonce={ csp.Nonce(ctx) }>
+					document.getElementById('cancelDetachSensorButton').addEventListener('click', function() {
+						document.getElementById('modalDetachSensorContainer').classList.add('hidden');
+					});
+				</script>
+			</div>
+		</div>
+	</div>
+}
+
+templ SensorIDDialogContent(l10n Localizer, asset AssetLoaderFunc, sensor SensorDetailsViewModel, newSensorID, selectedSensorType, errorMessage string) {
 	<div class="p-6 flex flex-col gap-6">
 		<div class="flex flex-col gap-2">
-			<h3 class="text-xl font-heading font-bold">{ l10n.Get("sensorID") }</h3>
-			<div class="text-sm text-secondary-outline-hover dark:text-secondary">Nuvarande: { currentSensorID }</div>
+			<h3 class="text-xl font-heading font-bold">Redigera sensor</h3>
+			<div class="text-sm text-secondary-outline-hover dark:text-secondary">Nuvarande: { sensor.SensorID }</div>
 		</div>
 		if errorMessage != "" {
 			<div class="rounded-xl border border-red-300 bg-red-50 text-red-800 px-3 py-2 text-sm dark:bg-red-950 dark:text-red-200 dark:border-red-800">{ errorMessage }</div>
 		}
-		<input type="hidden" name="id" value={ deviceID }/>
+		<input type="hidden" name="id" value={ sensor.DeviceID }/>
 		<div class="flex flex-col gap-2">
-			<label for="new-sensor-id" class="font-bold">Nytt sensorID</label>
+			<label for="new-sensor-id" class="font-bold">Sensor ID</label>
 			<input
 				id="new-sensor-id"
 				type="text"
 				name="newSensorID"
-				value={ newSensorID }
+				value={ sensorIDInputValue(sensor, newSensorID) }
 				class="w-full h-[40px] border border-input-surface dark:border-white-50 dark:bg-input-surface-dark focus:ring-0 placeholder-gray-500 rounded-xl p-2"
-				placeholder="Ange nytt sensorID"
+				placeholder="Ange sensor ID"
 			/>
+		</div>
+		<div class="flex flex-col gap-2">
+			<div class="font-bold">{ l10n.Get("sensortype") }</div>
+			<div class="border border-input-surface rounded-xl">
+				<label for="sensorType" class="hidden block text-sm font-medium text-gray-700">
+					{ l10n.Get("pickOption") }
+				</label>
+				@SensorTypeSelect(l10n, asset, "sensorType", selectedSensorType, sensor.DeviceProfiles)
+			</div>
 		</div>
 		<div class="flex items-center justify-end gap-3">
 			<button type="button" class="h-[40px] px-4 rounded-xl border border-input-surface dark:border-white-50" onclick="this.closest('dialog').close()">Avbryt</button>
 			<button
 				type="button"
 				class="h-[40px] px-4 rounded-xl bg-primary-surface dark:bg-primary-surface-dark text-white dark:text-primary-dark"
-				hx-post={ string(templ.SafeURL(fmt.Sprintf("/components/sensors/details/attach?id=%s", deviceID))) }
-				hx-include="#new-sensor-id"
+				hx-post={ string(templ.SafeURL(fmt.Sprintf("/components/sensors/details/attach?id=%s", sensor.DeviceID))) }
+				hx-include="#new-sensor-id,#sensorType"
 				hx-target="#sensor-id-dialog-content"
 				hx-swap="innerHTML"
-			>Byt</button>
+			>Spara</button>
 		</div>
 	</div>
+}
+
+func sensorIDInputValue(sensor SensorDetailsViewModel, newSensorID string) string {
+	if strings.TrimSpace(newSensorID) != "" {
+		return newSensorID
+	}
+
+	return sensor.SensorID
 }
 
 templ AlarmList(l10n Localizer) {
