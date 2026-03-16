@@ -1,0 +1,64 @@
+package shared
+
+import "strings"
+
+type DetailListItem struct {
+	Label   string
+	Value   string
+	Missing bool
+	Content templ.Component
+}
+
+templ DetailList(items []DetailListItem) {
+	<div class="overflow-hidden rounded-2xl border border-border/70 bg-background/50">
+		for i, item := range items {
+			<div
+				class={
+					detailListRowClass(i < len(items)-1)
+				}
+			>
+				<div class="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground sm:pt-0.5">
+					{ item.Label }
+				</div>
+				if item.Content != nil {
+					<div class={ detailListContentClass(item.Missing) }>
+						@item.Content
+					</div>
+				} else {
+					<div class={ detailListValueClass(item.Missing) }>
+						{ detailListValue(item) }
+					</div>
+				}
+			</div>
+		}
+	</div>
+}
+
+func detailListRowClass(withBorder bool) string {
+	if withBorder {
+		return "grid gap-2 px-4 py-3 sm:grid-cols-[minmax(0,180px)_1fr] sm:gap-4 border-b border-border/60"
+	}
+	return "grid gap-2 px-4 py-3 sm:grid-cols-[minmax(0,180px)_1fr] sm:gap-4"
+}
+
+func detailListValueClass(missing bool) string {
+	if missing {
+		return "break-words text-sm italic text-muted-foreground"
+	}
+	return "break-words text-sm font-medium text-foreground"
+}
+
+func detailListContentClass(missing bool) string {
+	if missing {
+		return "break-words text-sm text-muted-foreground"
+	}
+	return "break-words text-sm font-medium text-foreground"
+}
+
+func detailListValue(item DetailListItem) string {
+	value := strings.TrimSpace(item.Value)
+	if value == "" {
+		return "-"
+	}
+	return value
+}

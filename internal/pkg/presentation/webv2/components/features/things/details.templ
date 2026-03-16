@@ -161,24 +161,7 @@ templ ThingDetailsPropertiesSection(l10n Localizer, model ThingDetailsPageViewMo
 		icon.Info(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
 		<div class="flex flex-col gap-4 py-6 px-8 text-foreground">
-			@ThingDetailRow(l10n.Get("id"), model.Thing.ID)
-			@ThingDetailRow(l10n.Get("thingtype"), displayThingType(l10n, model.Thing))
-			if strings.TrimSpace(model.Thing.Name) == "" {
-				@ThingDetailRowMissing(l10n.Get("name"), l10n.Get("missing"))
-			} else {
-				@ThingDetailRow(l10n.Get("name"), model.Thing.Name)
-			}
-			if strings.TrimSpace(model.Thing.AlternativeName) != "" {
-				@ThingDetailRow(l10n.Get("alternativeName"), model.Thing.AlternativeName)
-			}
-			if strings.TrimSpace(model.Thing.Description) == "" {
-				@ThingDetailRowMissing(l10n.Get("description"), l10n.Get("missing"))
-			} else {
-				@ThingDetailRow(l10n.Get("description"), model.Thing.Description)
-			}
-			@ThingConnectedSensorRow(l10n, model)
-			@ThingDetailRow(l10n.Get("organisation"), model.Thing.Tenant)
-			@ThingTagRow(l10n, model.Thing.Tags)
+			@shared.DetailList(thingDetailItems(l10n, model))
 		</div>
 	}
 }
@@ -374,8 +357,10 @@ templ ThingDetailsLocationSection(l10n Localizer, model ThingDetailsPageViewMode
 		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
 		<div class="flex w-full flex-col gap-6 py-6 px-8 text-foreground">
-			@ThingDetailRow(l10n.Get("latitude"), formatCoordinate(model.Thing.Latitude))
-			@ThingDetailRow(l10n.Get("longitude"), formatCoordinate(model.Thing.Longitude))
+			@shared.DetailList([]shared.DetailListItem{
+				{Label: l10n.Get("latitude"), Value: formatCoordinate(model.Thing.Latitude)},
+				{Label: l10n.Get("longitude"), Value: formatCoordinate(model.Thing.Longitude)},
+			})
 			if model.Thing.Latitude != 0 && model.Thing.Longitude != 0 {
 				<div class="w-full overflow-hidden rounded-2xl">
 					@shared.Map("medium", false, false, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
@@ -534,26 +519,11 @@ templ ThingEditField(label string) {
 	</div>
 }
 
-templ ThingDetailRow(label, value string) {
-	<div class="flex flex-wrap items-start gap-2">
-		<div class="font-bold">{ label }</div>
-		<div>{ fallbackValue(value) }</div>
-	</div>
-}
-
-templ ThingDetailRowMissing(label, value string) {
-	<div class="flex flex-wrap items-start gap-2">
-		<div class="font-bold">{ label }</div>
-		<div class="italic text-muted-foreground">{ value }</div>
-	</div>
-}
-
-templ ThingConnectedSensorRow(l10n Localizer, model ThingDetailsPageViewModel) {
-	<div class="flex flex-wrap items-start gap-2">
-		<div class="font-bold">{ l10n.Get("sensorconnected") }</div>
-		if len(model.ConnectedNames) == 0 {
-			<div class="italic text-muted-foreground">{ l10n.Get("sensormissing") }</div>
-		} else {
+templ ThingConnectedSensorValue(l10n Localizer, model ThingDetailsPageViewModel) {
+	if len(model.ConnectedNames) == 0 {
+		<span class="italic text-muted-foreground">{ l10n.Get("sensormissing") }</span>
+	} else {
+		<div class="flex flex-wrap gap-x-4 gap-y-2">
 			for _, sensorID := range model.ConnectedNames {
 				<a
 					href={ string(templ.SafeURL(fmt.Sprintf("/v2/sensors/%s", sensorID))) }
@@ -566,41 +536,22 @@ templ ThingConnectedSensorRow(l10n Localizer, model ThingDetailsPageViewModel) {
 					{ sensorID }
 				</a>
 			}
-		}
-	</div>
+		</div>
+	}
 }
 
-templ ThingTagRow(l10n Localizer, tags []string) {
-	<div class="flex flex-wrap items-start gap-2">
-		<div class="font-bold">{ l10n.Get("tags") }</div>
-		if len(tags) == 0 {
-			<div class="italic text-muted-foreground">{ l10n.Get("missing") }</div>
-		} else {
-			<div class="flex flex-wrap gap-2">
-				for _, tag := range tags {
-					@badge.Badge(badge.Props{Variant: badge.VariantSecondary, Class: "rounded-full px-3 py-1"}) {
-						{ tag }
-					}
+templ ThingTagValue(l10n Localizer, tags []string) {
+	if len(tags) == 0 {
+		<span class="italic text-muted-foreground">{ l10n.Get("missing") }</span>
+	} else {
+		<div class="flex flex-wrap gap-2">
+			for _, tag := range tags {
+				@badge.Badge(badge.Props{Variant: badge.VariantSecondary, Class: "rounded-full px-3 py-1"}) {
+					{ tag }
 				}
-			</div>
-		}
-	</div>
-}
-
-type ThingKeyValueItem struct {
-	Label string
-	Value string
-}
-
-templ ThingKeyValueGrid(items []ThingKeyValueItem) {
-	<div class="grid gap-4 sm:grid-cols-2">
-		for _, item := range items {
-			<div class="rounded-2xl border border-border/70 bg-background/60 p-4">
-				<div class="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{ item.Label }</div>
-				<div class="mt-2 break-words text-sm font-medium text-foreground">{ fallbackValue(item.Value) }</div>
-			</div>
-		}
-	</div>
+			}
+		</div>
+	}
 }
 
 templ ThingWarningBadge(l10n Localizer, warning bool) {
@@ -616,6 +567,27 @@ func thingDisplayName(thing ThingViewModel) string {
 		return thing.Name
 	}
 	return thing.ID
+}
+
+func thingDetailItems(l10n Localizer, model ThingDetailsPageViewModel) []shared.DetailListItem {
+	items := []shared.DetailListItem{
+		{Label: l10n.Get("id"), Value: model.Thing.ID},
+		{Label: l10n.Get("thingtype"), Value: displayThingType(l10n, model.Thing)},
+		{Label: l10n.Get("name"), Value: model.Thing.Name, Missing: strings.TrimSpace(model.Thing.Name) == ""},
+		{Label: l10n.Get("description"), Value: model.Thing.Description, Missing: strings.TrimSpace(model.Thing.Description) == ""},
+		{Label: l10n.Get("sensorconnected"), Content: ThingConnectedSensorValue(l10n, model)},
+		{Label: l10n.Get("organisation"), Value: model.Thing.Tenant},
+		{Label: l10n.Get("tags"), Content: ThingTagValue(l10n, model.Thing.Tags)},
+	}
+
+	if strings.TrimSpace(model.Thing.AlternativeName) != "" {
+		items = append(items[:3], append([]shared.DetailListItem{{
+			Label: l10n.Get("alternativeName"),
+			Value: model.Thing.AlternativeName,
+		}}, items[3:]...)...)
+	}
+
+	return items
 }
 
 func formatLatestMeasurement(measurement LatestMeasurementViewModel) string {

@@ -398,13 +398,13 @@ templ SensorDetailsPropertiesSection(l10n Localizer, sensor SensorDetailsPageVie
 		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
 	) {
 		<div class="py-6 px-8">
-			@KeyValueGrid(l10n, []KeyValueItem{
+			@shared.DetailList([]shared.DetailListItem{
 				{Label: l10n.Get("deveui"), Value: sensor.DevEUI},
 				{Label: l10n.Get("id"), Value: sensor.DeviceID},
 				{Label: l10n.Get("sensortype"), Value: sensor.DeviceProfileName},
 				{Label: l10n.Get("environment"), Value: localizedOrFallback(l10n, sensor.Environment)},
 				{Label: l10n.Get("organisation"), Value: sensor.Tenant},
-				{Label: l10n.Get("description"), Value: sensor.Description},
+				{Label: l10n.Get("description"), Value: sensor.Description, Missing: strings.TrimSpace(sensor.Description) == ""},
 				{Label: l10n.Get("lastseen"), Value: formatTimestamp(sensor.ObservedAt)},
 			})
 		</div>
@@ -417,7 +417,7 @@ templ SensorDetailsMetadataSection(l10n Localizer, sensor SensorDetailsPageViewM
 		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
 	) {
 		<div class="py-6 px-8">
-			@KeyValueGrid(l10n, metadataItems(sensor.Metadata))
+			@shared.DetailList(metadataItems(sensor.Metadata))
 		</div>
 	}
 }
@@ -503,7 +503,7 @@ templ SensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageViewM
 		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
 		<div class="flex flex-col gap-6 py-6 px-8">
-			@KeyValueGrid(l10n, []KeyValueItem{
+			@shared.DetailList([]shared.DetailListItem{
 				{Label: l10n.Get("latitude"), Value: formatCoordinate(sensor.Latitude)},
 				{Label: l10n.Get("longitude"), Value: formatCoordinate(sensor.Longitude)},
 			})
@@ -524,7 +524,7 @@ templ SensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageViewMod
 		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
 	) {
 		<div class="flex flex-col gap-6 py-6 px-8">
-			@KeyValueGrid(l10n, statusItems(l10n, sensor.DeviceStatus))
+			@shared.DetailList(statusItems(l10n, sensor.DeviceStatus))
 			<div
 				id="statusChartContainer"
 				class="h-[420px] w-full"
@@ -537,32 +537,12 @@ templ SensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageViewMod
 	}
 }
 
-type KeyValueItem struct {
-	Label string
-	Value string
-}
-
-func metadataItems(items []MetadataViewModel) []KeyValueItem {
-	result := make([]KeyValueItem, 0, len(items))
+func metadataItems(items []MetadataViewModel) []shared.DetailListItem {
+	result := make([]shared.DetailListItem, 0, len(items))
 	for _, item := range items {
-		result = append(result, KeyValueItem{Label: item.Key, Value: item.Value})
+		result = append(result, shared.DetailListItem{Label: item.Key, Value: item.Value})
 	}
 	return result
-}
-
-templ KeyValueGrid(_ Localizer, items []KeyValueItem) {
-	<div class="grid gap-4 sm:grid-cols-2">
-		for _, item := range items {
-			@KeyValueCard(item.Label, item.Value)
-		}
-	</div>
-}
-
-templ KeyValueCard(label, value string) {
-	<div class="rounded-2xl border border-border/70 bg-background/60 p-4">
-		<div class="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{ label }</div>
-		<div class="mt-2 break-words text-sm font-medium text-foreground">{ fallbackValue(value) }</div>
-	</div>
 }
 
 type measurementOption struct {
@@ -655,8 +635,8 @@ func badgeVariant(active bool) badge.Variant {
 	return badge.VariantSecondary
 }
 
-func statusItems(l10n Localizer, status *DeviceStatusViewModel) []KeyValueItem {
-	items := []KeyValueItem{
+func statusItems(l10n Localizer, status *DeviceStatusViewModel) []shared.DetailListItem {
+	items := []shared.DetailListItem{
 		{Label: l10n.Get("batterylevel"), Value: sensorBattery(status)},
 		{Label: l10n.Get("dr"), Value: formatIntPointer(status, func(s *DeviceStatusViewModel) *int { return s.DR })},
 		{Label: l10n.Get("frequency"), Value: formatFrequency(status)},
@@ -665,7 +645,7 @@ func statusItems(l10n Localizer, status *DeviceStatusViewModel) []KeyValueItem {
 		{Label: l10n.Get("lastseen"), Value: statusObservedAt(status)},
 	}
 
-	filtered := make([]KeyValueItem, 0, len(items))
+	filtered := make([]shared.DetailListItem, 0, len(items))
 	for _, item := range items {
 		if item.Value == "-" {
 			continue
