@@ -50,23 +50,23 @@ type ApiResponse struct {
 }
 
 type Client struct {
-	deviceManagementURL string
-	sensorsManagementURL  string
-	thingManagementURL  string
-	adminURL            string
-	measurementURL      string
-	alarmsURL           string
-	httpClient          http.Client
+	deviceManagementURL  string
+	sensorsManagementURL string
+	thingManagementURL   string
+	adminURL             string
+	measurementURL       string
+	alarmsURL            string
+	httpClient           http.Client
 }
 
 func NewClient(devmgmt, things, admin, alarms, measurement string) *Client {
 	return &Client{
-		deviceManagementURL: devmgmt,
-		sensorsManagementURL:  strings.ReplaceAll(devmgmt, "device", "sensor"),
-		thingManagementURL:  things,
-		adminURL:            admin,
-		alarmsURL:           alarms,
-		measurementURL:      measurement,
+		deviceManagementURL:  devmgmt,
+		sensorsManagementURL: strings.Replace(devmgmt, "/device", "/sensor", 1),
+		thingManagementURL:   things,
+		adminURL:             admin,
+		alarmsURL:            alarms,
+		measurementURL:       measurement,
 		httpClient: http.Client{
 			Transport: otelhttp.NewTransport(&http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}),
 			Timeout:   10 * time.Second,
@@ -74,12 +74,12 @@ func NewClient(devmgmt, things, admin, alarms, measurement string) *Client {
 	}
 }
 
-func (c *Client) DeviceManagementURL() string { return c.deviceManagementURL }
+func (c *Client) DeviceManagementURL() string  { return c.deviceManagementURL }
 func (c *Client) SensorsManagementURL() string { return c.sensorsManagementURL }
-func (c *Client) ThingManagementURL() string  { return c.thingManagementURL }
-func (c *Client) AdminURL() string            { return c.adminURL }
-func (c *Client) MeasurementURL() string      { return c.measurementURL }
-func (c *Client) AlarmsURL() string           { return c.alarmsURL }
+func (c *Client) ThingManagementURL() string   { return c.thingManagementURL }
+func (c *Client) AdminURL() string             { return c.adminURL }
+func (c *Client) MeasurementURL() string       { return c.measurementURL }
+func (c *Client) AlarmsURL() string            { return c.alarmsURL }
 
 func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Values) (*ApiResponse, error) {
 	if strings.ContainsAny(path, "/") {
@@ -87,39 +87,45 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 		path = strings.TrimSuffix(path, "/")
 	}
 
-	log := logging.GetFromContext(ctx)
+	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("path", path))
 	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, path), "/"))
 	if err != nil {
+		log.Error("could not parse url", "error", err)
 		return nil, fmt.Errorf("could not parse url: %s", err.Error())
 	}
 
 	u.RawQuery = params.Encode()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
+		log.Error("could not create http request", "error", err)
 		return nil, fmt.Errorf("failed to create http request: %s", err.Error())
 	}
 	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
 	req.Header.Add("Accept", "application/json")
 
-	log.Debug("GET", "url", u.String())
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
+		log.Error("could not send get request", "error", err)
 		return nil, fmt.Errorf("failed to send get request: %s", err.Error())
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
+		log.Error("could not read response body", "error", err)
 		return nil, fmt.Errorf("failed to read response body: %s", err.Error())
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
+		log.Error("request failed with unauthorized status")
 		return nil, fmt.Errorf("request failed: %w", ErrUnauthorized)
 	}
 	if resp.StatusCode == http.StatusNotFound {
+		log.Error("request failed with not found status")
 		return nil, fmt.Errorf("request failed: %w", ErrNotFound)
 	}
 	if resp.StatusCode >= http.StatusBadRequest {
+		log.Error("request failed with status code", "statusCode", resp.StatusCode, "responseBody", string(body))
 		return nil, fmt.Errorf("request failed: %d", resp.StatusCode)
 	}
 
@@ -131,21 +137,25 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 
 	impl := ApiResponse{}
 	if err := json.Unmarshal(body, &impl); err != nil {
+		log.Error("could not unmarshal response body", "error", err, "responseBody", string(body))
 		return nil, fmt.Errorf("failed to unmarshal response body: %s", err.Error())
 	}
 
-	log.Debug("body", slog.Any("data", impl.Data))
 	return &impl, nil
 }
 
 func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) error {
+	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("id", id))
+
 	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, id), "/"))
 	if err != nil {
+		log.Error("could not parse url", "error", err)
 		return err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, u.String(), bytes.NewReader(body))
 	if err != nil {
+		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
 	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
@@ -153,21 +163,26 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
+		log.Error("could not send patch request", "error", err)
 		return fmt.Errorf("failed to send patch request: %s", err.Error())
 	}
 	defer resp.Body.Close()
 	_, _ = io.Copy(io.Discard, resp.Body)
 
 	if resp.StatusCode == http.StatusUnauthorized {
+		log.Error("request failed with unauthorized status")
 		return fmt.Errorf("request failed: %w", ErrUnauthorized)
 	}
 	if resp.StatusCode == http.StatusNotFound {
+		log.Error("request failed with not found status")
 		return fmt.Errorf("request failed: %w", ErrNotFound)
 	}
 	if resp.StatusCode == http.StatusConflict {
+		log.Error("request failed with conflict status")
 		return fmt.Errorf("request failed: %w", ErrConflict)
 	}
 	if resp.StatusCode >= http.StatusBadRequest {
+		log.Error("request failed with status code", "statusCode", resp.StatusCode)
 		return fmt.Errorf("request failed: %d", resp.StatusCode)
 	}
 
@@ -175,13 +190,17 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 }
 
 func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
+	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL))
+
 	u, err := url.Parse(strings.TrimSuffix(baseURL, "/"))
 	if err != nil {
+		log.Error("could not parse url", "error", err)
 		return err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), bytes.NewReader(body))
 	if err != nil {
+		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
 	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
@@ -189,21 +208,26 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
+		log.Error("could not send post request", "error", err)
 		return fmt.Errorf("failed to send post request: %s", err.Error())
 	}
 	defer resp.Body.Close()
 	_, _ = io.Copy(io.Discard, resp.Body)
 
 	if resp.StatusCode == http.StatusUnauthorized {
+		log.Error("request failed with unauthorized status")
 		return fmt.Errorf("request failed: %w", ErrUnauthorized)
 	}
 	if resp.StatusCode == http.StatusNotFound {
+		log.Error("request failed with not found status")
 		return fmt.Errorf("request failed: %w", ErrNotFound)
 	}
 	if resp.StatusCode == http.StatusConflict {
+		log.Error("request failed with conflict status")
 		return fmt.Errorf("request failed: %w", ErrConflict)
 	}
 	if resp.StatusCode >= http.StatusBadRequest {
+		log.Error("request failed with status code", "statusCode", resp.StatusCode)
 		return fmt.Errorf("request failed: %d", resp.StatusCode)
 	}
 
@@ -211,13 +235,17 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 }
 
 func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
+	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL))
+
 	u, err := url.Parse(strings.TrimSuffix(baseURL, "/"))
 	if err != nil {
+		log.Error("could not parse url", "error", err)
 		return err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u.String(), bytes.NewReader(body))
 	if err != nil {
+		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
 	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
@@ -225,21 +253,26 @@ func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
+		log.Error("could not send put request", "error", err)
 		return fmt.Errorf("failed to send put request: %s", err.Error())
 	}
 	defer resp.Body.Close()
 	_, _ = io.Copy(io.Discard, resp.Body)
 
 	if resp.StatusCode == http.StatusUnauthorized {
+		log.Error("request failed with unauthorized status")
 		return fmt.Errorf("request failed: %w", ErrUnauthorized)
 	}
 	if resp.StatusCode == http.StatusNotFound {
+		log.Error("request failed with not found status")
 		return fmt.Errorf("request failed: %w", ErrNotFound)
 	}
 	if resp.StatusCode == http.StatusConflict {
+		log.Error("request failed with conflict status")
 		return fmt.Errorf("request failed: %w", ErrConflict)
 	}
 	if resp.StatusCode >= http.StatusBadRequest {
+		log.Error("request failed with status code", "statusCode", resp.StatusCode)
 		return fmt.Errorf("request failed: %d", resp.StatusCode)
 	}
 
@@ -247,31 +280,39 @@ func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 }
 
 func (c *Client) Delete(ctx context.Context, baseURL string) error {
+	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL))
+
 	u, err := url.Parse(strings.TrimSuffix(baseURL, "/"))
 	if err != nil {
+		log.Error("could not parse url", "error", err)
 		return err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, u.String(), nil)
 	if err != nil {
+		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
 	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
+		log.Error("could not send delete request", "error", err)
 		return fmt.Errorf("failed to send delete request: %w", err)
 	}
 	defer resp.Body.Close()
 	_, _ = io.Copy(io.Discard, resp.Body)
 
 	if resp.StatusCode == http.StatusUnauthorized {
+		log.Error("request failed with unauthorized status")
 		return fmt.Errorf("request failed: %w", ErrUnauthorized)
 	}
 	if resp.StatusCode == http.StatusNotFound {
+		log.Error("request failed with not found status")
 		return fmt.Errorf("request failed: %w", ErrNotFound)
 	}
 	if resp.StatusCode >= http.StatusBadRequest {
+		log.Error("request failed with status code", "statusCode", resp.StatusCode)
 		return fmt.Errorf("request failed: %d", resp.StatusCode)
 	}
 
