@@ -403,6 +403,9 @@ other = "Selected filters:"
 [sensorconnected]
 other = "Connected sensor"
 
+[copy]
+other = "Copy"
+
 [sensorID]
 other = "Sensor ID"
 

@@ -3,7 +3,7 @@ FROM --platform=$BUILDPLATFORM docker.io/golang:1.26 AS builder
 # Set the Current Working Directory inside the container
 WORKDIR /app
 
-RUN go install github.com/a-h/templ/cmd/templ@v0.3.977
+RUN go install github.com/a-h/templ/cmd/templ@v0.3.1001
 
 ARG BUILDARCH
 
@@ -20,7 +20,7 @@ RUN go mod download
 COPY . .
 
 RUN templ generate
-RUN ./tailwindcss -c ./internal/pkg/presentation/web/css/tailwind.config.js -i ./internal/pkg/presentation/web/css/input.css -o ./assets/css/diwise.css
+RUN ./tailwindcss -c ./internal/presentation/web/css/tailwind.config.js -i ./internal/presentation/web/css/input.css -o ./assets/css/diwise.css
 
 WORKDIR /app/cmd/diwise-web
 

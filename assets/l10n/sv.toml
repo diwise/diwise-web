@@ -403,6 +403,9 @@ other = "Valda filter:"
 [sensorconnected]
 other = "Kopplad sensor"
 
+[copy]
+other = "Kopiera"
+
 [sensorID]
 other = "Sensor ID"
 
