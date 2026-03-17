@@ -16,6 +16,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/home"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/sensors"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/components/things"
+	adminv2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/admin"
 	authv2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/auth"
 	homev2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/home"
 	sensorsv2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/sensors"
@@ -220,6 +221,8 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /v2/components/sensors/{id}/status", RequireHX(sensorsv2.NewStatusChartsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /v2/components/measurements", RequireHX(sensorsv2.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /v2/components/sensors/edit/measurement-types", RequireHX(sensorsv2.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("GET /v2/admin", adminv2.NewAdminPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("POST /v2/admin/import", adminv2.NewImportHandler(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /v2/login", authv2.NewLoginRedirect())
 	r.HandleFunc("GET /v2/logout", authv2.NewLogoutRedirect())
 
