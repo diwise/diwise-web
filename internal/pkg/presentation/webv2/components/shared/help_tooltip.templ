@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/popover"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/tooltip"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/utils"
 )
 
@@ -12,25 +12,25 @@ templ HelpTooltip(text string) {
 	{{
 		id := "help-tooltip-" + strings.ReplaceAll(utils.RandomID(), "_", "-")
 	}}
-	@popover.Trigger(popover.TriggerProps{
-		For:         id,
-		TriggerType: popover.TriggerTypeHover,
-		Class:       "inline-flex items-center text-muted-foreground transition hover:text-foreground",
-	}) {
-		@icon.Info(icon.Props{
-			Size:  16,
-			Class: "shrink-0",
-		})
-	}
-	@popover.Content(popover.ContentProps{
-		ID:            id,
-		Placement:     popover.PlacementRight,
-		Offset:        10,
-		ShowArrow:     true,
-		HoverDelay:    80,
-		HoverOutDelay: 120,
-		Class:         "max-w-64 rounded-xl border-border/80 bg-popover px-3 py-2 text-xs font-medium leading-5 shadow-lg",
-	}) {
-		<p>{ text }</p>
+	@tooltip.Tooltip() {
+		@tooltip.Trigger(tooltip.TriggerProps{
+			For:   id,
+			Class: "inline-flex items-center text-muted-foreground transition hover:text-foreground",
+		}) {
+			@icon.Info(icon.Props{
+				Size:  16,
+				Class: "shrink-0",
+			})
+		}
+		@tooltip.Content(tooltip.ContentProps{
+			ID:            id,
+			Position:      tooltip.PositionRight,
+			ShowArrow:     true,
+			HoverDelay:    80,
+			HoverOutDelay: 120,
+			Class:         "max-w-64 rounded-xl border border-border/80 bg-popover px-3 py-2 text-xs font-medium leading-5 text-popover-foreground shadow-lg",
+		}) {
+			<p>{ text }</p>
+		}
 	}
 }
