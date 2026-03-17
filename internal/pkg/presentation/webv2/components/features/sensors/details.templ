@@ -9,9 +9,11 @@ import (
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/checkbox"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/form"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/textarea"
 	. "github.com/diwise/frontend-toolkit"
 )
 
@@ -78,6 +80,30 @@ type MeasurementTypeOption struct {
 
 type MeasurementTypeOptionsProps struct {
 	Options []MeasurementTypeOption
+}
+
+func organisationFieldOptions(organisations []string, selected string) []shared.SelectBoxFieldOption {
+	items := make([]shared.SelectBoxFieldOption, 0, len(organisations))
+	for _, organisation := range organisations {
+		items = append(items, shared.SelectBoxFieldOption{
+			Value:    organisation,
+			Label:    organisation,
+			Selected: organisation == selected,
+		})
+	}
+	return items
+}
+
+func sensorTypeFieldOptions(profiles []DeviceProfileOption, selected string) []shared.SelectBoxFieldOption {
+	items := make([]shared.SelectBoxFieldOption, 0, len(profiles))
+	for _, profile := range profiles {
+		items = append(items, shared.SelectBoxFieldOption{
+			Value:    profile.Decoder,
+			Label:    profile.Name,
+			Selected: profile.Name == selected || profile.Decoder == selected,
+		})
+	}
+	return items
 }
 
 templ SensorDetailsPage(l10n Localizer, _ AssetLoaderFunc, sensor SensorDetailsPageViewModel) {
@@ -202,48 +228,53 @@ templ EditSensorDetailsFormSection(l10n Localizer, sensor SensorDetailsPageViewM
 	) {
 		<div class="grid gap-6 py-6 px-8">
 			<div class="grid gap-6 md:grid-cols-2">
-				@EditField(l10n.Get("name")) {
+				@shared.FormField(l10n.Get("name"), "sensor-name") {
 					@input.Input(input.Props{
+						ID:    "sensor-name",
 						Name:  "name",
 						Value: sensor.Name,
 						Class: "h-10 rounded-xl bg-background",
 					})
 				}
-				@EditField(l10n.Get("organisation")) {
-					<select name="organisation" class="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none">
-						for _, organisation := range sensor.Organisations {
-							<option value={ organisation } selected?={ organisation == sensor.Tenant }>{ organisation }</option>
-						}
-					</select>
-				}
+				@shared.SelectBoxField(shared.SelectBoxFieldProps{
+					FieldID:     "sensor-organisation",
+					Name:        "organisation",
+					Label:       l10n.Get("organisation"),
+					Placeholder: l10n.Get("choose"),
+					NoSearch:    true,
+					Options:     organisationFieldOptions(sensor.Organisations, sensor.Tenant),
+				})
 			</div>
 			<div class="grid gap-6 md:grid-cols-2">
-				@EditField(l10n.Get("sensortype")) {
-					<select
-						name="sensorType"
-						class="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none"
-						hx-get="/v2/components/sensors/edit/measurement-types"
-						hx-target="#measurement-types-field"
-						hx-trigger="change"
-					>
-						for _, profile := range sensor.DeviceProfiles {
-							<option value={ profile.Decoder } selected?={ profile.Name == sensor.DeviceProfileName || profile.Decoder == sensor.DeviceProfileName }>{ profile.Name }</option>
-						}
-					</select>
-				}
+				@shared.SelectBoxField(shared.SelectBoxFieldProps{
+					FieldID:     "sensor-type",
+					Name:        "sensorType",
+					Label:       l10n.Get("sensortype"),
+					Placeholder: l10n.Get("choose"),
+					NoSearch:    true,
+					Options:     sensorTypeFieldOptions(sensor.DeviceProfiles, sensor.DeviceProfileName),
+					HTMXAttrs: templ.Attributes{
+						"hx-get":     "/v2/components/sensors/edit/measurement-types",
+						"hx-target":  "#measurement-types-field",
+						"hx-trigger": "change",
+					},
+				})
 				@MeasurementTypeOptionsField(l10n, MeasurementTypeOptionsProps{Options: sensor.TypeOptions})
 			</div>
 			<div class="grid gap-6 md:grid-cols-2">
-				@EditFieldWithTooltip(l10n.Get("environment"), l10n.Get("located")) {
-					<select name="environment" class="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none">
-						for _, option := range environmentOptions(l10n) {
-							<option value={ option.Value } selected?={ option.Value == sensor.Environment }>{ option.Label }</option>
-						}
-					</select>
-				}
-				@EditFieldWithTooltip(l10n.Get("observationinterval"), l10n.Get("devicenotobservedafter")) {
+				@shared.SelectBoxField(shared.SelectBoxFieldProps{
+					FieldID:     "sensor-environment",
+					Name:        "environment",
+					Label:       l10n.Get("environment"),
+					TooltipText: l10n.Get("located"),
+					Placeholder: l10n.Get("choose"),
+					NoSearch:    true,
+					Options:     optionItemsToSelectBoxOptions(environmentOptions(l10n), sensor.Environment),
+				})
+				@shared.FormFieldWithTooltip(l10n.Get("observationinterval"), "sensor-interval", l10n.Get("devicenotobservedafter")) {
 					<div class="flex items-center gap-3">
 						@input.Input(input.Props{
+							ID:    "sensor-interval",
 							Name:  "interval",
 							Type:  input.TypeNumber,
 							Value: fmt.Sprintf("%d", sensor.Interval),
@@ -256,12 +287,14 @@ templ EditSensorDetailsFormSection(l10n Localizer, sensor SensorDetailsPageViewM
 					</div>
 				}
 			</div>
-			@EditField(l10n.Get("description")) {
-				<textarea
-					name="description"
-					class="flex min-h-36 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground"
-					placeholder={ l10n.Get("description") }
-				>{ sensor.Description }</textarea>
+			@shared.FormField(l10n.Get("description"), "sensor-description") {
+				@textarea.Textarea(textarea.Props{
+					ID:          "sensor-description",
+					Name:        "description",
+					Value:       sensor.Description,
+					Placeholder: l10n.Get("description"),
+					Class:       "min-h-36 rounded-xl bg-background",
+				})
 			}
 		</div>
 	}
@@ -273,11 +306,20 @@ templ EditSensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageVie
 		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
 	) {
 		<div class="flex flex-col gap-4 py-6 px-8">
-			<label class="inline-flex items-center gap-3 text-sm font-medium text-foreground">
-				<input type="checkbox" name="active" class="h-4 w-4 rounded border-input" checked?={ sensor.Active }/>
-				<span>{ l10n.Get("activate") }</span>
-			</label>
-			<p class="text-sm text-muted-foreground">{ l10n.Get("activatesensorinformation") }</p>
+			@form.ItemFlex() {
+				@checkbox.Checkbox(checkbox.Props{
+					ID:      "sensor-active",
+					Name:    "active",
+					Checked: sensor.Active,
+				})
+				@form.Label(form.LabelProps{
+					For:   "sensor-active",
+					Class: "text-foreground",
+				}) {
+					{ l10n.Get("activate") }
+				}
+			}
+			@shared.FormDescription(l10n.Get("activatesensorinformation"))
 		</div>
 	}
 }
@@ -289,7 +331,7 @@ templ EditSensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageV
 	) {
 		<div class="flex flex-col gap-6 py-6 px-8">
 			<div class="grid gap-6 md:grid-cols-2">
-				@EditField(l10n.Get("latitude")) {
+				@shared.FormField(l10n.Get("latitude"), "latitude") {
 					@input.Input(input.Props{
 						ID:    "latitude",
 						Name:  "latitude",
@@ -303,7 +345,7 @@ templ EditSensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageV
 						},
 					})
 				}
-				@EditField(l10n.Get("longitude")) {
+				@shared.FormField(l10n.Get("longitude"), "longitude") {
 					@input.Input(input.Props{
 						ID:    "longitude",
 						Name:  "longitude",
@@ -323,61 +365,25 @@ templ EditSensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageV
 	}
 }
 
-templ EditField(label string) {
-	<div class="flex flex-col gap-2">
-		<label class="text-sm font-medium text-foreground">{ label }</label>
-		{ children... }
-	</div>
-}
-
-templ EditFieldWithTooltip(label string, tooltipText string) {
-	<div class="flex flex-col gap-2">
-		<div class="flex items-center gap-2">
-			<label class="text-sm font-medium text-foreground">{ label }</label>
-			@shared.HelpTooltip(tooltipText)
-		</div>
-		{ children... }
-	</div>
-}
-
 templ MeasurementTypeOptionsField(l10n Localizer, props MeasurementTypeOptionsProps) {
-	<div id="measurement-types-field" class="flex flex-col gap-2">
-		<label class="text-sm font-medium text-foreground" for="measurement-type-select">{ l10n.Get("measurementtype") }</label>
+	<div id="measurement-types-field">
 		if len(props.Options) == 0 {
-			<div class="rounded-2xl border border-dashed border-border px-4 py-6 text-sm text-muted-foreground">
-				{ l10n.Get("chooseMeasurementtype") }
-			</div>
-		} else {
-			@selectbox.SelectBox(selectbox.Props{ID: "measurement-type-select"}) {
-				@selectbox.Trigger(selectbox.TriggerProps{
-					Name:              "measurementType-option[]",
-					Multiple:          true,
-					ShowPills:         true,
-					SelectedCountText: l10n.Get("selecteditemcount"),
-					Class:             "min-h-10 h-auto justify-between rounded-xl bg-background px-3 py-2 text-left shadow-xs",
-				}) {
-					@selectbox.Value(selectbox.ValueProps{
-						Placeholder: l10n.Get("chooseMeasurementtype"),
-						Class:       "w-full text-sm",
-					})
-				}
-				@selectbox.Content(selectbox.ContentProps{
-					Class:             "rounded-2xl border border-border/80 bg-popover p-0 shadow-xl",
-					SearchPlaceholder: l10n.Get("search"),
-				}) {
-					@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
-						for _, option := range props.Options {
-							@selectbox.Item(selectbox.ItemProps{
-								Value:    option.Value,
-								Selected: option.Selected,
-								Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-background-100 data-[tui-selectbox-selected=true]:bg-primary-surface data-[tui-selectbox-selected=true]:text-primary-dark dark:hover:bg-white/10 dark:data-[tui-selectbox-selected=true]:bg-white/10 dark:data-[tui-selectbox-selected=true]:text-white",
-							}) {
-								{ option.Label }
-							}
-						}
-					}
-				}
+			@shared.FormField(l10n.Get("measurementtype"), "measurement-type-select-trigger") {
+				<div class="rounded-2xl border border-dashed border-border px-4 py-6 text-sm text-muted-foreground">
+					{ l10n.Get("chooseMeasurementtype") }
+				</div>
 			}
+		} else {
+			@shared.MultiSelectBoxField(shared.MultiSelectBoxFieldProps{
+				FieldID:           "measurement-type-select",
+				Name:              "measurementType-option[]",
+				Label:             l10n.Get("measurementtype"),
+				Placeholder:       l10n.Get("chooseMeasurementtype"),
+				ShowPills:         true,
+				SelectedCountText: l10n.Get("selecteditemcount"),
+				SearchPlaceholder: l10n.Get("search"),
+				Options:           measurementTypeFieldOptions(props.Options),
+			})
 		}
 	</div>
 }
@@ -431,9 +437,7 @@ templ SensorDetailsMeasurementSection(l10n Localizer, sensor SensorDetailsPageVi
 	) {
 		<div class="flex flex-col gap-6 py-6 px-8">
 			<div class="flex flex-col gap-2">
-				<label for="sensorMeasurementTypes" class="hidden">
-					{ l10n.Get("sensorMeasurementTypes") }
-				</label>
+				@shared.FormHiddenLabel(l10n.Get("sensorMeasurementTypes"), "sensorMeasurementTypes")
 				<select
 					id="sensorMeasurementTypes"
 					name="sensorMeasurementTypes"
@@ -452,6 +456,7 @@ templ SensorDetailsMeasurementSection(l10n Localizer, sensor SensorDetailsPageVi
 			<div class="flex flex-col gap-2">
 				<div class="text-sm font-medium text-foreground">{ l10n.Get("timeinterval") }</div>
 				<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+					@shared.FormHiddenLabel(l10n.Get("starttime"), "timeAt")
 					@input.Input(input.Props{
 						ID:    "timeAt",
 						Name:  "timeAt",
@@ -467,6 +472,7 @@ templ SensorDetailsMeasurementSection(l10n Localizer, sensor SensorDetailsPageVi
 						},
 					})
 					<span class="text-muted-foreground">-</span>
+					@shared.FormHiddenLabel(l10n.Get("endtime"), "endTimeAt")
 					@input.Input(input.Props{
 						ID:    "endTimeAt",
 						Name:  "endTimeAt",
@@ -685,6 +691,30 @@ func environmentOptions(l10n Localizer) []optionItem {
 		return strings.Compare(a.Label, b.Label)
 	})
 	return options
+}
+
+func measurementTypeFieldOptions(options []MeasurementTypeOption) []shared.SelectBoxFieldOption {
+	converted := make([]shared.SelectBoxFieldOption, 0, len(options))
+	for _, option := range options {
+		converted = append(converted, shared.SelectBoxFieldOption{
+			Value:    option.Value,
+			Label:    option.Label,
+			Selected: option.Selected,
+		})
+	}
+	return converted
+}
+
+func optionItemsToSelectBoxOptions(options []optionItem, selected string) []shared.SelectBoxFieldOption {
+	converted := make([]shared.SelectBoxFieldOption, 0, len(options))
+	for _, option := range options {
+		converted = append(converted, shared.SelectBoxFieldOption{
+			Value:    option.Value,
+			Label:    option.Label,
+			Selected: option.Value == selected,
+		})
+	}
+	return converted
 }
 
 func editableSensorName(sensor SensorDetailsPageViewModel) string {

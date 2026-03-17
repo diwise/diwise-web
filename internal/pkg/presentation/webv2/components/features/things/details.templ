@@ -12,6 +12,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/tabs"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/tagsinput"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/textarea"
 	. "github.com/diwise/frontend-toolkit"
 )
 
@@ -231,9 +232,9 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 										<div class="min-w-0 flex-1">
 											@ThingMeasurementSummary(l10n, latestMeasurementForOption(model.LatestValues, option.Value), option.Label)
 										</div>
-										<div class="flex shrink-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-end">
-											<div class="flex flex-col justify-end">
-												@shared.ExportAction(l10n, shared.ExportActionProps{
+									<div class="flex shrink-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-end">
+										<div class="flex flex-col justify-end">
+											@shared.ExportAction(l10n, shared.ExportActionProps{
 													Href:   "/admin/export?export=thing&accept=text/csv",
 													Form:   "thing-stats-form",
 													Target: "_blank",
@@ -241,8 +242,9 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 												})
 											</div>
 											<div class="flex flex-col gap-2">
-												<label for="thingTimeAt" class="text-sm font-medium text-foreground">{ l10n.Get("timeinterval") }</label>
+												<div class="text-sm font-medium text-foreground">{ l10n.Get("timeinterval") }</div>
 												<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+													@shared.FormHiddenLabel(l10n.Get("starttime"), "thingTimeAt")
 													@input.Input(input.Props{
 														ID:    "thingTimeAt",
 														Name:  "timeAt",
@@ -257,6 +259,7 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 														},
 													})
 													<span class="hidden text-muted-foreground sm:block">-</span>
+													@shared.FormHiddenLabel(l10n.Get("endtime"), "thingEndTimeAt")
 													@input.Input(input.Props{
 														ID:    "thingEndTimeAt",
 														Name:  "endTimeAt",
@@ -393,38 +396,48 @@ templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	@shared.DetailSectionCard(l10n.Get("details"), icon.Info(icon.Props{Size: 24, Class: "text-black dark:text-white"})) {
 		<div class="grid gap-6 py-6 px-8">
 			<div class="grid gap-6 md:grid-cols-2">
-				@ThingEditReadonlyField(l10n.Get("thingtype"), l10n.Get(model.Thing.Type))
+				@shared.FormReadOnlyField(l10n.Get("thingtype")) {
+					<div class="flex min-h-10 items-center px-0 text-sm text-foreground">
+						{ l10n.Get(model.Thing.Type) }
+					</div>
+				}
 				if strings.TrimSpace(model.Thing.SubType) != "" {
-					@ThingEditReadonlyField(l10n.Get("category"), l10n.Get(model.Thing.SubType))
+					@shared.FormReadOnlyField(l10n.Get("category")) {
+						<div class="flex min-h-10 items-center px-0 text-sm text-foreground">
+							{ l10n.Get(model.Thing.SubType) }
+						</div>
+					}
 				}
 			</div>
 			<div class="grid gap-6 md:grid-cols-2">
-				@ThingEditField(l10n.Get("name")) {
-					@input.Input(input.Props{Name: "name", Value: model.Thing.Name, Class: "h-10 rounded-xl bg-background"})
+				@shared.FormField(l10n.Get("name"), "thing-name") {
+					@input.Input(input.Props{ID: "thing-name", Name: "name", Value: model.Thing.Name, Class: "h-10 rounded-xl bg-background"})
 				}
-				@ThingEditField(l10n.Get("alternativeName")) {
-					@input.Input(input.Props{Name: "alternativeName", Value: model.Thing.AlternativeName, Class: "h-10 rounded-xl bg-background"})
+				@shared.FormField(l10n.Get("alternativeName"), "thing-alternative-name") {
+					@input.Input(input.Props{ID: "thing-alternative-name", Name: "alternativeName", Value: model.Thing.AlternativeName, Class: "h-10 rounded-xl bg-background"})
 				}
 			</div>
 			<div class="grid gap-6 md:grid-cols-2">
-				@ThingEditField(l10n.Get("organisation")) {
-					<select name="organisation" class="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none">
-						for _, organisation := range model.Organisations {
-							<option value={ organisation } selected?={ organisation == model.Thing.Tenant }>{ organisation }</option>
-						}
-					</select>
-				}
+				@shared.SelectBoxField(shared.SelectBoxFieldProps{
+					FieldID:     "thing-organisation",
+					Name:        "organisation",
+					Label:       l10n.Get("organisation"),
+					Placeholder: l10n.Get("choose"),
+					NoSearch:    true,
+					Options:     tenantFieldOptions(model.Organisations, model.Thing.Tenant),
+				})
 			</div>
 			@EditThingTypeSpecificFields(l10n, model)
-			@ThingEditField(l10n.Get("sensorconnected")) {
+			@shared.FormField(l10n.Get("sensorconnected"), "thing-current-device") {
 				@input.Input(input.Props{
+					ID:          "thing-current-device",
 					Name:        "currentDevice",
 					Value:       currentConnectedSensor(model),
 					Placeholder: l10n.Get("sensorconnected"),
 					Class:       "h-10 rounded-xl bg-background",
 				})
 			}
-			@ThingEditField(l10n.Get("tags")) {
+			@shared.FormField(l10n.Get("tags"), "thing-tags") {
 				@tagsinput.TagsInput(tagsinput.Props{
 					ID:          "thing-tags",
 					Name:        "tags",
@@ -434,12 +447,14 @@ templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
 					Suggestions: model.TagOptions,
 				})
 			}
-			@ThingEditField(l10n.Get("description")) {
-				<textarea
-					name="description"
-					class="flex min-h-36 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground"
-					placeholder={ l10n.Get("description") }
-				>{ model.Thing.Description }</textarea>
+			@shared.FormField(l10n.Get("description"), "thing-description") {
+				@textarea.Textarea(textarea.Props{
+					ID:          "thing-description",
+					Name:        "description",
+					Value:       model.Thing.Description,
+					Placeholder: l10n.Get("description"),
+					Class:       "min-h-36 rounded-xl bg-background",
+				})
 			}
 		</div>
 	}
@@ -463,19 +478,20 @@ type ThingMeasurementField struct {
 }
 
 templ ThingNumericField(field ThingMeasurementField) {
-	@ThingEditField(field.Label) {
+	@shared.FormField(field.Label, "thing-"+field.Name) {
 		<div class="flex items-center gap-3">
-		@input.Input(input.Props{
-			Name:  field.Name,
-			Type:  input.TypeNumber,
-			Value: field.Value,
-			Class: "h-10 rounded-xl bg-background",
-			Attributes: templ.Attributes{
-				"step": field.Step,
-				"min":  field.Min,
-				"max":  field.Max,
-			},
-		})
+			@input.Input(input.Props{
+				ID:    "thing-" + field.Name,
+				Name:  field.Name,
+				Type:  input.TypeNumber,
+				Value: field.Value,
+				Class: "h-10 rounded-xl bg-background",
+				Attributes: templ.Attributes{
+					"step": field.Step,
+					"min":  field.Min,
+					"max":  field.Max,
+				},
+			})
 			if field.Unit != "" {
 				<span class="text-sm text-muted-foreground">{ field.Unit }</span>
 			}
@@ -498,7 +514,7 @@ templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) 
 	) {
 		<div class="flex flex-col gap-6 py-6 px-8">
 			<div class="grid gap-6 md:grid-cols-2">
-				@ThingEditField(l10n.Get("latitude")) {
+				@shared.FormField(l10n.Get("latitude"), "latitude") {
 					@input.Input(input.Props{
 						ID:    "latitude",
 						Name:  "latitude",
@@ -512,7 +528,7 @@ templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) 
 						},
 					})
 				}
-				@ThingEditField(l10n.Get("longitude")) {
+				@shared.FormField(l10n.Get("longitude"), "longitude") {
 					@input.Input(input.Props{
 						ID:    "longitude",
 						Name:  "longitude",
@@ -528,21 +544,6 @@ templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) 
 				}
 			</div>
 			@shared.Map("medium", false, true, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
-		</div>
-	}
-}
-
-templ ThingEditField(label string) {
-	<div class="flex flex-col gap-2">
-		<label class="text-sm font-medium text-foreground">{ label }</label>
-		{ children... }
-	</div>
-}
-
-templ ThingEditReadonlyField(label, value string) {
-	@ThingEditField(label) {
-		<div class="flex min-h-10 items-center px-0 text-sm text-foreground">
-			{ value }
 		</div>
 	}
 }

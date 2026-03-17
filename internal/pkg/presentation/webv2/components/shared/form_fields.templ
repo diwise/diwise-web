@@ -1,0 +1,280 @@
+package shared
+
+import (
+	"strings"
+
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/form"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
+)
+
+func NativeSelectClass() string {
+	return "flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none"
+}
+
+type SelectBoxFieldOption struct {
+	Value    string
+	Label    string
+	Selected bool
+}
+
+type SelectBoxFieldProps struct {
+	FieldID         string
+	Name            string
+	Label           string
+	TooltipText     string
+	Placeholder     string
+	Required        bool
+	RequiredMessage string
+	NoSearch        bool
+	Options         []SelectBoxFieldOption
+	HTMXAttrs       templ.Attributes
+}
+
+type MultiSelectBoxFieldProps struct {
+	FieldID           string
+	Name              string
+	Label             string
+	TooltipText       string
+	Placeholder       string
+	Description       string
+	NoSearch          bool
+	SearchPlaceholder string
+	ShowPills         bool
+	SelectedCountText string
+	Options           []SelectBoxFieldOption
+}
+
+templ FormField(labelText, forID string) {
+	@form.Item() {
+		@form.Label(form.LabelProps{
+			For:   forID,
+			Class: "text-foreground",
+		}) {
+			{ labelText }
+		}
+		{ children... }
+	}
+}
+
+templ FormFieldWithTooltip(labelText, forID, tooltipText string) {
+	@form.Item() {
+		<div class="flex items-center gap-2">
+			@form.Label(form.LabelProps{
+				For:   forID,
+				Class: "text-foreground",
+			}) {
+				{ labelText }
+			}
+			@HelpTooltip(tooltipText)
+		</div>
+		{ children... }
+	}
+}
+
+templ FormReadOnlyField(labelText string) {
+	@form.Item() {
+		@form.Label(form.LabelProps{Class: "text-foreground"}) {
+			{ labelText }
+		}
+		{ children... }
+	}
+}
+
+templ FormHiddenLabel(labelText, forID string) {
+	@form.Label(form.LabelProps{
+		For:   forID,
+		Class: "sr-only",
+	}) {
+		{ labelText }
+	}
+}
+
+templ FormDescription(text string) {
+	if strings.TrimSpace(text) != "" {
+		@form.Description() {
+			{ text }
+		}
+	}
+}
+
+templ FormMessage(text string, variant form.MessageVariant) {
+	if strings.TrimSpace(text) != "" {
+		@form.Message(form.MessageProps{Variant: variant}) {
+			{ text }
+		}
+	}
+}
+
+templ SelectBoxField(props SelectBoxFieldProps) {
+	{{ messageID := props.FieldID + "-message" }}
+	{{ hasTooltip := strings.TrimSpace(props.TooltipText) != "" }}
+	@form.Item() {
+		<div class="flex items-center gap-2">
+			@form.Label(form.LabelProps{
+				For:   props.FieldID + "-trigger",
+				Class: "text-foreground",
+			}) {
+				{ props.Label }
+			}
+			if hasTooltip {
+				@HelpTooltip(props.TooltipText)
+			}
+		</div>
+		<div
+			id={ props.FieldID + "-field" }
+			if props.Required {
+				data-v2-required-selectbox=""
+				data-v2-required-message-id={ messageID }
+			}
+		>
+			@selectbox.SelectBox(selectbox.Props{ID: props.FieldID}) {
+				@selectbox.Trigger(selectbox.TriggerProps{
+					ID:    props.FieldID + "-trigger",
+					Name:  props.Name,
+					Class: "h-10 w-full justify-between rounded-xl bg-background px-3 text-sm shadow-xs",
+					Attributes: props.HTMXAttrs,
+				}) {
+					@selectbox.Value(selectbox.ValueProps{
+						Placeholder: props.Placeholder,
+						Class:       "w-full text-sm",
+					})
+				}
+				@selectbox.Content(selectbox.ContentProps{
+					NoSearch: props.NoSearch,
+					Class:    "rounded-xl border-border/80 p-0 shadow-lg",
+				}) {
+					@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+						for _, option := range props.Options {
+							@selectbox.Item(selectbox.ItemProps{
+								Value:    option.Value,
+								Selected: option.Selected,
+								Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-background-100 data-[tui-selectbox-selected=true]:bg-primary-surface data-[tui-selectbox-selected=true]:text-primary-dark dark:hover:bg-white/10 dark:data-[tui-selectbox-selected=true]:bg-white/10 dark:data-[tui-selectbox-selected=true]:text-white",
+							}) {
+								{ option.Label }
+							}
+						}
+					}
+				}
+			}
+		</div>
+		if props.Required {
+			@form.Message(form.MessageProps{
+				ID:      messageID,
+				Variant: form.MessageVariantError,
+				Class:   "hidden",
+			}) {
+				{ props.RequiredMessage }
+			}
+		}
+	}
+}
+
+templ MultiSelectBoxField(props MultiSelectBoxFieldProps) {
+	{{ hasTooltip := strings.TrimSpace(props.TooltipText) != "" }}
+	@form.Item() {
+		<div class="flex items-center gap-2">
+			@form.Label(form.LabelProps{
+				For:   props.FieldID + "-trigger",
+				Class: "text-foreground",
+			}) {
+				{ props.Label }
+			}
+			if hasTooltip {
+				@HelpTooltip(props.TooltipText)
+			}
+		</div>
+		@selectbox.SelectBox(selectbox.Props{ID: props.FieldID}) {
+			@selectbox.Trigger(selectbox.TriggerProps{
+				ID:                props.FieldID + "-trigger",
+				Name:              props.Name,
+				Multiple:          true,
+				ShowPills:         props.ShowPills,
+				SelectedCountText: props.SelectedCountText,
+				Class:             "min-h-10 h-auto justify-between rounded-xl bg-background px-3 py-2 text-left shadow-xs",
+			}) {
+				@selectbox.Value(selectbox.ValueProps{
+					Placeholder: props.Placeholder,
+					Class:       "w-full text-sm",
+				})
+			}
+			@selectbox.Content(selectbox.ContentProps{
+				NoSearch:          props.NoSearch,
+				SearchPlaceholder: props.SearchPlaceholder,
+				Class:             "rounded-2xl border border-border/80 bg-popover p-0 shadow-xl",
+			}) {
+				@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+					for _, option := range props.Options {
+						@selectbox.Item(selectbox.ItemProps{
+							Value:    option.Value,
+							Selected: option.Selected,
+							Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-background-100 data-[tui-selectbox-selected=true]:bg-primary-surface data-[tui-selectbox-selected=true]:text-primary-dark dark:hover:bg-white/10 dark:data-[tui-selectbox-selected=true]:bg-white/10 dark:data-[tui-selectbox-selected=true]:text-white",
+						}) {
+							{ option.Label }
+						}
+					}
+				}
+			}
+		}
+		@FormDescription(props.Description)
+	}
+}
+
+templ RequiredSelectBoxValidationScript(rootID string) {
+	<script nonce={ templ.GetNonce(ctx) }>
+		(() => {
+			const root = document.getElementById({ templ.JSONString(rootID) });
+			if (!root || root.dataset.v2RequiredSelectboxValidation === 'true') return;
+			root.dataset.v2RequiredSelectboxValidation = 'true';
+
+			const fields = Array.from(root.querySelectorAll('[data-v2-required-selectbox]'));
+			if (fields.length === 0) return;
+
+			const validateField = (field) => {
+				const hiddenInput = field.querySelector('[data-tui-selectbox-hidden-input]');
+				const trigger = field.querySelector('button.select-trigger');
+				const messageID = field.dataset.v2RequiredMessageId;
+				const message = messageID ? document.getElementById(messageID) : null;
+				const value = (hiddenInput?.value || '').trim();
+				const valid = value !== '';
+
+				if (trigger) {
+					if (valid) {
+						trigger.removeAttribute('aria-invalid');
+					} else {
+						trigger.setAttribute('aria-invalid', 'true');
+					}
+				}
+
+				if (message) {
+					message.classList.toggle('hidden', valid);
+				}
+
+				return valid;
+			};
+
+			fields.forEach((field) => {
+				const hiddenInput = field.querySelector('[data-tui-selectbox-hidden-input]');
+				if (hiddenInput) {
+					hiddenInput.addEventListener('change', () => validateField(field));
+					hiddenInput.addEventListener('input', () => validateField(field));
+				}
+
+				field.addEventListener('click', () => {
+					requestAnimationFrame(() => requestAnimationFrame(() => validateField(field)));
+				}, true);
+			});
+
+			root.addEventListener('submit', (event) => {
+				let valid = true;
+				fields.forEach((field) => {
+					if (!validateField(field)) {
+						valid = false;
+					}
+				});
+				if (!valid) {
+					event.preventDefault();
+				}
+			});
+		})();
+	</script>
+}

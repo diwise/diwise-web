@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/calendar"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/checkbox"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/dialog"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/label"
@@ -9,6 +10,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/progress"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/tagsinput"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/textarea"
 )
 
 // TemplUIScripts includes script tags for all currently installed templui components
@@ -18,8 +20,10 @@ templ TemplUIScripts() {
 	@label.Script()
 	@popover.Script()
 	@calendar.Script()
+	@checkbox.Script()
 	@dialog.Script()
 	@progress.Script()
 	@selectbox.Script()
 	@tagsinput.Script()
+	@textarea.Script()
 }

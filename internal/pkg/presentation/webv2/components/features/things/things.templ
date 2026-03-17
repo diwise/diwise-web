@@ -15,6 +15,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/progress"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/textarea"
 	. "github.com/diwise/frontend-toolkit"
 )
 
@@ -51,6 +52,29 @@ type TypeOption struct {
 
 type TagOption struct {
 	Value string
+}
+
+func thingTypeFieldOptions(options []TypeOption) []shared.SelectBoxFieldOption {
+	items := make([]shared.SelectBoxFieldOption, 0, len(options))
+	for _, option := range options {
+		items = append(items, shared.SelectBoxFieldOption{
+			Value: option.Value,
+			Label: option.Label,
+		})
+	}
+	return items
+}
+
+func tenantFieldOptions(organisations []string, selected string) []shared.SelectBoxFieldOption {
+	items := make([]shared.SelectBoxFieldOption, 0, len(organisations))
+	for _, organisation := range organisations {
+		items = append(items, shared.SelectBoxFieldOption{
+			Value:    organisation,
+			Label:    organisation,
+			Selected: organisation == selected,
+		})
+	}
+	return items
 }
 
 type NewThingViewModel struct {
@@ -157,48 +181,43 @@ templ NewThingModal(l10n Localizer, model NewThingViewModel) {
 			Class:           "max-w-2xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
 			HideCloseButton: true,
 		}) {
-			<form action="/v2/things" method="post" class="flex flex-col">
+			<form id="create-thing-dialog-form" action="/v2/things" method="post" class="flex flex-col">
 				<div class="border-b border-border/60 px-6 py-5">
 					<h2 class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("addthing") }</h2>
 				</div>
 				<div class="grid gap-6 px-6 py-6">
-					@ThingEditField(l10n.Get("thingtype")) {
-						<select
-							name="type"
-							class="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none"
-							required
-							data-required-message={ l10n.Get("pickOption") }
-						>
-							<option value="" selected>{ l10n.Get("choose") }</option>
-							for _, option := range model.TypeOptions {
-								<option value={ option.Value }>{ option.Label }</option>
-							}
-						</select>
-					}
+					@shared.SelectBoxField(shared.SelectBoxFieldProps{
+						FieldID:         "new-thing-type",
+						Name:            "type",
+						Label:           l10n.Get("thingtype"),
+						Placeholder:     l10n.Get("choose"),
+						Required:        true,
+						RequiredMessage: l10n.Get("pickOption"),
+						NoSearch:        true,
+						Options:         thingTypeFieldOptions(model.TypeOptions),
+					})
 					<div class="grid gap-6 md:grid-cols-2">
-						@ThingEditField(l10n.Get("name")) {
-							@input.Input(input.Props{Name: "name", Class: "h-10 rounded-xl bg-background"})
+						@shared.FormField(l10n.Get("name"), "new-thing-name") {
+							@input.Input(input.Props{ID: "new-thing-name", Name: "name", Class: "h-10 rounded-xl bg-background"})
 						}
-						@ThingEditField(l10n.Get("organisation")) {
-							<select
-								name="organisation"
-								class="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none"
-								required
-								data-required-message={ l10n.Get("pickOption") }
-							>
-								<option value="" selected>{ l10n.Get("choose") }</option>
-								for _, organisation := range model.Organisations {
-									<option value={ organisation }>{ organisation }</option>
-								}
-							</select>
-						}
+						@shared.SelectBoxField(shared.SelectBoxFieldProps{
+							FieldID:         "new-thing-organisation",
+							Name:            "organisation",
+							Label:           l10n.Get("organisation"),
+							Placeholder:     l10n.Get("choose"),
+							Required:        true,
+							RequiredMessage: l10n.Get("pickOption"),
+							NoSearch:        true,
+							Options:         tenantFieldOptions(model.Organisations, ""),
+						})
 					</div>
-					@ThingEditField(l10n.Get("description")) {
-						<textarea
-							name="description"
-							class="flex min-h-36 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground"
-							placeholder={ l10n.Get("description") }
-						></textarea>
+					@shared.FormField(l10n.Get("description"), "new-thing-description") {
+						@textarea.Textarea(textarea.Props{
+							ID:          "new-thing-description",
+							Name:        "description",
+							Placeholder: l10n.Get("description"),
+							Class:       "min-h-36 rounded-xl bg-background",
+						})
 					}
 				</div>
 				<div class="flex items-center justify-end gap-3 border-t border-border/60 px-6 py-5">
@@ -218,23 +237,7 @@ templ NewThingModal(l10n Localizer, model NewThingViewModel) {
 						{ l10n.Get("save") }
 					}
 				</div>
-				<script nonce={ templ.GetNonce(ctx) }>
-					(() => {
-						const container = document.getElementById('create-thing-dialog');
-						if (!container) return;
-						container.querySelectorAll('select[data-required-message]').forEach((select) => {
-							select.addEventListener('invalid', () => {
-								select.setCustomValidity(select.dataset.requiredMessage || '');
-							});
-							select.addEventListener('input', () => {
-								select.setCustomValidity('');
-							});
-							select.addEventListener('change', () => {
-								select.setCustomValidity('');
-							});
-						});
-					})();
-				</script>
+				@shared.RequiredSelectBoxValidationScript("create-thing-dialog-form")
 			</form>
 		}
 	}
