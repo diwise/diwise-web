@@ -156,7 +156,7 @@ templ EditThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
 }
 
 templ ThingDetailsPropertiesSection(l10n Localizer, model ThingDetailsPageViewModel) {
-	@shared.DetailSection(
+	@shared.DetailSectionCard(
 		l10n.Get("details"),
 		icon.Info(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
@@ -352,7 +352,7 @@ templ ThingMeasurementSummary(l10n Localizer, measurement LatestMeasurementViewM
 }
 
 templ ThingDetailsLocationSection(l10n Localizer, model ThingDetailsPageViewModel) {
-	@shared.DetailSection(
+	@shared.DetailSectionCard(
 		l10n.Get("location"),
 		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 	) {
