@@ -129,9 +129,8 @@ templ ThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
 			<span>{ l10n.Get("things") }</span>
 		</a>
 		<div class="flex items-center justify-between gap-4">
-			<div class="flex items-center gap-3">
+			<div class="min-w-0">
 				<h1 class="text-3xl font-bold font-heading text-foreground">{ thingDisplayName(model.Thing) }</h1>
-				@ThingWarningBadge(l10n, model.Thing.HasWarning())
 			</div>
 			@button.Button(button.Props{
 				Href:    fmt.Sprintf("/v2/things/%s?mode=edit", model.Thing.ID),
@@ -164,10 +163,9 @@ templ EditThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
 			<span>{ l10n.Get("things") }</span>
 		</a>
 		<div class="flex items-center justify-between gap-4">
-			<div class="flex items-center gap-3">
+			<div class="min-w-0">
 				<h1 class="text-3xl font-bold font-heading text-foreground">{ l10n.Get("edit") } { thingDisplayName(model.Thing) }</h1>
 			</div>
-			@ThingWarningBadge(l10n, model.Thing.HasWarning())
 		</div>
 	</div>
 }
@@ -543,7 +541,7 @@ templ ThingEditField(label string) {
 
 templ ThingEditReadonlyField(label, value string) {
 	@ThingEditField(label) {
-		<div class="flex h-10 items-center rounded-xl border border-border/70 bg-background/60 px-3 text-sm text-foreground">
+		<div class="flex min-h-10 items-center px-0 text-sm text-foreground">
 			{ value }
 		</div>
 	}
@@ -584,14 +582,6 @@ templ ThingTagValue(l10n Localizer, tags []string) {
 	}
 }
 
-templ ThingWarningBadge(l10n Localizer, warning bool) {
-	if warning {
-		@badge.Badge(badge.Props{Variant: badge.VariantSecondary, Class: "rounded-full px-3 py-1 text-xs"}) {
-			{ l10n.Get("missingdata") }
-		}
-	}
-}
-
 func thingDisplayName(thing ThingViewModel) string {
 	if strings.TrimSpace(thing.Name) != "" {
 		return thing.Name
@@ -601,7 +591,6 @@ func thingDisplayName(thing ThingViewModel) string {
 
 func thingDetailItems(l10n Localizer, model ThingDetailsPageViewModel) []shared.DetailListItem {
 	items := []shared.DetailListItem{
-		{Label: l10n.Get("id"), Value: model.Thing.ID},
 		{Label: l10n.Get("thingtype"), Value: displayThingType(l10n, model.Thing)},
 		{Label: l10n.Get("name"), Value: model.Thing.Name, Missing: strings.TrimSpace(model.Thing.Name) == ""},
 		{Label: l10n.Get("description"), Value: model.Thing.Description, Missing: strings.TrimSpace(model.Thing.Description) == ""},

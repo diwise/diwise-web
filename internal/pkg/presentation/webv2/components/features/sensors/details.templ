@@ -342,7 +342,7 @@ templ EditFieldWithTooltip(label string, tooltipText string) {
 
 templ MeasurementTypeOptionsField(l10n Localizer, props MeasurementTypeOptionsProps) {
 	<div id="measurement-types-field" class="flex flex-col gap-2">
-		<label class="text-sm font-medium text-foreground">{ l10n.Get("measurementtype") }</label>
+		<label class="text-sm font-medium text-foreground" for="measurement-type-select">{ l10n.Get("measurementtype") }</label>
 		if len(props.Options) == 0 {
 			<div class="rounded-2xl border border-dashed border-border px-4 py-6 text-sm text-muted-foreground">
 				{ l10n.Get("chooseMeasurementtype") }
@@ -431,7 +431,7 @@ templ SensorDetailsMeasurementSection(l10n Localizer, sensor SensorDetailsPageVi
 	) {
 		<div class="flex flex-col gap-6 py-6 px-8">
 			<div class="flex flex-col gap-2">
-				<label for="sensorMeasurementTypes" class="text-sm font-medium text-foreground">
+				<label for="sensorMeasurementTypes" class="hidden">
 					{ l10n.Get("sensorMeasurementTypes") }
 				</label>
 				<select
