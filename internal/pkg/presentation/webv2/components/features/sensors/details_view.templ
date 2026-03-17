@@ -1,0 +1,262 @@
+package sensors
+
+import (
+	"fmt"
+	"strings"
+	"time"
+
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ SensorDetailsPage(l10n Localizer, _ AssetLoaderFunc, sensor SensorDetailsPageViewModel) {
+	<div class="flex flex-col gap-8" id="sensor-view">
+		@SensorDetailsHeader(l10n, sensor)
+		<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
+			<div class="flex flex-1 flex-col gap-8">
+				@SensorDetailsPropertiesSection(l10n, sensor)
+				if len(sensor.Metadata) > 0 {
+					@SensorDetailsMetadataSection(l10n, sensor)
+				}
+				@SensorDetailsMeasurementSection(l10n, sensor)
+			</div>
+			<div class="hidden self-stretch border-l border-border/70 lg:block"></div>
+			<div class="flex w-full flex-1 flex-col gap-8">
+				@SensorDetailsLocationSection(l10n, sensor)
+				@SensorDetailsStatusSection(l10n, sensor)
+			</div>
+		</div>
+	</div>
+}
+
+templ SensorDetailsHeader(l10n Localizer, sensor SensorDetailsPageViewModel) {
+	<div class="flex flex-col gap-4">
+		<a
+			href="/v2/sensors"
+			hx-get="/v2/sensors"
+			hx-target="#app-shell"
+			hx-swap="outerHTML"
+			hx-replace-url="true"
+			class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+		>
+			<span aria-hidden="true">←</span>
+			<span>{ l10n.Get("sensors") }</span>
+		</a>
+		<div class="flex items-center justify-between gap-4">
+			if sensor.Name == "" {
+				<div class="flex items-center gap-3">
+					<h1 class="text-3xl font-bold font-heading text-foreground">{ sensor.DeviceID }</h1>
+					@StatusBadge(l10n, sensor.Active)
+				</div>
+			} else {
+				<div class="flex items-center gap-3">
+					<h1 class="text-3xl font-bold font-heading text-foreground">{ sensor.Name }</h1>
+					@StatusBadge(l10n, sensor.Active)
+				</div>
+			}
+			@button.Button(button.Props{
+				Href:    fmt.Sprintf("/v2/sensors/%s?mode=edit", sensor.DeviceID),
+				Variant: button.VariantOutline,
+				Class:   "rounded-xl px-4",
+				Attributes: templ.Attributes{
+					"hx-get":         fmt.Sprintf("/v2/sensors/%s?mode=edit", sensor.DeviceID),
+					"hx-target":      "#app-shell",
+					"hx-swap":        "outerHTML",
+					"hx-replace-url": "true",
+				},
+			}) {
+				{ l10n.Get("edit") }
+			}
+		</div>
+	</div>
+}
+
+templ StatusBadge(l10n Localizer, active bool) {
+	@badge.Badge(badge.Props{Variant: badgeVariant(active), Class: "rounded-full px-3 py-1"}) {
+		if active {
+			{ l10n.Get("active") }
+		} else {
+			{ l10n.Get("inactive") }
+		}
+	}
+}
+
+templ SensorDetailsPropertiesSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
+	@shared.DetailSectionCard(
+		l10n.Get("details"),
+		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
+	) {
+		<div class="py-6 px-8">
+			@shared.DetailList([]shared.DetailListItem{
+				{Label: l10n.Get("deveui"), Value: sensor.DevEUI},
+				{Label: l10n.Get("id"), Value: sensor.DeviceID},
+				{Label: l10n.Get("sensortype"), Value: sensor.DeviceProfileName},
+				{Label: l10n.Get("environment"), Value: localizedOrFallback(l10n, sensor.Environment)},
+				{Label: l10n.Get("organisation"), Value: sensor.Tenant},
+				{Label: l10n.Get("description"), Value: sensor.Description, Missing: strings.TrimSpace(sensor.Description) == ""},
+				{Label: l10n.Get("lastseen"), Value: formatTimestamp(sensor.ObservedAt)},
+			})
+		</div>
+	}
+}
+
+templ SensorDetailsMetadataSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
+	@shared.DetailSectionCard(
+		l10n.Get("Metadata"),
+		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
+	) {
+		<div class="py-6 px-8">
+			@shared.DetailList(metadataItems(sensor.Metadata))
+		</div>
+	}
+}
+
+templ SensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
+	@shared.DetailSectionCard(
+		l10n.Get("location"),
+		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
+	) {
+		<div class="flex flex-col gap-6 py-6 px-8">
+			@shared.DetailList([]shared.DetailListItem{
+				{Label: l10n.Get("latitude"), Value: formatCoordinate(sensor.Latitude)},
+				{Label: l10n.Get("longitude"), Value: formatCoordinate(sensor.Longitude)},
+			})
+			if sensor.Latitude != 0 && sensor.Longitude != 0 {
+				@shared.Map("medium", false, false, shared.NewMapData(sensor.Latitude, sensor.Longitude), sensorDetailsMapFeature(sensor))
+			} else {
+				<div class="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+					{ l10n.Get("missing") }
+				</div>
+			}
+		</div>
+	}
+}
+
+templ SensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
+	@shared.DetailSectionCard(
+		l10n.Get("Status"),
+		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
+	) {
+		<div class="flex flex-col gap-6 py-6 px-8">
+			@shared.DetailList(statusItems(l10n, sensor.DeviceStatus))
+			<div
+				id="statusChartContainer"
+				class="h-[420px] w-full"
+				hx-get={ string(templ.SafeURL(fmt.Sprintf("/v2/components/sensors/%s/status", sensor.DeviceID))) }
+				hx-trigger="load"
+			>
+				<div class="h-full w-full rounded-2xl border border-border/70 bg-background/40"></div>
+			</div>
+		</div>
+	}
+}
+
+func StatusChartComponent(config shared.AdvancedChartConfig) templ.Component {
+	return shared.AdvancedChart(shared.AdvancedChartProps{
+		ID:     "status-chart",
+		Config: config,
+		Class:  "h-full w-full",
+	})
+}
+
+func badgeVariant(active bool) badge.Variant {
+	if active {
+		return badge.VariantDefault
+	}
+	return badge.VariantSecondary
+}
+
+func metadataItems(items []MetadataViewModel) []shared.DetailListItem {
+	result := make([]shared.DetailListItem, 0, len(items))
+	for _, item := range items {
+		result = append(result, shared.DetailListItem{Label: item.Key, Value: item.Value})
+	}
+	return result
+}
+
+func statusItems(l10n Localizer, status *DeviceStatusViewModel) []shared.DetailListItem {
+	items := []shared.DetailListItem{
+		{Label: l10n.Get("batterylevel"), Value: sensorBattery(status)},
+		{Label: l10n.Get("dr"), Value: formatIntPointer(status, func(s *DeviceStatusViewModel) *int { return s.DR })},
+		{Label: l10n.Get("frequency"), Value: formatFrequency(status)},
+		{Label: l10n.Get("loraSNR"), Value: formatFloatPointer(status, func(s *DeviceStatusViewModel) *float64 { return s.LoRaSNR })},
+		{Label: l10n.Get("rssi"), Value: formatFloatPointer(status, func(s *DeviceStatusViewModel) *float64 { return s.RSSI })},
+		{Label: l10n.Get("lastseen"), Value: statusObservedAt(status)},
+	}
+
+	filtered := make([]shared.DetailListItem, 0, len(items))
+	for _, item := range items {
+		if item.Value == "-" {
+			continue
+		}
+		filtered = append(filtered, item)
+	}
+	return filtered
+}
+
+func formatTimestamp(value time.Time) string {
+	if value.IsZero() {
+		return "-"
+	}
+	return value.Format("2006-01-02, 15:04")
+}
+
+func localizedOrFallback(l10n Localizer, value string) string {
+	if strings.TrimSpace(value) == "" {
+		return "-"
+	}
+	return l10n.Get(value)
+}
+
+func sensorBattery(status *DeviceStatusViewModel) string {
+	if status == nil {
+		return "-"
+	}
+	switch {
+	case status.BatteryLevel > 100:
+		return fmt.Sprintf("%d mV", status.BatteryLevel)
+	case status.BatteryLevel > 0:
+		return fmt.Sprintf("%d%%", status.BatteryLevel)
+	default:
+		return "-"
+	}
+}
+
+func formatFloatPointer(status *DeviceStatusViewModel, selector func(*DeviceStatusViewModel) *float64) string {
+	if status == nil {
+		return "-"
+	}
+	value := selector(status)
+	if value == nil {
+		return "-"
+	}
+	return fmt.Sprintf("%.2f", *value)
+}
+
+func formatIntPointer(status *DeviceStatusViewModel, selector func(*DeviceStatusViewModel) *int) string {
+	if status == nil {
+		return "-"
+	}
+	value := selector(status)
+	if value == nil || *value <= 0 {
+		return "-"
+	}
+	return fmt.Sprintf("%d", *value)
+}
+
+func formatFrequency(status *DeviceStatusViewModel) string {
+	if status == nil || status.Frequency == nil {
+		return "-"
+	}
+	return fmt.Sprintf("%d MHz", *status.Frequency/1000000)
+}
+
+func statusObservedAt(status *DeviceStatusViewModel) string {
+	if status == nil {
+		return "-"
+	}
+	return formatTimestamp(status.ObservedAt)
+}

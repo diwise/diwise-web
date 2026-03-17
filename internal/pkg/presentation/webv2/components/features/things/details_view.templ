@@ -1,0 +1,165 @@
+package things
+
+import (
+	"fmt"
+	"strings"
+
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ ThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
+	<div id="thing-view" class="flex flex-col gap-8">
+		@ThingDetailsHeader(l10n, model)
+		@ThingDetailsMeasurementsSection(l10n, model)
+		<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
+			<div class="flex flex-1 flex-col gap-8">
+				@ThingDetailsPropertiesSection(l10n, model)
+			</div>
+			<div class="hidden self-stretch border-l border-border/70 lg:block"></div>
+			<div class="flex w-full flex-1 flex-col gap-8">
+				@ThingDetailsLocationSection(l10n, model)
+			</div>
+		</div>
+	</div>
+}
+
+templ ThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
+	<div class="flex flex-col gap-4">
+		<a
+			href="/v2/things"
+			hx-get="/v2/things"
+			hx-target="#app-shell"
+			hx-swap="outerHTML"
+			hx-replace-url="true"
+			class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+		>
+			<span aria-hidden="true">←</span>
+			<span>{ l10n.Get("things") }</span>
+		</a>
+		<div class="flex items-center justify-between gap-4">
+			<div class="min-w-0">
+				<h1 class="text-3xl font-bold font-heading text-foreground">{ thingDisplayName(model.Thing) }</h1>
+			</div>
+			@button.Button(button.Props{
+				Href:    fmt.Sprintf("/v2/things/%s?mode=edit", model.Thing.ID),
+				Variant: button.VariantOutline,
+				Class:   "rounded-xl px-4",
+				Attributes: templ.Attributes{
+					"hx-get":         fmt.Sprintf("/v2/things/%s?mode=edit", model.Thing.ID),
+					"hx-target":      "#app-shell",
+					"hx-swap":        "outerHTML",
+					"hx-replace-url": "true",
+				},
+			}) {
+				{ l10n.Get("edit") }
+			}
+		</div>
+	</div>
+}
+
+templ ThingDetailsPropertiesSection(l10n Localizer, model ThingDetailsPageViewModel) {
+	@shared.DetailSectionCard(
+		l10n.Get("details"),
+		icon.Info(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
+	) {
+		<div class="flex flex-col gap-4 py-6 px-8 text-foreground">
+			@shared.DetailList(thingDetailItems(l10n, model))
+		</div>
+	}
+}
+
+templ ThingDetailsLocationSection(l10n Localizer, model ThingDetailsPageViewModel) {
+	@shared.DetailSectionCard(
+		l10n.Get("location"),
+		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
+	) {
+		<div class="flex w-full flex-col gap-6 py-6 px-8 text-foreground">
+			@shared.DetailList([]shared.DetailListItem{
+				{Label: l10n.Get("latitude"), Value: formatCoordinate(model.Thing.Latitude)},
+				{Label: l10n.Get("longitude"), Value: formatCoordinate(model.Thing.Longitude)},
+			})
+			if model.Thing.Latitude != 0 && model.Thing.Longitude != 0 {
+				<div class="w-full overflow-hidden rounded-2xl">
+					@shared.Map("medium", false, false, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+				</div>
+			} else {
+				<div class="italic text-muted-foreground">
+					{ l10n.Get("missing") }
+				</div>
+			}
+		</div>
+	}
+}
+
+templ ThingConnectedSensorValue(l10n Localizer, model ThingDetailsPageViewModel) {
+	if len(model.ConnectedNames) == 0 {
+		<span class="italic text-muted-foreground">{ l10n.Get("sensormissing") }</span>
+	} else {
+		<div class="flex flex-wrap gap-x-4 gap-y-2">
+			for _, sensorID := range model.ConnectedNames {
+				<a
+					href={ string(templ.SafeURL(fmt.Sprintf("/v2/sensors/%s", sensorID))) }
+					hx-get={ string(templ.SafeURL(fmt.Sprintf("/v2/sensors/%s", sensorID))) }
+					hx-target="#app-shell"
+					hx-swap="outerHTML"
+					hx-replace-url="true"
+					class="underline underline-offset-4"
+				>
+					{ sensorID }
+				</a>
+			}
+		</div>
+	}
+}
+
+templ ThingTagValue(l10n Localizer, tags []string) {
+	if len(tags) == 0 {
+		<span class="italic text-muted-foreground">{ l10n.Get("missing") }</span>
+	} else {
+		<div class="flex flex-wrap gap-2">
+			for _, tag := range tags {
+				@badge.Badge(badge.Props{Variant: badge.VariantSecondary, Class: "rounded-full px-3 py-1"}) {
+					{ tag }
+				}
+			}
+		</div>
+	}
+}
+
+func thingDetailItems(l10n Localizer, model ThingDetailsPageViewModel) []shared.DetailListItem {
+	items := []shared.DetailListItem{
+		{Label: l10n.Get("thingtype"), Value: displayThingType(l10n, model.Thing)},
+		{Label: l10n.Get("name"), Value: model.Thing.Name, Missing: strings.TrimSpace(model.Thing.Name) == ""},
+		{Label: l10n.Get("description"), Value: model.Thing.Description, Missing: strings.TrimSpace(model.Thing.Description) == ""},
+		{Label: l10n.Get("sensorconnected"), Content: ThingConnectedSensorValue(l10n, model)},
+		{Label: l10n.Get("organisation"), Value: model.Thing.Tenant},
+		{Label: l10n.Get("tags"), Content: ThingTagValue(l10n, model.Thing.Tags)},
+	}
+
+	if strings.TrimSpace(model.Thing.AlternativeName) != "" {
+		items = append(items[:3], append([]shared.DetailListItem{{
+			Label: l10n.Get("alternativeName"),
+			Value: model.Thing.AlternativeName,
+		}}, items[3:]...)...)
+	}
+
+	return items
+}
+
+func currentConnectedSensor(model ThingDetailsPageViewModel) string {
+	if len(model.ConnectedNames) == 0 {
+		return ""
+	}
+	return model.ConnectedNames[0]
+}
+
+func formatCoordinate(value float64) string {
+	if value == 0 {
+		return "-"
+	}
+	return fmt.Sprintf("%.6f", value)
+}
