@@ -1,6 +1,6 @@
 # diwise-web
 
-Main repository for the diwise web application
+Main repository for the diwise web application.
 
 ## Development dependencies
 
