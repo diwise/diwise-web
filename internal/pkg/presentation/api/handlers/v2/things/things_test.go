@@ -25,3 +25,39 @@ func TestSelectedValuesReturnsNilForMissingKey(t *testing.T) {
 
 	is.Equal(0, len(selected))
 }
+
+func TestNormalizeTypeFilterSplitsCommaSeparatedValues(t *testing.T) {
+	is := is.New(t)
+
+	params, err := url.ParseQuery("type=Container-Sandstorage%2CSewer-CombinedSewerOverflow&tags=a")
+	is.NoErr(err)
+
+	selected := normalizeTypeFilter(params)
+
+	is.Equal([]string{"Container-Sandstorage", "Sewer-CombinedSewerOverflow"}, selected)
+	is.Equal("tags=a&type=Container-Sandstorage&type=Sewer-CombinedSewerOverflow", params.Encode())
+}
+
+func TestNormalizeTypeFilterPreservesRepeatedValues(t *testing.T) {
+	is := is.New(t)
+
+	params, err := url.ParseQuery("type=Container-Sandstorage&type=Sewer-CombinedSewerOverflow&type=Container-Sandstorage")
+	is.NoErr(err)
+
+	selected := normalizeTypeFilter(params)
+
+	is.Equal([]string{"Container-Sandstorage", "Sewer-CombinedSewerOverflow"}, selected)
+	is.Equal("type=Container-Sandstorage&type=Sewer-CombinedSewerOverflow", params.Encode())
+}
+
+func TestNormalizeMultiValueFilterSplitsCommaSeparatedTags(t *testing.T) {
+	is := is.New(t)
+
+	params, err := url.ParseQuery("tags=sandficka%2Calno&tags=sandficka")
+	is.NoErr(err)
+
+	selected := normalizeMultiValueFilter(params, "tags")
+
+	is.Equal([]string{"sandficka", "alno"}, selected)
+	is.Equal("tags=sandficka&tags=alno", params.Encode())
+}

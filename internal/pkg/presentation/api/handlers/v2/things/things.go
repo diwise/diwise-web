@@ -30,7 +30,7 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
-		model, err := composeListModel(ctx, r, app)
+		model, err := composeListModel(ctx, r, localizer, app)
 		if err != nil {
 			http.Error(w, "could not fetch things", http.StatusInternalServerError)
 			return
@@ -54,7 +54,7 @@ func NewThingsDataList(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, 
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
-		model, err := composeListModel(ctx, r, app)
+		model, err := composeListModel(ctx, r, localizer, app)
 		if err != nil {
 			http.Error(w, "could not fetch things", http.StatusInternalServerError)
 			return
@@ -65,13 +65,15 @@ func NewThingsDataList(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, 
 	}
 }
 
-func composeListModel(ctx context.Context, r *http.Request, app application.ThingManagement) (featuresthings.ThingsPageViewModel, error) {
+func composeListModel(ctx context.Context, r *http.Request, localizer Localizer, app application.ThingManagement) (featuresthings.ThingsPageViewModel, error) {
 	pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 	offset, limit := helpers.GetOffsetAndLimit(r)
 	showMap := r.URL.Query().Get("mapview") == "true"
 
 	args := r.URL.Query()
 	helpers.SanitizeParams(args, "mapview", "page", "limit", "offset")
+	selectedTypes := normalizeTypeFilter(args)
+	selectedTags := normalizeMultiValueFilter(args, "tags")
 
 	if showMap {
 		offset = 0
@@ -95,9 +97,10 @@ func composeListModel(ctx context.Context, r *http.Request, app application.Thin
 
 	typeOptions := make([]featuresthings.TypeOption, 0, len(types))
 	for _, thingType := range types {
+		label := localizer.Get(thingType)
 		typeOptions = append(typeOptions, featuresthings.TypeOption{
 			Value: thingType,
-			Label: thingType,
+			Label: label,
 		})
 	}
 	slices.SortFunc(typeOptions, func(a, b featuresthings.TypeOption) int {
@@ -127,8 +130,8 @@ func composeListModel(ctx context.Context, r *http.Request, app application.Thin
 			TargetID:   "#tableOrMap",
 		},
 		Filters: featuresthings.FiltersViewModel{
-			SelectedTypes: selectedValues(r.URL.Query(), "type"),
-			SelectedTags:  selectedValues(r.URL.Query(), "tags"),
+			SelectedTypes: selectedTypes,
+			SelectedTags:  selectedTags,
 			PageSize:      limit,
 		},
 		TypeOptions: typeOptions,
@@ -141,6 +144,35 @@ func composeListModel(ctx context.Context, r *http.Request, app application.Thin
 	}
 
 	return model, nil
+}
+
+func normalizeTypeFilter(args url.Values) []string {
+	return normalizeMultiValueFilter(args, "type")
+}
+
+func normalizeMultiValueFilter(args url.Values, key string) []string {
+	rawValues := args[key]
+	if len(rawValues) == 0 {
+		return nil
+	}
+
+	selectedValues := make([]string, 0, len(rawValues))
+	for _, rawValue := range rawValues {
+		for _, part := range strings.Split(rawValue, ",") {
+			part = strings.TrimSpace(part)
+			if part == "" || slices.Contains(selectedValues, part) {
+				continue
+			}
+			selectedValues = append(selectedValues, part)
+		}
+	}
+
+	args.Del(key)
+	for _, value := range selectedValues {
+		args.Add(key, value)
+	}
+
+	return selectedValues
 }
 
 func selectedValues(values url.Values, key string) []string {

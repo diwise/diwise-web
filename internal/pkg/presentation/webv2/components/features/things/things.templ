@@ -180,7 +180,7 @@ templ Filters(l10n Localizer, viewModel ThingsPageViewModel) {
 										Selected: contains(viewModel.Filters.SelectedTypes, option.Value),
 										Class:    shared.FilterDropdownItemClass(contains(viewModel.Filters.SelectedTypes, option.Value)),
 									}) {
-										{ l10n.Get(option.Label) }
+										{ option.Label }
 									}
 								}
 							}
