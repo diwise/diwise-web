@@ -43,6 +43,18 @@ func TestBuildThingUpdateFieldsMapsEditForm(t *testing.T) {
 	is.Equal(4.5, fields["offset"])
 }
 
+func TestBuildThingUpdateFieldsHandlesRepeatedTagValues(t *testing.T) {
+	is := is.New(t)
+
+	form := url.Values{
+		"tags": {"waste", "downtown", "waste"},
+	}
+
+	fields := buildThingUpdateFields(form)
+
+	is.Equal([]string{"waste", "downtown"}, fields["tags"])
+}
+
 func TestNormalizeCSVListTrimsAndDeduplicates(t *testing.T) {
 	is := is.New(t)
 

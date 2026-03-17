@@ -11,6 +11,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/tabs"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/tagsinput"
 	. "github.com/diwise/frontend-toolkit"
 )
 
@@ -18,10 +19,16 @@ type ThingDetailsPageViewModel struct {
 	Thing          ThingViewModel
 	LatestValues   []LatestMeasurementViewModel
 	ConnectedNames []string
+	ValidSensors   []SensorOption
 	Organisations  []string
 	TagOptions     []string
 	MeasurementOptions []MeasurementOption
 	SelectedMeasurement string
+}
+
+type SensorOption struct {
+	Value string
+	Label string
 }
 
 type LatestMeasurementViewModel struct {
@@ -72,7 +79,6 @@ templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
 		<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
 			<div class="flex flex-1 flex-col gap-8">
 				@EditThingDetailsSection(l10n, model)
-				@EditThingMeasurementSettingsSection(l10n, model)
 			</div>
 			<div class="hidden self-stretch border-l border-border/70 lg:block"></div>
 			<div class="flex w-full flex-1 flex-col gap-8">
@@ -80,6 +86,17 @@ templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
 			</div>
 		</div>
 		<div class="flex items-center justify-end gap-3">
+			@button.Button(button.Props{
+				Type:    button.TypeSubmit,
+				Variant: button.VariantDestructive,
+				Class:   "mr-auto rounded-xl px-4",
+				Attributes: templ.Attributes{
+					"formaction": fmt.Sprintf("/v2/things/%s/delete", model.Thing.ID),
+					"onclick":    fmt.Sprintf("return confirm('%s %s?')", l10n.Get("deletethingconfirm"), strings.ReplaceAll(thingDisplayName(model.Thing), "'", "\\'")),
+				},
+			}) {
+				{ l10n.Get("delete") }
+			}
 			@button.Button(button.Props{
 				Href:    fmt.Sprintf("/v2/things/%s", model.Thing.ID),
 				Variant: button.VariantOutline,
@@ -378,6 +395,12 @@ templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	@shared.DetailSectionCard(l10n.Get("details"), icon.Info(icon.Props{Size: 24, Class: "text-black dark:text-white"})) {
 		<div class="grid gap-6 py-6 px-8">
 			<div class="grid gap-6 md:grid-cols-2">
+				@ThingEditReadonlyField(l10n.Get("thingtype"), l10n.Get(model.Thing.Type))
+				if strings.TrimSpace(model.Thing.SubType) != "" {
+					@ThingEditReadonlyField(l10n.Get("category"), l10n.Get(model.Thing.SubType))
+				}
+			</div>
+			<div class="grid gap-6 md:grid-cols-2">
 				@ThingEditField(l10n.Get("name")) {
 					@input.Input(input.Props{Name: "name", Value: model.Thing.Name, Class: "h-10 rounded-xl bg-background"})
 				}
@@ -393,30 +416,26 @@ templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
 						}
 					</select>
 				}
-				@ThingEditField(l10n.Get("thingtype")) {
-					<div class="flex h-10 items-center rounded-xl border border-border/70 bg-background/60 px-3 text-sm text-foreground">
-						{ displayThingType(l10n, model.Thing) }
-					</div>
-				}
 			</div>
-			<div class="grid gap-6 md:grid-cols-2">
-				@ThingEditField(l10n.Get("tags")) {
-					@input.Input(input.Props{
-						Name:        "tags",
-						Value:       strings.Join(model.Thing.Tags, ", "),
-						Placeholder: l10n.Get("tags"),
-						Class:       "h-10 rounded-xl bg-background",
-					})
-				}
-				@ThingEditField(l10n.Get("sensorconnected")) {
-					@input.Input(input.Props{
-						Name:        "currentDevice",
-						Value:       strings.Join(model.ConnectedNames, ", "),
-						Placeholder: l10n.Get("sensorconnected"),
-						Class:       "h-10 rounded-xl bg-background",
-					})
-				}
-			</div>
+			@EditThingTypeSpecificFields(l10n, model)
+			@ThingEditField(l10n.Get("sensorconnected")) {
+				@input.Input(input.Props{
+					Name:        "currentDevice",
+					Value:       currentConnectedSensor(model),
+					Placeholder: l10n.Get("sensorconnected"),
+					Class:       "h-10 rounded-xl bg-background",
+				})
+			}
+			@ThingEditField(l10n.Get("tags")) {
+				@tagsinput.TagsInput(tagsinput.Props{
+					ID:          "thing-tags",
+					Name:        "tags",
+					Value:       model.Thing.Tags,
+					Placeholder: l10n.Get("addtag"),
+					Class:       "rounded-xl bg-background",
+					Suggestions: model.TagOptions,
+				})
+			}
 			@ThingEditField(l10n.Get("description")) {
 				<textarea
 					name="description"
@@ -428,17 +447,10 @@ templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	}
 }
 
-templ EditThingMeasurementSettingsSection(l10n Localizer, model ThingDetailsPageViewModel) {
+templ EditThingTypeSpecificFields(l10n Localizer, model ThingDetailsPageViewModel) {
 	{{ fields := thingMeasurementFields(l10n, model.Thing) }}
-	if len(fields) == 0 {
-		return
-	}
-	@shared.DetailSectionCard(l10n.Get("measurements"), icon.Icon("chart-column")(icon.Props{Size: 24, Class: "text-black dark:text-white"})) {
-		<div class="grid gap-6 py-6 px-8 md:grid-cols-2">
-			for _, field := range fields {
-				@ThingNumericField(field)
-			}
-		</div>
+	if len(fields) > 0 {
+		@ThingMeasurementFieldsGrid(fields)
 	}
 }
 
@@ -473,6 +485,14 @@ templ ThingNumericField(field ThingMeasurementField) {
 	}
 }
 
+templ ThingMeasurementFieldsGrid(fields []ThingMeasurementField) {
+	<div class="grid gap-6 md:grid-cols-2">
+		for _, field := range fields {
+			@ThingNumericField(field)
+		}
+	</div>
+}
+
 templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	@shared.DetailSectionCard(
 		l10n.Get("location"),
@@ -482,6 +502,7 @@ templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) 
 			<div class="grid gap-6 md:grid-cols-2">
 				@ThingEditField(l10n.Get("latitude")) {
 					@input.Input(input.Props{
+						ID:    "latitude",
 						Name:  "latitude",
 						Type:  input.TypeNumber,
 						Value: formatCoordinate(model.Thing.Latitude),
@@ -495,6 +516,7 @@ templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) 
 				}
 				@ThingEditField(l10n.Get("longitude")) {
 					@input.Input(input.Props{
+						ID:    "longitude",
 						Name:  "longitude",
 						Type:  input.TypeNumber,
 						Value: formatCoordinate(model.Thing.Longitude),
@@ -517,6 +539,14 @@ templ ThingEditField(label string) {
 		<label class="text-sm font-medium text-foreground">{ label }</label>
 		{ children... }
 	</div>
+}
+
+templ ThingEditReadonlyField(label, value string) {
+	@ThingEditField(label) {
+		<div class="flex h-10 items-center rounded-xl border border-border/70 bg-background/60 px-3 text-sm text-foreground">
+			{ value }
+		</div>
+	}
 }
 
 templ ThingConnectedSensorValue(l10n Localizer, model ThingDetailsPageViewModel) {
@@ -588,6 +618,13 @@ func thingDetailItems(l10n Localizer, model ThingDetailsPageViewModel) []shared.
 	}
 
 	return items
+}
+
+func currentConnectedSensor(model ThingDetailsPageViewModel) string {
+	if len(model.ConnectedNames) == 0 {
+		return ""
+	}
+	return model.ConnectedNames[0]
 }
 
 func formatLatestMeasurement(measurement LatestMeasurementViewModel) string {

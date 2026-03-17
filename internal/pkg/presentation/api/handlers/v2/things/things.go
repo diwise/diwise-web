@@ -16,6 +16,7 @@ import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/things"
 	v2layout "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/layout"
+	"github.com/google/uuid"
 
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -62,6 +63,38 @@ func NewThingsDataList(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, 
 
 		component := featuresthings.ThingsDataList(localizer, model)
 		helpers.WriteComponentResponse(ctx, w, r, component, 16*1024, 0)
+	}
+}
+
+func NewThingComponentHandler(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		model, err := composeNewThingModel(r.Context(), localizer, app)
+		if err != nil {
+			http.Error(w, "could not load new thing form", http.StatusInternalServerError)
+			return
+		}
+
+		component := featuresthings.NewThingModal(localizer, model)
+		helpers.WriteComponentResponse(r.Context(), w, r, component, 16*1024, 0)
+	}
+}
+
+func NewCreateThingPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "could not parse form data", http.StatusBadRequest)
+			return
+		}
+
+		newThing := newThingFromForm(r.Form)
+		err := app.NewThing(r.Context(), newThing)
+		if err != nil {
+			http.Error(w, "could not create new thing", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/v2/things/"+newThing.ID+"?mode=edit", http.StatusFound)
 	}
 }
 
@@ -136,6 +169,7 @@ func composeListModel(ctx context.Context, r *http.Request, localizer Localizer,
 		},
 		TypeOptions: typeOptions,
 		TagOptions:  tagOptions,
+		Organisations: app.GetTenants(ctx),
 		MapView:     showMap,
 	}
 
@@ -144,6 +178,61 @@ func composeListModel(ctx context.Context, r *http.Request, localizer Localizer,
 	}
 
 	return model, nil
+}
+
+func composeNewThingModel(ctx context.Context, localizer Localizer, app application.ThingManagement) (featuresthings.NewThingViewModel, error) {
+	types, err := app.GetTypes(ctx)
+	if err != nil {
+		return featuresthings.NewThingViewModel{}, err
+	}
+
+	typeOptions := make([]featuresthings.TypeOption, 0, len(types))
+	for _, thingType := range types {
+		typeOptions = append(typeOptions, featuresthings.TypeOption{
+			Value: thingType,
+			Label: localizer.Get(thingType),
+		})
+	}
+	slices.SortFunc(typeOptions, func(a, b featuresthings.TypeOption) int {
+		return cmp.Compare(a.Label, b.Label)
+	})
+
+	organisations := app.GetTenants(ctx)
+	slices.Sort(organisations)
+
+	return featuresthings.NewThingViewModel{
+		TypeOptions:   typeOptions,
+		Organisations: organisations,
+	}, nil
+}
+
+func newThingFromForm(form url.Values) application.Thing {
+	id := uuid.NewString()
+	thingType := strings.TrimSpace(form.Get("type"))
+	thingSubType := ""
+	switch {
+	case strings.Contains(thingType, ":"):
+		parts := strings.SplitN(thingType, ":", 2)
+		thingType = parts[0]
+		thingSubType = parts[1]
+	case strings.Contains(thingType, "-"):
+		parts := strings.SplitN(thingType, "-", 2)
+		thingType = parts[0]
+		thingSubType = parts[1]
+	}
+
+	return application.Thing{
+		ID:          id,
+		Type:        thingType,
+		SubType:     thingSubType,
+		Name:        strings.TrimSpace(form.Get("name")),
+		Description: strings.TrimSpace(form.Get("description")),
+		Location: application.Location{
+			Latitude:  0,
+			Longitude: 0,
+		},
+		Tenant: strings.TrimSpace(form.Get("organisation")),
+	}
 }
 
 func normalizeTypeFilter(args url.Values) []string {

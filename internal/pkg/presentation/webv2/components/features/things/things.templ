@@ -8,7 +8,10 @@ import (
 
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/dialog"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/progress"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
@@ -21,6 +24,7 @@ type ThingsPageViewModel struct {
 	Filters     FiltersViewModel
 	TypeOptions []TypeOption
 	TagOptions  []TagOption
+	Organisations []string
 	MapView     bool
 }
 
@@ -47,6 +51,11 @@ type TypeOption struct {
 
 type TagOption struct {
 	Value string
+}
+
+type NewThingViewModel struct {
+	TypeOptions    []TypeOption
+	Organisations  []string
 }
 
 type ThingViewModel struct {
@@ -117,13 +126,116 @@ type MeasurementViewModel struct {
 templ ThingsPage(l10n Localizer, viewModel ThingsPageViewModel) {
 	<div class="flex flex-col gap-10">
 		<section class="flex flex-col gap-6">
-			@shared.SectionHeading(l10n.Get("things"), icon.Shapes(icon.Props{Size: 28, Class: "text-black dark:text-white"}))
+			<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+				@shared.SectionHeading(l10n.Get("things"), icon.Shapes(icon.Props{Size: 28, Class: "text-black dark:text-white"}))
+				@button.Button(button.Props{
+					Variant: button.VariantDefault,
+					Class:   "rounded-xl px-4",
+					Attributes: templ.Attributes{
+						"hx-get":    "/v2/components/things/new",
+						"hx-target": "#create-thing-modal-container",
+						"hx-swap":   "innerHTML",
+					},
+				}) {
+					{ l10n.Get("addthing") }
+				}
+			</div>
+			<div id="create-thing-modal-container"></div>
 		</section>
 		<section class="flex flex-col gap-6">
 			@Filters(l10n, viewModel)
 			@ThingsDataList(l10n, viewModel)
 		</section>
 	</div>
+}
+
+templ NewThingModal(l10n Localizer, model NewThingViewModel) {
+	@dialog.Dialog(dialog.Props{ID: "create-thing-dialog", Open: true}) {
+		@dialog.Content(dialog.ContentProps{
+			Class:           "max-w-2xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
+			HideCloseButton: true,
+		}) {
+			<form action="/v2/things" method="post" class="flex flex-col">
+				<div class="border-b border-border/60 px-6 py-5">
+					<h2 class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("addthing") }</h2>
+				</div>
+				<div class="grid gap-6 px-6 py-6">
+					@ThingEditField(l10n.Get("thingtype")) {
+						<select
+							name="type"
+							class="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none"
+							required
+							data-required-message={ l10n.Get("pickOption") }
+						>
+							<option value="" selected>{ l10n.Get("choose") }</option>
+							for _, option := range model.TypeOptions {
+								<option value={ option.Value }>{ option.Label }</option>
+							}
+						</select>
+					}
+					<div class="grid gap-6 md:grid-cols-2">
+						@ThingEditField(l10n.Get("name")) {
+							@input.Input(input.Props{Name: "name", Class: "h-10 rounded-xl bg-background"})
+						}
+						@ThingEditField(l10n.Get("organisation")) {
+							<select
+								name="organisation"
+								class="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none"
+								required
+								data-required-message={ l10n.Get("pickOption") }
+							>
+								<option value="" selected>{ l10n.Get("choose") }</option>
+								for _, organisation := range model.Organisations {
+									<option value={ organisation }>{ organisation }</option>
+								}
+							</select>
+						}
+					</div>
+					@ThingEditField(l10n.Get("description")) {
+						<textarea
+							name="description"
+							class="flex min-h-36 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground"
+							placeholder={ l10n.Get("description") }
+						></textarea>
+					}
+				</div>
+				<div class="flex items-center justify-end gap-3 border-t border-border/60 px-6 py-5">
+					@dialog.Close(dialog.CloseProps{For: "create-thing-dialog"}) {
+						@button.Button(button.Props{
+							Variant: button.VariantOutline,
+							Class:   "rounded-xl px-4",
+						}) {
+							{ l10n.Get("cancel") }
+						}
+					}
+					@button.Button(button.Props{
+						Type:    button.TypeSubmit,
+						Variant: button.VariantDefault,
+						Class:   "rounded-xl px-4",
+					}) {
+						{ l10n.Get("save") }
+					}
+				</div>
+				<script nonce={ templ.GetNonce(ctx) }>
+					(() => {
+						const container = document.getElementById('create-thing-dialog');
+						if (!container) return;
+						container.querySelectorAll('select[data-required-message]').forEach((select) => {
+							select.addEventListener('invalid', () => {
+								select.setCustomValidity(select.dataset.requiredMessage || '');
+							});
+							select.addEventListener('input', () => {
+								select.setCustomValidity('');
+							});
+							select.addEventListener('change', () => {
+								select.setCustomValidity('');
+							});
+						});
+					})();
+				</script>
+			</form>
+		}
+	}
 }
 
 templ ThingsDataList(l10n Localizer, viewModel ThingsPageViewModel) {

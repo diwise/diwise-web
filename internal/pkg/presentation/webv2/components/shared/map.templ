@@ -139,23 +139,19 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     if (newMarker) {
                         newMarker.setLatLng(e.latlng);
                     } else {
-                        if (latitude.value === "0.000000" && longitude.value === "0.000000") {
-                            newMarker = Leaflet.marker(e.latlng, { draggable: true }).addTo(map);
+                        newMarker = Leaflet.marker(e.latlng, { draggable: true }).addTo(map);
 
-                            newMarker.on('drag', function (event) {
-                                let position = event.target.getLatLng();
-                                latitude.value = position.lat.toFixed(6);
-                                longitude.value = position.lng.toFixed(6);
-                            });
+                        newMarker.on('drag', function (event) {
+                            let position = event.target.getLatLng();
+                            latitude.value = position.lat.toFixed(6);
+                            longitude.value = position.lng.toFixed(6);
+                        });
 
-                            newMarker.on('dragend', function (event) {
-                                let position = event.target.getLatLng();
-                                latitude.value = position.lat.toFixed(6);
-                                longitude.value = position.lng.toFixed(6);
-                            });
-                        } else {
-                            return;
-                        }
+                        newMarker.on('dragend', function (event) {
+                            let position = event.target.getLatLng();
+                            latitude.value = position.lat.toFixed(6);
+                            longitude.value = position.lng.toFixed(6);
+                        });
                     }
 
                     latitude.value = e.latlng.lat.toFixed(6);
@@ -412,6 +408,9 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                         });
 
                                         const marker = createMarker([feature.geometry.coordinates[1], feature.geometry.coordinates[0]], divIcon, editMode);
+                                        if (editMode && !newMarker) {
+                                            newMarker = marker;
+                                        }
                                         bounds.extend(marker.getLatLng());
 
                                         return marker;

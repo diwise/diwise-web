@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/matryer/is"
 )
 
@@ -60,4 +61,31 @@ func TestNormalizeMultiValueFilterSplitsCommaSeparatedTags(t *testing.T) {
 
 	is.Equal([]string{"sandficka", "alno"}, selected)
 	is.Equal("tags=sandficka&tags=alno", params.Encode())
+}
+
+func TestNewThingFromFormSplitsSubtypeAndMapsFields(t *testing.T) {
+	is := is.New(t)
+
+	form := url.Values{
+		"type":         {"Container-Sandstorage"},
+		"name":         {"Sandficka A"},
+		"description":  {"Beskrivning"},
+		"organisation": {"tenant-a"},
+	}
+
+	thing := newThingFromForm(form)
+
+	is.True(thing.ID != "")
+	is.Equal(application.Thing{
+		ID:          thing.ID,
+		Type:        "Container",
+		SubType:     "Sandstorage",
+		Name:        "Sandficka A",
+		Description: "Beskrivning",
+		Location: application.Location{
+			Latitude:  0,
+			Longitude: 0,
+		},
+		Tenant: "tenant-a",
+	}, thing)
 }

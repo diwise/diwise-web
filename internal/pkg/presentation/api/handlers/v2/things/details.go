@@ -82,6 +82,23 @@ func NewSaveThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFun
 	}
 }
 
+func NewDeleteThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		if id == "" {
+			http.Error(w, "no id found in url", http.StatusBadRequest)
+			return
+		}
+
+		if err := app.DeleteThing(r.Context(), id); err != nil {
+			http.Error(w, "could not delete thing", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/v2/things", http.StatusFound)
+	}
+}
+
 func NewThingMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
@@ -137,6 +154,7 @@ func composeDetailsModel(ctx context.Context, id string, app application.ThingMa
 		Thing:          toViewModel(thing),
 		LatestValues:   make([]featuresthings.LatestMeasurementViewModel, 0, len(latestValues)),
 		ConnectedNames: make([]string, 0, len(thing.RefDevices)),
+		ValidSensors:   make([]featuresthings.SensorOption, 0),
 		MeasurementOptions: make([]featuresthings.MeasurementOption, 0, len(latestValues)),
 	}
 
@@ -184,6 +202,16 @@ func composeDetailsModel(ctx context.Context, id string, app application.ThingMa
 	if includeEditOptions {
 		model.Organisations = app.GetTenants(ctx)
 		model.TagOptions, _ = app.GetTags(ctx)
+		validSensors, _ := app.GetValidSensors(ctx, thing.ValidURNs)
+		for _, sensor := range validSensors {
+			model.ValidSensors = append(model.ValidSensors, featuresthings.SensorOption{
+				Value: sensor.DeviceID,
+				Label: fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder),
+			})
+		}
+		slices.SortFunc(model.ValidSensors, func(a, b featuresthings.SensorOption) int {
+			return cmp.Compare(a.Label, b.Label)
+		})
 	}
 
 	return model, nil
@@ -213,10 +241,10 @@ func buildThingUpdateFields(form url.Values) map[string]any {
 	}
 
 	fields := map[string]any{}
-	if tags := normalizeCSVList(form.Get("tags")); len(tags) > 0 {
+	if tags := normalizeListValues(form["tags"]); len(tags) > 0 {
 		fields["tags"] = tags
 	}
-	if refs := normalizeCSVList(form.Get("currentDevice")); len(refs) > 0 {
+	if refs := normalizeListValues(form["currentDevice"]); len(refs) > 0 {
 		devices := make([]application.Device, 0, len(refs))
 		for _, ref := range refs {
 			devices = append(devices, application.Device{DeviceID: ref})
@@ -264,6 +292,22 @@ func buildThingUpdateFields(form url.Values) map[string]any {
 	}
 
 	return fields
+}
+
+func normalizeListValues(values []string) []string {
+	items := make([]string, 0)
+	for _, value := range values {
+		for _, part := range normalizeCSVList(value) {
+			if slices.Contains(items, part) {
+				continue
+			}
+			items = append(items, part)
+		}
+	}
+	if len(items) == 0 {
+		return nil
+	}
+	return items
 }
 
 func normalizeCSVList(value string) []string {
