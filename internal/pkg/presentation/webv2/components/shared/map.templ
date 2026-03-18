@@ -424,7 +424,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                             var tagList = '';
                                             if (feature.properties.tags && Array.isArray(feature.properties.tags)) {
                                                 tagList = `<div class="flex items-start gap-2"><div class="flex flex-wrap gap-1">` + feature.properties.tags.map(tag =>
-                                                            `<span class="dark:bg-primary-surface-dark dark:text-primary-dark px-2 py-1 mr-2 rounded-full text-sm border-gray-30 dark:border-white-30 border-2">
+                                                            `<span class="px-2 py-1 mr-2 rounded-full text-sm leading-none border-gray-30 dark:border-white-30 border-2 dark:text-secondary">
                                                                 ${tag}
                                                             </span>`).join('')+ `</div></div>`;
                                             } else {

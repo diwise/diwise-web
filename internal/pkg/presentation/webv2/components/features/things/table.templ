@@ -275,9 +275,7 @@ templ ThingTags(tags []string) {
 		<span class="text-muted-foreground">-</span>
 	} else {
 		for _, tag := range firstTags(tags, 3) {
-			@badge.Badge(badge.Props{Variant: badge.VariantSecondary, Class: "mr-2 rounded-full px-2 py-1 text-xs"}) {
-				{ tag }
-			}
+			@shared.BadgeChip(shared.BadgeChipProps{Label: tag, Class: "mr-2"})
 		}
 	}
 }

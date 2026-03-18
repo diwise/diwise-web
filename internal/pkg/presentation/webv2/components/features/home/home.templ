@@ -193,9 +193,7 @@ templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			<div class="flex flex-wrap gap-2">
 				for _, t := range alarm.Types {
-					<span class="rounded-full border border-border px-2 py-1 text-sm text-foreground">
-						{ l10n.Get(t) }
-					</span>
+					@shared.BadgeChip(shared.BadgeChipProps{Label: l10n.Get(t)})
 				}
 			</div>
 		}
