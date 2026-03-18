@@ -19,7 +19,7 @@ templ ClickableTableRow(props ClickableTableRowProps) {
 		"tabindex": "0",
 		"role":     "link",
 	} }}
-	{{ className := "cursor-pointer border-border/70 hover:bg-gray-100 hover:[&_td]:bg-gray-100 dark:border-white dark:bg-opacity-20 dark:hover:bg-white/10 dark:hover:[&_td]:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:[&_td]:bg-gray-100 dark:focus-visible:[&_td]:bg-white/10" }}
+	{{ className := "cursor-pointer border-border/70 hover:bg-muted/70 hover:[&_td]:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:[&_td]:bg-muted/70" }}
 	if props.Class != "" {
 		{{ className += " " + props.Class }}
 	}

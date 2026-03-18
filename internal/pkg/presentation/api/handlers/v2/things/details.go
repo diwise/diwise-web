@@ -379,11 +379,12 @@ func measurementQuery(measurement string, startTime, endTime time.Time) url.Valu
 }
 
 func thingMeasurementChartConfig(r *http.Request, l10n Localizer, measurement string, thing application.Thing) shared.AdvancedChartConfig {
-	theme := chartTheme(helpers.IsDarkMode(r))
+	isDark := helpers.IsDarkMode(r)
+	theme := chartTheme(isDark)
 	datasets := make([]shared.AdvancedChartDataset, 0, len(thing.Values))
 	labels := thingMeasurementLabels(thing.Values)
 	for index, group := range thing.Values {
-		datasets = append(datasets, thingMeasurementDataset(l10n, measurement, group, index))
+		datasets = append(datasets, thingMeasurementDataset(l10n, measurement, group, index, isDark))
 	}
 	if len(datasets) == 0 {
 		datasets = append(datasets, shared.AdvancedChartDataset{
@@ -458,8 +459,8 @@ func maxDistanceChartMeasurement(measurement string) bool {
 	return strings.HasSuffix(urn, "/3")
 }
 
-func thingMeasurementDataset(l10n Localizer, measurement string, values []application.Measurement, index int) shared.AdvancedChartDataset {
-	color := thingChartColor(index)
+func thingMeasurementDataset(l10n Localizer, measurement string, values []application.Measurement, index int, isDark bool) shared.AdvancedChartDataset {
+	color := thingChartColor(index, isDark)
 	dataset := shared.AdvancedChartDataset{
 		Label:                localizedMeasurementSeriesLabel(l10n, measurement, values, index),
 		Data:                 make([]any, 0, len(values)),
@@ -521,8 +522,11 @@ func thingMeasurementLabels(groups [][]application.Measurement) []string {
 	return []string{}
 }
 
-func thingChartColor(index int) string {
+func thingChartColor(index int, isDark bool) string {
 	colors := []string{"#1F1F25", "#C24E18", "#1D4ED8", "#059669", "#7C3AED"}
+	if isDark {
+		colors = []string{"#FFFFFF", "#C24E18", "#93C5FD", "#6EE7B7", "#C4B5FD"}
+	}
 	return colors[index%len(colors)]
 }
 

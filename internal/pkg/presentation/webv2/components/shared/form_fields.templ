@@ -148,7 +148,7 @@ templ SelectBoxField(props SelectBoxFieldProps) {
 							@selectbox.Item(selectbox.ItemProps{
 								Value:    option.Value,
 								Selected: option.Selected,
-								Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-background-100 data-[tui-selectbox-selected=true]:bg-primary-surface data-[tui-selectbox-selected=true]:text-primary-dark dark:hover:bg-white/10 dark:data-[tui-selectbox-selected=true]:bg-white/10 dark:data-[tui-selectbox-selected=true]:text-white",
+								Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-muted data-[tui-selectbox-selected=true]:bg-primary data-[tui-selectbox-selected=true]:text-primary-foreground",
 							}) {
 								{ option.Label }
 							}
@@ -207,7 +207,7 @@ templ MultiSelectBoxField(props MultiSelectBoxFieldProps) {
 						@selectbox.Item(selectbox.ItemProps{
 							Value:    option.Value,
 							Selected: option.Selected,
-							Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-background-100 data-[tui-selectbox-selected=true]:bg-primary-surface data-[tui-selectbox-selected=true]:text-primary-dark dark:hover:bg-white/10 dark:data-[tui-selectbox-selected=true]:bg-white/10 dark:data-[tui-selectbox-selected=true]:text-white",
+							Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-muted data-[tui-selectbox-selected=true]:bg-primary data-[tui-selectbox-selected=true]:text-primary-foreground",
 						}) {
 							{ option.Label }
 						}

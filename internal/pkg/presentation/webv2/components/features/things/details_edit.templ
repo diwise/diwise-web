@@ -77,7 +77,7 @@ templ EditThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
 }
 
 templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
-	@shared.DetailSectionCard(l10n.Get("details"), icon.Info(icon.Props{Size: 24, Class: "text-black dark:text-white"})) {
+	@shared.DetailSectionCard(l10n.Get("details"), icon.Info(icon.Props{Size: 24, Class: "text-foreground"})) {
 		<div class="grid gap-6 py-6 px-8">
 			<div class="grid gap-6 md:grid-cols-2">
 				@shared.FormReadOnlyField(l10n.Get("thingtype")) {
@@ -184,7 +184,7 @@ templ ThingMeasurementFieldsGrid(fields []ThingMeasurementField) {
 templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	@shared.DetailSectionCard(
 		l10n.Get("location"),
-		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
+		icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
 		<div class="flex flex-col gap-6 py-6 px-8">
 			<div class="grid gap-6 md:grid-cols-2">

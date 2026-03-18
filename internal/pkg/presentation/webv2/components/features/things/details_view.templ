@@ -64,7 +64,7 @@ templ ThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
 templ ThingDetailsPropertiesSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	@shared.DetailSectionCard(
 		l10n.Get("details"),
-		icon.Info(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
+		icon.Info(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
 		<div class="flex flex-col gap-4 py-6 px-8 text-foreground">
 			@shared.DetailList(thingDetailItems(l10n, model))
@@ -75,7 +75,7 @@ templ ThingDetailsPropertiesSection(l10n Localizer, model ThingDetailsPageViewMo
 templ ThingDetailsLocationSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	@shared.DetailSectionCard(
 		l10n.Get("location"),
-		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
+		icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
 		<div class="flex w-full flex-col gap-6 py-6 px-8 text-foreground">
 			@shared.DetailList([]shared.DetailListItem{

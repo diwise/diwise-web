@@ -3,7 +3,7 @@ package shared
 import "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
 
 templ ListFiltersCard(toggle templ.Component) {
-	@card.Card(card.Props{Class: "rounded-2xl border-border/80 bg-card/80 shadow-sm"}) {
+	@card.Card(card.Props{Class: "rounded-2xl border-border/80 bg-card shadow-sm"}) {
 		@card.Content(card.ContentProps{Class: "p-5"}) {
 			<div class="mb-4 flex justify-end">
 				@toggle
@@ -30,7 +30,7 @@ func FilterDropdownContentClass() string {
 
 func FilterDropdownItemClass(selected bool) string {
 	if selected {
-		return "rounded-lg font-medium"
+		return "rounded-lg bg-primary font-medium text-primary-foreground"
 	}
-	return "rounded-lg"
+	return "rounded-lg hover:bg-muted"
 }

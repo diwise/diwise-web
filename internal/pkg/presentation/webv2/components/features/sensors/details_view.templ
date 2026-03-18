@@ -6,7 +6,6 @@ import (
 	"time"
 
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
 	. "github.com/diwise/frontend-toolkit"
@@ -75,19 +74,28 @@ templ SensorDetailsHeader(l10n Localizer, sensor SensorDetailsPageViewModel) {
 }
 
 templ StatusBadge(l10n Localizer, active bool) {
-	@badge.Badge(badge.Props{Variant: badgeVariant(active), Class: "rounded-full px-3 py-1"}) {
-		if active {
-			{ l10n.Get("active") }
-		} else {
-			{ l10n.Get("inactive") }
-		}
+	@shared.StatusBadge(shared.StatusBadgeProps{Tone: statusBadgeTone(active), Class: "px-3 py-1", Label: statusBadgeLabel(l10n, active)}) {
 	}
+}
+
+func statusBadgeTone(active bool) shared.StatusBadgeTone {
+	if active {
+		return shared.StatusBadgeToneActive
+	}
+	return shared.StatusBadgeToneInactive
+}
+
+func statusBadgeLabel(l10n Localizer, active bool) string {
+		if active {
+			return l10n.Get("active")
+		}
+	return l10n.Get("inactive")
 }
 
 templ SensorDetailsPropertiesSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
 	@shared.DetailSectionCard(
 		l10n.Get("details"),
-		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
+		icon.Rss(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
 		<div class="py-6 px-8">
 			@shared.DetailList([]shared.DetailListItem{
@@ -106,7 +114,7 @@ templ SensorDetailsPropertiesSection(l10n Localizer, sensor SensorDetailsPageVie
 templ SensorDetailsMetadataSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
 	@shared.DetailSectionCard(
 		l10n.Get("Metadata"),
-		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
+		icon.Rss(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
 		<div class="py-6 px-8">
 			@shared.DetailList(metadataItems(sensor.Metadata))
@@ -117,7 +125,7 @@ templ SensorDetailsMetadataSection(l10n Localizer, sensor SensorDetailsPageViewM
 templ SensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
 	@shared.DetailSectionCard(
 		l10n.Get("location"),
-		icon.MapPin(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
+		icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
 		<div class="flex flex-col gap-6 py-6 px-8">
 			@shared.DetailList([]shared.DetailListItem{
@@ -138,7 +146,7 @@ templ SensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageViewM
 templ SensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
 	@shared.DetailSectionCard(
 		l10n.Get("Status"),
-		icon.Rss(icon.Props{Size: 24, Class: "text-primary-dark dark:text-zinc-100"}),
+		icon.Rss(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
 		<div class="flex flex-col gap-6 py-6 px-8">
 			@shared.DetailList(statusItems(l10n, sensor.DeviceStatus))
@@ -148,7 +156,7 @@ templ SensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageViewMod
 				hx-get={ string(templ.SafeURL(fmt.Sprintf("/v2/components/sensors/%s/status", sensor.DeviceID))) }
 				hx-trigger="load"
 			>
-				<div class="h-full w-full rounded-2xl border border-border/70 bg-background/40"></div>
+				<div class="h-full w-full rounded-2xl border border-border/70 bg-muted/40"></div>
 			</div>
 		</div>
 	}
@@ -160,13 +168,6 @@ func StatusChartComponent(config shared.AdvancedChartConfig) templ.Component {
 		Config: config,
 		Class:  "h-full w-full",
 	})
-}
-
-func badgeVariant(active bool) badge.Variant {
-	if active {
-		return badge.VariantDefault
-	}
-	return badge.VariantSecondary
 }
 
 func metadataItems(items []MetadataViewModel) []shared.DetailListItem {

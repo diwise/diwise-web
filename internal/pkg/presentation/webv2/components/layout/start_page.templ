@@ -26,6 +26,16 @@ templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, main
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<script nonce={ csp.Nonce(ctx) }>
+				(() => {
+					const hasStoredTheme = 'theme' in localStorage;
+					const theme = localStorage.theme === 'dark' || (!hasStoredTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
+						? 'dark'
+						: 'light';
+					document.documentElement.classList.toggle('dark', theme === 'dark');
+					document.cookie = `theme=${theme}; path=/; max-age=31536000;`;
+				})();
+			</script>
 			<link href={ asset("/css/diwise-v2.css").Path() } rel="stylesheet"/>
 			<link href={ asset("/css/leaflet.css").Path() } rel="stylesheet"/>
 			<script src={ asset("/js/htmx.min.js").Path() } nonce={ csp.Nonce(ctx) }></script>
@@ -54,23 +64,31 @@ templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, main
 }
 
 templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent templ.Component) {
-	<body id="body" hx-ext="sse" sse-connect={ "/events/" + version } sse-close="goodbye" class="min-h-screen">
+	<body id="body" hx-ext="sse" sse-connect={ "/events/" + version } sse-close="goodbye" class="min-h-screen bg-background text-foreground">
 		<div id="sse" class="hidden" sse-swap="upgrade,hello,tick"></div>
 		@AppShell(l10n, asset, mainContent)
 	</body>
 	<script nonce={ csp.Nonce(ctx) }>
-		function setTheme(theme) {
-			if (theme === 'dark') {
-				document.body.classList.add('dark');
-				localStorage.theme = 'dark';
-			} else {
-				document.body.classList.remove('dark');
-				localStorage.theme = 'light';
+		function applyThemeClass(theme) {
+			const isDark = theme === 'dark';
+			document.documentElement.classList.toggle('dark', isDark);
+			if (document.body) {
+				document.body.classList.toggle('dark', isDark);
 			}
+		}
 
+		function resolvedTheme() {
+			const hasStoredTheme = 'theme' in localStorage;
+			return localStorage.theme === 'dark' || (!hasStoredTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)
+				? 'dark'
+				: 'light';
+		}
+
+		function setTheme(theme) {
+			applyThemeClass(theme);
+			localStorage.theme = theme;
 			document.cookie = `theme=${theme}; path=/; max-age=31536000;`;
-
-			const isDark = document.body.classList.contains('dark');
+			const isDark = document.documentElement.classList.contains('dark');
 			if (typeof updateMapForTheme === 'function') {
 				updateMapForTheme(isDark);
 			}
@@ -87,11 +105,7 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 		})
 
 		function onPageLoad() {
-			if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-				document.body.classList.add('dark')
-			} else {
-				document.body.classList.remove('dark')
-			}
+			applyThemeClass(resolvedTheme())
 		}
 
 		document.addEventListener('click', (event) => {
@@ -112,8 +126,8 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 }
 
 templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Component) {
-	<div id="app-shell" class="flex min-h-screen w-full flex-col md:flex-row">
-		<aside class="hidden h-screen w-72 shrink-0 border-r border-border/80 px-4 py-8 md:sticky md:top-0 md:flex md:flex-col">
+	<div id="app-shell" class="flex min-h-screen w-full flex-col bg-background text-foreground md:flex-row">
+		<aside class="hidden h-screen w-72 shrink-0 border-r border-border px-3 py-8 md:sticky md:top-0 md:flex md:flex-col">
 			<div class="flex items-center gap-3 px-2">
 				@shared.DiwiseLogo()
 			</div>
@@ -124,33 +138,24 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 			</nav>
 			<div class="mt-auto flex flex-col gap-3">
 				@NavItem(l10n.Get("logout"), "/v2/logout", false, icon.LogOut(icon.Props{Size: 18}))
-				<div class="flex items-center gap-2 rounded-2xl border border-border/80 bg-card/70 p-2 backdrop-blur">
-					@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-light flex-1 justify-center rounded-xl dark:hidden"}) {
-						@icon.SunMedium(icon.Props{Size: 18})
-					}
-					@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-dark hidden flex-1 justify-center rounded-xl dark:inline-flex"}) {
-						@icon.Moon(icon.Props{Size: 18})
-					}
-					<p class="px-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">{ l10n.Get("light") } / { l10n.Get("dark") }</p>
-				</div>
+				@ThemeToggle(l10n)
 			</div>
 		</aside>
 		<div class="flex min-h-screen flex-1 flex-col">
-			<header class="sticky top-0 z-40 border-b border-border/80 bg-background/90 px-4 py-3 backdrop-blur md:hidden">
-				<div class="flex items-center gap-2">
-					<img src={ asset("/images/diwise-logo.svg").Path() } alt="Diwise" class="h-8 dark:hidden"/>
-					<img src={ asset("/images/diwise-logo-dark.svg").Path() } alt="Diwise" class="hidden h-8 dark:block"/>
-					<div class="ml-auto flex items-center gap-1">
+			<header class="sticky top-0 z-40 border-b border-border bg-background px-6 py-4 shadow-sm md:hidden">
+				<div class="flex items-center gap-6">
+					<div class="flex items-center gap-2">
+						<img src={ asset("/images/diwise-logo.svg").Path() } alt="Diwise" class="h-8 dark:hidden"/>
+						<img src={ asset("/images/diwise-logo-dark.svg").Path() } alt="Diwise" class="hidden h-8 dark:block"/>
+					</div>
+					<div class="flex items-center gap-1">
 						@IconNav("/v2/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
 						@IconNav("/v2/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
 						@IconNav("/v2/things", isCurrent(ctx, "things"), icon.Shapes(icon.Props{Size: 18}))
+					</div>
+					<div class="ml-auto flex items-center gap-1">
 						@IconNav("/v2/logout", false, icon.LogOut(icon.Props{Size: 18}))
-						@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-light rounded-xl dark:hidden"}) {
-							@icon.SunMedium(icon.Props{Size: 18})
-						}
-						@button.Button(button.Props{Variant: button.VariantGhost, Class: "toggle-dark hidden rounded-xl dark:inline-flex"}) {
-							@icon.Moon(icon.Props{Size: 18})
-						}
+						@ThemeToggleCompact()
 					</div>
 				</div>
 			</header>
@@ -166,8 +171,8 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 templ NavItem(title, href string, selected bool, leading templ.Component) {
 	@button.Button(button.Props{
 		Href: href,
-		Variant: navVariant(selected),
-		Class: "w-full justify-start rounded-2xl px-4 py-6 text-base shadow-none",
+		Variant: button.VariantGhost,
+		Class: navItemClass(selected),
 		Attributes: shellNavAttributes(href),
 	}) {
 		@leading
@@ -178,9 +183,9 @@ templ NavItem(title, href string, selected bool, leading templ.Component) {
 templ IconNav(href string, selected bool, leading templ.Component) {
 	@button.Button(button.Props{
 		Href: href,
-		Variant: navVariant(selected),
+		Variant: button.VariantGhost,
 		Size: button.SizeIcon,
-		Class: "rounded-xl shadow-none",
+		Class: iconNavClass(selected),
 		Attributes: shellNavAttributes(href),
 	}) {
 		@leading
@@ -209,6 +214,72 @@ func navVariant(selected bool) button.Variant {
 		return button.VariantDefault
 	}
 	return button.VariantGhost
+}
+
+func navItemClass(selected bool) string {
+	if selected {
+		return "w-full justify-start rounded-lg bg-primary px-4 py-6 text-base font-bold text-primary-foreground shadow-none hover:bg-primary/90"
+	}
+	return "w-full justify-start rounded-xl px-4 py-6 text-base text-foreground shadow-none hover:bg-muted"
+}
+
+func iconNavClass(selected bool) string {
+	if selected {
+		return "rounded-lg bg-primary text-primary-foreground shadow-none hover:bg-primary/90"
+	}
+	return "rounded-xl text-foreground shadow-none hover:bg-muted"
+}
+
+templ ThemeToggle(l10n Localizer) {
+	<div id="theme-toggle" class="flex w-fit self-start cursor-pointer items-center gap-2 rounded-full bg-tertiary-surface p-1.5 text-sm font-bold dark:bg-primary-surface-white">
+		@button.Button(button.Props{
+			Type:    button.TypeButton,
+			Variant: button.VariantGhost,
+			Class:   "toggle-light h-auto shrink-0 gap-2 rounded-full bg-primary-surface px-3 py-2 text-white shadow-none hover:bg-primary-surface-hover dark:bg-transparent dark:text-white dark:hover:bg-white-30",
+			Attributes: templ.Attributes{
+				"aria-label": "Light mode",
+			},
+		}) {
+			@icon.SunMedium(icon.Props{Size: 24, Class: "text-white dark:text-primary-dark"})
+			{ l10n.Get("light") }
+		}
+		@button.Button(button.Props{
+			Type:    button.TypeButton,
+			Variant: button.VariantGhost,
+			Class:   "toggle-dark h-auto shrink-0 gap-2 rounded-full px-3.5 py-2 text-foreground shadow-none hover:bg-tertiary-surface-hover dark:bg-primary-surface-dark dark:text-primary-dark dark:hover:bg-primary-surface-dark-hover",
+			Attributes: templ.Attributes{
+				"aria-label": "Dark mode",
+			},
+		}) {
+			@icon.Moon(icon.Props{Size: 20, Class: "text-primary-dark"})
+			{ l10n.Get("dark") }
+		}
+	</div>
+}
+
+templ ThemeToggleCompact() {
+	<div id="theme-toggle-compact" class="flex w-fit shrink-0 cursor-pointer items-center gap-2 rounded-full bg-tertiary-surface p-1.5 text-sm font-bold dark:bg-primary-surface-white">
+		@button.Button(button.Props{
+			Type:    button.TypeButton,
+			Variant: button.VariantGhost,
+			Class:   "toggle-light size-auto shrink-0 rounded-full bg-primary-surface p-2 text-white shadow-none hover:bg-primary-surface-hover dark:bg-transparent dark:text-white dark:hover:bg-white-30",
+			Attributes: templ.Attributes{
+				"aria-label": "Light mode",
+			},
+		}) {
+			@icon.SunMedium(icon.Props{Size: 24, Class: "text-white dark:text-primary-dark"})
+		}
+		@button.Button(button.Props{
+			Type:    button.TypeButton,
+			Variant: button.VariantGhost,
+			Class:   "toggle-dark size-auto shrink-0 rounded-full p-2 text-foreground shadow-none hover:bg-tertiary-surface-hover dark:bg-primary-surface-dark dark:text-primary-dark dark:hover:bg-primary-surface-dark-hover",
+			Attributes: templ.Attributes{
+				"aria-label": "Dark mode",
+			},
+		}) {
+			@icon.Moon(icon.Props{Size: 20, Class: "text-primary-dark"})
+		}
+	</div>
 }
 
 func isCurrent(ctx context.Context, expect string) bool {

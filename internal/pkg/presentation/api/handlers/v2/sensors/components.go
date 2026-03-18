@@ -179,11 +179,11 @@ func NewStatusChartsComponentHandler(ctx context.Context, l10n LocaleBundle, _ A
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		labels := make([]string, 0, len(result))
 
-		batteryLevel := newStatusDataset(localizer.Get("batterylevel"), "yBatteryLevel", "#7C3AED")
-		dr := newStatusDataset(localizer.Get("dr"), "yDR", "#1D4ED8")
-		frequency := newStatusDataset(localizer.Get("frequency"), "yFrequency", "#D97706")
-		loRaSNR := newStatusDataset(localizer.Get("loraSNR"), "yLoRaSNR", "#059669")
-		rssi := newStatusDataset(localizer.Get("rssi"), "yRSSI", "#DC2626")
+		batteryLevel := newStatusDataset(localizer.Get("batterylevel"), "yBatteryLevel")
+		dr := newStatusDataset(localizer.Get("dr"), "yDR")
+		frequency := newStatusDataset(localizer.Get("frequency"), "yFrequency")
+		loRaSNR := newStatusDataset(localizer.Get("loraSNR"), "yLoRaSNR")
+		rssi := newStatusDataset(localizer.Get("rssi"), "yRSSI")
 
 		for _, status := range result {
 			labels = append(labels, status.ObservedAt.Format("2006-01-02 15:04"))
@@ -218,11 +218,11 @@ func NewStatusChartsComponentHandler(ctx context.Context, l10n LocaleBundle, _ A
 		component := featuresensors.StatusChartComponent(statusChartConfig(r, labels, []shared.AdvancedChartDataset{
 			dr, frequency, loRaSNR, rssi, batteryLevel,
 		}, map[string]shared.AxisScale{
-			"yBatteryLevel": statusScaleConfig(localizer.Get("batterylevel"), "right", "#7C3AED", 1, 99),
-			"yDR":           statusScaleConfig(localizer.Get("dr"), "left", "#1D4ED8", 0, 7),
-			"yFrequency":    statusScaleConfig(localizer.Get("frequency"), "left", "#D97706", 863, 870),
-			"yLoRaSNR":      statusScaleConfig(localizer.Get("loraSNR"), "left", "#059669", -20, 10),
-			"yRSSI":         statusScaleConfig(localizer.Get("rssi"), "left", "#DC2626", -120, -30),
+			"yBatteryLevel": statusScaleConfig(r, localizer.Get("batterylevel"), "right", 1, 99),
+			"yDR":           statusScaleConfig(r, localizer.Get("dr"), "left", 0, 7),
+			"yFrequency":    statusScaleConfig(r, localizer.Get("frequency"), "left", 863, 870),
+			"yLoRaSNR":      statusScaleConfig(r, localizer.Get("loraSNR"), "left", -20, 10),
+			"yRSSI":         statusScaleConfig(r, localizer.Get("rssi"), "left", -120, -30),
 		}))
 		helpers.WriteComponentResponse(ctx, w, r, component, 12*1024, 10*time.Second)
 	}
@@ -274,15 +274,12 @@ func statusChartConfig(r *http.Request, labels []string, datasets []shared.Advan
 	}
 }
 
-func newStatusDataset(label, yAxisID, color string) shared.AdvancedChartDataset {
+func newStatusDataset(label, yAxisID string) shared.AdvancedChartDataset {
 	return shared.AdvancedChartDataset{
 		Label:                label,
 		Data:                 []any{},
 		YAxisID:              yAxisID,
 		BorderWidth:          2,
-		BorderColor:          color,
-		PointBackgroundColor: color,
-		PointBorderColor:     color,
 		PointRadius:          1,
 		PointHoverRadius:     6,
 		Fill:                 false,
@@ -297,7 +294,9 @@ func chartColor(isDark bool) string {
 	return "#1F1F25"
 }
 
-func statusScaleConfig(title, position, color string, min, max float64) shared.AxisScale {
+func statusScaleConfig(r *http.Request, title, position string, min, max float64) shared.AxisScale {
+	theme := chartTheme(helpers.IsDarkMode(r))
+
 	return shared.AxisScale{
 		Type:     "linear",
 		Position: position,
@@ -306,20 +305,20 @@ func statusScaleConfig(title, position, color string, min, max float64) shared.A
 		Title: &shared.AxisTitle{
 			Display: true,
 			Text:    title,
-			Color:   color,
+			Color:   theme.MutedForeground,
 		},
 		Ticks: &shared.AxisTicks{
-			Color:         color,
+			Color:         theme.MutedForeground,
 			MaxTicksLimit: 8,
 		},
 		Grid: &shared.AxisGrid{
 			DrawOnChartArea: false,
 			Display:         boolPtr(true),
-			Color:           color,
+			Color:           theme.Grid,
 		},
 		Border: &shared.AxisBorder{
 			Display: true,
-			Color:   color,
+			Color:   theme.Border,
 		},
 	}
 }

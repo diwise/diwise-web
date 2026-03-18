@@ -81,7 +81,7 @@ templ TwoStateIconToggle(props TwoStateIconToggleProps) {
 			}
 
 			const activeClasses = ['bg-primary', 'text-primary-foreground', 'shadow-xs', 'hover:bg-primary/90'];
-			const inactiveClasses = ['text-muted-foreground', 'hover:bg-background-100', 'hover:text-foreground', 'dark:text-white/70', 'dark:hover:bg-white/10', 'dark:hover:text-white'];
+			const inactiveClasses = ['text-muted-foreground', 'hover:bg-muted', 'hover:text-foreground'];
 
 			const setState = (button, active) => {
 				button.classList.remove(...activeClasses, ...inactiveClasses);
@@ -115,7 +115,7 @@ func toggleButtonClass(active bool) string {
 	if active {
 		return "rounded-xl bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
 	}
-	return "rounded-xl text-muted-foreground shadow-none hover:bg-background-100 hover:text-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+	return "rounded-xl text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
 }
 
 func toggleButtonVariant(active bool) button.Variant {

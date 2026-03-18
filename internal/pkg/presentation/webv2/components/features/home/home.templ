@@ -45,7 +45,7 @@ templ Home(l10n Localizer, viewModel HomeViewModel) {
 	<div class="flex flex-col gap-14">
 		<div class="grid gap-10 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:items-stretch">
 			<section class="flex h-full flex-col gap-6">
-				@shared.SectionHeading(l10n.Get("overview"), icon.MapPin(icon.Props{Size: 32, Class: "shrink-0 text-black dark:text-white"}))
+				@shared.SectionHeading(l10n.Get("overview"), icon.MapPin(icon.Props{Size: 32, Class: "shrink-0 text-foreground"}))
 				<div hx-get="/v2/components/home/statistics" hx-trigger="load, every 1m" class="flex w-full flex-1">
 					@OverviewCardsSkeleton()
 				</div>
@@ -54,8 +54,8 @@ templ Home(l10n Localizer, viewModel HomeViewModel) {
 				@separator.Separator(separator.Props{Orientation: separator.OrientationVertical, Class: "h-full [&_span:last-child]:hidden"})
 			</div>
 			<section class="flex h-full flex-col gap-6">
-				@shared.SectionHeading(l10n.Get("measurementperday"), icon.Icon("chart-column")(icon.Props{Size: 32, Class: "shrink-0 text-black dark:text-white"}))
-				@card.Card(card.Props{Class: "h-full overflow-hidden rounded-2xl border border-border/80 bg-white shadow dark:bg-gray-800"}) {
+				@shared.SectionHeading(l10n.Get("measurementperday"), icon.Icon("chart-column")(icon.Props{Size: 32, Class: "shrink-0 text-foreground"}))
+				@card.Card(card.Props{Class: "h-full overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm"}) {
 					@card.Content(card.ContentProps{Class: "flex h-full p-6"}) {
 						<div
 							class="h-[320px] w-full xl:min-h-[22rem]"
@@ -75,12 +75,12 @@ templ Home(l10n Localizer, viewModel HomeViewModel) {
 templ OverviewCards(l10n Localizer, stats OverviewStats) {
 	<div class="flex w-full flex-1 flex-col gap-5">
 		<div class="grid flex-1 gap-5 md:grid-cols-2">
-			@OverviewCard(l10n.Get("numberofsensors"), "/v2/sensors", stats.Total, icon.Rss(icon.Props{Size: 32, Class: "shrink-0 text-primary-dark dark:text-zinc-100"}))
-			@OverviewCard(l10n.Get("activesensors"), "/v2/sensors?active=true", stats.Active, icon.Rss(icon.Props{Size: 32, Class: "shrink-0 text-green-700 dark:text-green-500"}))
+			@OverviewCard(l10n.Get("numberofsensors"), "/v2/sensors", stats.Total, icon.Rss(icon.Props{Size: 32, Class: "shrink-0 text-foreground"}))
+			@OverviewCard(l10n.Get("activesensors"), "/v2/sensors?active=true", stats.Active, icon.Rss(icon.Props{Size: 32, Class: "shrink-0 text-[var(--status-online)]"}))
 		</div>
 		<div class="grid flex-1 gap-5 md:grid-cols-2">
-			@OverviewCard(l10n.Get("inactivesensors"), "/v2/sensors?active=false", stats.Inactive, icon.Rss(icon.Props{Size: 32, Class: "shrink-0 text-red-700 dark:text-red-500"}))
-			@OverviewCard(l10n.Get("unknownsensors"), "/v2/sensors?type=unknown", stats.Unknown, icon.Rss(icon.Props{Size: 32, Class: "shrink-0 text-orange-400 dark:text-amber-500"}))
+			@OverviewCard(l10n.Get("inactivesensors"), "/v2/sensors?active=false", stats.Inactive, icon.Rss(icon.Props{Size: 32, Class: "shrink-0 text-[var(--status-offline)]"}))
+			@OverviewCard(l10n.Get("unknownsensors"), "/v2/sensors?type=unknown", stats.Unknown, icon.Rss(icon.Props{Size: 32, Class: "shrink-0 text-[var(--status-unknown)]"}))
 		</div>
 	</div>
 }
@@ -88,7 +88,7 @@ templ OverviewCards(l10n Localizer, stats OverviewStats) {
 templ OverviewCardsSkeleton() {
 	<div class="grid h-full gap-5 md:grid-cols-2">
 		for i := 0; i < 4; i++ {
-			@card.Card(card.Props{Class: "h-full rounded-[1.75rem] border-border/80 bg-card/80 shadow-xl shadow-black/5"}) {
+			@card.Card(card.Props{Class: "h-full rounded-[1.75rem] border-border/80 bg-card shadow-sm"}) {
 				@card.Content(card.ContentProps{Class: "flex min-h-44 flex-col gap-5 p-6"}) {
 					@skeleton.Skeleton(skeleton.Props{Class: "h-8 w-8 rounded-md"})
 					@skeleton.Skeleton(skeleton.Props{Class: "h-10 w-20 rounded-xl"})
@@ -111,23 +111,23 @@ templ OverviewCard(title, href string, count int, leading templ.Component) {
 		hx-replace-url="true"
 		class="block h-full"
 	>
-		@card.Card(card.Props{Class: "h-full rounded-2xl border-0 bg-white shadow dark:bg-gray-800"}) {
+		@card.Card(card.Props{Class: "h-full rounded-2xl border-border/80 bg-card shadow-sm"}) {
 			@card.Content(card.ContentProps{Class: "flex h-full items-end justify-between p-6"}) {
 				<div class="flex flex-col items-start justify-center gap-4">
 					@leading
-					<div class="text-[32px] font-bold leading-10 font-heading text-neutral-800 dark:text-neutral-200">
+					<div class="text-[32px] font-bold leading-10 font-heading text-foreground">
 						if count > 0 {
 							{ fmt.Sprintf("%d", count) }
 						} else {
 							{ "-" }
 						}
 					</div>
-					<div class="text-lg whitespace-nowrap text-zinc-700 dark:text-zinc-200">
+					<div class="text-lg whitespace-nowrap text-muted-foreground">
 						{ title }
 					</div>
 				</div>
-				<div class="ml-auto flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-surface dark:bg-white">
-					@icon.ArrowRight(icon.Props{Size: 16, Class: "text-black"})
+				<div class="ml-auto flex size-6 shrink-0 items-center justify-center rounded-full bg-primary">
+					@icon.ArrowRight(icon.Props{Size: 16, Class: "text-primary-foreground"})
 				</div>
 			}
 		}
@@ -140,7 +140,7 @@ templ AlarmsTableSection(l10n Localizer, viewModel HomeViewModel) {
 		{{ rightFooter = shared.PagingControl(l10n, shared.PagingControlProps(viewModel.Paging)) }}
 	}
 	@shared.DataTableSection(
-		shared.SectionHeading(l10n.Get("information"), icon.TriangleAlert(icon.Props{Size: 24, Class: "text-black dark:text-white"})),
+		shared.SectionHeading(l10n.Get("information"), icon.TriangleAlert(icon.Props{Size: 24, Class: "text-foreground"})),
 		shared.TableFooter(
 			shared.PageSizeControl(shared.PageSizeControlProps{
 				FormID:    "home-page-size-form",
@@ -193,7 +193,7 @@ templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			<div class="flex flex-wrap gap-2">
 				for _, t := range alarm.Types {
-					<span class="rounded-full border-2 border-gray-30 px-2 py-1 text-sm dark:border-white-30">
+					<span class="rounded-full border border-border px-2 py-1 text-sm text-foreground">
 						{ l10n.Get(t) }
 					</span>
 				}
@@ -205,8 +205,32 @@ templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
 	}
 }
 
-func UsageChart(_ bool, data shared.AdvancedChartData) templ.Component {
+func UsageChart(isDark bool, data shared.AdvancedChartData) templ.Component {
 	beginAtZero := true
+	axisColor := "#1F1F25"
+	tickColor := "#444450"
+	gridColor := "#E2E2E8"
+	seriesPrimary := "#1F1F25"
+	seriesSecondary := "#C24E18"
+
+	if isDark {
+		axisColor = "#FFFFFFF2"
+		tickColor = "#E5E5E5"
+		gridColor = "rgba(255, 255, 255, 0.16)"
+		seriesPrimary = "#FFFFFF"
+	}
+
+	for i := range data.Datasets {
+		color := seriesPrimary
+		if i%2 == 1 {
+			color = seriesSecondary
+		}
+		data.Datasets[i].BackgroundColor = color
+		data.Datasets[i].BorderColor = color
+		if data.Datasets[i].BorderWidth == 0 {
+			data.Datasets[i].BorderWidth = 1
+		}
+	}
 
 	return shared.AdvancedChart(shared.AdvancedChartProps{
 		ID:    "usage-chart",
@@ -228,18 +252,18 @@ func UsageChart(_ bool, data shared.AdvancedChartData) templ.Component {
 						Grid: &shared.AxisGrid{Display: boolPtr(false)},
 						Border: &shared.AxisBorder{
 							Display: true,
-							Color:   "#1F1F25",
+							Color:   axisColor,
 						},
-						Ticks: &shared.AxisTicks{Color: "#444450"},
+						Ticks: &shared.AxisTicks{Color: tickColor},
 					},
 					"y": {
 						BeginAtZero: &beginAtZero,
-						Grid:        &shared.AxisGrid{Display: boolPtr(true), Color: "#E2E2E8"},
+						Grid:        &shared.AxisGrid{Display: boolPtr(true), Color: gridColor},
 						Border: &shared.AxisBorder{
 							Display: true,
-							Color:   "#1F1F25",
+							Color:   axisColor,
 						},
-						Ticks: &shared.AxisTicks{Color: "#444450"},
+						Ticks: &shared.AxisTicks{Color: tickColor},
 					},
 				},
 			},

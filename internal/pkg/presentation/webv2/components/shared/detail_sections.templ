@@ -16,7 +16,7 @@ templ DetailSectionHeading(title string, leading templ.Component) {
 }
 
 templ DetailSectionCard(title string, leading templ.Component) {
-	@card.Card(card.Props{Class: "rounded-3xl border-border/80 bg-card/90 shadow-sm"}) {
+	@card.Card(card.Props{Class: "rounded-3xl border-border/80 bg-card shadow-sm"}) {
 		@card.Content(card.ContentProps{Class: "p-6"}) {
 			@DetailSectionHeading(title, leading)
 			{ children... }
