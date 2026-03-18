@@ -22,7 +22,7 @@ templ SensorDetailsPage(l10n Localizer, _ AssetLoaderFunc, sensor SensorDetailsP
 				}
 				@SensorDetailsMeasurementSection(l10n, sensor)
 			</div>
-			<div class="hidden self-stretch border-l border-border/70 lg:block"></div>
+			@shared.ColumnDivider()
 			<div class="flex w-full flex-1 flex-col gap-8">
 				@SensorDetailsLocationSection(l10n, sensor)
 				@SensorDetailsStatusSection(l10n, sensor)
@@ -67,6 +67,7 @@ templ SensorDetailsHeader(l10n Localizer, sensor SensorDetailsPageViewModel) {
 					"hx-replace-url": "true",
 				},
 			}) {
+				@icon.Pen(icon.Props{Class: "size-4"})
 				{ l10n.Get("edit") }
 			}
 		</div>

@@ -18,7 +18,7 @@ templ ThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
 			<div class="flex flex-1 flex-col gap-8">
 				@ThingDetailsPropertiesSection(l10n, model)
 			</div>
-			<div class="hidden self-stretch border-l border-border/70 lg:block"></div>
+			@shared.ColumnDivider()
 			<div class="flex w-full flex-1 flex-col gap-8">
 				@ThingDetailsLocationSection(l10n, model)
 			</div>
@@ -54,6 +54,7 @@ templ ThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
 					"hx-replace-url": "true",
 				},
 			}) {
+				@icon.Pen(icon.Props{Class: "size-4"})
 				{ l10n.Get("edit") }
 			}
 		</div>

@@ -20,7 +20,7 @@ templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
 			<div class="flex flex-1 flex-col gap-8">
 				@EditThingDetailsSection(l10n, model)
 			</div>
-			<div class="hidden self-stretch border-l border-border/70 lg:block"></div>
+			@shared.ColumnDivider()
 			<div class="flex w-full flex-1 flex-col gap-8">
 				@EditThingLocationSection(l10n, model)
 			</div>
@@ -42,6 +42,7 @@ templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
 				Variant: button.VariantOutline,
 				Class:   "rounded-xl px-4",
 			}) {
+				@icon.X(icon.Props{Class: "size-4"})
 				{ l10n.Get("cancel") }
 			}
 			@button.Button(button.Props{
@@ -49,6 +50,7 @@ templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
 				Variant: button.VariantDefault,
 				Class:   "rounded-xl px-4",
 			}) {
+				@icon.Check(icon.Props{Class: "size-4"})
 				{ l10n.Get("save") }
 			}
 		</div>
