@@ -1,0 +1,29 @@
+package auth
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ NotLoggedIn(l10n Localizer, asset AssetLoaderFunc) {
+	<div class="flex min-h-screen items-center justify-center bg-no-repeat bg-center px-4 bg-[url('/assets/790b004db41539410fb0ebe8f6d04cab4fc47cc7709b04b0a03353605edc100a/bg2048.webp')]">
+		<div class="grid w-full max-w-xl overflow-hidden rounded-xl bg-background-100 md:grid-cols-2">
+			<div class="flex items-center justify-center p-6">
+				@shared.DiwiseLogo()
+			</div>
+			<div class="flex flex-col justify-center bg-background-orange p-6 text-white">
+				<div class="space-y-4 pl-6">
+					<h1 class="font-heading text-3xl font-bold leading-tight">{ l10n.Get("notloggedin") }</h1>
+					@button.Button(button.Props{
+						Href:    "/v2/login",
+						Variant: button.VariantGhost,
+						Class:   "rounded-xl bg-primary-surface-dark px-6 text-primary-dark hover:bg-primary-surface-dark-hover",
+					}) {
+						{ l10n.Get("login") }
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+}

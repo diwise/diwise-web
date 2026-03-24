@@ -1,0 +1,61 @@
+package shared
+
+import (
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+type TableOrMapToggleProps struct {
+	BaseID        string
+	HiddenInputID string
+	TargetURL     string
+	TargetID      string
+	Include       string
+	MapView       bool
+	TableLabel    string
+	MapLabel      string
+}
+
+templ TableOrMapToggle(l10n Localizer, props TableOrMapToggleProps) {
+	{{ baseID := props.BaseID }}
+	if baseID == "" {
+		{{ baseID = "table-or-map-toggle" }}
+	}
+	{{ tableAttrs := templ.Attributes{
+		"type":         "button",
+		"hx-get":       props.TargetURL,
+		"hx-target":    props.TargetID,
+		"hx-swap":      "outerHTML",
+		"hx-vals":      `{"mapview":"false"}`,
+		"aria-label":   props.TableLabel,
+		"aria-pressed": boolString(!props.MapView),
+		"title":        props.TableLabel,
+	} }}
+	{{ mapAttrs := templ.Attributes{
+		"type":         "button",
+		"hx-get":       props.TargetURL,
+		"hx-target":    props.TargetID,
+		"hx-swap":      "outerHTML",
+		"hx-vals":      `{"mapview":"true"}`,
+		"aria-label":   props.MapLabel,
+		"aria-pressed": boolString(props.MapView),
+		"title":        props.MapLabel,
+	} }}
+	if props.Include != "" {
+		{{ tableAttrs["hx-include"] = props.Include }}
+		{{ mapAttrs["hx-include"] = props.Include }}
+	}
+	@TwoStateIconToggle(TwoStateIconToggleProps{
+		BaseID:        baseID,
+		HiddenInputID: props.HiddenInputID,
+		ActiveLeft:    !props.MapView,
+		LeftLabel:     props.TableLabel,
+		RightLabel:    props.MapLabel,
+		LeftValue:     "false",
+		RightValue:    "true",
+		LeftIcon:      icon.Table(icon.Props{Size: 16}),
+		RightIcon:     icon.Map(icon.Props{Size: 16}),
+		LeftAttributes: tableAttrs,
+		RightAttributes: mapAttrs,
+	})
+}

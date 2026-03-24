@@ -1,0 +1,92 @@
+package admin
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/card"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+type AdminViewModel struct {
+	Token string
+}
+
+templ AdminPage(l10n Localizer, model AdminViewModel) {
+	<div class="flex flex-col gap-8">
+		<div class="flex flex-col gap-4">
+			<h1 class="text-3xl font-bold font-heading text-foreground">{ l10n.Get("Admin") }</h1>
+		</div>
+
+		@shared.DetailSectionCard(
+			l10n.Get("token"),
+			icon.KeyRound(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
+		) {
+			<div class="px-8 py-6">
+				<div
+					id="admin-token-block"
+					class="overflow-x-auto rounded-2xl bg-slate-950 p-4 font-mono text-sm text-slate-100 dark:bg-slate-900 dark:text-slate-50"
+				>
+					<pre class="whitespace-pre-wrap break-all"><code>{ model.Token }</code></pre>
+				</div>
+			</div>
+		}
+
+		<div class="grid gap-8 xl:grid-cols-2">
+			@ImportCard(l10n, l10n.Get("sensors"), "devices", "admin-sensors-file")
+			@ImportCard(l10n, l10n.Get("things"), "things", "admin-things-file")
+		</div>
+	</div>
+	<script nonce={ templ.GetNonce(ctx) }>
+		(() => {
+			const tokenBlock = document.getElementById('admin-token-block');
+			if (!tokenBlock || tokenBlock.dataset.copyInit === 'true') {
+				return;
+			}
+			tokenBlock.dataset.copyInit = 'true';
+			tokenBlock.addEventListener('mouseup', () => {
+				const selection = window.getSelection()?.toString() || '';
+				if (!selection) {
+					return;
+				}
+				navigator.clipboard?.writeText(selection).catch(() => {});
+			});
+		})();
+	</script>
+}
+
+templ ImportCard(l10n Localizer, title, importType, fieldID string) {
+	@card.Card(card.Props{Class: "rounded-3xl border-border/80 bg-card/90 shadow-sm"}) {
+		@card.Header(card.HeaderProps{Class: "space-y-2"}) {
+			@card.Title(card.TitleProps{Class: "text-2xl font-bold font-heading text-foreground"}) {
+				{ title }
+			}
+		}
+		<form action="/v2/admin/import" method="post" enctype="multipart/form-data" class="flex flex-col">
+			@card.Content(card.ContentProps{Class: "flex flex-col gap-4"}) {
+				<input type="hidden" name="type" value={ importType }/>
+				@shared.FormField(l10n.Get("choosefile"), fieldID) {
+					@input.Input(input.Props{
+						ID:    fieldID,
+						Name:  "file",
+						Type:  input.TypeFile,
+						Class: "h-auto rounded-xl bg-background file:mr-4 file:cursor-pointer file:rounded-lg file:bg-muted file:px-4 file:py-2 file:text-sm file:font-semibold file:text-foreground hover:file:bg-accent",
+						Attributes: templ.Attributes{
+							"required": "true",
+						},
+					})
+				}
+			}
+			@card.Footer(card.FooterProps{Class: "pt-0"}) {
+				@button.Button(button.Props{
+					Type:    button.TypeSubmit,
+					Variant: button.VariantDefault,
+					Class:   "w-full rounded-xl px-4",
+				}) {
+					{ l10n.Get("upload") }
+				}
+			}
+		</form>
+	}
+}

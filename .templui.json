@@ -1,0 +1,7 @@
+{
+  "componentsDir": "internal/pkg/presentation/webv2/components/shared/ui",
+  "utilsDir": "internal/pkg/presentation/webv2/utils",
+  "moduleName": "github.com/diwise/diwise-web",
+  "jsDir": "assets/js",
+  "jsPublicPath": "/assets/js"
+}

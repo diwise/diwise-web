@@ -1,0 +1,709 @@
+{
+    "meta": {
+        "totalRecords": 84
+    },
+    "data": {
+        "currentLevel": 0.4,
+        "description": "Beskrivning",
+        "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3",
+        "location": {
+            "latitude": 62.37894,
+            "longitude": 17.33997
+        },
+        "maxd": 0.94,
+        "maxl": 0.76,
+        "name": "Soptunna-054",
+        "observedAt": "2024-11-01T08:49:19Z",
+        "percent": 52.63157894736842,
+        "refDevices": [
+            {
+                "deviceID": "milesight:54"
+            }
+        ],
+        "subType": "WasteContainer",
+        "tags": [
+            "Soptunna"
+        ],
+        "tenant": "default",
+        "type": "Container",
+        "validURN": [
+            "urn:oma:lwm2m:ext:3330"
+        ],
+        "values": {
+            "milesight:54/3330/5700": [
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 72.36842105263159,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T07:48:43Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.55,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T07:48:43Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.55,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T08:18:45Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 72.36842105263159,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T08:18:45Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.54,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T08:48:45Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 71.05263157894737,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T08:48:45Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.54,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T09:18:47Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 71.05263157894737,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T09:18:47Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 52.63157894736842,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T09:48:45Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.4,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T09:48:45Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.4,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T10:48:46Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 52.63157894736842,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T10:48:46Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T11:18:48Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T11:18:48Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 52.63157894736842,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T11:48:49Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.4,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T11:48:49Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.4,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T13:18:50Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 52.63157894736842,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T13:18:50Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 52.63157894736842,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T13:48:50Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.4,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T13:48:50Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T14:18:53Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T14:18:53Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T14:48:55Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T14:48:55Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T15:18:57Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T15:18:57Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T15:48:53Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T15:48:53Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T16:18:56Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T16:18:56Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T16:48:57Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T16:48:57Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T17:48:56Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T17:48:56Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T18:18:59Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T18:18:59Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T18:49:00Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T18:49:00Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T19:19:00Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T19:19:00Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.42,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T19:49:01Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 55.26315789473684,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T19:49:01Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T20:18:59Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T20:18:59Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 55.26315789473684,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T20:49:00Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.42,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T20:49:00Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T21:19:03Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T21:19:03Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T21:49:06Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T21:49:06Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 55.26315789473684,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T22:19:02Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.42,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T22:19:02Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T22:49:03Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T22:49:03Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T23:19:06Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T23:19:06Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-10-31T23:49:07Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-10-31T23:49:07Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T00:19:05Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T00:19:05Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T00:49:10Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T00:49:10Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 55.26315789473684,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T01:19:06Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.42,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T01:19:06Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 55.26315789473684,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T01:49:07Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.42,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T01:49:07Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.43,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T02:19:12Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 56.578947368421055,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T02:19:12Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 56.578947368421055,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T02:49:09Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.43,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T02:49:09Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.43,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T03:19:09Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 56.578947368421055,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T03:19:09Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 55.26315789473684,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T03:49:10Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.42,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T03:49:10Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 55.26315789473684,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T06:19:13Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.42,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T06:19:13Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T06:49:14Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T06:49:14Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.41,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T07:19:17Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 53.94736842105263,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T07:19:17Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.4,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T08:19:16Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 52.63157894736842,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T08:19:16Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/2",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 52.63157894736842,
+                    "unit": "%",
+                    "timestamp": "2024-11-01T08:49:19Z",
+                    "ref": "milesight:54/3330/5700"
+                },
+                {
+                    "id": "17662c5d-27d2-4b43-8547-66df60ee6ba3/3435/3",
+                    "urn": "urn:oma:lwm2m:ext:3435",
+                    "v": 0.4,
+                    "unit": "m",
+                    "timestamp": "2024-11-01T08:49:19Z",
+                    "ref": "milesight:54/3330/5700"
+                }
+            ]
+        }
+    }
+}

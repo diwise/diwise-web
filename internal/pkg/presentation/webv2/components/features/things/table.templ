@@ -1,0 +1,281 @@
+package things
+
+import (
+	"fmt"
+	"strings"
+
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/badge"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/progress"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+func progressVariant(tone string) progress.Variant {
+	switch tone {
+	case "critical":
+		return progress.VariantDanger
+	case "warning":
+		return progress.VariantWarning
+	case "good":
+		return progress.VariantSuccess
+	default:
+		return progress.VariantDefault
+	}
+}
+
+templ ThingsTableSection(l10n Localizer, viewModel ThingsPageViewModel) {
+	{{ rightFooter := templ.Component(templ.NopComponent) }}
+	if viewModel.Paging.PageLast > 1 {
+		{{ rightFooter = shared.PagingControl(l10n, shared.PagingControlProps{
+			PageIndex: viewModel.Paging.PageIndex,
+			PageLast:  viewModel.Paging.PageLast,
+			PageSize:  viewModel.Paging.PageSize,
+			Query:     viewModel.Paging.Query,
+			TargetURL: viewModel.Paging.TargetURL,
+			TargetID:  viewModel.Paging.TargetID,
+		}) }}
+	}
+	@shared.DataTableSection(
+		shared.DataTableHeader(
+			shared.DataTableSummary(fmt.Sprintf("%s %d %s %d", l10n.Get("show"), len(viewModel.Things), l10n.Get("thingsof"), viewModel.Paging.TotalCount)),
+			shared.ExportAction(l10n, shared.ExportActionProps{
+				Href:   "/admin/export?export=things&accept=text/csv",
+				Form:   "things-filters-form",
+				Target: "_blank",
+				Fields: []string{"type", "tags"},
+			}),
+		),
+		shared.TableFooter(
+			shared.PageSizeControl(shared.PageSizeControlProps{
+				FormID:    "things-page-size-form",
+				Label:     l10n.Get("rowsPerPage"),
+				TargetURL: viewModel.Paging.TargetURL,
+				TargetID:  viewModel.Paging.TargetID,
+				Include:   "#things-filters-form",
+				PageSize:  viewModel.Paging.PageSize,
+				Options:   []int{5, 10, 15, 50, 100},
+			}),
+			rightFooter,
+		),
+	) {
+		@table.Table(table.Props{Class: "min-w-[860px]"}) {
+			@table.Header() {
+				@table.Row() {
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("type") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("status") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("tags") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("organisation") } }
+				}
+			}
+			@table.Body() {
+				if len(viewModel.Things) == 0 {
+					@table.Row() {
+						@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "5"}}) {
+							{ l10n.Get("missing") }
+						}
+					}
+				} else {
+					for _, thing := range viewModel.Things {
+						@ThingRow(l10n, thing)
+					}
+				}
+			}
+		}
+	}
+}
+
+templ ThingRow(l10n Localizer, thing ThingViewModel) {
+	@shared.ClickableTableRow(shared.ClickableTableRowProps{
+		Href:    fmt.Sprintf("/v2/things/%s", thing.ID),
+		Target:  "#app-shell",
+		Swap:    "outerHTML",
+		Replace: true,
+	}) {
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			<span class="font-bold text-foreground">
+				if strings.TrimSpace(thing.Name) != "" {
+					{ thing.Name }
+				} else {
+					{ thing.ID }
+				}
+			</span>
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			{ displayThingType(l10n, thing) }
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			@ThingStatusCell(l10n, thing)
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			@ThingTags(thing.Tags)
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			{ fallbackValue(thing.Tenant) }
+		}
+	}
+}
+
+func ThingStatusCell(l10n Localizer, thing ThingViewModel) templ.Component {
+	if thing.HasWarning() {
+		return StatusText(l10n.Get("missingdata"), true)
+	}
+
+	switch strings.ToLower(thing.Type) {
+	case "beach", "pointofinterest", "room":
+		return temperatureCell(thing)
+	case "building":
+		return StatusText(fmt.Sprintf("%0.f kWh / %0.f kW", measurementFloat(thing, "energy"), measurementFloat(thing, "power")), false)
+	case "wastecontainer", "container":
+		switch strings.ToLower(thing.SubType) {
+		case "wastecontainer":
+			return wasteContainerCell(l10n, thing)
+		case "sandstorage":
+			return sandStorageCell(l10n, thing)
+		}
+		return templ.NopComponent
+	case "lifebuoy":
+		return boolLabelCell(l10n, thing, "presence", "present", "notPresent")
+	case "desk":
+		return boolLabelCell(l10n, thing, "presence", "occupied", "available")
+	case "passage":
+		return StatusText(fmt.Sprintf("%0.f st", measurementFloat(thing, "passagesToday")), false)
+	case "pumpingstation":
+		return boolLabelCell(l10n, thing, "pumpingObserved", "pumpingObserved", "off")
+	case "sewer":
+		if strings.ToLower(thing.SubType) == "combinedseweroverflow" {
+			return combinedSewerOverflowCell(l10n, thing)
+		}
+		return sewerCell(l10n, thing)
+	case "watermeter":
+		return StatusText(fmt.Sprintf("%0.f m³", measurementFloat(thing, "cumulativeVolume")), false)
+	default:
+		return templ.NopComponent
+	}
+}
+
+templ StatusText(text string, warning bool) {
+	if strings.TrimSpace(text) == "" {
+		return
+	}
+	if warning {
+		@badge.Badge(badge.Props{Variant: badge.VariantSecondary, Class: "inline-flex items-center gap-2 rounded-full px-3 py-1"}) {
+			@icon.TriangleAlert(icon.Props{Size: 14})
+			<span>{ text }</span>
+		}
+	} else {
+		<div class="text-sm text-foreground">{ text }</div>
+	}
+}
+
+func temperatureCell(thing ThingViewModel) templ.Component {
+	if thing.Properties["temperature"] == nil {
+		return templ.NopComponent
+	}
+
+	temp, ok := thing.Properties["temperature"].(float64)
+	if !ok {
+		if mapped, okMap := thing.Properties["temperature"].(map[string]any); okMap {
+			temp, ok = mapped["v"].(float64)
+		}
+	}
+	if !ok {
+		return templ.NopComponent
+	}
+
+	return StatusText(fmt.Sprintf("%0.1f °C", temp), false)
+}
+
+func boolLabelCell(l10n Localizer, thing ThingViewModel, key, trueKey, falseKey string) templ.Component {
+	value, ok := thing.GetBool(key)
+	if !ok {
+		return StatusText(l10n.Get("nodata"), false)
+	}
+	if value {
+		return StatusText(l10n.Get(trueKey), false)
+	}
+	return StatusText(l10n.Get(falseKey), false)
+}
+
+func sewerCell(l10n Localizer, thing ThingViewModel) templ.Component {
+	parts := make([]string, 0, 2)
+	if currentLevel, ok := thing.GetFloat("currentLevel"); ok {
+		parts = append(parts, fmt.Sprintf("%0.1fm", currentLevel))
+	}
+	if percent, ok := thing.GetFloat("percent"); ok {
+		parts = append(parts, fmt.Sprintf("%0.f%%", percent))
+	}
+	if len(parts) == 0 {
+		return templ.NopComponent
+	}
+	return StatusText(fmt.Sprintf("%s: %s", l10n.Get("level"), strings.Join(parts, " / ")), false)
+}
+
+func combinedSewerOverflowCell(l10n Localizer, thing ThingViewModel) templ.Component {
+	value, ok := thing.GetBool("overflowObserved")
+	if !ok {
+		return templ.NopComponent
+	}
+	if value {
+		return StatusText(fmt.Sprintf("%s: %s", l10n.Get("overflow"), l10n.Get("yes")), false)
+	}
+	return StatusText(fmt.Sprintf("%s: %s", l10n.Get("overflow"), l10n.Get("no")), false)
+}
+
+func wasteContainerCell(l10n Localizer, thing ThingViewModel) templ.Component {
+	value, ok := thing.GetFloat("percent")
+	if !ok {
+		return StatusText(l10n.Get("nodata"), false)
+	}
+
+	tone := "warning"
+	switch {
+	case value >= 50:
+		tone = "critical"
+	case value <= 30:
+		tone = "good"
+	}
+
+	return progress.Progress(progress.Props{
+		Value:     int(value),
+		Max:       100,
+		ShowValue: true,
+		Variant:   progressVariant(tone),
+		Class:     "min-w-[180px]",
+	})
+}
+
+func sandStorageCell(l10n Localizer, thing ThingViewModel) templ.Component {
+	value, ok := thing.GetFloat("percent")
+	if !ok {
+		return StatusText(l10n.Get("nodata"), false)
+	}
+
+	tone := "warning"
+	switch {
+	case value <= 50:
+		tone = "critical"
+	case value >= 70:
+		tone = "good"
+	}
+
+	return progress.Progress(progress.Props{
+		Value:     int(value),
+		Max:       100,
+		ShowValue: true,
+		Variant:   progressVariant(tone),
+		Class:     "min-w-[180px]",
+	})
+}
+
+templ ThingTags(tags []string) {
+	if len(tags) == 0 {
+		<span class="text-muted-foreground">-</span>
+	} else {
+		for _, tag := range firstTags(tags, 3) {
+			@shared.BadgeChip(shared.BadgeChipProps{Label: tag, Class: "mr-2"})
+		}
+	}
+}

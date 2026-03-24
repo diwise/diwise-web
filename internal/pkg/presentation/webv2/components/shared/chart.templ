@@ -1,0 +1,156 @@
+package shared
+
+import "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/utils"
+
+type AdvancedChartDataset struct {
+	Label                string      `json:"label"`
+	Data                 []any       `json:"data"`
+	YAxisID              string      `json:"yAxisID,omitempty"`
+	BorderWidth          int         `json:"borderWidth,omitempty"`
+	BorderColor          interface{} `json:"borderColor,omitempty"`
+	BackgroundColor      interface{} `json:"backgroundColor,omitempty"`
+	PointBackgroundColor interface{} `json:"pointBackgroundColor,omitempty"`
+	PointBorderColor     interface{} `json:"pointBorderColor,omitempty"`
+	PointRadius          int         `json:"pointRadius,omitempty"`
+	PointHoverRadius     int         `json:"pointHoverRadius,omitempty"`
+	Tension              float64     `json:"tension,omitempty"`
+	Fill                 bool        `json:"fill,omitempty"`
+	Stepped              bool        `json:"stepped,omitempty"`
+}
+
+type AdvancedChartData struct {
+	Labels   []string               `json:"labels,omitempty"`
+	Datasets []AdvancedChartDataset `json:"datasets"`
+}
+
+type TimeScale struct {
+	Unit          string `json:"unit,omitempty"`
+	TooltipFormat string `json:"tooltipFormat,omitempty"`
+	Parser        string `json:"parser,omitempty"`
+	DisplayHour   string `json:"displayHour,omitempty"`
+	DisplayDay    string `json:"displayDay,omitempty"`
+}
+
+type AxisTitle struct {
+	Display bool   `json:"display"`
+	Text    string `json:"text,omitempty"`
+	Color   string `json:"color,omitempty"`
+}
+
+type AxisTicks struct {
+	Color        string `json:"color,omitempty"`
+	MaxTicksLimit int   `json:"maxTicksLimit,omitempty"`
+}
+
+type AxisGrid struct {
+	Display         *bool  `json:"display,omitempty"`
+	DrawOnChartArea bool   `json:"drawOnChartArea,omitempty"`
+	Color           string `json:"color,omitempty"`
+}
+
+type AxisBorder struct {
+	Display bool   `json:"display"`
+	Color   string `json:"color,omitempty"`
+}
+
+type ScaleTime struct {
+	Unit          string            `json:"unit,omitempty"`
+	TooltipFormat string            `json:"tooltipFormat,omitempty"`
+	Parser        string            `json:"parser,omitempty"`
+	DisplayFormats map[string]string `json:"displayFormats,omitempty"`
+}
+
+type AxisScale struct {
+	Type         string       `json:"type,omitempty"`
+	Distribution string       `json:"distribution,omitempty"`
+	Position     string       `json:"position,omitempty"`
+	Min          *float64     `json:"min,omitempty"`
+	Max          *float64     `json:"max,omitempty"`
+	BeginAtZero  *bool        `json:"beginAtZero,omitempty"`
+	Offset       *bool        `json:"offset,omitempty"`
+	Title        *AxisTitle   `json:"title,omitempty"`
+	Ticks        *AxisTicks   `json:"ticks,omitempty"`
+	Grid         *AxisGrid    `json:"grid,omitempty"`
+	Border       *AxisBorder  `json:"border,omitempty"`
+	Time         *ScaleTime   `json:"time,omitempty"`
+}
+
+type PluginLegendLabels struct {
+	Color string `json:"color,omitempty"`
+}
+
+type PluginLegend struct {
+	Display bool               `json:"display"`
+	Labels  *PluginLegendLabels `json:"labels,omitempty"`
+}
+
+type PluginTooltip struct {
+	BackgroundColor string `json:"backgroundColor,omitempty"`
+	BodyColor       string `json:"bodyColor,omitempty"`
+	TitleColor      string `json:"titleColor,omitempty"`
+	BorderColor     string `json:"borderColor,omitempty"`
+	BorderWidth     int    `json:"borderWidth,omitempty"`
+}
+
+type Plugins struct {
+	Legend  *PluginLegend  `json:"legend,omitempty"`
+	Tooltip *PluginTooltip `json:"tooltip,omitempty"`
+}
+
+type Interaction struct {
+	Intersect bool   `json:"intersect"`
+	Axis      string `json:"axis,omitempty"`
+	Mode      string `json:"mode,omitempty"`
+}
+
+type AdvancedChartOptions struct {
+	Responsive          bool                 `json:"responsive"`
+	MaintainAspectRatio bool                 `json:"maintainAspectRatio"`
+	Interaction         *Interaction         `json:"interaction,omitempty"`
+	IndexAxis           string               `json:"indexAxis,omitempty"`
+	Plugins             *Plugins             `json:"plugins,omitempty"`
+	Scales              map[string]AxisScale `json:"scales,omitempty"`
+	Animation           bool                 `json:"animation"`
+}
+
+type AdvancedChartConfig struct {
+	Type    string               `json:"type"`
+	Data    AdvancedChartData    `json:"data"`
+	Options AdvancedChartOptions `json:"options"`
+}
+
+type AdvancedChartProps struct {
+	ID         string
+	Class      string
+	Config     AdvancedChartConfig
+	Attributes templ.Attributes
+}
+
+templ AdvancedChart(props AdvancedChartProps) {
+	{{ p := props }}
+	if p.ID == "" {
+		{{ p.ID = "advanced-chart-" + utils.RandomID() }}
+	}
+	{{ dataID := p.ID + "-config" }}
+	<div
+		id={ p.ID }
+		class={ utils.TwMerge("relative min-w-0 overflow-hidden", p.Class) }
+		{ p.Attributes... }
+	>
+		<canvas
+			id={ p.ID + "-canvas" }
+			data-app-chart-id={ dataID }
+			class="block h-full w-full max-w-full"
+			style="max-width: 100%;"
+		></canvas>
+	</div>
+	@templ.JSONScript(dataID, p.Config)
+}
+
+templ ChartBaseScript() {
+	<script defer nonce={ templ.GetNonce(ctx) } src={ utils.ScriptURL("/assets/js/chart.min.js") }></script>
+}
+
+templ AppScripts() {
+	<script defer nonce={ templ.GetNonce(ctx) } src={ utils.ScriptURL("/assets/js/app-chart.js") }></script>
+}

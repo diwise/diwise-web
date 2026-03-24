@@ -1,0 +1,10 @@
+package shared
+
+import "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/separator"
+
+templ ColumnDivider() {
+	@separator.Separator(separator.Props{
+		Orientation: separator.OrientationVertical,
+		Class:       "hidden self-stretch lg:block h-full [&_span:first-child]:border-border/70 [&_span:last-child]:hidden",
+	})
+}

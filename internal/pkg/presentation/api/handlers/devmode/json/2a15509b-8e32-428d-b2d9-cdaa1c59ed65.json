@@ -1,0 +1,768 @@
+{
+    "meta": {
+        "totalRecords": 91
+    },
+    "data": {
+        "energy": 60,
+        "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65",
+        "location": {
+            "latitude": 62.377963,
+            "longitude": 17.34542
+        },
+        "name": "UC Framåt",
+        "observedAt": "2024-11-01T05:55:04Z",
+        "power": 40,
+        "refDevices": [
+            {
+                "deviceID": "63356661-3566-6636-3235-636631346439"
+            },
+            {
+                "deviceID": "34616163-3666-6232-3632-353730396163"
+            },
+            {
+                "deviceID": "a94dd95e-4da4-49e2-8431-d8d37894e5cc"
+            }
+        ],
+        "tags": [
+            "Byggnad"
+        ],
+        "temperature": 20,
+        "tenant": "default",
+        "type": "Building",
+        "validURN": [
+            "urn:oma:lwm2m:ext:3331",
+            "urn:oma:lwm2m:ext:3328",
+            "urn:oma:lwm2m:ext:3303"
+        ],
+        "values": [
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.1,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T07:25:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.2,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T08:05:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.2,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T08:15:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.1,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T08:25:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.1,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T08:35:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.2,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T08:45:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T08:55:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T09:05:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T09:15:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T09:25:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T09:45:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T09:55:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T10:05:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T10:15:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T10:25:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T10:35:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T10:45:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T10:55:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T11:05:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T11:15:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T11:25:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T11:35:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T11:45:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T11:55:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.5,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T12:05:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.5,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T12:25:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T12:35:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.5,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T12:45:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.6,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T12:55:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.6,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T13:05:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.6,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T13:15:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.5,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T13:25:07Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.6,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T13:35:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.6,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T13:45:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.6,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T13:55:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.6,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T14:05:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.6,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T14:15:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.6,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T14:25:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.7,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T14:35:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.7,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T14:45:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.7,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T14:55:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.7,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T15:05:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.7,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T15:15:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.6,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T15:45:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.6,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T15:55:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.6,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T16:05:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.5,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T16:35:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.5,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T16:45:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T16:55:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T17:05:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T17:15:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.4,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T17:25:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T17:35:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T17:45:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T17:55:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T18:05:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T18:15:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T18:25:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.2,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T18:35:06Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T18:45:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T18:55:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T19:05:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.2,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T19:15:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.1,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T20:25:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.1,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T20:35:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.2,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T21:05:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.2,
+                "unit": "Cel",
+                "timestamp": "2024-10-31T21:35:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T00:05:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T01:25:05Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T01:35:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T01:45:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T01:55:03Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T02:05:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.1,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T03:05:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T03:15:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T03:35:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T03:45:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.1,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T03:55:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T04:05:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T04:15:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T04:25:03Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T04:35:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T04:45:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T04:55:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T05:05:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T05:15:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T05:25:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T05:35:04Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T08:15:03Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T08:25:03Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            },
+            {
+                "id": "2a15509b-8e32-428d-b2d9-cdaa1c59ed65/3303/5700",
+                "urn": "urn:oma:lwm2m:ext:3303",
+                "v": 20.3,
+                "unit": "Cel",
+                "timestamp": "2024-11-01T08:35:03Z",
+                "ref": "a94dd95e-4da4-49e2-8431-d8d37894e5cc/3303/5700"
+            }
+        ]
+    }
+}

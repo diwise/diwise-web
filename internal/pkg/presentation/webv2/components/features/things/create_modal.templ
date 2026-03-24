@@ -1,0 +1,104 @@
+package things
+
+import (
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/dialog"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/textarea"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ NewThingModal(l10n Localizer, model NewThingViewModel) {
+	@dialog.Dialog(dialog.Props{ID: "create-thing-dialog", Open: true}) {
+		@dialog.Content(dialog.ContentProps{
+			Class:           "max-w-2xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
+			HideCloseButton: true,
+		}) {
+			<form id="create-thing-dialog-form" action="/v2/things" method="post" class="flex flex-col">
+				<div class="border-b border-border/60 px-6 py-5">
+					<h2 class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("addthing") }</h2>
+				</div>
+				<div class="grid gap-6 px-6 py-6">
+					@shared.SelectBoxField(shared.SelectBoxFieldProps{
+						FieldID:         "new-thing-type",
+						Name:            "type",
+						Label:           l10n.Get("thingtype"),
+						Placeholder:     l10n.Get("choose"),
+						Required:        true,
+						RequiredMessage: l10n.Get("pickOption"),
+						NoSearch:        true,
+						Options:         thingTypeFieldOptions(model.TypeOptions),
+					})
+					<div class="grid gap-6 md:grid-cols-2">
+						@shared.FormField(l10n.Get("name"), "new-thing-name") {
+							@input.Input(input.Props{ID: "new-thing-name", Name: "name", Class: "h-10 rounded-xl bg-background"})
+						}
+						@shared.SelectBoxField(shared.SelectBoxFieldProps{
+							FieldID:         "new-thing-organisation",
+							Name:            "organisation",
+							Label:           l10n.Get("organisation"),
+							Placeholder:     l10n.Get("choose"),
+							Required:        true,
+							RequiredMessage: l10n.Get("pickOption"),
+							NoSearch:        true,
+							Options:         tenantFieldOptions(model.Organisations, ""),
+						})
+					</div>
+					@shared.FormField(l10n.Get("description"), "new-thing-description") {
+						@textarea.Textarea(textarea.Props{
+							ID:          "new-thing-description",
+							Name:        "description",
+							Placeholder: l10n.Get("description"),
+							Class:       "min-h-36 rounded-xl bg-background",
+						})
+					}
+				</div>
+				<div class="flex items-center justify-end gap-3 border-t border-border/60 px-6 py-5">
+					@dialog.Close(dialog.CloseProps{For: "create-thing-dialog"}) {
+						@button.Button(button.Props{
+							Variant: button.VariantOutline,
+							Class:   "rounded-xl px-4",
+						}) {
+							@icon.X(icon.Props{Class: "size-4"})
+							{ l10n.Get("cancel") }
+						}
+					}
+					@button.Button(button.Props{
+						Type:    button.TypeSubmit,
+						Variant: button.VariantDefault,
+						Class:   "rounded-xl px-4",
+					}) {
+						@icon.Check(icon.Props{Class: "size-4"})
+						{ l10n.Get("save") }
+					}
+				</div>
+				@shared.RequiredSelectBoxValidationScript("create-thing-dialog-form")
+			</form>
+		}
+	}
+}
+
+func thingTypeFieldOptions(options []TypeOption) []shared.SelectBoxFieldOption {
+	items := make([]shared.SelectBoxFieldOption, 0, len(options))
+	for _, option := range options {
+		items = append(items, shared.SelectBoxFieldOption{
+			Value: option.Value,
+			Label: option.Label,
+		})
+	}
+	return items
+}
+
+func tenantFieldOptions(organisations []string, selected string) []shared.SelectBoxFieldOption {
+	items := make([]shared.SelectBoxFieldOption, 0, len(organisations))
+	for _, organisation := range organisations {
+		items = append(items, shared.SelectBoxFieldOption{
+			Value:    organisation,
+			Label:    organisation,
+			Selected: organisation == selected,
+		})
+	}
+	return items
+}

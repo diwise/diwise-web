@@ -1,0 +1,130 @@
+package shared
+
+import (
+	"fmt"
+
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
+)
+
+type TwoStateIconToggleProps struct {
+	BaseID             string
+	HiddenInputID      string
+	ActiveLeft         bool
+	LeftLabel          string
+	RightLabel         string
+	LeftValue          string
+	RightValue         string
+	LeftIcon           templ.Component
+	RightIcon          templ.Component
+	LeftAttributes     templ.Attributes
+	RightAttributes    templ.Attributes
+	StorageKey         string
+}
+
+templ TwoStateIconToggle(props TwoStateIconToggleProps) {
+	{{ baseID := props.BaseID }}
+	if baseID == "" {
+		{{ baseID = "two-state-icon-toggle" }}
+	}
+	{{ leftID := baseID + "-left" }}
+	{{ rightID := baseID + "-right" }}
+	{{ leftAttrs := templ.Attributes{
+		"type":         "button",
+		"aria-label":   props.LeftLabel,
+		"aria-pressed": boolString(props.ActiveLeft),
+		"title":        props.LeftLabel,
+		"onclick":      fmt.Sprintf("setTwoStateIconToggle('%s','%s','%s',true,'%s','%s','%s')", props.HiddenInputID, leftID, rightID, props.LeftValue, props.RightValue, props.StorageKey),
+	} }}
+	{{ rightAttrs := templ.Attributes{
+		"type":         "button",
+		"aria-label":   props.RightLabel,
+		"aria-pressed": boolString(!props.ActiveLeft),
+		"title":        props.RightLabel,
+		"onclick":      fmt.Sprintf("setTwoStateIconToggle('%s','%s','%s',false,'%s','%s','%s')", props.HiddenInputID, leftID, rightID, props.LeftValue, props.RightValue, props.StorageKey),
+	} }}
+	for key, value := range props.LeftAttributes {
+		{{ leftAttrs[key] = value }}
+	}
+	for key, value := range props.RightAttributes {
+		{{ rightAttrs[key] = value }}
+	}
+	<div class="flex items-center gap-2 rounded-2xl border border-border/80 bg-background p-1 shadow-xs">
+		@button.Button(button.Props{
+			ID:      leftID,
+			Variant: toggleButtonVariant(props.ActiveLeft),
+			Class:   toggleButtonClass(props.ActiveLeft),
+			Attributes: leftAttrs,
+		}) {
+			@props.LeftIcon
+		}
+		@button.Button(button.Props{
+			ID:      rightID,
+			Variant: toggleButtonVariant(!props.ActiveLeft),
+			Class:   toggleButtonClass(!props.ActiveLeft),
+			Attributes: rightAttrs,
+		}) {
+			@props.RightIcon
+		}
+	</div>
+	<script nonce={ csp.Nonce(ctx) }>
+		function setTwoStateIconToggle(hiddenInputID, leftButtonID, rightButtonID, activeLeft, leftValue, rightValue, storageKey) {
+			const hidden = document.getElementById(hiddenInputID);
+			if (hidden) {
+				hidden.value = activeLeft ? leftValue : rightValue;
+			}
+
+			const leftButton = document.getElementById(leftButtonID);
+			const rightButton = document.getElementById(rightButtonID);
+			if (!leftButton || !rightButton) {
+				return;
+			}
+
+			const activeClasses = ['bg-primary', 'text-primary-foreground', 'shadow-xs', 'hover:bg-primary/90'];
+			const inactiveClasses = ['text-muted-foreground', 'hover:bg-muted', 'hover:text-foreground'];
+
+			const setState = (button, active) => {
+				button.classList.remove(...activeClasses, ...inactiveClasses);
+				if (active) {
+					button.classList.add(...activeClasses);
+					button.setAttribute('aria-pressed', 'true');
+				} else {
+					button.classList.add(...inactiveClasses);
+					button.setAttribute('aria-pressed', 'false');
+				}
+			}
+
+			setState(leftButton, activeLeft)
+			setState(rightButton, !activeLeft)
+
+			if (storageKey) {
+				sessionStorage.setItem(storageKey, activeLeft ? leftValue : rightValue);
+			}
+			if (typeof window.onTwoStateIconToggleChange === 'function') {
+				window.onTwoStateIconToggleChange(hiddenInputID, activeLeft ? leftValue : rightValue)
+			}
+		}
+
+		if (!window.onTwoStateIconToggleChange) {
+			window.onTwoStateIconToggleChange = function() {}
+		}
+	</script>
+}
+
+func toggleButtonClass(active bool) string {
+	if active {
+		return "rounded-xl bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+	}
+	return "rounded-xl text-muted-foreground shadow-none hover:bg-muted hover:text-foreground"
+}
+
+func toggleButtonVariant(active bool) button.Variant {
+	return button.VariantGhost
+}
+
+func boolString(value bool) string {
+	if value {
+		return "true"
+	}
+	return "false"
+}

@@ -289,6 +289,9 @@ other = "Name"
 [no]
 other = "No"
 
+[noalarms]
+other = "No alarms found"
+
 [nodata]
 other = "-"
 
@@ -330,6 +333,15 @@ other = "with an offset set to"
 
 [online]
 other = "Online"
+
+[previous]
+other = "Previous"
+
+[next]
+other = "Next"
+
+[recentalarms]
+other = "Recent alarms and status changes from sensors"
 
 [oops]
 other = "Oops..."
@@ -400,11 +412,11 @@ other = "Search"
 [selectedfilters]
 other = "Selected filters:"
 
+[selecteditemcount]
+other = "{n} selected"
+
 [sensorconnected]
 other = "Connected sensor"
-
-[copy]
-other = "Copy"
 
 [sensorID]
 other = "Sensor ID"
