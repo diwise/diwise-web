@@ -91,8 +91,12 @@ type SensorResult struct {
 }
 
 type DeviceManagement interface {
+	GetDevice(ctx context.Context, id string) (Device, error)
+	GetDevices(ctx context.Context, offset, limit int, args map[string][]string) (devices.DeviceResult, error)
 	GetSensor(ctx context.Context, id string) (Sensor, error)
 	GetSensors(ctx context.Context, offset, limit int, args map[string][]string) (SensorResult, error)
+	Attach(ctx context.Context, deviceID string) error
+	Deattach(ctx context.Context, deviceID string) error
 	GetSensorStatus(ctx context.Context, id string) ([]DeviceStatus, error)
 	UpdateSensor(ctx context.Context, deviceID string, fields map[string]any) error
 	GetTenants(ctx context.Context) []string
@@ -163,6 +167,22 @@ func (a *App) GetSensors(ctx context.Context, offset, limit int, args map[string
 		Offset:       result.Offset,
 		Limit:        result.Limit,
 	}, nil
+}
+
+func (a *App) GetDevice(ctx context.Context, id string) (Device, error) {
+	return a.App.GetDevice(ctx, id)
+}
+
+func (a *App) GetDevices(ctx context.Context, offset, limit int, args map[string][]string) (devices.DeviceResult, error) {
+	return a.App.GetDevices(ctx, offset, limit, args)
+}
+
+func (a *App) Attach(ctx context.Context, deviceID string) error {
+	return a.App.Attach(ctx, deviceID)
+}
+
+func (a *App) Deattach(ctx context.Context, deviceID string) error {
+	return a.App.Deattach(ctx, deviceID)
 }
 
 func (s Sensor) ObservedAt() time.Time {

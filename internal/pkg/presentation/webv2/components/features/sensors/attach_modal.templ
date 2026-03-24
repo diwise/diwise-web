@@ -1,0 +1,148 @@
+package sensors
+
+import (
+	"fmt"
+
+	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/dialog"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ AttachSensorDialog(l10n Localizer, _ AssetLoaderFunc, model AttachSensorDialogViewModel) {
+	@dialog.Dialog(dialog.Props{ID: "attach-sensor-dialog", Open: true}) {
+		@dialog.Content(dialog.ContentProps{
+			Class:           "max-w-2xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
+			HideCloseButton: true,
+		}) {
+			<form
+				id="attach-sensor-dialog-form"
+				action={ fmt.Sprintf("/v2/components/sensors/%s/attach", model.DeviceID) }
+				method="post"
+				class="flex flex-col"
+				hx-post={ fmt.Sprintf("/v2/components/sensors/%s/attach", model.DeviceID) }
+				hx-target="#sensor-dialog-container"
+				hx-swap="innerHTML"
+			>
+				<div class="border-b border-border/60 px-6 py-5">
+					<h2 class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("edit") } sensor</h2>
+					<div class="mt-1 text-sm text-muted-foreground">
+						Nuvarande: { currentSensorID(model) }
+					</div>
+				</div>
+				<div class="grid gap-6 px-6 py-6">
+					if model.ErrorMessage != "" {
+						<div class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+							{ model.ErrorMessage }
+						</div>
+					}
+					@shared.FormField(l10n.Get("sensorID"), "new-sensor-id") {
+						@input.Input(input.Props{
+							ID:          "new-sensor-id",
+							Name:        "newSensorID",
+							Value:       model.SensorID,
+							Placeholder: l10n.Get("sensorID"),
+							Class:       "h-10 rounded-xl bg-background",
+						})
+					}
+					@shared.SelectBoxField(shared.SelectBoxFieldProps{
+						FieldID:         "attach-sensor-type",
+						Name:            "sensorType",
+						Label:           l10n.Get("sensortype"),
+						Placeholder:     l10n.Get("choose"),
+						Required:        true,
+						RequiredMessage: l10n.Get("pickOption"),
+						NoSearch:        true,
+						Options:         sensorTypeFieldOptions(model.DeviceProfiles, model.SelectedType),
+					})
+				</div>
+				<div class="flex items-center justify-end gap-3 border-t border-border/60 px-6 py-5">
+					@dialog.Close(dialog.CloseProps{For: "attach-sensor-dialog"}) {
+						@button.Button(button.Props{
+							Variant: button.VariantOutline,
+							Class:   "rounded-xl px-4",
+						}) {
+							@icon.X(icon.Props{Class: "size-4"})
+							{ l10n.Get("cancel") }
+						}
+					}
+					@button.Button(button.Props{
+						Type:    button.TypeSubmit,
+						Variant: button.VariantDefault,
+						Class:   "rounded-xl px-4",
+					}) {
+						@icon.Check(icon.Props{Class: "size-4"})
+						{ l10n.Get("save") }
+					}
+				</div>
+				@shared.RequiredSelectBoxValidationScript("attach-sensor-dialog-form")
+			</form>
+		}
+	}
+}
+
+templ DetachSensorDialog(l10n Localizer, _ AssetLoaderFunc, model DetachSensorDialogViewModel) {
+	@dialog.Dialog(dialog.Props{ID: "detach-sensor-dialog", Open: true}) {
+		@dialog.Content(dialog.ContentProps{
+			Class:           "max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
+			HideCloseButton: true,
+		}) {
+			<form
+				action={ fmt.Sprintf("/v2/components/sensors/%s/detach", model.DeviceID) }
+				method="post"
+				class="flex flex-col"
+				hx-post={ fmt.Sprintf("/v2/components/sensors/%s/detach", model.DeviceID) }
+				hx-target="#sensor-dialog-container"
+				hx-swap="innerHTML"
+			>
+				<div class="border-b border-border/60 px-6 py-5">
+					<h2 class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("delete") } sensor</h2>
+				</div>
+				<div class="grid gap-3 px-6 py-6 text-sm text-foreground">
+					if model.ErrorMessage != "" {
+						<div class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+							{ model.ErrorMessage }
+						</div>
+					}
+					<div>{ detachPrompt(l10n, model) }</div>
+					<div class="text-muted-foreground">Sensor kopplas bort från enheten.</div>
+				</div>
+				<div class="flex items-center justify-end gap-3 border-t border-border/60 px-6 py-5">
+					@dialog.Close(dialog.CloseProps{For: "detach-sensor-dialog"}) {
+						@button.Button(button.Props{
+							Variant: button.VariantOutline,
+							Class:   "rounded-xl px-4",
+						}) {
+							@icon.X(icon.Props{Class: "size-4"})
+							{ l10n.Get("cancel") }
+						}
+					}
+					@button.Button(button.Props{
+						Type:    button.TypeSubmit,
+						Variant: button.VariantDestructive,
+						Class:   "rounded-xl px-4",
+					}) {
+						@icon.Trash2(icon.Props{Class: "size-4"})
+						{ l10n.Get("delete") }
+					}
+				</div>
+			</form>
+		}
+	}
+}
+
+func currentSensorID(model AttachSensorDialogViewModel) string {
+	if model.CurrentSensorID != "" {
+		return model.CurrentSensorID
+	}
+	return "-"
+}
+
+func detachPrompt(_ Localizer, model DetachSensorDialogViewModel) string {
+	if model.SensorID != "" {
+		return fmt.Sprintf("Delete sensor %s?", model.SensorID)
+	}
+	return fmt.Sprintf("Delete sensor on %s?", model.SensorName)
+}

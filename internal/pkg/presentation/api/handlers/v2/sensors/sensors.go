@@ -96,7 +96,7 @@ func composeListModel(ctx context.Context, r *http.Request, app application.Devi
 		limit = 1000
 	}
 
-	result, err := app.GetSensors(ctx, offset, limit, args)
+	result, err := app.GetDevices(ctx, offset, limit, args)
 	if err != nil {
 		return featuresensors.SensorsPageViewModel{}, err
 	}
@@ -106,7 +106,7 @@ func composeListModel(ctx context.Context, r *http.Request, app application.Devi
 
 	model := featuresensors.SensorsPageViewModel{
 		MapView: showMap,
-		Sensors: make([]featuresensors.SensorViewModel, 0, len(result.Sensors)),
+		Sensors: make([]featuresensors.SensorViewModel, 0, len(result.Devices)),
 		Filters: featuresensors.FiltersViewModel{
 			Search:        r.URL.Query().Get("search"),
 			LastSeen:      r.URL.Query().Get("lastseen"),
@@ -128,8 +128,8 @@ func composeListModel(ctx context.Context, r *http.Request, app application.Devi
 		},
 	}
 
-	for _, sensor := range result.Sensors {
-		model.Sensors = append(model.Sensors, toViewModel(sensor))
+	for _, device := range result.Devices {
+		model.Sensors = append(model.Sensors, toViewModel(device))
 	}
 
 	if includePageMeta {
@@ -203,41 +203,41 @@ func getDeviceProfiles(ctx context.Context, app application.DeviceManagement) []
 	return names
 }
 
-func toViewModel(sensor application.Sensor) featuresensors.SensorViewModel {
+func toViewModel(device application.Device) featuresensors.SensorViewModel {
 	lastSeen := time.Time{}
 
-	if sensor.DeviceStatus != nil {
-		lastSeen = sensor.DeviceStatus.ObservedAt
+	if device.SensorStatus != nil {
+		lastSeen = device.SensorStatus.ObservedAt
 	}
-	if sensor.DeviceState != nil {
-		lastSeen = sensor.DeviceState.ObservedAt
+	if device.DeviceState != nil {
+		lastSeen = device.DeviceState.ObservedAt
 	}
 
 	viewModel := featuresensors.SensorViewModel{
-		Active:       sensor.Active,
-		DeviceID:     sensor.DeviceID,
-		DevEUI:       sensor.SensorID,
-		Name:         sensor.Name,
-		BatteryLevel: batteryLevel(sensor),
+		Active:       device.Active,
+		DeviceID:     device.DeviceID,
+		DevEUI:       device.SensorID,
+		Name:         device.Name,
+		BatteryLevel: batteryLevel(device),
 		LastSeen:     lastSeen,
-		HasAlerts:    len(sensor.Alarms) > 0,
-		Latitude:     sensor.Location.Latitude,
-		Longitude:    sensor.Location.Longitude,
+		HasAlerts:    len(device.Alarms) > 0,
+		Latitude:     device.Location.Latitude,
+		Longitude:    device.Location.Longitude,
 	}
 
-	if sensor.DeviceProfile != nil {
-		viewModel.Type = sensor.DeviceProfile.Name
+	if device.SensorProfile != nil {
+		viewModel.Type = device.SensorProfile.Name
 	}
-	if sensor.DeviceState != nil {
-		viewModel.Online = sensor.DeviceState.Online
+	if device.DeviceState != nil {
+		viewModel.Online = device.DeviceState.Online
 	}
 
 	return viewModel
 }
 
-func batteryLevel(sensor application.Sensor) int {
-	if sensor.DeviceStatus != nil && sensor.DeviceStatus.BatteryLevel != 0 {
-		return sensor.DeviceStatus.BatteryLevel
+func batteryLevel(device application.Device) int {
+	if device.SensorStatus != nil && device.SensorStatus.BatteryLevel != 0 {
+		return device.SensorStatus.BatteryLevel
 	}
 	return -1
 }

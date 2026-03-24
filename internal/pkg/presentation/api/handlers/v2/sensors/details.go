@@ -1,7 +1,9 @@
 package sensors
 
 import (
+	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"slices"
@@ -9,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
+	legacydevices "github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/pkg/application"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/sensors"
@@ -86,6 +89,132 @@ func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, _
 	}
 }
 
+func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		if id == "" {
+			http.Error(w, "no id found in url", http.StatusBadRequest)
+			return
+		}
+
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		renderDialog := func(status int, model featuresensors.AttachSensorDialogViewModel) {
+			component := featuresensors.AttachSensorDialog(localizer, assets, model)
+			writeComponentStatus(r.Context(), w, status, component)
+		}
+
+		switch r.Method {
+		case http.MethodGet:
+			model, err := composeAttachDialogModel(r.Context(), id, app)
+			if err != nil {
+				http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+				return
+			}
+			renderDialog(http.StatusOK, model)
+		case http.MethodPost:
+			if err := r.ParseForm(); err != nil {
+				http.Error(w, "could not parse form data", http.StatusBadRequest)
+				return
+			}
+
+			model, err := composeAttachDialogModel(r.Context(), id, app)
+			if err != nil {
+				http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+				return
+			}
+
+			sensorID := strings.TrimSpace(r.FormValue("newSensorID"))
+			sensorType := strings.TrimSpace(r.FormValue("sensorType"))
+			model.SensorID = sensorID
+			model.SelectedType = sensorType
+
+			if sensorID == "" {
+				model.ErrorMessage = "SensorID kan inte vara tomt"
+				renderDialog(http.StatusOK, model)
+				return
+			}
+
+			if sensorType == "" {
+				model.ErrorMessage = "Sensorprofil måste väljas"
+				renderDialog(http.StatusOK, model)
+				return
+			}
+
+			attachCtx := legacydevices.WithAttachSensorID(r.Context(), sensorID)
+			if err := app.Attach(attachCtx, id); err != nil {
+				model.ErrorMessage = "Kunde inte koppla sensorn"
+				switch {
+				case errors.Is(err, application.ErrNotFound):
+					model.ErrorMessage = "Enheten hittades inte"
+				case errors.Is(err, application.ErrConflict):
+					model.ErrorMessage = "SensorID är redan kopplad till en annan enhet"
+				}
+				renderDialog(http.StatusOK, model)
+				return
+			}
+
+			if err := app.UpdateSensor(attachCtx, sensorID, map[string]any{
+				"sensorID":        sensorID,
+				"sensorProfileID": sensorType,
+			}); err != nil {
+				model.ErrorMessage = "Kunde inte uppdatera sensorprofil"
+				switch {
+				case errors.Is(err, application.ErrNotFound):
+					model.ErrorMessage = "Sensorn hittades inte"
+				case errors.Is(err, application.ErrConflict):
+					model.ErrorMessage = "Ogiltig sensorprofil"
+				}
+				renderDialog(http.StatusOK, model)
+				return
+			}
+
+			redirectHXOrHTTP(w, r, fmt.Sprintf("/v2/sensors/%s?mode=edit", id))
+		default:
+			http.Error(w, "", http.StatusBadRequest)
+		}
+	}
+}
+
+func NewDetachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		if id == "" {
+			http.Error(w, "no id found in url", http.StatusBadRequest)
+			return
+		}
+
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		switch r.Method {
+		case http.MethodGet:
+			model, err := composeDetachDialogModel(r.Context(), id, app)
+			if err != nil {
+				http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+				return
+			}
+			component := featuresensors.DetachSensorDialog(localizer, assets, model)
+			helpers.WriteComponentResponse(r.Context(), w, r, component, 8*1024, 0)
+		case http.MethodPost:
+			model, err := composeDetachDialogModel(r.Context(), id, app)
+			if err != nil {
+				http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+				return
+			}
+
+			if err := app.Deattach(r.Context(), id); err != nil {
+				model.ErrorMessage = "Kunde inte koppla bort sensorn"
+				component := featuresensors.DetachSensorDialog(localizer, assets, model)
+				writeComponentStatus(r.Context(), w, http.StatusOK, component)
+				return
+			}
+
+			redirectHXOrHTTP(w, r, fmt.Sprintf("/v2/sensors/%s?mode=edit", id))
+		default:
+			http.Error(w, "", http.StatusBadRequest)
+		}
+	}
+}
+
 func buildSensorUpdateFields(r *http.Request) map[string]any {
 	fields := map[string]any{
 		"deviceID": r.Form.Get("id"),
@@ -148,7 +277,7 @@ func normalizeMeasurementTypeValues(values []string) []string {
 }
 
 func composeDetailsModel(ctx context.Context, id string, app application.DeviceManagement, l10n Localizer, includeEditOptions bool) (featuresensors.SensorDetailsPageViewModel, error) {
-	sensor, err := app.GetSensor(ctx, id)
+	device, err := app.GetDevice(ctx, id)
 	if err != nil {
 		return featuresensors.SensorDetailsPageViewModel{}, err
 	}
@@ -159,55 +288,55 @@ func composeDetailsModel(ctx context.Context, id string, app application.DeviceM
 	}
 
 	model := featuresensors.SensorDetailsPageViewModel{
-		DeviceID:    sensor.DeviceID,
-		DevEUI:      sensor.SensorID,
-		Name:        sensor.Name,
-		Description: sensor.Description,
-		Tenant:      sensor.Tenant,
-		Active:      sensor.Active,
-		Latitude:    sensor.Location.Latitude,
-		Longitude:   sensor.Location.Longitude,
-		ObservedAt:  sensor.ObservedAt(),
+		DeviceID:    device.DeviceID,
+		DevEUI:      device.SensorID,
+		Name:        device.Name,
+		Description: device.Description,
+		Tenant:      device.Tenant,
+		Active:      device.Active,
+		Latitude:    device.Location.Latitude,
+		Longitude:   device.Location.Longitude,
+		ObservedAt:  device.ObservedAt(),
 	}
 
-	if sensor.Environment != nil {
-		model.Environment = *sensor.Environment
+	if device.Environment != nil {
+		model.Environment = *device.Environment
 	}
 
-	if sensor.DeviceProfile != nil {
-		model.DeviceProfileName = sensor.DeviceProfile.Name
-		model.Interval = sensor.DeviceProfile.Interval
+	if device.SensorProfile != nil {
+		model.DeviceProfileName = device.SensorProfile.Name
+		model.Interval = device.SensorProfile.Interval
 	}
 
-	if sensor.DeviceState != nil {
-		model.Online = sensor.DeviceState.Online
+	if device.DeviceState != nil {
+		model.Online = device.DeviceState.Online
 		if model.ObservedAt.IsZero() {
-			model.ObservedAt = sensor.DeviceState.ObservedAt
+			model.ObservedAt = device.DeviceState.ObservedAt
 		}
 	}
 
-	if sensor.DeviceStatus != nil {
+	if device.SensorStatus != nil {
 		model.DeviceStatus = &featuresensors.DeviceStatusViewModel{
-			BatteryLevel: sensor.DeviceStatus.BatteryLevel,
-			RSSI:         sensor.DeviceStatus.RSSI,
-			LoRaSNR:      sensor.DeviceStatus.LoRaSNR,
-			Frequency:    sensor.DeviceStatus.Frequency,
-			DR:           sensor.DeviceStatus.DR,
-			ObservedAt:   sensor.DeviceStatus.ObservedAt,
+			BatteryLevel: device.SensorStatus.BatteryLevel,
+			RSSI:         device.SensorStatus.RSSI,
+			LoRaSNR:      device.SensorStatus.LoRaSNR,
+			Frequency:    device.SensorStatus.Frequency,
+			DR:           device.SensorStatus.DR,
+			ObservedAt:   device.SensorStatus.ObservedAt,
 		}
 		if model.ObservedAt.IsZero() {
-			model.ObservedAt = sensor.DeviceStatus.ObservedAt
+			model.ObservedAt = device.SensorStatus.ObservedAt
 		}
 	}
 
-	for _, tp := range sensor.Types {
+	for _, tp := range device.Types {
 		if tp.URN == "" || slices.Contains(model.Types, tp.URN) {
 			continue
 		}
 		model.Types = append(model.Types, tp.URN)
 	}
 
-	for _, md := range sensor.Metadata {
+	for _, md := range device.Metadata {
 		model.Metadata = append(model.Metadata, featuresensors.MetadataViewModel{
 			Key:   md.Key,
 			Value: md.Value,
@@ -237,10 +366,65 @@ func composeDetailsModel(ctx context.Context, id string, app application.DeviceM
 	if includeEditOptions {
 		model.Organisations = app.GetTenants(ctx)
 		model.DeviceProfiles = deviceProfileOptions(app.GetDeviceProfiles(ctx))
-		model.TypeOptions = measurementTypeOptions(l10n, app.GetDeviceProfiles(ctx), model.DeviceProfileName, model.Types, sensorTypeLabels(sensor.Types))
+		model.TypeOptions = measurementTypeOptions(l10n, app.GetDeviceProfiles(ctx), model.DeviceProfileName, model.Types, sensorTypeLabels(device.Types))
 	}
 
 	return model, nil
+}
+
+func composeAttachDialogModel(ctx context.Context, id string, app application.DeviceManagement) (featuresensors.AttachSensorDialogViewModel, error) {
+	model, err := composeDetailsModel(ctx, id, app, nil, true)
+	if err != nil {
+		return featuresensors.AttachSensorDialogViewModel{}, err
+	}
+
+	return featuresensors.AttachSensorDialogViewModel{
+		DeviceID:        model.DeviceID,
+		CurrentSensorID: model.DevEUI,
+		SensorID:        model.DevEUI,
+		SelectedType:    model.DeviceProfileName,
+		DeviceProfiles:  model.DeviceProfiles,
+	}, nil
+}
+
+func composeDetachDialogModel(ctx context.Context, id string, app application.DeviceManagement) (featuresensors.DetachSensorDialogViewModel, error) {
+	model, err := composeDetailsModel(ctx, id, app, nil, false)
+	if err != nil {
+		return featuresensors.DetachSensorDialogViewModel{}, err
+	}
+
+	name := model.Name
+	if strings.TrimSpace(name) == "" {
+		name = model.DeviceID
+	}
+
+	return featuresensors.DetachSensorDialogViewModel{
+		DeviceID:   model.DeviceID,
+		SensorID:   model.DevEUI,
+		SensorName: name,
+	}, nil
+}
+
+func redirectHXOrHTTP(w http.ResponseWriter, r *http.Request, location string) {
+	if helpers.IsHxRequest(r) {
+		w.Header().Set("HX-Redirect", location)
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	http.Redirect(w, r, location, http.StatusFound)
+}
+
+func writeComponentStatus(ctx context.Context, w http.ResponseWriter, status int, component templ.Component) {
+	var buf bytes.Buffer
+	if err := component.Render(ctx, &buf); err != nil {
+		http.Error(w, "could not render component", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(status)
+	_, _ = w.Write(buf.Bytes())
 }
 
 func deviceProfileOptions(profiles []application.DeviceProfile) []featuresensors.DeviceProfileOption {

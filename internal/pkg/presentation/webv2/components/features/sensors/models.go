@@ -118,3 +118,19 @@ type MeasurementTypeOption struct {
 type MeasurementTypeOptionsProps struct {
 	Options []MeasurementTypeOption
 }
+
+type AttachSensorDialogViewModel struct {
+	DeviceID       string
+	CurrentSensorID string
+	SensorID       string
+	SelectedType   string
+	DeviceProfiles []DeviceProfileOption
+	ErrorMessage   string
+}
+
+type DetachSensorDialogViewModel struct {
+	DeviceID   string
+	SensorID   string
+	SensorName string
+	ErrorMessage string
+}
