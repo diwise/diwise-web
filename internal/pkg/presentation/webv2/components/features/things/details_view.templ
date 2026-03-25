@@ -130,7 +130,7 @@ templ ThingTagValue(l10n Localizer, tags []string) {
 
 func thingDetailItems(l10n Localizer, model ThingDetailsPageViewModel) []shared.DetailListItem {
 	items := []shared.DetailListItem{
-		{Label: l10n.Get("thingtype"), Value: displayThingType(l10n, model.Thing)},
+		{Label: l10n.Get("thingtype"), Value: l10n.Get(model.Thing.Type)},
 		{Label: l10n.Get("name"), Value: model.Thing.Name, Missing: strings.TrimSpace(model.Thing.Name) == ""},
 		{Label: l10n.Get("description"), Value: model.Thing.Description, Missing: strings.TrimSpace(model.Thing.Description) == ""},
 		{Label: l10n.Get("sensorconnected"), Content: ThingConnectedSensorValue(l10n, model)},
@@ -138,14 +138,111 @@ func thingDetailItems(l10n Localizer, model ThingDetailsPageViewModel) []shared.
 		{Label: l10n.Get("tags"), Content: ThingTagValue(l10n, model.Thing.Tags)},
 	}
 
-	if strings.TrimSpace(model.Thing.AlternativeName) != "" {
-		items = append(items[:3], append([]shared.DetailListItem{{
-			Label: l10n.Get("alternativeName"),
-			Value: model.Thing.AlternativeName,
-		}}, items[3:]...)...)
+	if strings.TrimSpace(model.Thing.SubType) != "" {
+		items = append(items[:1], append([]shared.DetailListItem{{
+			Label: l10n.Get("category"),
+			Value: l10n.Get(model.Thing.SubType),
+		}}, items[1:]...)...)
 	}
 
+	if strings.TrimSpace(model.Thing.AlternativeName) != "" {
+		insertAt := 3
+		if strings.TrimSpace(model.Thing.SubType) != "" {
+			insertAt = 4
+		}
+		items = append(items[:insertAt], append([]shared.DetailListItem{{
+			Label: l10n.Get("alternativeName"),
+			Value: model.Thing.AlternativeName,
+		}}, items[insertAt:]...)...)
+	}
+
+	items = append(items, thingTypeSpecificRows(l10n, model.Thing)...)
+
 	return items
+}
+
+func thingTypeSpecificRows(l10n Localizer, thing ThingViewModel) []shared.DetailListItem {
+	kind := strings.ToLower(strings.TrimSpace(thing.SubType))
+	if kind == "" {
+		kind = strings.ToLower(strings.TrimSpace(thing.Type))
+	}
+
+	switch kind {
+	case "wastecontainer":
+		return []shared.DetailListItem{{
+			Label:   l10n.Get("size"),
+			Content: thingPropertyLines(l10n, []string{
+				thingSizeLine(l10n, thing, "containerheight", "maxd"),
+				thingSizeLine(l10n, thing, "maxfillingheight", "maxl"),
+			}, l10n.Get("missing")),
+		}}
+	case "sandstorage":
+		return []shared.DetailListItem{{
+			Label:   l10n.Get("size"),
+			Content: thingPropertyLines(l10n, []string{
+				thingSizeLine(l10n, thing, "containerheight", "maxd"),
+				thingSizeLine(l10n, thing, "maxfillingheight", "maxl"),
+				thingAngleLine(l10n, thing),
+			}, l10n.Get("angleismissing")),
+		}}
+	case "container":
+		return []shared.DetailListItem{{
+			Label:   l10n.Get("size"),
+			Content: thingPropertyLines(l10n, []string{
+				thingSizeLine(l10n, thing, "containerheight", "maxd"),
+				thingSizeLine(l10n, thing, "maxfillingheight", "maxl"),
+			}, l10n.Get("missing")),
+		}}
+	case "combinedseweroverflow", "sewer":
+		return []shared.DetailListItem{{
+			Label:   l10n.Get("measurements"),
+			Content: thingPropertyLines(l10n, []string{
+				thingSizeLine(l10n, thing, "sewerheight", "maxd"),
+				thingSizeLine(l10n, thing, "offsetsetting", "offset"),
+				thingSizeLine(l10n, thing, "maxwaterlevelheight", "maxl"),
+			}, l10n.Get("missing")),
+		}}
+	default:
+		return nil
+	}
+}
+
+templ thingPropertyLines(l10n Localizer, lines []string, missingMessage string) {
+	{{ visibleLines := make([]string, 0, len(lines)) }}
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		{{ visibleLines = append(visibleLines, line) }}
+	}
+	if len(visibleLines) == 0 {
+		<span class="italic text-muted-foreground">{ missingMessage }</span>
+	} else {
+		<div class="flex flex-col gap-1">
+			for _, line := range visibleLines {
+				<div>{ line }</div>
+			}
+		</div>
+	}
+}
+
+func thingSizeLine(l10n Localizer, thing ThingViewModel, labelKey, propertyKey string) string {
+	value, ok := thing.GetFloat(propertyKey)
+	if !ok || value == 0 {
+		return ""
+	}
+	if labelKey == "maxfillingheight" || labelKey == "offsetsetting" || labelKey == "maxwaterlevelheight" {
+		return fmt.Sprintf("%s %.2f m.", l10n.Get(labelKey), value)
+	}
+	return fmt.Sprintf("%s %.2f m", l10n.Get(labelKey), value)
+}
+
+func thingAngleLine(l10n Localizer, thing ThingViewModel) string {
+	value, ok := thing.GetFloat("angle")
+	if !ok || value == 0 {
+		return ""
+	}
+	return fmt.Sprintf("%s %.2f %s.", l10n.Get("angleis"), value, l10n.Get("degrees"))
 }
 
 func currentConnectedSensor(model ThingDetailsPageViewModel) string {
