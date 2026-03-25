@@ -7,7 +7,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
+	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	featureadmin "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/admin"
 	v2layout "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/layout"
 	"github.com/diwise/diwise-web/internal/presentation/api/authz"

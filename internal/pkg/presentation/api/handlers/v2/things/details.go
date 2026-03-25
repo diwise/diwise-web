@@ -15,7 +15,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application/client"
 	appthings "github.com/diwise/diwise-web/internal/application/things"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
+	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/things"
 	v2layout "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/layout"
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"

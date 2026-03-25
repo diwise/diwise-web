@@ -15,7 +15,7 @@ import (
 	appclient "github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
+	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/sensors"
 	v2layout "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/layout"
 
