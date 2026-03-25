@@ -13,7 +13,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application/admin"
 	appclient "github.com/diwise/diwise-web/internal/application/client"
-	legacydevices "github.com/diwise/diwise-web/internal/application/devices"
+	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/sensors"
@@ -24,7 +24,7 @@ import (
 
 type sensorDetailsApp interface {
 	admin.Management
-	legacydevices.Management
+	devices.Management
 	measurements.Management
 }
 
@@ -148,7 +148,7 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 				return
 			}
 
-			attachCtx := legacydevices.WithAttachSensorID(r.Context(), sensorID)
+			attachCtx := devices.WithAttachSensorID(r.Context(), sensorID)
 			if err := app.Attach(attachCtx, id); err != nil {
 				model.ErrorMessage = "Kunde inte koppla sensorn"
 				switch {
@@ -435,7 +435,7 @@ func writeComponentStatus(ctx context.Context, w http.ResponseWriter, status int
 	_, _ = w.Write(buf.Bytes())
 }
 
-func deviceProfileOptions(profiles []legacydevices.SensorProfile) []featuresensors.DeviceProfileOption {
+func deviceProfileOptions(profiles []devices.SensorProfile) []featuresensors.DeviceProfileOption {
 	options := make([]featuresensors.DeviceProfileOption, 0, len(profiles))
 	for _, profile := range profiles {
 		option := featuresensors.DeviceProfileOption{
@@ -451,8 +451,8 @@ func deviceProfileOptions(profiles []legacydevices.SensorProfile) []featuresenso
 	return options
 }
 
-func measurementTypeOptions(l10n Localizer, profiles []legacydevices.SensorProfile, selectedProfile string, selectedTypes []string, labels map[string]string) []featuresensors.MeasurementTypeOption {
-	index := slices.IndexFunc(profiles, func(profile legacydevices.SensorProfile) bool {
+func measurementTypeOptions(l10n Localizer, profiles []devices.SensorProfile, selectedProfile string, selectedTypes []string, labels map[string]string) []featuresensors.MeasurementTypeOption {
+	index := slices.IndexFunc(profiles, func(profile devices.SensorProfile) bool {
 		return profile.Name == selectedProfile || profile.Decoder == selectedProfile
 	})
 	if index < 0 || profiles[index].Types == nil {
@@ -485,7 +485,7 @@ func measurementTypeOptions(l10n Localizer, profiles []legacydevices.SensorProfi
 	return options
 }
 
-func sensorTypeLabels(types []legacydevices.Type) map[string]string {
+func sensorTypeLabels(types []devices.Type) map[string]string {
 	labels := make(map[string]string, len(types))
 	for _, tp := range types {
 		if tp.URN == "" || tp.Name == "" {

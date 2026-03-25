@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"testing"
 
-	legacydevices "github.com/diwise/diwise-web/internal/application/devices"
+	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/matryer/is"
 )
 
@@ -83,7 +83,7 @@ func TestBuildSensorUpdateFieldsSplitsCommaSeparatedMeasurementTypes(t *testing.
 func TestMeasurementTypeOptionsUsesMatchingProfileAndSelection(t *testing.T) {
 	is := is.New(t)
 
-	profiles := []legacydevices.SensorProfile{
+	profiles := []devices.SensorProfile{
 		{Name: "Weather", Decoder: "weather-decoder", Types: &[]string{"sensor:temperature", "sensor:humidity"}},
 	}
 
@@ -101,7 +101,7 @@ func TestMeasurementTypeOptionsUsesMatchingProfileAndSelection(t *testing.T) {
 func TestMeasurementTypeOptionsPrefersProvidedLabels(t *testing.T) {
 	is := is.New(t)
 
-	profiles := []legacydevices.SensorProfile{
+	profiles := []devices.SensorProfile{
 		{Name: "Weather", Decoder: "weather-decoder", Types: &[]string{"guid-1"}},
 	}
 
