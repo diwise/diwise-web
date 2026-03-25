@@ -6,7 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/application/client"
+	appthings "github.com/diwise/diwise-web/internal/application/things"
 	"github.com/matryer/is"
 )
 
@@ -35,8 +36,8 @@ func TestBuildThingUpdateFieldsMapsEditForm(t *testing.T) {
 	is.Equal("Updated description", fields["description"])
 	is.Equal("tenant-a", fields["tenant"])
 	is.Equal([]string{"waste", "downtown"}, fields["tags"])
-	is.Equal([]application.Device{{DeviceID: "device-1"}, {DeviceID: "device-2"}}, fields["refDevices"])
-	is.Equal(application.Location{Latitude: 57.70887, Longitude: 11.97456}, fields["location"])
+	is.Equal([]appthings.RefDevice{{DeviceID: "device-1"}, {DeviceID: "device-2"}}, fields["refDevices"])
+	is.Equal(client.Location{Latitude: 57.70887, Longitude: 11.97456}, fields["location"])
 	is.Equal(1.25, fields["maxl"])
 	is.Equal(2.5, fields["maxd"])
 	is.Equal(3.75, fields["angle"])
@@ -82,8 +83,8 @@ func TestThingMeasurementChartConfigUsesMaxDistanceForDistanceCharts(t *testing.
 
 	req := httptest.NewRequest("GET", "/v2/components/things/thing-1/measurements", nil)
 	maxDistance := 0.94
-	config := thingMeasurementChartConfig(req, noopLocalizer{}, "3330-3", application.Thing{
-		TypeValues: application.ThingTypeValues{
+	config := thingMeasurementChartConfig(req, noopLocalizer{}, "3330-3", appthings.Thing{
+		TypeValues: appthings.TypeValues{
 			MaxDistance: &maxDistance,
 		},
 	})

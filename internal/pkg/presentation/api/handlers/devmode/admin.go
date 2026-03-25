@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
@@ -33,7 +33,7 @@ func NewAdminTenantsHandler(ctx context.Context) http.HandlerFunc {
 		w.Header()["Content-Type"] = []string{"application/json"}
 		w.WriteHeader(http.StatusOK)
 
-		response := application.ApiResponse{}
+		response := client.ApiResponse{}
 		err := json.Unmarshal([]byte(adminTentantsJsonFormat), &response)
 		if err != nil {
 			logger.Error("DEVMODE ADMIN ERROR", "error", err)

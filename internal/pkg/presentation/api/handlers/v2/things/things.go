@@ -12,7 +12,9 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/application/admin"
+	"github.com/diwise/diwise-web/internal/application/client"
+	appthings "github.com/diwise/diwise-web/internal/application/things"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/things"
 	v2layout "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/layout"
@@ -21,7 +23,12 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+type thingsApp interface {
+	admin.Management
+	appthings.Management
+}
+
+func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +54,7 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 	}
 }
 
-func NewThingsDataList(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingsDataList(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
@@ -66,7 +73,7 @@ func NewThingsDataList(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, 
 	}
 }
 
-func NewThingComponentHandler(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingComponentHandler(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		model, err := composeNewThingModel(r.Context(), localizer, app)
@@ -80,7 +87,7 @@ func NewThingComponentHandler(_ context.Context, l10n LocaleBundle, _ AssetLoade
 	}
 }
 
-func NewCreateThingPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewCreateThingPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, "could not parse form data", http.StatusBadRequest)
@@ -98,7 +105,7 @@ func NewCreateThingPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, ap
 	}
 }
 
-func composeListModel(ctx context.Context, r *http.Request, localizer Localizer, app application.ThingManagement) (featuresthings.ThingsPageViewModel, error) {
+func composeListModel(ctx context.Context, r *http.Request, localizer Localizer, app thingsApp) (featuresthings.ThingsPageViewModel, error) {
 	pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 	offset, limit := helpers.GetOffsetAndLimit(r)
 	showMap := r.URL.Query().Get("mapview") == "true"
@@ -167,10 +174,10 @@ func composeListModel(ctx context.Context, r *http.Request, localizer Localizer,
 			SelectedTags:  selectedTags,
 			PageSize:      limit,
 		},
-		TypeOptions: typeOptions,
-		TagOptions:  tagOptions,
+		TypeOptions:   typeOptions,
+		TagOptions:    tagOptions,
 		Organisations: app.GetTenants(ctx),
-		MapView:     showMap,
+		MapView:       showMap,
 	}
 
 	for _, thing := range result.Things {
@@ -180,7 +187,7 @@ func composeListModel(ctx context.Context, r *http.Request, localizer Localizer,
 	return model, nil
 }
 
-func composeNewThingModel(ctx context.Context, localizer Localizer, app application.ThingManagement) (featuresthings.NewThingViewModel, error) {
+func composeNewThingModel(ctx context.Context, localizer Localizer, app thingsApp) (featuresthings.NewThingViewModel, error) {
 	types, err := app.GetTypes(ctx)
 	if err != nil {
 		return featuresthings.NewThingViewModel{}, err
@@ -206,7 +213,7 @@ func composeNewThingModel(ctx context.Context, localizer Localizer, app applicat
 	}, nil
 }
 
-func newThingFromForm(form url.Values) application.Thing {
+func newThingFromForm(form url.Values) appthings.Thing {
 	id := uuid.NewString()
 	thingType := strings.TrimSpace(form.Get("type"))
 	thingSubType := ""
@@ -221,13 +228,13 @@ func newThingFromForm(form url.Values) application.Thing {
 		thingSubType = parts[1]
 	}
 
-	return application.Thing{
+	return appthings.Thing{
 		ID:          id,
 		Type:        thingType,
 		SubType:     thingSubType,
 		Name:        strings.TrimSpace(form.Get("name")),
 		Description: strings.TrimSpace(form.Get("description")),
-		Location: application.Location{
+		Location: client.Location{
 			Latitude:  0,
 			Longitude: 0,
 		},
@@ -284,7 +291,7 @@ func selectedValues(values url.Values, key string) []string {
 	return result
 }
 
-func toViewModel(thing application.Thing) featuresthings.ThingViewModel {
+func toViewModel(thing appthings.Thing) featuresthings.ThingViewModel {
 	viewModel := featuresthings.ThingViewModel{
 		ID:              thing.ID,
 		Type:            thing.Type,

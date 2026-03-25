@@ -4,7 +4,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/application/client"
+	appthings "github.com/diwise/diwise-web/internal/application/things"
 	"github.com/matryer/is"
 )
 
@@ -76,13 +77,13 @@ func TestNewThingFromFormSplitsSubtypeAndMapsFields(t *testing.T) {
 	thing := newThingFromForm(form)
 
 	is.True(thing.ID != "")
-	is.Equal(application.Thing{
+	is.Equal(appthings.Thing{
 		ID:          thing.ID,
 		Type:        "Container",
 		SubType:     "Sandstorage",
 		Name:        "Sandficka A",
 		Description: "Beskrivning",
-		Location: application.Location{
+		Location: client.Location{
 			Latitude:  0,
 			Longitude: 0,
 		},

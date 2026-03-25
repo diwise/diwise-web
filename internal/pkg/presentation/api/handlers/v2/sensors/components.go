@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/application/client"
+	"github.com/diwise/diwise-web/internal/application/devices"
+	appmeasurements "github.com/diwise/diwise-web/internal/application/measurements"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/sensors"
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
@@ -14,7 +16,12 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewMeasurementComponentHandler(ctx context.Context, _ LocaleBundle, _ AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+type sensorComponentsApp interface {
+	devices.Management
+	appmeasurements.Management
+}
+
+func NewMeasurementComponentHandler(ctx context.Context, _ LocaleBundle, _ AssetLoaderFunc, app sensorComponentsApp) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -42,15 +49,15 @@ func NewMeasurementComponentHandler(ctx context.Context, _ LocaleBundle, _ Asset
 			return
 		}
 
-		measurements := application.MeasurementData{Values: []application.MeasurementValue{}}
+		measurementData := appmeasurements.Data{Values: []appmeasurements.Value{}}
 		if id != "" {
-			measurements, err = app.GetMeasurementData(
+			measurementData, err = app.GetMeasurementData(
 				ctx,
 				id,
-				application.WithLastN(true),
-				application.WithTimeRel("between", startTime, endTime),
-				application.WithLimit(100),
-				application.WithReverse(true),
+				client.WithLastN(true),
+				client.WithTimeRel("between", startTime, endTime),
+				client.WithLimit(100),
+				client.WithReverse(true),
 			)
 			if err != nil {
 				http.Error(w, "could not fetch measurement data", http.StatusBadRequest)
@@ -58,12 +65,12 @@ func NewMeasurementComponentHandler(ctx context.Context, _ LocaleBundle, _ Asset
 			}
 		}
 
-		component := featuresensors.MeasurementChartComponent(measurementChartConfig(r, measurements))
+		component := featuresensors.MeasurementChartComponent(measurementChartConfig(r, measurementData))
 		helpers.WriteComponentResponse(ctx, w, r, component, 20*1024, 5*time.Minute)
 	}
 }
 
-func measurementChartConfig(r *http.Request, measurements application.MeasurementData) shared.AdvancedChartConfig {
+func measurementChartConfig(r *http.Request, measurements appmeasurements.Data) shared.AdvancedChartConfig {
 	beginAtZero := false
 	theme := chartTheme(helpers.IsDarkMode(r))
 
@@ -119,7 +126,7 @@ func measurementChartConfig(r *http.Request, measurements application.Measuremen
 	}
 }
 
-func measurementDataset(r *http.Request, measurements application.MeasurementData) shared.AdvancedChartDataset {
+func measurementDataset(r *http.Request, measurements appmeasurements.Data) shared.AdvancedChartDataset {
 	dataset := shared.AdvancedChartDataset{
 		Data:                 make([]any, 0, len(measurements.Values)),
 		BorderColor:          chartColor(helpers.IsDarkMode(r)),
@@ -154,7 +161,7 @@ func measurementDataset(r *http.Request, measurements application.MeasurementDat
 	return dataset
 }
 
-func measurementLabels(measurements application.MeasurementData) []string {
+func measurementLabels(measurements appmeasurements.Data) []string {
 	labels := make([]string, 0, len(measurements.Values))
 	for _, value := range measurements.Values {
 		labels = append(labels, value.Timestamp.Format("2006-01-02 15:04"))
@@ -162,7 +169,7 @@ func measurementLabels(measurements application.MeasurementData) []string {
 	return labels
 }
 
-func NewStatusChartsComponentHandler(ctx context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewStatusChartsComponentHandler(ctx context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app sensorComponentsApp) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -276,14 +283,14 @@ func statusChartConfig(r *http.Request, labels []string, datasets []shared.Advan
 
 func newStatusDataset(label, yAxisID string) shared.AdvancedChartDataset {
 	return shared.AdvancedChartDataset{
-		Label:                label,
-		Data:                 []any{},
-		YAxisID:              yAxisID,
-		BorderWidth:          2,
-		PointRadius:          1,
-		PointHoverRadius:     6,
-		Fill:                 false,
-		Tension:              0.2,
+		Label:            label,
+		Data:             []any{},
+		YAxisID:          yAxisID,
+		BorderWidth:      2,
+		PointRadius:      1,
+		PointHoverRadius: 6,
+		Fill:             false,
+		Tension:          0.2,
 	}
 }
 

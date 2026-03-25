@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/application"
 	adminv2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/admin"
 	authv2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/auth"
 	homev2 "github.com/diwise/diwise-web/internal/pkg/presentation/api/handlers/v2/home"
@@ -174,7 +174,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /", authv2.RedirectIfPostLogout(func() http.Handler {
 		// GET / catches ALL routes that no other handler matches, so we need to make sure that
 		// we only serve the homepage when the path actually IS / (or /home as handled below).
-		next := legacyhome.NewHomePage(ctx, l10n, assetLoader.Load, app.App)
+		next := legacyhome.NewHomePage(ctx, l10n, assetLoader.Load, app)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path != "/" {
 				w.WriteHeader(http.StatusNotFound)
@@ -184,10 +184,10 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 			next(w, r)
 		})
 	}()))
-	r.HandleFunc("GET /home", legacyhome.NewHomePage(ctx, l10n, assetLoader.Load, app.App))
-	r.Handle("GET /components/home/statistics", RequireHX(legacyhome.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app.App)))
-	r.Handle("GET /components/home/usage", RequireHX(legacyhome.NewUsageHandler(ctx, l10n, assetLoader.Load, app.App)))
-	r.Handle("GET /components/tables/alarms", RequireHX(legacyhome.NewAlarmsTable(ctx, l10n, assetLoader.Load, app.App)))
+	r.HandleFunc("GET /home", legacyhome.NewHomePage(ctx, l10n, assetLoader.Load, app))
+	r.Handle("GET /components/home/statistics", RequireHX(legacyhome.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/home/usage", RequireHX(legacyhome.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/tables/alarms", RequireHX(legacyhome.NewAlarmsTable(ctx, l10n, assetLoader.Load, app)))
 
 	// home v2
 	r.Handle("GET /v2", func() http.Handler {
@@ -227,38 +227,38 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.HandleFunc("GET /v2/logout", authv2.NewLogoutRedirect())
 
 	// things
-	r.HandleFunc("GET /things", legacythings.NewThingsPage(ctx, l10n, assetLoader.Load, app.App))
-	r.HandleFunc("POST /things", legacythings.NewCreateThingComponentHandler(ctx, l10n, assetLoader.Load, app.App))
-	r.HandleFunc("GET /things/{id}", legacythings.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app.App))
-	r.HandleFunc("DELETE /things/{id}", legacythings.DeleteThingComponentHandler(ctx, l10n, assetLoader.Load, app.App))
+	r.HandleFunc("GET /things", legacythings.NewThingsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("POST /things", legacythings.NewCreateThingComponentHandler(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /things/{id}", legacythings.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("DELETE /things/{id}", legacythings.DeleteThingComponentHandler(ctx, l10n, assetLoader.Load, app))
 
 	//things - components
-	r.Handle("GET /components/things", RequireHX(legacythings.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app.App)))
-	r.Handle("GET /components/things/{id}", RequireHX(legacythings.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app.App)))
-	r.Handle("POST /components/things/{id}", RequireHX(legacythings.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app.App)))
-	r.Handle("DELETE /components/things/{id}", RequireHX(legacythings.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app.App)))
+	r.Handle("GET /components/things", RequireHX(legacythings.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/{id}", RequireHX(legacythings.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /components/things/{id}", RequireHX(legacythings.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("DELETE /components/things/{id}", RequireHX(legacythings.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 
-	r.Handle("GET /components/tables/things", RequireHX(legacythings.NewThingsTable(ctx, l10n, assetLoader.Load, app.App)))
-	r.Handle("GET /components/things/list", RequireHX(legacythings.NewThingsDataList(ctx, l10n, assetLoader.Load, app.App)))
+	r.Handle("GET /components/tables/things", RequireHX(legacythings.NewThingsTable(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/list", RequireHX(legacythings.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))
 
 	// sensors
-	r.HandleFunc("GET /sensors", legacysensors.NewSensorsPage(ctx, l10n, assetLoader.Load, app.App))
-	r.HandleFunc("GET /sensors/{id}", legacysensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app.App))
+	r.HandleFunc("GET /sensors", legacysensors.NewSensorsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /sensors/{id}", legacysensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
 
-	r.Handle("GET /components/sensors/details", RequireHX(legacysensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app.App)))
-	r.Handle("GET /components/sensors/details/edit", RequireHX(legacysensors.NewEditSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app.App)))
-	r.HandleFunc("POST /components/sensors/details", legacysensors.NewSaveSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app.App))
+	r.Handle("GET /components/sensors/details", RequireHX(legacysensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/details/edit", RequireHX(legacysensors.NewEditSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("POST /components/sensors/details", legacysensors.NewSaveSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app))
 	//r.Handle("GET /components/sensors/{id}/batterylevel", RequireHX(sensors.NewBatteryLevelComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/tables/sensors", RequireHX(legacysensors.NewSensorsTable(ctx, l10n, assetLoader.Load, app.App)))
-	r.Handle("GET /components/sensors/list", RequireHX(legacysensors.NewSensorsDataList(ctx, l10n, assetLoader.Load, app.App)))
-	r.Handle("GET /components/sensors/{id}/status", RequireHX(legacysensors.NewStatusChartsComponentHandler(ctx, l10n, assetLoader.Load, app.App)))
+	r.Handle("GET /components/tables/sensors", RequireHX(legacysensors.NewSensorsTable(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/list", RequireHX(legacysensors.NewSensorsDataList(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/{id}/status", RequireHX(legacysensors.NewStatusChartsComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	//measurements
-	r.Handle("GET /components/measurements", RequireHX(legacysensors.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app.App)))
-	r.Handle("GET /components/things/{id}/measurements", RequireHX(legacythings.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app.App)))
+	r.Handle("GET /components/measurements", RequireHX(legacysensors.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/{id}/measurements", RequireHX(legacythings.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	// admin
-	r.Handle("GET /components/admin/types", RequireHX(legacyadmin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app.App)))
-	r.Handle("GET /error", legacyadmin.NewErrorPage(ctx, l10n, assetLoader.Load, app.App))
-	r.Handle("GET /admin", legacyadmin.NewAdminPage(ctx, l10n, assetLoader.Load, app.App))
+	r.Handle("GET /components/admin/types", RequireHX(legacyadmin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /error", legacyadmin.NewErrorPage(ctx, l10n, assetLoader.Load, app))
+	r.Handle("GET /admin", legacyadmin.NewAdminPage(ctx, l10n, assetLoader.Load, app))
 
 	r.HandleFunc("GET /admin/export", func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()

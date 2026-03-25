@@ -13,17 +13,18 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/application/client"
+	appthings "github.com/diwise/diwise-web/internal/application/things"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
-	v2layout "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/layout"
 	featuresthings "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/things"
+	v2layout "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/layout"
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +61,7 @@ func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoa
 	}
 }
 
-func NewSaveThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewSaveThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
@@ -82,7 +83,7 @@ func NewSaveThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFun
 	}
 }
 
-func NewDeleteThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewDeleteThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
@@ -99,7 +100,7 @@ func NewDeleteThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderF
 	}
 }
 
-func NewThingMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app application.ThingManagement) http.HandlerFunc {
+func NewThingMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -139,7 +140,7 @@ func NewThingMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle,
 	}
 }
 
-func composeDetailsModel(ctx context.Context, id string, app application.ThingManagement, includeEditOptions bool) (featuresthings.ThingDetailsPageViewModel, error) {
+func composeDetailsModel(ctx context.Context, id string, app thingsApp, includeEditOptions bool) (featuresthings.ThingDetailsPageViewModel, error) {
 	thing, err := app.GetThing(ctx, id, nil)
 	if err != nil {
 		return featuresthings.ThingDetailsPageViewModel{}, err
@@ -151,10 +152,10 @@ func composeDetailsModel(ctx context.Context, id string, app application.ThingMa
 	}
 
 	model := featuresthings.ThingDetailsPageViewModel{
-		Thing:          toViewModel(thing),
-		LatestValues:   make([]featuresthings.LatestMeasurementViewModel, 0, len(latestValues)),
-		ConnectedNames: make([]string, 0, len(thing.RefDevices)),
-		ValidSensors:   make([]featuresthings.SensorOption, 0),
+		Thing:              toViewModel(thing),
+		LatestValues:       make([]featuresthings.LatestMeasurementViewModel, 0, len(latestValues)),
+		ConnectedNames:     make([]string, 0, len(thing.RefDevices)),
+		ValidSensors:       make([]featuresthings.SensorOption, 0),
 		MeasurementOptions: make([]featuresthings.MeasurementOption, 0, len(latestValues)),
 	}
 
@@ -217,7 +218,7 @@ func composeDetailsModel(ctx context.Context, id string, app application.ThingMa
 	return model, nil
 }
 
-func latestMeasurementLabel(thingID string, measurement application.Measurement) string {
+func latestMeasurementLabel(thingID string, measurement appthings.Measurement) string {
 	trimmed := strings.TrimSpace(measurement.ID)
 	if trimmed == "" {
 		return measurement.Urn
@@ -245,9 +246,9 @@ func buildThingUpdateFields(form url.Values) map[string]any {
 		fields["tags"] = tags
 	}
 	if refs := normalizeListValues(form["currentDevice"]); len(refs) > 0 {
-		devices := make([]application.Device, 0, len(refs))
+		devices := make([]appthings.RefDevice, 0, len(refs))
 		for _, ref := range refs {
-			devices = append(devices, application.Device{DeviceID: ref})
+			devices = append(devices, appthings.RefDevice{DeviceID: ref})
 		}
 		fields["refDevices"] = devices
 	}
@@ -269,10 +270,10 @@ func buildThingUpdateFields(form url.Values) map[string]any {
 	for _, key := range []string{"latitude", "longitude"} {
 		if value := strings.TrimSpace(form.Get(key)); value != "" {
 			if _, ok := fields["location"]; !ok {
-				fields["location"] = application.Location{}
+				fields["location"] = client.Location{}
 			}
 			if parsed, ok := asFloat(value); ok {
-				location := fields["location"].(application.Location)
+				location := fields["location"].(client.Location)
 				if key == "latitude" {
 					location.Latitude = parsed
 				} else {
@@ -378,7 +379,7 @@ func measurementQuery(measurement string, startTime, endTime time.Time) url.Valu
 	return query
 }
 
-func thingMeasurementChartConfig(r *http.Request, l10n Localizer, measurement string, thing application.Thing) shared.AdvancedChartConfig {
+func thingMeasurementChartConfig(r *http.Request, l10n Localizer, measurement string, thing appthings.Thing) shared.AdvancedChartConfig {
 	isDark := helpers.IsDarkMode(r)
 	theme := chartTheme(isDark)
 	datasets := make([]shared.AdvancedChartDataset, 0, len(thing.Values))
@@ -459,7 +460,7 @@ func maxDistanceChartMeasurement(measurement string) bool {
 	return strings.HasSuffix(urn, "/3")
 }
 
-func thingMeasurementDataset(l10n Localizer, measurement string, values []application.Measurement, index int, isDark bool) shared.AdvancedChartDataset {
+func thingMeasurementDataset(l10n Localizer, measurement string, values []appthings.Measurement, index int, isDark bool) shared.AdvancedChartDataset {
 	color := thingChartColor(index, isDark)
 	dataset := shared.AdvancedChartDataset{
 		Label:                localizedMeasurementSeriesLabel(l10n, measurement, values, index),
@@ -501,14 +502,14 @@ func thingMeasurementDataset(l10n Localizer, measurement string, values []applic
 	return dataset
 }
 
-func localizedMeasurementSeriesLabel(l10n Localizer, measurement string, values []application.Measurement, index int) string {
+func localizedMeasurementSeriesLabel(l10n Localizer, measurement string, values []appthings.Measurement, index int) string {
 	if measurement != "" {
 		return featuresthings.LocalizedMeasurementLabel(l10n, measurement)
 	}
 	return fmt.Sprintf("Series %d", index+1)
 }
 
-func thingMeasurementLabels(groups [][]application.Measurement) []string {
+func thingMeasurementLabels(groups [][]appthings.Measurement) []string {
 	for _, group := range groups {
 		if len(group) == 0 {
 			continue
@@ -538,7 +539,7 @@ func thingChartType(measurement string) string {
 	return "line"
 }
 
-func countMeasurements(groups [][]application.Measurement) int {
+func countMeasurements(groups [][]appthings.Measurement) int {
 	total := 0
 	for _, group := range groups {
 		total += len(group)
@@ -546,7 +547,7 @@ func countMeasurements(groups [][]application.Measurement) int {
 	return total
 }
 
-func measurementRows(groups [][]application.Measurement) []featuresthings.MeasurementTableRow {
+func measurementRows(groups [][]appthings.Measurement) []featuresthings.MeasurementTableRow {
 	rows := make([]featuresthings.MeasurementTableRow, 0)
 	for _, group := range groups {
 		for _, value := range group {
@@ -562,7 +563,7 @@ func measurementRows(groups [][]application.Measurement) []featuresthings.Measur
 	return rows
 }
 
-func measurementRowValue(value application.Measurement) string {
+func measurementRowValue(value appthings.Measurement) string {
 	switch {
 	case value.Value != nil:
 		return fmt.Sprintf("%.1f", *value.Value)

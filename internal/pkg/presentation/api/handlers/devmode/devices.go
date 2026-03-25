@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/application/client"
 )
 
 var testDevices = []testDevice{
@@ -132,7 +132,7 @@ func deviceJson(active, online bool, sID, dID, tenant, name, profilename string,
 	return fmt.Sprintf(deviceJsonFormat, active, sID, dID, tenant, name, loc.lat, loc.lon, profilename, online)
 }
 
-func newDeviceResponseFromFilters(limit int, filters ...func(d *testDevice) bool) application.ApiResponse {
+func newDeviceResponseFromFilters(limit int, filters ...func(d *testDevice) bool) client.ApiResponse {
 	var totalCount int
 	jsons := make([]string, 0, len(testDevices))
 
@@ -167,7 +167,7 @@ func newDeviceResponseFromFilters(limit int, filters ...func(d *testDevice) bool
 	return newResponseFromJsons(totalCount, jsons)
 }
 
-func newDeviceResponseByID(id string) (application.ApiResponse, bool) {
+func newDeviceResponseByID(id string) (client.ApiResponse, bool) {
 	for _, conf := range testDevices {
 		if conf.deviceID != id {
 			continue
@@ -185,36 +185,36 @@ func newDeviceResponseByID(id string) (application.ApiResponse, bool) {
 		)
 
 		count := uint64(1)
-		response := application.ApiResponse{
-			Meta: &application.Meta{
+		response := client.ApiResponse{
+			Meta: &client.Meta{
 				Count:        count,
 				TotalRecords: count,
 			},
 			Data:  []byte(deviceData),
-			Links: &application.Links{},
+			Links: &client.Links{},
 		}
 
 		return response, true
 	}
 
-	response := application.ApiResponse{}
+	response := client.ApiResponse{}
 	return response, false
 }
 
-func newResponseFromJsons(totalRecords int, jsons []string) application.ApiResponse {
+func newResponseFromJsons(totalRecords int, jsons []string) client.ApiResponse {
 	zero := uint64(0)
 	bignum := uint64(9223372036854775807)
 	count := uint64(len(jsons))
 
-	response := application.ApiResponse{
-		Meta: &application.Meta{
+	response := client.ApiResponse{
+		Meta: &client.Meta{
 			Count:        count,
 			TotalRecords: uint64(totalRecords),
 			Offset:       &zero,
 			Limit:        &bignum,
 		},
 		Data:  []byte("[" + strings.Join(jsons, ",") + "]"),
-		Links: &application.Links{},
+		Links: &client.Links{},
 	}
 
 	return response

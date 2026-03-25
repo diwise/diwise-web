@@ -11,7 +11,8 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/application/admin"
+	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/sensors"
 	v2layout "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/layout"
@@ -19,7 +20,12 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+type sensorsApp interface {
+	admin.Management
+	devices.Management
+}
+
+func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +50,7 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 	}
 }
 
-func NewSensorsTable(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorsTable(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
@@ -63,7 +69,7 @@ func NewSensorsTable(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, ap
 	}
 }
 
-func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
@@ -82,7 +88,7 @@ func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 	}
 }
 
-func composeListModel(ctx context.Context, r *http.Request, app application.DeviceManagement, includePageMeta bool) (featuresensors.SensorsPageViewModel, error) {
+func composeListModel(ctx context.Context, r *http.Request, app sensorsApp, includePageMeta bool) (featuresensors.SensorsPageViewModel, error) {
 	pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 	offset, limit := helpers.GetOffsetAndLimit(r)
 	showMap := r.URL.Query().Get("mapview") == "true"
@@ -170,7 +176,7 @@ func normalizeTypeFilter(args url.Values) []string {
 	return selectedTypes
 }
 
-func getStatistics(ctx context.Context, app application.DeviceManagement) (featuresensors.StatisticsViewModel, error) {
+func getStatistics(ctx context.Context, app sensorsApp) (featuresensors.StatisticsViewModel, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
@@ -188,7 +194,7 @@ func getStatistics(ctx context.Context, app application.DeviceManagement) (featu
 	}, nil
 }
 
-func getDeviceProfiles(ctx context.Context, app application.DeviceManagement) []string {
+func getDeviceProfiles(ctx context.Context, app sensorsApp) []string {
 	profiles := app.GetDeviceProfiles(ctx)
 	names := make([]string, 0, len(profiles)+1)
 	for _, p := range profiles {
@@ -203,7 +209,7 @@ func getDeviceProfiles(ctx context.Context, app application.DeviceManagement) []
 	return names
 }
 
-func toViewModel(device application.Device) featuresensors.SensorViewModel {
+func toViewModel(device devices.Device) featuresensors.SensorViewModel {
 	lastSeen := time.Time{}
 
 	if device.SensorStatus != nil {
@@ -235,7 +241,7 @@ func toViewModel(device application.Device) featuresensors.SensorViewModel {
 	return viewModel
 }
 
-func batteryLevel(device application.Device) int {
+func batteryLevel(device devices.Device) int {
 	if device.SensorStatus != nil && device.SensorStatus.BatteryLevel != 0 {
 		return device.SensorStatus.BatteryLevel
 	}

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
@@ -20,7 +20,7 @@ const alarmJsonFormat string = `{"deviceID":"%s","observedAt":"%s","types":["%s"
 func NewAlarmsHandler(ctx context.Context) http.HandlerFunc {
 
 	narf := newAlarmResponseFromFilter
-	responses := map[string]application.ApiResponse{
+	responses := map[string]client.ApiResponse{
 		"/alarms?info=true&limit=5&offset=0": narf(allAlarms, 5),
 	}
 
@@ -44,7 +44,7 @@ func alarmJson(deviceID string, observed time.Time, alarmType string) string {
 	return fmt.Sprintf(alarmJsonFormat, deviceID, observed.Format(time.RFC3339), alarmType)
 }
 
-func newAlarmResponseFromFilter(include func(a *testAlarm) bool, limit int) application.ApiResponse {
+func newAlarmResponseFromFilter(include func(a *testAlarm) bool, limit int) client.ApiResponse {
 	var totalCount int
 	jsons := make([]string, 0, len(testDevices))
 

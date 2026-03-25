@@ -11,8 +11,10 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
+	"github.com/diwise/diwise-web/internal/application/admin"
+	appclient "github.com/diwise/diwise-web/internal/application/client"
 	legacydevices "github.com/diwise/diwise-web/internal/application/devices"
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/application/measurements"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/api/helpers"
 	featuresensors "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/features/sensors"
 	v2layout "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/layout"
@@ -20,7 +22,13 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+type sensorDetailsApp interface {
+	admin.Management
+	legacydevices.Management
+	measurements.Management
+}
+
+func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +64,7 @@ func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 	}
 }
 
-func NewSaveSensorDetailsPage(ctx context.Context, _ LocaleBundle, _ AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewSaveSensorDetailsPage(ctx context.Context, _ LocaleBundle, _ AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
@@ -77,7 +85,7 @@ func NewSaveSensorDetailsPage(ctx context.Context, _ LocaleBundle, _ AssetLoader
 	}
 }
 
-func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		sensorType := r.URL.Query().Get("sensorType")
@@ -89,7 +97,7 @@ func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, _
 	}
 }
 
-func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
@@ -144,9 +152,9 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 			if err := app.Attach(attachCtx, id); err != nil {
 				model.ErrorMessage = "Kunde inte koppla sensorn"
 				switch {
-				case errors.Is(err, application.ErrNotFound):
+				case errors.Is(err, appclient.ErrNotFound):
 					model.ErrorMessage = "Enheten hittades inte"
-				case errors.Is(err, application.ErrConflict):
+				case errors.Is(err, appclient.ErrConflict):
 					model.ErrorMessage = "SensorID är redan kopplad till en annan enhet"
 				}
 				renderDialog(http.StatusOK, model)
@@ -159,9 +167,9 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 			}); err != nil {
 				model.ErrorMessage = "Kunde inte uppdatera sensorprofil"
 				switch {
-				case errors.Is(err, application.ErrNotFound):
+				case errors.Is(err, appclient.ErrNotFound):
 					model.ErrorMessage = "Sensorn hittades inte"
-				case errors.Is(err, application.ErrConflict):
+				case errors.Is(err, appclient.ErrConflict):
 					model.ErrorMessage = "Ogiltig sensorprofil"
 				}
 				renderDialog(http.StatusOK, model)
@@ -175,7 +183,7 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 	}
 }
 
-func NewDetachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app application.DeviceManagement) http.HandlerFunc {
+func NewDetachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
@@ -276,7 +284,7 @@ func normalizeMeasurementTypeValues(values []string) []string {
 	return normalized
 }
 
-func composeDetailsModel(ctx context.Context, id string, app application.DeviceManagement, l10n Localizer, includeEditOptions bool) (featuresensors.SensorDetailsPageViewModel, error) {
+func composeDetailsModel(ctx context.Context, id string, app sensorDetailsApp, l10n Localizer, includeEditOptions bool) (featuresensors.SensorDetailsPageViewModel, error) {
 	device, err := app.GetDevice(ctx, id)
 	if err != nil {
 		return featuresensors.SensorDetailsPageViewModel{}, err
@@ -372,7 +380,7 @@ func composeDetailsModel(ctx context.Context, id string, app application.DeviceM
 	return model, nil
 }
 
-func composeAttachDialogModel(ctx context.Context, id string, app application.DeviceManagement) (featuresensors.AttachSensorDialogViewModel, error) {
+func composeAttachDialogModel(ctx context.Context, id string, app sensorDetailsApp) (featuresensors.AttachSensorDialogViewModel, error) {
 	model, err := composeDetailsModel(ctx, id, app, nil, true)
 	if err != nil {
 		return featuresensors.AttachSensorDialogViewModel{}, err
@@ -387,7 +395,7 @@ func composeAttachDialogModel(ctx context.Context, id string, app application.De
 	}, nil
 }
 
-func composeDetachDialogModel(ctx context.Context, id string, app application.DeviceManagement) (featuresensors.DetachSensorDialogViewModel, error) {
+func composeDetachDialogModel(ctx context.Context, id string, app sensorDetailsApp) (featuresensors.DetachSensorDialogViewModel, error) {
 	model, err := composeDetailsModel(ctx, id, app, nil, false)
 	if err != nil {
 		return featuresensors.DetachSensorDialogViewModel{}, err
@@ -427,7 +435,7 @@ func writeComponentStatus(ctx context.Context, w http.ResponseWriter, status int
 	_, _ = w.Write(buf.Bytes())
 }
 
-func deviceProfileOptions(profiles []application.DeviceProfile) []featuresensors.DeviceProfileOption {
+func deviceProfileOptions(profiles []legacydevices.SensorProfile) []featuresensors.DeviceProfileOption {
 	options := make([]featuresensors.DeviceProfileOption, 0, len(profiles))
 	for _, profile := range profiles {
 		option := featuresensors.DeviceProfileOption{
@@ -443,8 +451,8 @@ func deviceProfileOptions(profiles []application.DeviceProfile) []featuresensors
 	return options
 }
 
-func measurementTypeOptions(l10n Localizer, profiles []application.DeviceProfile, selectedProfile string, selectedTypes []string, labels map[string]string) []featuresensors.MeasurementTypeOption {
-	index := slices.IndexFunc(profiles, func(profile application.DeviceProfile) bool {
+func measurementTypeOptions(l10n Localizer, profiles []legacydevices.SensorProfile, selectedProfile string, selectedTypes []string, labels map[string]string) []featuresensors.MeasurementTypeOption {
+	index := slices.IndexFunc(profiles, func(profile legacydevices.SensorProfile) bool {
 		return profile.Name == selectedProfile || profile.Decoder == selectedProfile
 	})
 	if index < 0 || profiles[index].Types == nil {
@@ -477,7 +485,7 @@ func measurementTypeOptions(l10n Localizer, profiles []application.DeviceProfile
 	return options
 }
 
-func sensorTypeLabels(types []application.Type) map[string]string {
+func sensorTypeLabels(types []legacydevices.Type) map[string]string {
 	labels := make(map[string]string, len(types))
 	for _, tp := range types {
 		if tp.URN == "" || tp.Name == "" {

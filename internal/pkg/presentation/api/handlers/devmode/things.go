@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/diwise/diwise-web/internal/pkg/application"
+	"github.com/diwise/diwise-web/internal/application/client"
+	appthings "github.com/diwise/diwise-web/internal/application/things"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
@@ -37,7 +38,7 @@ func NewThingsHandler(ctx context.Context) http.HandlerFunc {
 
 		u := r.URL.String()
 		p := r.URL.Path
-		response := application.ApiResponse{}
+		response := client.ApiResponse{}
 
 		logger.Info("DEVMODE THINGS REQUEST", "path", p, "url", u)
 
@@ -82,52 +83,52 @@ func NewThingsHandler(ctx context.Context) http.HandlerFunc {
 	}
 }
 
-func newLatestValuesResponse(thingID string) (application.ApiResponse, error) {
+func newLatestValuesResponse(thingID string) (client.ApiResponse, error) {
 	if thingID == "" {
-		return application.ApiResponse{
-			Meta: &application.Meta{
+		return client.ApiResponse{
+			Meta: &client.Meta{
 				Count:        0,
 				TotalRecords: 0,
 			},
 			Data:  []byte("[]"),
-			Links: &application.Links{},
+			Links: &client.Links{},
 		}, nil
 	}
 
 	fileName, ok := fileMap["/things/"+thingID]
 	if !ok {
-		return application.ApiResponse{
-			Meta: &application.Meta{
+		return client.ApiResponse{
+			Meta: &client.Meta{
 				Count:        0,
 				TotalRecords: 0,
 			},
 			Data:  []byte("[]"),
-			Links: &application.Links{},
+			Links: &client.Links{},
 		}, nil
 	}
 
 	c, err := jsonFiles.ReadFile(fileName)
 	if err != nil {
-		return application.ApiResponse{}, err
+		return client.ApiResponse{}, err
 	}
 
-	var thingResp application.ApiResponse
+	var thingResp client.ApiResponse
 	if err := json.Unmarshal(c, &thingResp); err != nil {
-		return application.ApiResponse{}, err
+		return client.ApiResponse{}, err
 	}
 
-	var thing application.Thing
+	var thing appthings.Thing
 	if err := json.Unmarshal(thingResp.Data, &thing); err != nil {
-		return application.ApiResponse{}, err
+		return client.ApiResponse{}, err
 	}
 
-	values := make([]application.Measurement, 0)
+	values := make([]appthings.Measurement, 0)
 	for _, grouped := range thing.Values {
 		if len(grouped) == 0 {
 			continue
 		}
 
-		latest := slices.MaxFunc(grouped, func(a, b application.Measurement) int {
+		latest := slices.MaxFunc(grouped, func(a, b appthings.Measurement) int {
 			switch {
 			case a.Timestamp.Before(b.Timestamp):
 				return -1
@@ -142,16 +143,16 @@ func newLatestValuesResponse(thingID string) (application.ApiResponse, error) {
 
 	data, err := json.Marshal(values)
 	if err != nil {
-		return application.ApiResponse{}, err
+		return client.ApiResponse{}, err
 	}
 
 	count := uint64(len(values))
-	return application.ApiResponse{
-		Meta: &application.Meta{
+	return client.ApiResponse{
+		Meta: &client.Meta{
 			Count:        count,
 			TotalRecords: count,
 		},
 		Data:  data,
-		Links: &application.Links{},
+		Links: &client.Links{},
 	}, nil
 }

@@ -8,9 +8,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/diwise/diwise-web/internal/application/admin"
+	"github.com/diwise/diwise-web/internal/application/alarms"
+	"github.com/diwise/diwise-web/internal/application/client"
 	legacydevices "github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
-	"github.com/diwise/diwise-web/internal/pkg/application"
 	frontendtoolkit "github.com/diwise/frontend-toolkit"
 	ftkmock "github.com/diwise/frontend-toolkit/mock"
 	"github.com/matryer/is"
@@ -114,9 +116,9 @@ func TestNewDetachSensorDialogHandlerRedirectsOnSuccess(t *testing.T) {
 }
 
 type testDeviceApp struct {
-	device           application.Device
-	deviceProfiles   []application.DeviceProfile
-	measurements     []application.MeasurementValue
+	device           legacydevices.Device
+	deviceProfiles   []legacydevices.SensorProfile
+	measurements     []measurements.Value
 	attachFunc       func(ctx context.Context, deviceID string) error
 	deattachFunc     func(ctx context.Context, deviceID string) error
 	updateSensorFunc func(ctx context.Context, deviceID string, fields map[string]any) error
@@ -124,19 +126,19 @@ type testDeviceApp struct {
 
 func newTestDeviceApp() *testDeviceApp {
 	return &testDeviceApp{
-		device: application.Device{
+		device: legacydevices.Device{
 			DeviceID: "device-1",
 			SensorID: "sensor-current",
 			Name:     "Device One",
 		},
-		deviceProfiles: []application.DeviceProfile{
+		deviceProfiles: []legacydevices.SensorProfile{
 			{Name: "Weather", Decoder: "decoder-x", Types: &[]string{"urn:1"}},
 		},
-		measurements: []application.MeasurementValue{},
+		measurements: []measurements.Value{},
 	}
 }
 
-func (a *testDeviceApp) GetDevice(_ context.Context, id string) (application.Device, error) {
+func (a *testDeviceApp) GetDevice(_ context.Context, id string) (legacydevices.Device, error) {
 	device := a.device
 	device.DeviceID = id
 	return device, nil
@@ -144,32 +146,6 @@ func (a *testDeviceApp) GetDevice(_ context.Context, id string) (application.Dev
 
 func (a *testDeviceApp) GetDevices(context.Context, int, int, map[string][]string) (legacydevices.DeviceResult, error) {
 	return legacydevices.DeviceResult{}, nil
-}
-
-func (a *testDeviceApp) GetSensor(ctx context.Context, id string) (application.Sensor, error) {
-	device, err := a.GetDevice(ctx, id)
-	if err != nil {
-		return application.Sensor{}, err
-	}
-	return application.Sensor{
-		Active:        device.Active,
-		SensorID:      device.SensorID,
-		DeviceID:      device.DeviceID,
-		Tenant:        device.Tenant,
-		Name:          device.Name,
-		Description:   device.Description,
-		Location:      device.Location,
-		Environment:   device.Environment,
-		Types:         device.Types,
-		DeviceProfile: device.SensorProfile,
-		DeviceStatus:  device.SensorStatus,
-		DeviceState:   device.DeviceState,
-		Metadata:      device.Metadata,
-	}, nil
-}
-
-func (a *testDeviceApp) GetSensors(context.Context, int, int, map[string][]string) (application.SensorResult, error) {
-	return application.SensorResult{}, nil
 }
 
 func (a *testDeviceApp) Attach(ctx context.Context, deviceID string) error {
@@ -186,7 +162,7 @@ func (a *testDeviceApp) Deattach(ctx context.Context, deviceID string) error {
 	return nil
 }
 
-func (a *testDeviceApp) GetSensorStatus(context.Context, string) ([]application.DeviceStatus, error) {
+func (a *testDeviceApp) GetSensorStatus(context.Context, string) ([]legacydevices.SensorStatus, error) {
 	return nil, nil
 }
 
@@ -197,27 +173,33 @@ func (a *testDeviceApp) UpdateSensor(ctx context.Context, deviceID string, field
 	return nil
 }
 
+func (a *testDeviceApp) UpdateDevice(context.Context, string, map[string]any) error {
+	return nil
+}
+
 func (a *testDeviceApp) GetTenants(context.Context) []string { return []string{"tenant-a"} }
 
-func (a *testDeviceApp) GetDeviceProfiles(context.Context) []application.DeviceProfile {
+func (a *testDeviceApp) GetDeviceProfiles(context.Context) []legacydevices.SensorProfile {
 	return a.deviceProfiles
 }
 
-func (a *testDeviceApp) GetStatistics(context.Context) (application.Statistics, error) {
-	return application.Statistics{}, nil
+func (a *testDeviceApp) GetStatistics(context.Context) (legacydevices.Statistics, error) {
+	return legacydevices.Statistics{}, nil
 }
 
-func (a *testDeviceApp) GetMeasurementInfo(context.Context, string) ([]application.MeasurementValue, error) {
+func (a *testDeviceApp) GetMeasurementInfo(context.Context, string) ([]measurements.Value, error) {
 	return a.measurements, nil
 }
 
-func (a *testDeviceApp) GetMeasurementData(context.Context, string, ...application.InputParam) (application.MeasurementData, error) {
+func (a *testDeviceApp) GetMeasurementData(context.Context, string, ...client.InputParam) (measurements.Data, error) {
 	return measurements.Data{}, nil
 }
 
-func (a *testDeviceApp) GetAlarms(context.Context, int, int, map[string][]string) (application.AlarmResult, error) {
-	return application.AlarmResult{}, nil
+func (a *testDeviceApp) GetAlarms(context.Context, int, int, map[string][]string) (alarms.Result, error) {
+	return alarms.Result{}, nil
 }
+
+var _ admin.Management = (*testDeviceApp)(nil)
 
 func testLocaleBundle() *ftkmock.LocaleBundleMock {
 	return &ftkmock.LocaleBundleMock{
