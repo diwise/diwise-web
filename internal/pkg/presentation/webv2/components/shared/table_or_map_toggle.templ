@@ -2,15 +2,14 @@ package shared
 
 import (
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/tabs"
 	. "github.com/diwise/frontend-toolkit"
 )
 
 type TableOrMapToggleProps struct {
 	BaseID        string
+	FormID        string
 	HiddenInputID string
-	TargetURL     string
-	TargetID      string
-	Include       string
 	MapView       bool
 	TableLabel    string
 	MapLabel      string
@@ -21,41 +20,77 @@ templ TableOrMapToggle(l10n Localizer, props TableOrMapToggleProps) {
 	if baseID == "" {
 		{{ baseID = "table-or-map-toggle" }}
 	}
-	{{ tableAttrs := templ.Attributes{
-		"type":         "button",
-		"hx-get":       props.TargetURL,
-		"hx-target":    props.TargetID,
-		"hx-swap":      "outerHTML",
-		"hx-vals":      `{"mapview":"false"}`,
-		"aria-label":   props.TableLabel,
-		"aria-pressed": boolString(!props.MapView),
-		"title":        props.TableLabel,
-	} }}
-	{{ mapAttrs := templ.Attributes{
-		"type":         "button",
-		"hx-get":       props.TargetURL,
-		"hx-target":    props.TargetID,
-		"hx-swap":      "outerHTML",
-		"hx-vals":      `{"mapview":"true"}`,
-		"aria-label":   props.MapLabel,
-		"aria-pressed": boolString(props.MapView),
-		"title":        props.MapLabel,
-	} }}
-	if props.Include != "" {
-		{{ tableAttrs["hx-include"] = props.Include }}
-		{{ mapAttrs["hx-include"] = props.Include }}
+	@tabs.Tabs(tabs.Props{
+		ID:    baseID,
+		Class: "ml-auto flex items-center w-fit",
+	}) {
+		@tabs.List(tabs.ListProps{
+			Class: "h-auto rounded-2xl bg-muted/60 p-2 shadow-xs gap-2",
+		}) {
+			@tabs.Trigger(tabs.TriggerProps{
+				ID:       baseID + "-table",
+				Value:    "false",
+				IsActive: !props.MapView,
+				Class: "h-8 min-w-8 rounded-[10px] px-1.5 text-foreground dark:text-white hover:bg-accent/60 data-[tui-tabs-state=active]:bg-black data-[tui-tabs-state=active]:text-white dark:data-[tui-tabs-state=active]:bg-white dark:data-[tui-tabs-state=active]:text-black dark:data-[tui-tabs-state=active]:border-white",
+				Attributes: templ.Attributes{
+					"aria-label":                    props.TableLabel,
+					"title":                         props.TableLabel,
+					"data-table-or-map-trigger":     "",
+					"data-table-or-map-form":        props.FormID,
+					"data-table-or-map-hidden-input": props.HiddenInputID,
+					"data-table-or-map-value":       "false",
+				},
+			}) {
+				@icon.Table(icon.Props{Size: 16})
+			}
+			@tabs.Trigger(tabs.TriggerProps{
+				ID:       baseID + "-map",
+				Value:    "true",
+				IsActive: props.MapView,
+				Class: "h-8 min-w-8 rounded-[10px] px-1.5 text-foreground dark:text-white hover:bg-accent/60 data-[tui-tabs-state=active]:bg-black data-[tui-tabs-state=active]:text-white dark:data-[tui-tabs-state=active]:bg-white dark:data-[tui-tabs-state=active]:text-black dark:data-[tui-tabs-state=active]:border-white",
+				Attributes: templ.Attributes{
+					"aria-label":                    props.MapLabel,
+					"title":                         props.MapLabel,
+					"data-table-or-map-trigger":     "",
+					"data-table-or-map-form":        props.FormID,
+					"data-table-or-map-hidden-input": props.HiddenInputID,
+					"data-table-or-map-value":       "true",
+				},
+			}) {
+				@icon.Map(icon.Props{Size: 16})
+			}
+		}
 	}
-	@TwoStateIconToggle(TwoStateIconToggleProps{
-		BaseID:        baseID,
-		HiddenInputID: props.HiddenInputID,
-		ActiveLeft:    !props.MapView,
-		LeftLabel:     props.TableLabel,
-		RightLabel:    props.MapLabel,
-		LeftValue:     "false",
-		RightValue:    "true",
-		LeftIcon:      icon.Table(icon.Props{Size: 16}),
-		RightIcon:     icon.Map(icon.Props{Size: 16}),
-		LeftAttributes: tableAttrs,
-		RightAttributes: mapAttrs,
-	})
+	<script nonce={ templ.GetNonce(ctx) }>
+		(function() {
+			if (window.__diwiseTableOrMapToggleInit) {
+				return;
+			}
+			window.__diwiseTableOrMapToggleInit = true;
+
+			document.addEventListener('click', function(event) {
+				const trigger = event.target.closest('[data-table-or-map-trigger]');
+				if (!trigger) {
+					return;
+				}
+
+				const formID = trigger.getAttribute('data-table-or-map-form');
+				const hiddenInputID = trigger.getAttribute('data-table-or-map-hidden-input');
+				const value = trigger.getAttribute('data-table-or-map-value');
+				if (!formID || !hiddenInputID || value === null) {
+					return;
+				}
+
+				const form = document.getElementById(formID);
+				const hiddenInput = document.getElementById(hiddenInputID);
+				if (!form || !hiddenInput || hiddenInput.value === value) {
+					return;
+				}
+
+				hiddenInput.value = value;
+				hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
+				hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+			});
+		})();
+	</script>
 }

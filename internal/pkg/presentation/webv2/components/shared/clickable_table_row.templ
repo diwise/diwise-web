@@ -1,10 +1,6 @@
 package shared
 
-import (
-	"fmt"
-
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
-)
+import "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/table"
 
 type ClickableTableRowProps struct {
 	Class   string
@@ -15,18 +11,13 @@ type ClickableTableRowProps struct {
 }
 
 templ ClickableTableRow(props ClickableTableRowProps) {
-	{{ attrs := templ.Attributes{
-		"tabindex": "0",
-		"role":     "link",
-	} }}
-	{{ className := "cursor-pointer border-border/70 hover:bg-muted/70 hover:[&_td]:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:[&_td]:bg-muted/70" }}
+	{{ attrs := templ.Attributes{} }}
+	{{ className := "cursor-pointer border-border/70 hover:bg-muted/70 hover:[&_td]:bg-muted/70" }}
 	if props.Class != "" {
 		{{ className += " " + props.Class }}
 	}
 	if props.Href != "" {
 		{{ attrs["hx-get"] = props.Href }}
-		{{ attrs["onclick"] = fmt.Sprintf("window.location.href='%s';", props.Href) }}
-		{{ attrs["onkeydown"] = fmt.Sprintf("if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href='%s'; }", props.Href) }}
 	}
 	if props.Target != "" {
 		{{ attrs["hx-target"] = props.Target }}

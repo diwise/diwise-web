@@ -17,10 +17,8 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 	@shared.ListFiltersCard(
 		shared.TableOrMapToggle(l10n, shared.TableOrMapToggleProps{
 			BaseID:        "sensors-view-mode",
+			FormID:        "sensors-filters-form",
 			HiddenInputID: "mapview",
-			TargetURL:     "/v2/components/sensors/list",
-			TargetID:      "#tableOrMap",
-			Include:       "#sensors-filters-form",
 			MapView:       viewModel.MapView,
 			TableLabel:    l10n.Get("table"),
 			MapLabel:      l10n.Get("map"),

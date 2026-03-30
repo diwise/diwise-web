@@ -13,10 +13,8 @@ templ Filters(l10n Localizer, viewModel ThingsPageViewModel) {
 	@shared.ListFiltersCard(
 		shared.TableOrMapToggle(l10n, shared.TableOrMapToggleProps{
 			BaseID:        "things-view-mode",
+			FormID:        "things-filters-form",
 			HiddenInputID: "mapview",
-			TargetURL:     "/v2/components/things/list",
-			TargetID:      "#tableOrMap",
-			Include:       "#things-filters-form",
 			MapView:       viewModel.MapView,
 			TableLabel:    l10n.Get("table"),
 			MapLabel:      l10n.Get("map"),

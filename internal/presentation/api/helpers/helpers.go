@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -211,6 +212,10 @@ func WriteResponse(ctx context.Context, w http.ResponseWriter, r *http.Request, 
 func WriteComponentResponse(ctx context.Context, w http.ResponseWriter, r *http.Request, component templ.Component, sizeHint int, cacheTime time.Duration) {
 	var writer io.Writer
 	var gzipWriter *gzip.Writer
+
+	// Mirror the middleware nonce into templ's context so templui scripts
+	// render the same request-scoped nonce under strict CSP.
+	ctx = templ.WithNonce(ctx, csp.Nonce(ctx))
 
 	writeBuffer := bytes.NewBuffer(make([]byte, 0, sizeHint))
 	writer = writeBuffer

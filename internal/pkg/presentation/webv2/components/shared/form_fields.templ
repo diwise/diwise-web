@@ -222,7 +222,7 @@ templ MultiSelectBoxField(props MultiSelectBoxFieldProps) {
 templ RequiredSelectBoxValidationScript(rootID string) {
 	<script nonce={ templ.GetNonce(ctx) }>
 		(() => {
-			const root = document.getElementById({ templ.JSONString(rootID) });
+			const root = document.currentScript?.closest('form');
 			if (!root || root.dataset.v2RequiredSelectboxValidation === 'true') return;
 			root.dataset.v2RequiredSelectboxValidation = 'true';
 
