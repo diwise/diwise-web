@@ -138,26 +138,29 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 
 			if sensorID == "" {
 				model.ErrorMessage = "SensorID kan inte vara tomt"
-				renderDialog(http.StatusOK, model)
+				renderDialog(http.StatusBadRequest, model)
 				return
 			}
 
 			if sensorType == "" {
 				model.ErrorMessage = "Sensorprofil måste väljas"
-				renderDialog(http.StatusOK, model)
+				renderDialog(http.StatusBadRequest, model)
 				return
 			}
 
 			attachCtx := devices.WithAttachSensorID(r.Context(), sensorID)
 			if err := app.Attach(attachCtx, id); err != nil {
+				status := http.StatusInternalServerError
 				model.ErrorMessage = "Kunde inte koppla sensorn"
 				switch {
 				case errors.Is(err, appclient.ErrNotFound):
+					status = http.StatusNotFound
 					model.ErrorMessage = "Enheten hittades inte"
 				case errors.Is(err, appclient.ErrConflict):
+					status = http.StatusConflict
 					model.ErrorMessage = "SensorID är redan kopplad till en annan enhet"
 				}
-				renderDialog(http.StatusOK, model)
+				renderDialog(status, model)
 				return
 			}
 
@@ -165,14 +168,17 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 				"sensorID":        sensorID,
 				"sensorProfileID": sensorType,
 			}); err != nil {
+				status := http.StatusInternalServerError
 				model.ErrorMessage = "Kunde inte uppdatera sensorprofil"
 				switch {
 				case errors.Is(err, appclient.ErrNotFound):
+					status = http.StatusNotFound
 					model.ErrorMessage = "Sensorn hittades inte"
 				case errors.Is(err, appclient.ErrConflict):
+					status = http.StatusConflict
 					model.ErrorMessage = "Ogiltig sensorprofil"
 				}
-				renderDialog(http.StatusOK, model)
+				renderDialog(status, model)
 				return
 			}
 

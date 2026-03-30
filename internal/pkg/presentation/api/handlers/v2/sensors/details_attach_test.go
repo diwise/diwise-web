@@ -32,7 +32,7 @@ func TestNewAttachSensorDialogHandlerRequiresSensorID(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	is.Equal(http.StatusOK, rec.Code)
+	is.Equal(http.StatusBadRequest, rec.Code)
 	is.True(strings.Contains(rec.Body.String(), "SensorID kan inte vara tomt"))
 }
 
@@ -73,6 +73,58 @@ func TestNewAttachSensorDialogHandlerRedirectsOnSuccess(t *testing.T) {
 	is.Equal(http.StatusNoContent, rec.Code)
 	is.Equal("/v2/sensors/device-1?mode=edit", rec.Header().Get("HX-Redirect"))
 	is.Equal([]string{"attach:device-1", "update:sensor-123"}, callOrder)
+}
+
+func TestNewAttachSensorDialogHandlerReturnsConflictForAttachConflict(t *testing.T) {
+	is := is.New(t)
+
+	app := newTestDeviceApp()
+	app.attachFunc = func(context.Context, string) error {
+		return client.ErrConflict
+	}
+
+	handler := NewAttachSensorDialogHandler(context.Background(), testLocaleBundle(), nil, app)
+
+	form := url.Values{
+		"newSensorID": {"sensor-123"},
+		"sensorType":  {"decoder-x"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/v2/components/sensors/device-1/attach", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("HX-Request", "true")
+	req.SetPathValue("id", "device-1")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusConflict, rec.Code)
+	is.True(strings.Contains(rec.Body.String(), "SensorID är redan kopplad till en annan enhet"))
+}
+
+func TestNewAttachSensorDialogHandlerReturnsNotFoundForMissingSensorOnUpdate(t *testing.T) {
+	is := is.New(t)
+
+	app := newTestDeviceApp()
+	app.updateSensorFunc = func(context.Context, string, map[string]any) error {
+		return client.ErrNotFound
+	}
+
+	handler := NewAttachSensorDialogHandler(context.Background(), testLocaleBundle(), nil, app)
+
+	form := url.Values{
+		"newSensorID": {"sensor-123"},
+		"sensorType":  {"decoder-x"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/v2/components/sensors/device-1/attach", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("HX-Request", "true")
+	req.SetPathValue("id", "device-1")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusNotFound, rec.Code)
+	is.True(strings.Contains(rec.Body.String(), "Sensorn hittades inte"))
 }
 
 func TestNewDetachSensorDialogHandlerReturnsDialogOnGet(t *testing.T) {

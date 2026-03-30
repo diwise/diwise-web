@@ -21,39 +21,53 @@ type optionItem struct {
 }
 
 templ EditSensorDetailsPage(l10n Localizer, _ AssetLoaderFunc, sensor SensorDetailsPageViewModel) {
-	<form action={ fmt.Sprintf("/v2/sensors/%s", sensor.DeviceID) } method="post" class="flex flex-col gap-8">
-		<input type="hidden" name="id" value={ sensor.DeviceID }/>
-		@EditSensorDetailsHeader(l10n, sensor)
-		<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
-			<div class="flex flex-1 flex-col gap-8">
-				@EditSensorDetailsFormSection(l10n, sensor)
-				@EditSensorDetailsStatusSection(l10n, sensor)
+	<div class="flex flex-col gap-8">
+		<form action={ fmt.Sprintf("/v2/sensors/%s", sensor.DeviceID) } method="post" class="flex flex-col gap-8">
+			<input type="hidden" name="id" value={ sensor.DeviceID }/>
+			@EditSensorDetailsHeader(l10n, sensor)
+			<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
+				<div class="flex flex-1 flex-col gap-8">
+					@EditSensorDetailsFormSection(l10n, sensor)
+					@EditSensorDetailsStatusSection(l10n, sensor)
+				</div>
+				@shared.ColumnDivider()
+				<div class="flex w-full flex-1 flex-col gap-8">
+					@EditSensorDetailsLocationSection(l10n, sensor)
+				</div>
 			</div>
-			@shared.ColumnDivider()
-			<div class="flex w-full flex-1 flex-col gap-8">
-				@EditSensorDetailsLocationSection(l10n, sensor)
+			<div class="flex items-center justify-end gap-3">
+				@button.Button(button.Props{
+					Href:    fmt.Sprintf("/v2/sensors/%s", sensor.DeviceID),
+					Variant: button.VariantOutline,
+					Class:   "rounded-xl px-4",
+				}) {
+					@icon.X(icon.Props{Class: "size-4"})
+					{ l10n.Get("cancel") }
+				}
+				@button.Button(button.Props{
+					Type:    button.TypeSubmit,
+					Variant: button.VariantDefault,
+					Class:   "rounded-xl px-4",
+				}) {
+					@icon.Check(icon.Props{Class: "size-4"})
+					{ l10n.Get("save") }
+				}
 			</div>
-		</div>
-		<div class="flex items-center justify-end gap-3">
-			@button.Button(button.Props{
-				Href:    fmt.Sprintf("/v2/sensors/%s", sensor.DeviceID),
-				Variant: button.VariantOutline,
-				Class:   "rounded-xl px-4",
-			}) {
-				@icon.X(icon.Props{Class: "size-4"})
-				{ l10n.Get("cancel") }
-			}
-			@button.Button(button.Props{
-				Type:    button.TypeSubmit,
-				Variant: button.VariantDefault,
-				Class:   "rounded-xl px-4",
-			}) {
-				@icon.Check(icon.Props{Class: "size-4"})
-				{ l10n.Get("save") }
-			}
-		</div>
+		</form>
 		<div id="sensor-dialog-container"></div>
-	</form>
+		<script nonce={ templ.GetNonce(ctx) }>
+			(() => {
+				if (document.body.dataset.v2SensorDialogErrors === 'true') return;
+				document.body.dataset.v2SensorDialogErrors = 'true';
+
+				document.body.addEventListener('htmx:responseError', (event) => {
+					const target = event?.detail?.requestConfig?.target;
+					if (!target || target.id !== 'sensor-dialog-container') return;
+					target.innerHTML = event.detail.xhr.responseText;
+				});
+			})();
+		</script>
+	</div>
 }
 
 templ EditSensorDetailsHeader(l10n Localizer, sensor SensorDetailsPageViewModel) {
@@ -82,16 +96,16 @@ templ EditSensorDetailsFormSection(l10n Localizer, sensor SensorDetailsPageViewM
 		icon.Rss(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
 		<div class="grid gap-6 py-6 px-8">
-			<div class="grid gap-6 md:grid-cols-2">
-				@shared.FormReadOnlyField(l10n.Get("sensorID")) {
-					<div class="flex items-center gap-3">
-						@input.Input(input.Props{
-							ID:       "sensor-id",
-							Name:     "sensorID",
-							Value:    sensor.DevEUI,
-							Disabled: true,
-							Class:    "h-10 rounded-xl bg-background",
-						})
+			@shared.FormReadOnlyField(l10n.Get("sensorID")) {
+				<div class="grid gap-3 md:grid-cols-2 md:items-center">
+					@input.Input(input.Props{
+						ID:       "sensor-id",
+						Name:     "sensorID",
+						Value:    sensor.DevEUI,
+						Disabled: true,
+						Class:    "h-10 rounded-xl bg-background w-full",
+					})
+					<div class="flex items-center justify-end gap-3">
 						@button.Button(button.Props{
 							Variant: button.VariantOutline,
 							Class:   "rounded-xl px-4",
@@ -117,8 +131,8 @@ templ EditSensorDetailsFormSection(l10n Localizer, sensor SensorDetailsPageViewM
 							{ l10n.Get("delete") }
 						}
 					</div>
-				}
-			</div>
+				</div>
+			}
 			<div class="grid gap-6 md:grid-cols-2">
 				@shared.FormField(l10n.Get("name"), "sensor-name") {
 					@input.Input(input.Props{
