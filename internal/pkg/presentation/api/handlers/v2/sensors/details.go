@@ -31,7 +31,7 @@ type sensorDetailsApp interface {
 func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
 			http.Error(w, "no id found in url", http.StatusBadRequest)
@@ -62,10 +62,12 @@ func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 
 		helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, 0)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewSaveSensorDetailsPage(ctx context.Context, _ LocaleBundle, _ AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
 			http.Error(w, "no id found in url", http.StatusBadRequest)
@@ -76,17 +78,19 @@ func NewSaveSensorDetailsPage(ctx context.Context, _ LocaleBundle, _ AssetLoader
 			return
 		}
 
-		if err := app.UpdateSensor(r.Context(), id, buildSensorUpdateFields(r)); err != nil {
+		if err := app.UpdateDevice(r.Context(), id, buildSensorUpdateFields(r)); err != nil {
 			http.Error(w, "could not update sensor", http.StatusInternalServerError)
 			return
 		}
 
 		http.Redirect(w, r, fmt.Sprintf("/v2/sensors/%s", id), http.StatusFound)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		sensorType := r.URL.Query().Get("sensorType")
 
@@ -95,10 +99,12 @@ func NewMeasurementTypesComponentHandler(_ context.Context, l10n LocaleBundle, _
 		})
 		helpers.WriteComponentResponse(r.Context(), w, r, component, 8*1024, 0)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
 			http.Error(w, "no id found in url", http.StatusBadRequest)
@@ -182,15 +188,20 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 				return
 			}
 
-			redirectHXOrHTTP(w, r, fmt.Sprintf("/v2/sensors/%s?mode=edit", id))
+			if err := writeUpdatedEditPage(r.Context(), w, r, l10n.For(r.Header.Get("Accept-Language")), assets, id, app); err != nil {
+				http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+				return
+			}
 		default:
 			http.Error(w, "", http.StatusBadRequest)
 		}
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewDetachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
 			http.Error(w, "no id found in url", http.StatusBadRequest)
@@ -222,50 +233,72 @@ func NewDetachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 				return
 			}
 
-			redirectHXOrHTTP(w, r, fmt.Sprintf("/v2/sensors/%s?mode=edit", id))
+			if err := writeUpdatedEditPage(r.Context(), w, r, localizer, assets, id, app); err != nil {
+				http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+				return
+			}
 		default:
 			http.Error(w, "", http.StatusBadRequest)
 		}
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func buildSensorUpdateFields(r *http.Request) map[string]any {
-	fields := map[string]any{
-		"deviceID": r.Form.Get("id"),
-		"active":   r.Form.Get("active") == "on",
-	}
+	fields := make(map[string]any)
 
-	if value := strings.TrimSpace(r.Form.Get("name")); value != "" {
-		fields["name"] = value
-	}
-	if value := strings.TrimSpace(r.Form.Get("description")); value != "" {
-		fields["description"] = value
-	}
-	if value := strings.TrimSpace(r.Form.Get("sensorType")); value != "" {
-		fields["deviceProfile"] = value
-	}
-	if value := strings.TrimSpace(r.Form.Get("organisation")); value != "" {
-		fields["tenant"] = value
-	}
-	if value := strings.TrimSpace(r.Form.Get("environment")); value != "" {
-		fields["environment"] = value
-	}
-	if value := strings.TrimSpace(r.Form.Get("interval")); value != "" {
-		fields["interval"] = value
-	}
-	if values := normalizeMeasurementTypeValues(r.Form["measurementType-option[]"]); len(values) > 0 {
-		fields["types"] = values
-	}
-
-	for formKey, fieldKey := range map[string]string{
-		"latitude":  "latitude",
-		"longitude": "longitude",
-	} {
-		if value := strings.TrimSpace(r.Form.Get(formKey)); value != "" {
-			if parsed, err := strconv.ParseFloat(value, 64); err == nil {
-				fields[fieldKey] = parsed
-			}
+	for k := range r.Form {
+		v := strings.TrimSpace(r.Form.Get(k))
+		if v == "" {
+			continue
 		}
+
+		if k == "id" {
+			fields["deviceID"] = v
+			continue
+		}
+
+		if k == "active" {
+			fields[k] = true
+			continue
+		}
+
+		if k == "longitude" || k == "latitude" {
+			if parsed, err := strconv.ParseFloat(v, 64); err == nil {
+				fields[k] = parsed
+			}
+			continue
+		}
+
+		if k == "organisation" {
+			fields["tenant"] = v
+			continue
+		}
+
+		if k == "environment" {
+			fields["environment"] = v
+			continue
+		}
+
+		if k == "interval" {
+			fields["interval"] = v
+			continue
+		}
+
+		if k == "measurementType-option[]" {
+			if values := normalizeMeasurementTypeValues(r.Form[k]); len(values) > 0 {
+				fields["types"] = values
+			}
+			continue
+		}
+
+		if k == "sensorType" {
+			// Legacy save does not update the sensor profile as part of device PATCH.
+			continue
+		}
+
+		fields[k] = v
 	}
 
 	return fields
@@ -419,16 +452,6 @@ func composeDetachDialogModel(ctx context.Context, id string, app sensorDetailsA
 	}, nil
 }
 
-func redirectHXOrHTTP(w http.ResponseWriter, r *http.Request, location string) {
-	if helpers.IsHxRequest(r) {
-		w.Header().Set("HX-Redirect", location)
-		w.WriteHeader(http.StatusNoContent)
-		return
-	}
-
-	http.Redirect(w, r, location, http.StatusFound)
-}
-
 func writeComponentStatus(ctx context.Context, w http.ResponseWriter, status int, component templ.Component) {
 	var buf bytes.Buffer
 	if err := component.Render(ctx, &buf); err != nil {
@@ -439,6 +462,22 @@ func writeComponentStatus(ctx context.Context, w http.ResponseWriter, status int
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
 	_, _ = w.Write(buf.Bytes())
+}
+
+func writeUpdatedEditPage(ctx context.Context, w http.ResponseWriter, r *http.Request, localizer Localizer, assets AssetLoaderFunc, id string, app sensorDetailsApp) error {
+	model, err := composeDetailsModel(ctx, id, app, localizer, true)
+	if err != nil {
+		return err
+	}
+
+	if helpers.IsHxRequest(r) {
+		w.Header().Set("HX-Retarget", "#sensor-edit-page")
+		w.Header().Set("HX-Reswap", "outerHTML")
+	}
+
+	component := featuresensors.EditSensorDetailsPage(localizer, assets, model)
+	helpers.WriteComponentResponse(ctx, w, r, component, 16*1024, 0)
+	return nil
 }
 
 func deviceProfileOptions(profiles []devices.SensorProfile) []featuresensors.DeviceProfileOption {

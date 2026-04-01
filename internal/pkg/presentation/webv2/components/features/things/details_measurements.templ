@@ -52,73 +52,71 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 							}
 						}
 						<div class="py-6">
-							for _, option := range model.MeasurementOptions {
-								@tabs.Content(tabs.ContentProps{
-									Value:    option.Value,
-									IsActive: option.Value == model.SelectedMeasurement,
-									Class:    "outline-none",
-								}) {
-									<div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-										<div class="min-w-0 flex-1">
-											@ThingMeasurementSummary(l10n, latestMeasurementForOption(model.LatestValues, option.Value), option.Label)
+							@tabs.Content(tabs.ContentProps{
+								Value:    model.SelectedMeasurement,
+								IsActive: true,
+								Class:    "outline-none",
+							}) {
+								<div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+									<div class="min-w-0 flex-1">
+										@ThingMeasurementSummary(l10n, latestMeasurementForOption(model.LatestValues, model.SelectedMeasurement), model.SelectedMeasurement)
+									</div>
+									<div class="flex shrink-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-end">
+										<div class="flex flex-col justify-end">
+											@shared.ExportAction(l10n, shared.ExportActionProps{
+												Href:   "/admin/export?export=thing&accept=text/csv",
+												Form:   "thing-stats-form",
+												Target: "_blank",
+												Fields: []string{"thingid", "tab", "timeAt", "endTimeAt"},
+											})
 										</div>
-										<div class="flex shrink-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-end">
-											<div class="flex flex-col justify-end">
-												@shared.ExportAction(l10n, shared.ExportActionProps{
-													Href:   "/admin/export?export=thing&accept=text/csv",
-													Form:   "thing-stats-form",
-													Target: "_blank",
-													Fields: []string{"thingid", "tab", "timeAt", "endTimeAt"},
+										<div class="flex flex-col gap-2">
+											<div class="text-sm font-medium text-foreground">{ l10n.Get("timeinterval") }</div>
+											<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+												@shared.FormHiddenLabel(l10n.Get("starttime"), "thingTimeAt")
+												@input.Input(input.Props{
+													ID:    "thingTimeAt",
+													Name:  "timeAt",
+													Type:  input.TypeDateTime,
+													Value: startTime,
+													Class: "h-9 w-full max-w-[220px] rounded-xl bg-background",
+													Attributes: templ.Attributes{
+														"hx-get":     fmt.Sprintf("/v2/components/things/%s/measurements", model.Thing.ID),
+														"hx-target":  "#thingMeasurementPanel",
+														"hx-include": "#thing-stats-form",
+														"hx-trigger": "change",
+													},
+												})
+												<span class="hidden text-muted-foreground sm:block">-</span>
+												@shared.FormHiddenLabel(l10n.Get("endtime"), "thingEndTimeAt")
+												@input.Input(input.Props{
+													ID:    "thingEndTimeAt",
+													Name:  "endTimeAt",
+													Type:  input.TypeDateTime,
+													Value: endTime,
+													Class: "h-9 w-full max-w-[220px] rounded-xl bg-background",
+													Attributes: templ.Attributes{
+														"hx-get":     fmt.Sprintf("/v2/components/things/%s/measurements", model.Thing.ID),
+														"hx-target":  "#thingMeasurementPanel",
+														"hx-include": "#thing-stats-form",
+														"hx-trigger": "change",
+													},
 												})
 											</div>
-											<div class="flex flex-col gap-2">
-												<div class="text-sm font-medium text-foreground">{ l10n.Get("timeinterval") }</div>
-												<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-													@shared.FormHiddenLabel(l10n.Get("starttime"), "thingTimeAt")
-													@input.Input(input.Props{
-														ID:    "thingTimeAt",
-														Name:  "timeAt",
-														Type:  input.TypeDateTime,
-														Value: startTime,
-														Class: "h-9 w-full max-w-[220px] rounded-xl bg-background",
-														Attributes: templ.Attributes{
-															"hx-get":     fmt.Sprintf("/v2/components/things/%s/measurements", model.Thing.ID),
-															"hx-target":  "#thingMeasurementPanel",
-															"hx-include": "#thing-stats-form",
-															"hx-trigger": "change",
-														},
-													})
-													<span class="hidden text-muted-foreground sm:block">-</span>
-													@shared.FormHiddenLabel(l10n.Get("endtime"), "thingEndTimeAt")
-													@input.Input(input.Props{
-														ID:    "thingEndTimeAt",
-														Name:  "endTimeAt",
-														Type:  input.TypeDateTime,
-														Value: endTime,
-														Class: "h-9 w-full max-w-[220px] rounded-xl bg-background",
-														Attributes: templ.Attributes{
-															"hx-get":     fmt.Sprintf("/v2/components/things/%s/measurements", model.Thing.ID),
-															"hx-target":  "#thingMeasurementPanel",
-															"hx-include": "#thing-stats-form",
-															"hx-trigger": "change",
-														},
-													})
-												</div>
-											</div>
-											<div class="flex flex-col gap-2">
-												<div class="text-sm font-medium text-foreground">&nbsp;</div>
-												<input id="thingStatisticsView" type="hidden" value="chart"/>
-												@shared.ChartOrTableToggle(l10n, shared.ChartOrTableToggleProps{
-													BaseID:        "thing-statistics-toggle",
-													HiddenInputID: "thingStatisticsView",
-													ChartView:     true,
-													ChartLabel:    l10n.Get("graph"),
-													TableLabel:    l10n.Get("table"),
-												})
-											</div>
+										</div>
+										<div class="flex flex-col gap-2">
+											<div class="text-sm font-medium text-foreground">&nbsp;</div>
+											<input id="thingStatisticsView" type="hidden" value="chart"/>
+											@shared.ChartOrTableToggle(l10n, shared.ChartOrTableToggleProps{
+												BaseID:        "thing-statistics-toggle",
+												HiddenInputID: "thingStatisticsView",
+												ChartView:     true,
+												ChartLabel:    l10n.Get("graph"),
+												TableLabel:    l10n.Get("table"),
+											})
 										</div>
 									</div>
-								}
+								</div>
 							}
 						</div>
 					}

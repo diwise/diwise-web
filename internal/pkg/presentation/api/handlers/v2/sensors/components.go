@@ -24,7 +24,7 @@ type sensorComponentsApp interface {
 func NewMeasurementComponentHandler(ctx context.Context, _ LocaleBundle, _ AssetLoaderFunc, app sensorComponentsApp) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := logging.NewContextWithLogger(r.Context(), log)
 		id := r.URL.Query().Get("sensorMeasurementTypes")
 
@@ -68,6 +68,8 @@ func NewMeasurementComponentHandler(ctx context.Context, _ LocaleBundle, _ Asset
 		component := featuresensors.MeasurementChartComponent(measurementChartConfig(r, measurementData))
 		helpers.WriteComponentResponse(ctx, w, r, component, 20*1024, 5*time.Minute)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func measurementChartConfig(r *http.Request, measurements appmeasurements.Data) shared.AdvancedChartConfig {
@@ -172,7 +174,7 @@ func measurementLabels(measurements appmeasurements.Data) []string {
 func NewStatusChartsComponentHandler(ctx context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app sensorComponentsApp) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		id := r.PathValue("id")
 
@@ -233,6 +235,8 @@ func NewStatusChartsComponentHandler(ctx context.Context, l10n LocaleBundle, _ A
 		}))
 		helpers.WriteComponentResponse(ctx, w, r, component, 12*1024, 10*time.Second)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func statusChartConfig(r *http.Request, labels []string, datasets []shared.AdvancedChartDataset, yScales map[string]shared.AxisScale) shared.AdvancedChartConfig {

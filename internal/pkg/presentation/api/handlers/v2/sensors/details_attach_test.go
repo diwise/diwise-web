@@ -36,7 +36,7 @@ func TestNewAttachSensorDialogHandlerRequiresSensorID(t *testing.T) {
 	is.True(strings.Contains(rec.Body.String(), "SensorID kan inte vara tomt"))
 }
 
-func TestNewAttachSensorDialogHandlerRedirectsOnSuccess(t *testing.T) {
+func TestNewAttachSensorDialogHandlerRefreshesEditPageOnSuccess(t *testing.T) {
 	is := is.New(t)
 
 	app := newTestDeviceApp()
@@ -70,8 +70,10 @@ func TestNewAttachSensorDialogHandlerRedirectsOnSuccess(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	is.Equal(http.StatusNoContent, rec.Code)
-	is.Equal("/v2/sensors/device-1?mode=edit", rec.Header().Get("HX-Redirect"))
+	is.Equal(http.StatusOK, rec.Code)
+	is.Equal("#sensor-edit-page", rec.Header().Get("HX-Retarget"))
+	is.Equal("outerHTML", rec.Header().Get("HX-Reswap"))
+	is.True(strings.Contains(rec.Body.String(), `id="sensor-edit-page"`))
 	is.Equal([]string{"attach:device-1", "update:sensor-123"}, callOrder)
 }
 
@@ -143,7 +145,7 @@ func TestNewDetachSensorDialogHandlerReturnsDialogOnGet(t *testing.T) {
 	is.True(strings.Contains(rec.Body.String(), "Delete sensor"))
 }
 
-func TestNewDetachSensorDialogHandlerRedirectsOnSuccess(t *testing.T) {
+func TestNewDetachSensorDialogHandlerRefreshesEditPageOnSuccess(t *testing.T) {
 	is := is.New(t)
 
 	app := newTestDeviceApp()
@@ -162,9 +164,11 @@ func TestNewDetachSensorDialogHandlerRedirectsOnSuccess(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	is.Equal(http.StatusNoContent, rec.Code)
+	is.Equal(http.StatusOK, rec.Code)
 	is.Equal("device-1", detached)
-	is.Equal("/v2/sensors/device-1?mode=edit", rec.Header().Get("HX-Redirect"))
+	is.Equal("#sensor-edit-page", rec.Header().Get("HX-Retarget"))
+	is.Equal("outerHTML", rec.Header().Get("HX-Reswap"))
+	is.True(strings.Contains(rec.Body.String(), `id="sensor-edit-page"`))
 }
 
 type testDeviceApp struct {

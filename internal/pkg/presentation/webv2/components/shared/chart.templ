@@ -38,8 +38,9 @@ type AxisTitle struct {
 }
 
 type AxisTicks struct {
-	Color        string `json:"color,omitempty"`
-	MaxTicksLimit int   `json:"maxTicksLimit,omitempty"`
+	Color         string   `json:"color,omitempty"`
+	MaxTicksLimit int      `json:"maxTicksLimit,omitempty"`
+	StepSize      *float64 `json:"stepSize,omitempty"`
 }
 
 type AxisGrid struct {

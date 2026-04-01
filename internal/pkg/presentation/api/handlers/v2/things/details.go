@@ -27,7 +27,7 @@ import (
 func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
 			http.Error(w, "no id found in url", http.StatusBadRequest)
@@ -59,10 +59,12 @@ func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoa
 
 		helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, 0)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewSaveThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
 			http.Error(w, "no id found in url", http.StatusBadRequest)
@@ -81,10 +83,12 @@ func NewSaveThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFun
 
 		http.Redirect(w, r, fmt.Sprintf("/v2/things/%s", id), http.StatusFound)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewDeleteThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
 			http.Error(w, "no id found in url", http.StatusBadRequest)
@@ -98,12 +102,14 @@ func NewDeleteThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderF
 
 		http.Redirect(w, r, "/v2/things", http.StatusFound)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewThingMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	log := logging.GetFromContext(ctx)
 
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := logging.NewContextWithLogger(r.Context(), log)
 		id := r.PathValue("id")
 		if id == "" {
@@ -138,6 +144,8 @@ func NewThingMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle,
 		})
 		helpers.WriteComponentResponse(ctx, w, r, panel, 24*1024, 5*time.Minute)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func composeDetailsModel(ctx context.Context, id string, app thingsApp, includeEditOptions bool) (featuresthings.ThingDetailsPageViewModel, error) {
@@ -410,12 +418,7 @@ func thingMeasurementChartConfig(r *http.Request, l10n Localizer, measurement st
 			Color:   theme.Border,
 		},
 	}
-	if maxDistanceChartMeasurement(measurement) && thing.TypeValues.MaxDistance != nil && *thing.TypeValues.MaxDistance > 0 {
-		maxValue := math.Ceil(*thing.TypeValues.MaxDistance)
-		minValue := 0.0
-		yScale.Min = &minValue
-		yScale.Max = &maxValue
-	}
+	applyMeasurementAxisScale(&yScale, measurement, thing)
 
 	return shared.AdvancedChartConfig{
 		Type: thingChartType(measurement),
@@ -452,6 +455,54 @@ func thingMeasurementChartConfig(r *http.Request, l10n Localizer, measurement st
 				"y": yScale,
 			},
 		},
+	}
+}
+
+func applyMeasurementAxisScale(yScale *shared.AxisScale, measurement string, thing appthings.Thing) {
+	if yScale == nil {
+		return
+	}
+
+	urn := strings.ReplaceAll(measurement, "-", "/")
+	zero := 0.0
+	one := 1.0
+	ten := 10.0
+	hundred := 100.0
+
+	switch {
+	case strings.HasPrefix(urn, "3435/"):
+		yScale.Min = &zero
+		yScale.Max = &hundred
+		if yScale.Ticks != nil {
+			yScale.Ticks.StepSize = &ten
+		}
+	case strings.HasPrefix(urn, "10351/"):
+		yScale.Min = &zero
+		if yScale.Ticks != nil {
+			yScale.Ticks.StepSize = &one
+		}
+	case strings.HasPrefix(urn, "3302/"):
+		if yScale.Ticks != nil {
+			yScale.Ticks.StepSize = &one
+		}
+	case urn == "3350/5544":
+		if yScale.Ticks != nil {
+			yScale.Ticks.StepSize = &one
+		}
+	case urn == "3350/5850":
+		yScale.Min = &zero
+		if yScale.Ticks != nil {
+			yScale.Ticks.StepSize = &one
+		}
+	}
+
+	if maxDistanceChartMeasurement(measurement) && thing.TypeValues.MaxDistance != nil && *thing.TypeValues.MaxDistance > 0 {
+		maxValue := math.Ceil(*thing.TypeValues.MaxDistance)
+		yScale.Min = &zero
+		yScale.Max = &maxValue
+		if yScale.Ticks != nil {
+			yScale.Ticks.StepSize = &one
+		}
 	}
 }
 

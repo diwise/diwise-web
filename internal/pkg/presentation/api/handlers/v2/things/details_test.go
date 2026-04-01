@@ -78,6 +78,59 @@ func TestMeasurementQueryForBooleanLikeSeries(t *testing.T) {
 	is.Equal("10351/0", query.Get("n"))
 }
 
+func TestMeasurementQueryForPresenceSeries(t *testing.T) {
+	is := is.New(t)
+
+	startTime := time.Date(2026, 3, 16, 0, 0, 0, 0, time.UTC)
+	endTime := time.Date(2026, 3, 16, 23, 59, 0, 0, time.UTC)
+
+	query := measurementQuery("3302-0", startTime, endTime)
+
+	is.Equal("true", query.Get("vb"))
+	is.Equal("hour", query.Get("timeunit"))
+	is.Equal("", query.Get("options"))
+	is.Equal("3302/0", query.Get("n"))
+}
+
+func TestThingMeasurementChartConfigUsesLegacyPercentageScaleForFillingLevel(t *testing.T) {
+	is := is.New(t)
+
+	req := httptest.NewRequest("GET", "/v2/components/things/thing-1/measurements", nil)
+	config := thingMeasurementChartConfig(req, noopLocalizer{}, "3435-2", appthings.Thing{})
+
+	is.True(config.Options.Scales["y"].Min != nil)
+	is.True(config.Options.Scales["y"].Max != nil)
+	is.True(config.Options.Scales["y"].Ticks != nil)
+	is.True(config.Options.Scales["y"].Ticks.StepSize != nil)
+	is.Equal(0.0, *config.Options.Scales["y"].Min)
+	is.Equal(100.0, *config.Options.Scales["y"].Max)
+	is.Equal(10.0, *config.Options.Scales["y"].Ticks.StepSize)
+}
+
+func TestThingMeasurementChartConfigUsesLegacyPresenceScale(t *testing.T) {
+	is := is.New(t)
+
+	req := httptest.NewRequest("GET", "/v2/components/things/thing-1/measurements", nil)
+	config := thingMeasurementChartConfig(req, noopLocalizer{}, "3302-0", appthings.Thing{})
+
+	is.True(config.Options.Scales["y"].Ticks != nil)
+	is.True(config.Options.Scales["y"].Ticks.StepSize != nil)
+	is.Equal(1.0, *config.Options.Scales["y"].Ticks.StepSize)
+}
+
+func TestThingMeasurementChartConfigUsesLegacyStopwatchOnOffScale(t *testing.T) {
+	is := is.New(t)
+
+	req := httptest.NewRequest("GET", "/v2/components/things/thing-1/measurements", nil)
+	config := thingMeasurementChartConfig(req, noopLocalizer{}, "3350-5850", appthings.Thing{})
+
+	is.True(config.Options.Scales["y"].Min != nil)
+	is.True(config.Options.Scales["y"].Ticks != nil)
+	is.True(config.Options.Scales["y"].Ticks.StepSize != nil)
+	is.Equal(0.0, *config.Options.Scales["y"].Min)
+	is.Equal(1.0, *config.Options.Scales["y"].Ticks.StepSize)
+}
+
 func TestThingMeasurementChartConfigUsesMaxDistanceForDistanceCharts(t *testing.T) {
 	is := is.New(t)
 
@@ -91,8 +144,11 @@ func TestThingMeasurementChartConfigUsesMaxDistanceForDistanceCharts(t *testing.
 
 	is.True(config.Options.Scales["y"].Min != nil)
 	is.True(config.Options.Scales["y"].Max != nil)
+	is.True(config.Options.Scales["y"].Ticks != nil)
+	is.True(config.Options.Scales["y"].Ticks.StepSize != nil)
 	is.Equal(0.0, *config.Options.Scales["y"].Min)
 	is.Equal(1.0, *config.Options.Scales["y"].Max)
+	is.Equal(1.0, *config.Options.Scales["y"].Ticks.StepSize)
 }
 
 type noopLocalizer struct{}

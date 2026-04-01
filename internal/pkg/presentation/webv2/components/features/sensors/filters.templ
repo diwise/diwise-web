@@ -180,7 +180,7 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 			data-online-label={ l10n.Get("online") }
 			data-offline-label={ l10n.Get("offline") }
 		>
-			@ActiveFilterSummary(l10n, viewModel.Filters)
+			@ActiveFilterSummary(l10n, viewModel.Filters, viewModel.MapView)
 		</div>
 	</div>
 	<script nonce={ csp.Nonce(ctx) }>
@@ -305,7 +305,9 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 					}
 				}
 				const limitValue = form.querySelector('input[name="limit"]')?.value.trim() || '15';
-				const clearAllHref = `/v2/sensors?limit=${encodeURIComponent(limitValue)}`;
+				const mapviewValue = form.querySelector('input[name="mapview"]')?.value.trim() || 'false';
+				const clearAllHref = `/v2/sensors?limit=${encodeURIComponent(limitValue)}&mapview=${encodeURIComponent(mapviewValue)}`;
+				const clearAllHXHref = `/v2/components/sensors/list?limit=${encodeURIComponent(limitValue)}&mapview=${encodeURIComponent(mapviewValue)}`;
 				if (entries.length === 0) {
 					summary.innerHTML = `
 						<div class="flex items-center gap-3 text-sm text-muted-foreground">
@@ -335,8 +337,8 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 						${badges}
 						<a
 							href="${clearAllHref}"
-							hx-get="${clearAllHref}"
-							hx-target="#app-shell"
+							hx-get="${clearAllHXHref}"
+							hx-target="#tableOrMap"
 							hx-swap="outerHTML"
 							hx-replace-url="true"
 							class="inline-flex h-8 items-center justify-center rounded-full px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
@@ -375,7 +377,7 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 	</script>
 }
 
-templ ActiveFilterSummary(l10n Localizer, filters FiltersViewModel) {
+templ ActiveFilterSummary(l10n Localizer, filters FiltersViewModel, mapView bool) {
 	{{ activeCount := countActiveFilters(filters) }}
 	if activeCount == 0 {
 		<div class="flex items-center gap-3 text-sm text-muted-foreground">
@@ -392,13 +394,13 @@ templ ActiveFilterSummary(l10n Localizer, filters FiltersViewModel) {
 			@FilterBadge(boolFilterText(l10n, filters.Online, "online", "offline"))
 			@FilterBadge(formatFilterDate(filters.LastSeen))
 			@button.Button(button.Props{
-				Href:    clearAllHref(filtersPageSize(filters)),
+				Href:    clearAllPageHref(filtersPageSize(filters), mapView),
 				Variant: button.VariantGhost,
 				Size:    button.SizeSm,
 				Class:   "rounded-full px-3",
 				Attributes: templ.Attributes{
-					"hx-get":         clearAllHref(filtersPageSize(filters)),
-					"hx-target":      "#app-shell",
+					"hx-get":         clearAllHXHref(filtersPageSize(filters), mapView),
+					"hx-target":      "#tableOrMap",
 					"hx-swap":        "outerHTML",
 					"hx-replace-url": "true",
 				},
@@ -472,8 +474,12 @@ func filtersPageSize(filters FiltersViewModel) int {
 	return filters.PageSize
 }
 
-func clearAllHref(pageSize int) string {
-	return "/v2/sensors?limit=" + strconv.Itoa(pageSize)
+func clearAllPageHref(pageSize int, mapView bool) string {
+	return "/v2/sensors?limit=" + strconv.Itoa(pageSize) + "&mapview=" + boolString(mapView)
+}
+
+func clearAllHXHref(pageSize int, mapView bool) string {
+	return "/v2/components/sensors/list?limit=" + strconv.Itoa(pageSize) + "&mapview=" + boolString(mapView)
 }
 
 func boolFilterText(l10n Localizer, value, trueKey, falseKey string) string {

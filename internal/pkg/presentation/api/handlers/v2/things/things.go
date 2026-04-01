@@ -31,7 +31,7 @@ type thingsApp interface {
 func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingsApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
 			v2layout.CurrentComponent, "things",
@@ -52,10 +52,12 @@ func NewThingsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFun
 
 		helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, 0)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewThingsDataList(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
 			v2layout.CurrentComponent, "things",
@@ -71,10 +73,12 @@ func NewThingsDataList(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, 
 		component := featuresthings.ThingsDataList(localizer, model)
 		helpers.WriteComponentResponse(ctx, w, r, component, 16*1024, 0)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewThingComponentHandler(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		model, err := composeNewThingModel(r.Context(), localizer, app)
 		if err != nil {
@@ -85,12 +89,19 @@ func NewThingComponentHandler(_ context.Context, l10n LocaleBundle, _ AssetLoade
 		component := featuresthings.NewThingModal(localizer, model)
 		helpers.WriteComponentResponse(r.Context(), w, r, component, 16*1024, 0)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewCreateThingPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, "could not parse form data", http.StatusBadRequest)
+			return
+		}
+
+		if !r.Form.Has("save") {
+			http.Redirect(w, r, "/v2/things", http.StatusTemporaryRedirect)
 			return
 		}
 
@@ -103,6 +114,8 @@ func NewCreateThingPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, ap
 
 		http.Redirect(w, r, "/v2/things/"+newThing.ID+"?mode=edit", http.StatusFound)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func composeListModel(ctx context.Context, r *http.Request, localizer Localizer, app thingsApp) (featuresthings.ThingsPageViewModel, error) {

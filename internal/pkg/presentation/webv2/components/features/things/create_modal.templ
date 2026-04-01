@@ -69,6 +69,10 @@ templ NewThingModal(l10n Localizer, model NewThingViewModel) {
 						Type:    button.TypeSubmit,
 						Variant: button.VariantDefault,
 						Class:   "rounded-xl px-4",
+						Attributes: templ.Attributes{
+							"name":  "save",
+							"value": "true",
+						},
 					}) {
 						@icon.Check(icon.Props{Class: "size-4"})
 						{ l10n.Get("save") }

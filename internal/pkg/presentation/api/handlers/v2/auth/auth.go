@@ -8,7 +8,7 @@ import (
 const postLogoutRedirectCookie = "diwise-v2-post-logout"
 
 func NewLoginRedirect() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		target := r.URL.Query().Get("path")
 		if target == "" {
 			target = "/v2/home"
@@ -16,10 +16,12 @@ func NewLoginRedirect() http.HandlerFunc {
 
 		http.Redirect(w, r, "/login?path="+url.QueryEscape(target), http.StatusFound)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewLogoutRedirect() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		http.SetCookie(w, &http.Cookie{
 			Name:     postLogoutRedirectCookie,
 			Value:    "/v2/home",
@@ -30,6 +32,8 @@ func NewLogoutRedirect() http.HandlerFunc {
 
 		http.Redirect(w, r, "/logout", http.StatusFound)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func RedirectIfPostLogout(next http.Handler) http.Handler {

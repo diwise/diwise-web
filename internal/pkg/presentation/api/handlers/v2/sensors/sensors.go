@@ -28,7 +28,7 @@ type sensorsApp interface {
 func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
 			v2layout.CurrentComponent, "sensors",
@@ -48,10 +48,12 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 		}
 		helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, 0)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewSensorsTable(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
 			v2layout.CurrentComponent, "sensors",
@@ -67,10 +69,12 @@ func NewSensorsTable(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, ap
 		component := featuresensors.SensorsTableSection(localizer, model)
 		helpers.WriteComponentResponse(ctx, w, r, component, 16*1024, 0)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
 			v2layout.CurrentComponent, "sensors",
@@ -86,6 +90,8 @@ func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 		component := featuresensors.SensorsDataList(localizer, model)
 		helpers.WriteComponentResponse(ctx, w, r, component, 16*1024, 0)
 	}
+
+	return http.HandlerFunc(fn)
 }
 
 func composeListModel(ctx context.Context, r *http.Request, app sensorsApp, includePageMeta bool) (featuresensors.SensorsPageViewModel, error) {

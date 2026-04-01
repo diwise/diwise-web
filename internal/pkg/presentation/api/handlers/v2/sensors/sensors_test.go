@@ -56,7 +56,6 @@ func TestBuildSensorUpdateFieldsMapsEditForm(t *testing.T) {
 	is.Equal("device-1", fields["deviceID"])
 	is.Equal("Temperature", fields["name"])
 	is.Equal("Outdoor sensor", fields["description"])
-	is.Equal("decoder-x", fields["deviceProfile"])
 	is.Equal("tenant-a", fields["tenant"])
 	is.Equal("air", fields["environment"])
 	is.Equal("24", fields["interval"])
@@ -64,6 +63,10 @@ func TestBuildSensorUpdateFieldsMapsEditForm(t *testing.T) {
 	is.Equal(57.70887, fields["latitude"])
 	is.Equal(11.97456, fields["longitude"])
 	is.Equal([]string{"urn:1", "urn:2"}, fields["types"])
+	_, hasSensorType := fields["sensorType"]
+	is.Equal(false, hasSensorType)
+	_, hasDeviceProfile := fields["deviceProfile"]
+	is.Equal(false, hasDeviceProfile)
 }
 
 func TestBuildSensorUpdateFieldsSplitsCommaSeparatedMeasurementTypes(t *testing.T) {
@@ -78,6 +81,21 @@ func TestBuildSensorUpdateFieldsSplitsCommaSeparatedMeasurementTypes(t *testing.
 	fields := buildSensorUpdateFields(req)
 
 	is.Equal([]string{"urn:1", "urn:2"}, fields["types"])
+}
+
+func TestBuildSensorUpdateFieldsDoesNotForceInactiveWhenCheckboxMissing(t *testing.T) {
+	is := is.New(t)
+
+	form := url.Values{
+		"id":   {"device-1"},
+		"name": {"Temperature"},
+	}
+	req := &http.Request{Form: form}
+
+	fields := buildSensorUpdateFields(req)
+
+	_, hasActive := fields["active"]
+	is.Equal(false, hasActive)
 }
 
 func TestMeasurementTypeOptionsUsesMatchingProfileAndSelection(t *testing.T) {

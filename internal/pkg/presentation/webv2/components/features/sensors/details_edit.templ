@@ -21,7 +21,7 @@ type optionItem struct {
 }
 
 templ EditSensorDetailsPage(l10n Localizer, _ AssetLoaderFunc, sensor SensorDetailsPageViewModel) {
-	<div class="flex flex-col gap-8">
+	<div id="sensor-edit-page" class="flex flex-col gap-8">
 		<form action={ fmt.Sprintf("/v2/sensors/%s", sensor.DeviceID) } method="post" class="flex flex-col gap-8">
 			<input type="hidden" name="id" value={ sensor.DeviceID }/>
 			@EditSensorDetailsHeader(l10n, sensor)
