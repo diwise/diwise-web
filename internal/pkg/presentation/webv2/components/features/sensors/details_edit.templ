@@ -91,7 +91,7 @@ templ EditSensorDetailsHeader(l10n Localizer, sensor SensorDetailsPageViewModel)
 }
 
 templ EditSensorDetailsFormSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
-	@shared.DetailSectionCard(
+	@shared.EditDetailSectionCard(
 		l10n.Get("details"),
 		icon.Rss(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
@@ -231,7 +231,7 @@ templ EditSensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageVie
 }
 
 templ EditSensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
-	@shared.DetailSectionCard(
+	@shared.EditDetailSectionCard(
 		l10n.Get("location"),
 		icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {

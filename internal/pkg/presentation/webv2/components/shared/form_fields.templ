@@ -44,11 +44,15 @@ type MultiSelectBoxFieldProps struct {
 	Options           []SelectBoxFieldOption
 }
 
+func formFieldLabelClass() string {
+	return "diwise-form-field-label text-foreground"
+}
+
 templ FormField(labelText, forID string) {
 	@form.Item() {
 		@form.Label(form.LabelProps{
 			For:   forID,
-			Class: "text-foreground",
+			Class: formFieldLabelClass(),
 		}) {
 			{ labelText }
 		}
@@ -61,7 +65,7 @@ templ FormFieldWithTooltip(labelText, forID, tooltipText string) {
 		<div class="flex items-center gap-2">
 			@form.Label(form.LabelProps{
 				For:   forID,
-				Class: "text-foreground",
+				Class: formFieldLabelClass(),
 			}) {
 				{ labelText }
 			}
@@ -73,7 +77,7 @@ templ FormFieldWithTooltip(labelText, forID, tooltipText string) {
 
 templ FormReadOnlyField(labelText string) {
 	@form.Item() {
-		@form.Label(form.LabelProps{Class: "text-foreground"}) {
+		@form.Label(form.LabelProps{Class: formFieldLabelClass()}) {
 			{ labelText }
 		}
 		{ children... }
@@ -112,7 +116,7 @@ templ SelectBoxField(props SelectBoxFieldProps) {
 		<div class="flex items-center gap-2">
 			@form.Label(form.LabelProps{
 				For:   props.FieldID + "-trigger",
-				Class: "text-foreground",
+				Class: formFieldLabelClass(),
 			}) {
 				{ props.Label }
 			}
@@ -175,7 +179,7 @@ templ MultiSelectBoxField(props MultiSelectBoxFieldProps) {
 		<div class="flex items-center gap-2">
 			@form.Label(form.LabelProps{
 				For:   props.FieldID + "-trigger",
-				Class: "text-foreground",
+				Class: formFieldLabelClass(),
 			}) {
 				{ props.Label }
 			}

@@ -23,3 +23,12 @@ templ DetailSectionCard(title string, leading templ.Component) {
 		}
 	}
 }
+
+templ EditDetailSectionCard(title string, leading templ.Component) {
+	@card.Card(card.Props{Class: "rounded-3xl border-border/80 bg-card shadow-sm"}) {
+		@card.Content(card.ContentProps{Class: "p-6 [&_.diwise-form-field-label]:text-base [&_.diwise-form-field-label]:font-bold"}) {
+			@DetailSectionHeading(title, leading)
+			{ children... }
+		}
+	}
+}
