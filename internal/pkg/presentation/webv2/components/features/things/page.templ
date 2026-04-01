@@ -10,13 +10,10 @@ import (
 templ ThingsPage(l10n Localizer, viewModel ThingsPageViewModel) {
 	<div class="flex flex-col gap-10">
 		<section class="flex flex-col gap-6">
-			<div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:gap-6">
-				<div class="min-w-0 flex-1">
-					@shared.SectionHeading(l10n.Get("things"), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
-				</div>
+ni 			<div class="flex flex-col items-start gap-4">
 				@button.Button(button.Props{
 					Variant: button.VariantDefault,
-					Class:   "shrink-0 rounded-xl px-4",
+					Class:   "ml-auto w-fit shrink-0 rounded-xl px-4 whitespace-nowrap",
 					Attributes: templ.Attributes{
 						"hx-get":    "/v2/components/things/new",
 						"hx-target": "#create-thing-modal-container",
@@ -25,6 +22,9 @@ templ ThingsPage(l10n Localizer, viewModel ThingsPageViewModel) {
 				}) {
 					{ l10n.Get("addthing") }
 				}
+				<div class="min-w-0 w-full">
+					@shared.SectionHeading(l10n.Get("things"), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+				</div>
 			</div>
 			<div id="create-thing-modal-container"></div>
 		</section>
