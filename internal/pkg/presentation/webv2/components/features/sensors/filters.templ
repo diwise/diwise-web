@@ -6,10 +6,8 @@ import (
 	"time"
 
 	shared "github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared"
-	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/button"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/input"
 	"github.com/diwise/diwise-web/internal/pkg/presentation/webv2/components/shared/ui/selectbox"
-	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	. "github.com/diwise/frontend-toolkit"
 )
 
@@ -176,251 +174,25 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 		</form>
 	}
 	<div class="mt-4">
-		<div
-			id="selected-filters-summary"
-			data-selected-filters-label={ l10n.Get("selectedfilters") }
-			data-no-filters-label={ l10n.Get("nofilterselected") }
-			data-clear-all-label={ l10n.Get("clearall") }
-			data-active-label={ l10n.Get("active") }
-			data-inactive-label={ l10n.Get("inactive") }
-			data-online-label={ l10n.Get("online") }
-			data-offline-label={ l10n.Get("offline") }
-		>
-			@ActiveFilterSummary(l10n, viewModel.Filters, viewModel.MapView)
-		</div>
+		@shared.SelectedFiltersSummary(shared.SelectedFiltersSummaryProps{
+			ID:                   "selected-filters-summary",
+			FormID:               "sensors-filters-form",
+			PageSizeFormID:       "page-size-form",
+			TargetID:             "#tableOrMap",
+			ClearAllPagePath:     "/v2/sensors",
+			ClearAllHXPath:       "/v2/components/sensors/list",
+			ClearAllPageURL:      clearAllPageHref(filtersPageSize(viewModel.Filters), viewModel.MapView),
+			ClearAllHXURL:        clearAllHXHref(filtersPageSize(viewModel.Filters), viewModel.MapView),
+			SelectedFiltersLabel: l10n.Get("selectedfilters"),
+			NoFiltersLabel:       l10n.Get("nofilterselected"),
+			ClearAllLabel:        l10n.Get("clearall"),
+			TrackedFields:        []string{"type", "active", "online", "lastseen"},
+			InputFields:          []string{"lastseen"},
+			DateTimeFields:       []string{"lastseen"},
+			PreserveFields:       []string{"limit", "mapview"},
+			Entries:              selectedFilterEntries(l10n, viewModel.Filters),
+		})
 	</div>
-	<script nonce={ csp.Nonce(ctx) }>
-		(function() {
-			const form = document.getElementById('sensors-filters-form');
-			const summary = document.getElementById('selected-filters-summary');
-			if (!form || !summary || form.dataset.selectedFiltersInit === 'true') {
-				return;
-			}
-			form.dataset.selectedFiltersInit = 'true';
-
-			const labels = {
-				selectedFilters: summary.dataset.selectedFiltersLabel || '',
-				noFilters: summary.dataset.noFiltersLabel || '',
-				clearAll: summary.dataset.clearAllLabel || '',
-				active: summary.dataset.activeLabel || '',
-				inactive: summary.dataset.inactiveLabel || '',
-				online: summary.dataset.onlineLabel || '',
-				offline: summary.dataset.offlineLabel || '',
-			};
-
-			const escapeHtml = (value) => value
-				.replaceAll('&', '&amp;')
-				.replaceAll('<', '&lt;')
-				.replaceAll('>', '&gt;')
-				.replaceAll('"', '&quot;')
-				.replaceAll("'", '&#39;');
-
-			const formatDateTime = (value) => {
-				if (!value) return '';
-				return value.replace('T', ' ');
-			};
-
-			const syncSelectboxValue = (name, values) => {
-				const hiddenInput = form.querySelector(`input[name="${name}"]`);
-				if (!hiddenInput) {
-					return;
-				}
-
-				const nextValues = values.filter(Boolean);
-				hiddenInput.value = nextValues.join(',');
-
-				const trigger = hiddenInput.closest('.select-trigger');
-				const contentID = trigger?.getAttribute('data-tui-selectbox-content-id');
-				const content = contentID ? document.getElementById(contentID) : null;
-				if (content) {
-					content.querySelectorAll('.select-item').forEach((item) => {
-						const itemValue = item.getAttribute('data-tui-selectbox-value') || '';
-						item.setAttribute('data-tui-selectbox-selected', nextValues.includes(itemValue).toString());
-					});
-				}
-
-				hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
-				hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
-			};
-
-			const clearFilterEntry = (filterName, filterValue) => {
-				switch (filterName) {
-					case 'type': {
-						const hiddenInput = form.querySelector('input[name="type"]');
-						const values = (hiddenInput?.value || '')
-							.split(',')
-							.map((value) => value.trim())
-							.filter(Boolean)
-							.filter((value) => value !== filterValue);
-						syncSelectboxValue('type', values);
-						break;
-					}
-					case 'active':
-					case 'online':
-						syncSelectboxValue(filterName, []);
-						break;
-					case 'lastseen': {
-						const input = form.querySelector('input[name="lastseen"]');
-						if (!input) {
-							return;
-						}
-						input.value = '';
-						input.dispatchEvent(new Event('input', { bubbles: true }));
-						input.dispatchEvent(new Event('change', { bubbles: true }));
-						break;
-					}
-				}
-			};
-
-			const filterEntries = () => {
-				const entries = [];
-				const active = form.querySelector('input[name="active"]')?.value.trim() || '';
-				const online = form.querySelector('input[name="online"]')?.value.trim() || '';
-				const lastseen = form.querySelector('input[name="lastseen"]')?.value.trim() || '';
-				const typeContent = document.getElementById('type-filter-content');
-
-				if (typeContent) {
-					typeContent.querySelectorAll('.select-item[data-tui-selectbox-selected="true"]').forEach((item) => {
-						const value = item.getAttribute('data-tui-selectbox-value') || '';
-						const text = item.querySelector('.select-item-text')?.textContent.trim() || value;
-						if (value || text) {
-							entries.push({ name: 'type', value, text });
-						}
-					});
-				}
-				if (active) {
-					entries.push({ name: 'active', value: active, text: active == 'true' ? labels.active : labels.inactive });
-				}
-				if (online) {
-					entries.push({ name: 'online', value: online, text: online == 'true' ? labels.online : labels.offline });
-				}
-				if (lastseen) {
-					entries.push({ name: 'lastseen', value: lastseen, text: formatDateTime(lastseen) });
-				}
-
-				return entries;
-			};
-
-			const renderSummary = () => {
-				const entries = filterEntries();
-				const pageSizeInput = document.querySelector('#page-size-form input[name="limit"]');
-				if (pageSizeInput && pageSizeInput.value.trim()) {
-					const hiddenLimit = form.querySelector('input[name="limit"]');
-					if (hiddenLimit && hiddenLimit.value !== pageSizeInput.value) {
-						hiddenLimit.value = pageSizeInput.value;
-					}
-				}
-				const limitValue = form.querySelector('input[name="limit"]')?.value.trim() || '15';
-				const mapviewValue = form.querySelector('input[name="mapview"]')?.value.trim() || 'false';
-				const clearAllHref = `/v2/sensors?limit=${encodeURIComponent(limitValue)}&mapview=${encodeURIComponent(mapviewValue)}`;
-				const clearAllHXHref = `/v2/components/sensors/list?limit=${encodeURIComponent(limitValue)}&mapview=${encodeURIComponent(mapviewValue)}`;
-				if (entries.length === 0) {
-					summary.innerHTML = `
-						<div class="flex items-center gap-3 text-sm text-muted-foreground">
-							<span class="font-medium text-foreground">${escapeHtml(labels.selectedFilters)}</span>
-							<span>${escapeHtml(labels.noFilters)}</span>
-						</div>
-					`;
-					return;
-				}
-
-				const badges = entries.map((entry) => `
-					<span class="inline-flex items-center gap-2 rounded-full border bg-secondary px-3 py-1 text-sm text-secondary-foreground">
-						<span>${escapeHtml(entry.text)}</span>
-						<button
-							type="button"
-							class="inline-flex size-5 items-center justify-center rounded-full hover:bg-background/80"
-							data-remove-filter-name="${escapeHtml(entry.name)}"
-							data-remove-filter-value="${escapeHtml(entry.value)}"
-							aria-label="${escapeHtml(labels.clearAll)}"
-						>&times;</button>
-					</span>
-				`).join('');
-
-				summary.innerHTML = `
-					<div class="flex flex-wrap items-center gap-2">
-						<span class="text-sm font-medium text-foreground">${escapeHtml(labels.selectedFilters)}</span>
-						${badges}
-						<a
-							href="${clearAllHref}"
-							hx-get="${clearAllHXHref}"
-							hx-target="#tableOrMap"
-							hx-swap="outerHTML"
-							hx-replace-url="true"
-							class="inline-flex h-8 items-center justify-center rounded-full px-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-						>${escapeHtml(labels.clearAll)}</a>
-					</div>
-				`;
-			};
-
-			form.addEventListener('input', renderSummary);
-			form.addEventListener('change', renderSummary);
-			document.body.addEventListener('change', (event) => {
-				const pageSizeInput = event.target.closest('#page-size-form input[name="limit"]');
-				if (!pageSizeInput) {
-					return;
-				}
-				const hiddenLimit = form.querySelector('input[name="limit"]');
-				if (hiddenLimit) {
-					hiddenLimit.value = pageSizeInput.value;
-				}
-			});
-			summary.addEventListener('click', (event) => {
-				const button = event.target.closest('[data-remove-filter-name]');
-				if (!button) {
-					return;
-				}
-
-				event.preventDefault();
-				clearFilterEntry(
-					button.getAttribute('data-remove-filter-name') || '',
-					button.getAttribute('data-remove-filter-value') || '',
-				);
-			});
-			document.body.addEventListener('htmx:afterSwap', renderSummary);
-			renderSummary();
-		})();
-	</script>
-}
-
-templ ActiveFilterSummary(l10n Localizer, filters FiltersViewModel, mapView bool) {
-	{{ activeCount := countActiveFilters(filters) }}
-	if activeCount == 0 {
-		<div class="flex items-center gap-3 text-sm text-muted-foreground">
-			<span class="font-medium text-foreground">{ l10n.Get("selectedfilters") }</span>
-			<span>{ l10n.Get("nofilterselected") }</span>
-		</div>
-	} else {
-		<div class="flex flex-wrap items-center gap-2">
-			<span class="text-sm font-medium text-foreground">{ l10n.Get("selectedfilters") }</span>
-			for _, value := range selectedFilterValues(l10n, filters.SelectedTypes) {
-				@FilterBadge(value)
-			}
-			@FilterBadge(boolFilterText(l10n, filters.Active, "active", "inactive"))
-			@FilterBadge(boolFilterText(l10n, filters.Online, "online", "offline"))
-			@FilterBadge(formatFilterDate(filters.LastSeen))
-			@button.Button(button.Props{
-				Href:    clearAllPageHref(filtersPageSize(filters), mapView),
-				Variant: button.VariantGhost,
-				Size:    button.SizeSm,
-				Class:   "rounded-full px-3",
-				Attributes: templ.Attributes{
-					"hx-get":         clearAllHXHref(filtersPageSize(filters), mapView),
-					"hx-target":      "#tableOrMap",
-					"hx-swap":        "outerHTML",
-					"hx-replace-url": "true",
-				},
-			}) {
-				{ l10n.Get("clearall") }
-			}
-		</div>
-	}
-}
-
-templ FilterBadge(value string) {
-	if strings.TrimSpace(value) != "" {
-		@shared.BadgeChip(shared.BadgeChipProps{Label: value})
-	}
 }
 
 func boolString(value bool) string {
@@ -430,38 +202,25 @@ func boolString(value bool) string {
 	return "false"
 }
 
-func countActiveFilters(filters FiltersViewModel) int {
-	count := 0
-	for _, value := range []string{
-		filters.Active,
-		filters.Online,
-		filters.LastSeen,
-	} {
-		if strings.TrimSpace(value) != "" {
-			count++
-		}
-	}
-	if len(filters.SelectedTypes) > 0 {
-		count++
-	}
-	return count
-}
-
-func selectedFilterValues(l10n Localizer, values []string) []string {
-	if len(values) == 0 {
-		return nil
-	}
-
-	result := make([]string, 0, len(values))
-	for _, part := range values {
+func selectedFilterEntries(l10n Localizer, filters FiltersViewModel) []shared.SelectedFilterEntry {
+	entries := make([]shared.SelectedFilterEntry, 0, len(filters.SelectedTypes)+3)
+	for _, part := range filters.SelectedTypes {
 		part = strings.TrimSpace(part)
 		if part == "" {
 			continue
 		}
-		result = append(result, l10n.Get(part))
+		entries = append(entries, shared.SelectedFilterEntry{Name: "type", Value: part, Text: l10n.Get(part)})
 	}
-
-	return result
+	if text := boolFilterText(l10n, filters.Active, "active", "inactive"); text != "" {
+		entries = append(entries, shared.SelectedFilterEntry{Name: "active", Value: filters.Active, Text: text})
+	}
+	if text := boolFilterText(l10n, filters.Online, "online", "offline"); text != "" {
+		entries = append(entries, shared.SelectedFilterEntry{Name: "online", Value: filters.Online, Text: text})
+	}
+	if text := formatFilterDate(filters.LastSeen); text != "" {
+		entries = append(entries, shared.SelectedFilterEntry{Name: "lastseen", Value: filters.LastSeen, Text: text})
+	}
+	return entries
 }
 
 func filterContains(values []string, candidate string) bool {
