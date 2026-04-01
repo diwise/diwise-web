@@ -48,12 +48,7 @@ templ SensorsTableSection(l10n Localizer, viewModel SensorsPageViewModel) {
 	@shared.DataTableSection(
 		shared.DataTableHeader(
 			shared.DataTableSummary(fmt.Sprintf("%s %d %s %d", l10n.Get("show"), len(viewModel.Sensors), l10n.Get("sensorsof"), viewModel.Paging.TotalCount)),
-			shared.ExportAction(l10n, shared.ExportActionProps{
-				Href:   "/admin/export?export=devices&accept=text/csv",
-				Form:   "sensors-filters-form",
-				Target: "_blank",
-				Fields: []string{"search", "type", "active", "online", "lastseen"},
-			}),
+			nil,
 		),
 		shared.TableFooter(
 			shared.PageSizeControl(shared.PageSizeControlProps{

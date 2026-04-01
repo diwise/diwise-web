@@ -40,12 +40,7 @@ templ ThingsTableSection(l10n Localizer, viewModel ThingsPageViewModel) {
 	@shared.DataTableSection(
 		shared.DataTableHeader(
 			shared.DataTableSummary(fmt.Sprintf("%s %d %s %d", l10n.Get("show"), len(viewModel.Things), l10n.Get("thingsof"), viewModel.Paging.TotalCount)),
-			shared.ExportAction(l10n, shared.ExportActionProps{
-				Href:   "/admin/export?export=things&accept=text/csv",
-				Form:   "things-filters-form",
-				Target: "_blank",
-				Fields: []string{"type", "tags"},
-			}),
+			nil,
 		),
 		shared.TableFooter(
 			shared.PageSizeControl(shared.PageSizeControlProps{

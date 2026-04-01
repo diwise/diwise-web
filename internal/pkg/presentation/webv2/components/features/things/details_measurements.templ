@@ -62,14 +62,6 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 										@ThingMeasurementSummary(l10n, latestMeasurementForOption(model.LatestValues, model.SelectedMeasurement), model.SelectedMeasurement)
 									</div>
 									<div class="flex shrink-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-end">
-										<div class="flex flex-col justify-end">
-											@shared.ExportAction(l10n, shared.ExportActionProps{
-												Href:   "/admin/export?export=thing&accept=text/csv",
-												Form:   "thing-stats-form",
-												Target: "_blank",
-												Fields: []string{"thingid", "tab", "timeAt", "endTimeAt"},
-											})
-										</div>
 										<div class="flex flex-col gap-2">
 											<div class="text-sm font-medium text-foreground">{ l10n.Get("timeinterval") }</div>
 											<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -106,14 +98,22 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 										</div>
 										<div class="flex flex-col gap-2">
 											<div class="text-sm font-medium text-foreground">&nbsp;</div>
-											<input id="thingStatisticsView" type="hidden" value="chart"/>
-											@shared.ChartOrTableToggle(l10n, shared.ChartOrTableToggleProps{
-												BaseID:        "thing-statistics-toggle",
-												HiddenInputID: "thingStatisticsView",
-												ChartView:     true,
-												ChartLabel:    l10n.Get("graph"),
-												TableLabel:    l10n.Get("table"),
-											})
+											<div class="flex items-center gap-3">
+												<input id="thingStatisticsView" type="hidden" value="chart"/>
+												@shared.ChartOrTableToggle(l10n, shared.ChartOrTableToggleProps{
+													BaseID:        "thing-statistics-toggle",
+													HiddenInputID: "thingStatisticsView",
+													ChartView:     true,
+													ChartLabel:    l10n.Get("graph"),
+													TableLabel:    l10n.Get("table"),
+												})
+												@shared.ExportAction(l10n, shared.ExportActionProps{
+													Href:   "/admin/export?export=thing&accept=text/csv",
+													Form:   "thing-stats-form",
+													Target: "_blank",
+													Fields: []string{"thingid", "tab", "timeAt", "endTimeAt"},
+												})
+											</div>
 										</div>
 									</div>
 								</div>

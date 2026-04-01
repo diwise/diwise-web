@@ -23,6 +23,12 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 			TableLabel:    l10n.Get("table"),
 			MapLabel:      l10n.Get("map"),
 		}),
+		shared.ExportAction(l10n, shared.ExportActionProps{
+			Href:   "/admin/export?export=devices&accept=text/csv",
+			Form:   "sensors-filters-form",
+			Target: "_blank",
+			Fields: []string{"search", "type", "active", "online", "lastseen"},
+		}),
 	) {
 		<form
 			id="sensors-filters-form"
