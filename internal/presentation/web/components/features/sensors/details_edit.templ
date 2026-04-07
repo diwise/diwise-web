@@ -1,0 +1,328 @@
+package sensors
+
+import (
+	"fmt"
+	"slices"
+	"strings"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/checkbox"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/form"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/input"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/textarea"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+type optionItem struct {
+	Value string
+	Label string
+}
+
+templ EditSensorDetailsPage(l10n Localizer, _ AssetLoaderFunc, sensor SensorDetailsPageViewModel) {
+	<div id="sensor-edit-page" class="flex flex-col gap-8">
+		<form action={ fmt.Sprintf("/sensors/%s", sensor.DeviceID) } method="post" class="flex flex-col gap-8">
+			<input type="hidden" name="id" value={ sensor.DeviceID }/>
+			@EditSensorDetailsHeader(l10n, sensor)
+			<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
+				<div class="flex flex-1 flex-col gap-8">
+					@EditSensorDetailsFormSection(l10n, sensor)
+					@EditSensorDetailsStatusSection(l10n, sensor)
+				</div>
+				@shared.ColumnDivider()
+				<div class="flex w-full flex-1 flex-col gap-8">
+					@EditSensorDetailsLocationSection(l10n, sensor)
+				</div>
+			</div>
+			<div class="flex items-center justify-end gap-3">
+				@button.Button(button.Props{
+					Href:    fmt.Sprintf("/sensors/%s", sensor.DeviceID),
+					Variant: button.VariantOutline,
+					Class:   "rounded-xl px-4",
+				}) {
+					@icon.X(icon.Props{Class: "size-4"})
+					{ l10n.Get("cancel") }
+				}
+				@button.Button(button.Props{
+					Type:    button.TypeSubmit,
+					Variant: button.VariantDefault,
+					Class:   "rounded-xl px-4",
+				}) {
+					@icon.Check(icon.Props{Class: "size-4"})
+					{ l10n.Get("save") }
+				}
+			</div>
+		</form>
+		<div id="sensor-dialog-container"></div>
+		<script nonce={ templ.GetNonce(ctx) }>
+			(() => {
+				if (document.body.dataset.v2SensorDialogErrors === 'true') return;
+				document.body.dataset.v2SensorDialogErrors = 'true';
+
+				document.body.addEventListener('htmx:responseError', (event) => {
+					const target = event?.detail?.requestConfig?.target;
+					if (!target || target.id !== 'sensor-dialog-container') return;
+					target.innerHTML = event.detail.xhr.responseText;
+				});
+			})();
+		</script>
+	</div>
+}
+
+templ EditSensorDetailsHeader(l10n Localizer, sensor SensorDetailsPageViewModel) {
+	<div class="flex flex-col gap-4">
+		<a
+			href={ string(templ.SafeURL(fmt.Sprintf("/sensors/%s", sensor.DeviceID))) }
+			hx-get={ string(templ.SafeURL(fmt.Sprintf("/sensors/%s", sensor.DeviceID))) }
+			hx-target="#app-shell"
+			hx-swap="outerHTML"
+			hx-replace-url="true"
+			class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+		>
+			<span aria-hidden="true">←</span>
+			<span>{ l10n.Get("sensors") }</span>
+		</a>
+		<div class="flex items-center justify-between gap-4">
+			<h1 class="text-3xl font-bold font-heading text-foreground">{ l10n.Get("edit") } { editableSensorName(sensor) }</h1>
+			@StatusBadge(l10n, sensor.Active)
+		</div>
+	</div>
+}
+
+templ EditSensorDetailsFormSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
+	@shared.EditDetailSectionCard(
+		l10n.Get("details"),
+		icon.Rss(icon.Props{Size: 24, Class: "text-foreground"}),
+	) {
+		<div class="grid gap-6 py-6 px-8">
+			@shared.FormReadOnlyField(l10n.Get("sensorID")) {
+				<div class="grid gap-3 md:grid-cols-2 md:items-center">
+					@input.Input(input.Props{
+						ID:       "sensor-id",
+						Name:     "sensorID",
+						Value:    sensor.DevEUI,
+						Disabled: true,
+						Class:    "h-10 rounded-xl bg-background w-full",
+					})
+					<div class="flex items-center justify-end gap-3">
+						@button.Button(button.Props{
+							Variant: button.VariantOutline,
+							Class:   "rounded-xl px-4",
+							Attributes: templ.Attributes{
+								"hx-get":    fmt.Sprintf("/components/sensors/%s/attach", sensor.DeviceID),
+								"hx-target": "#sensor-dialog-container",
+								"hx-swap":   "innerHTML",
+							},
+						}) {
+							@icon.Pen(icon.Props{Class: "size-4"})
+							{ l10n.Get("edit") }
+						}
+						@button.Button(button.Props{
+							Variant: button.VariantDestructive,
+							Class:   "rounded-xl px-4",
+							Attributes: templ.Attributes{
+								"hx-get":    fmt.Sprintf("/components/sensors/%s/detach", sensor.DeviceID),
+								"hx-target": "#sensor-dialog-container",
+								"hx-swap":   "innerHTML",
+							},
+						}) {
+							@icon.Trash2(icon.Props{Class: "size-4"})
+							{ l10n.Get("delete") }
+						}
+					</div>
+				</div>
+			}
+			<div class="grid gap-6 md:grid-cols-2">
+				@shared.FormField(l10n.Get("name"), "sensor-name") {
+					@input.Input(input.Props{
+						ID:    "sensor-name",
+						Name:  "name",
+						Value: sensor.Name,
+						Class: "h-10 rounded-xl bg-background",
+					})
+				}
+				@shared.SelectBoxField(shared.SelectBoxFieldProps{
+					FieldID:     "sensor-organisation",
+					Name:        "organisation",
+					Label:       l10n.Get("organisation"),
+					Placeholder: l10n.Get("choose"),
+					NoSearch:    true,
+					Options:     organisationFieldOptions(sensor.Organisations, sensor.Tenant),
+				})
+			</div>
+			<div class="grid gap-6 md:grid-cols-2">
+				@shared.SelectBoxField(shared.SelectBoxFieldProps{
+					FieldID:     "sensor-type",
+					Name:        "sensorType",
+					Label:       l10n.Get("sensortype"),
+					Placeholder: l10n.Get("choose"),
+					NoSearch:    true,
+					Options:     sensorTypeFieldOptions(sensor.DeviceProfiles, sensor.DeviceProfileName),
+					HTMXAttrs: templ.Attributes{
+						"hx-get":     "/components/sensors/edit/measurement-types",
+						"hx-target":  "#measurement-types-field",
+						"hx-trigger": "change",
+					},
+				})
+				@MeasurementTypeOptionsField(l10n, MeasurementTypeOptionsProps{Options: sensor.TypeOptions})
+			</div>
+			<div class="grid gap-6 md:grid-cols-2">
+				@shared.SelectBoxField(shared.SelectBoxFieldProps{
+					FieldID:     "sensor-environment",
+					Name:        "environment",
+					Label:       l10n.Get("environment"),
+					TooltipText: l10n.Get("located"),
+					Placeholder: l10n.Get("choose"),
+					NoSearch:    true,
+					Options:     optionItemsToSelectBoxOptions(environmentOptions(l10n), sensor.Environment),
+				})
+				@shared.FormFieldWithTooltip(l10n.Get("observationinterval"), "sensor-interval", l10n.Get("devicenotobservedafter")) {
+					<div class="flex items-center gap-3">
+						@input.Input(input.Props{
+							ID:    "sensor-interval",
+							Name:  "interval",
+							Type:  input.TypeNumber,
+							Value: fmt.Sprintf("%d", sensor.Interval),
+							Class: "h-10 rounded-xl bg-background",
+							Attributes: templ.Attributes{
+								"step": "1",
+							},
+						})
+						<span class="text-sm text-muted-foreground">{ l10n.Get("hours") }</span>
+					</div>
+				}
+			</div>
+			@shared.FormField(l10n.Get("description"), "sensor-description") {
+				@textarea.Textarea(textarea.Props{
+					ID:          "sensor-description",
+					Name:        "description",
+					Value:       sensor.Description,
+					Placeholder: l10n.Get("description"),
+					Class:       "min-h-36 rounded-xl bg-background",
+				})
+			}
+		</div>
+	}
+}
+
+templ EditSensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
+	@shared.DetailSectionCard(
+		l10n.Get("status"),
+		icon.Rss(icon.Props{Size: 24, Class: "text-foreground"}),
+	) {
+		<div class="flex flex-col gap-4 py-6 px-8">
+			@form.ItemFlex() {
+				@checkbox.Checkbox(checkbox.Props{
+					ID:      "sensor-active",
+					Name:    "active",
+					Checked: sensor.Active,
+				})
+				@form.Label(form.LabelProps{
+					For:   "sensor-active",
+					Class: "text-foreground",
+				}) {
+					{ l10n.Get("activate") }
+				}
+			}
+			@shared.FormDescription(l10n.Get("activatesensorinformation"))
+		</div>
+	}
+}
+
+templ EditSensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
+	@shared.EditDetailSectionCard(
+		l10n.Get("location"),
+		icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
+	) {
+		<div class="flex flex-col gap-6 py-6 px-8">
+			<div class="grid gap-6 md:grid-cols-2">
+				@shared.FormField(l10n.Get("latitude"), "latitude") {
+					@input.Input(input.Props{
+						ID:    "latitude",
+						Name:  "latitude",
+						Type:  input.TypeNumber,
+						Value: formatCoordinate(sensor.Latitude),
+						Class: "h-10 rounded-xl bg-background",
+						Attributes: templ.Attributes{
+							"min":  "-90",
+							"max":  "90",
+							"step": "0.000001",
+						},
+					})
+				}
+				@shared.FormField(l10n.Get("longitude"), "longitude") {
+					@input.Input(input.Props{
+						ID:    "longitude",
+						Name:  "longitude",
+						Type:  input.TypeNumber,
+						Value: formatCoordinate(sensor.Longitude),
+						Class: "h-10 rounded-xl bg-background",
+						Attributes: templ.Attributes{
+							"min":  "-180",
+							"max":  "180",
+							"step": "0.000001",
+						},
+					})
+				}
+			</div>
+			@shared.Map("medium", false, true, shared.NewMapData(sensor.Latitude, sensor.Longitude), sensorDetailsMapFeature(sensor))
+		</div>
+	}
+}
+
+func organisationFieldOptions(organisations []string, selected string) []shared.SelectBoxFieldOption {
+	items := make([]shared.SelectBoxFieldOption, 0, len(organisations))
+	for _, organisation := range organisations {
+		items = append(items, shared.SelectBoxFieldOption{
+			Value:    organisation,
+			Label:    organisation,
+			Selected: organisation == selected,
+		})
+	}
+	return items
+}
+
+func sensorTypeFieldOptions(profiles []DeviceProfileOption, selected string) []shared.SelectBoxFieldOption {
+	items := make([]shared.SelectBoxFieldOption, 0, len(profiles))
+	for _, profile := range profiles {
+		items = append(items, shared.SelectBoxFieldOption{
+			Value:    profile.Decoder,
+			Label:    profile.Name,
+			Selected: profile.Name == selected || profile.Decoder == selected,
+		})
+	}
+	return items
+}
+
+func environmentOptions(l10n Localizer) []optionItem {
+	options := []optionItem{
+		{Value: "", Label: ""},
+		{Value: "air", Label: l10n.Get("air")},
+		{Value: "soil", Label: l10n.Get("soil")},
+		{Value: "water", Label: l10n.Get("water")},
+	}
+	slices.SortFunc(options[1:], func(a, b optionItem) int {
+		return strings.Compare(a.Label, b.Label)
+	})
+	return options
+}
+
+func optionItemsToSelectBoxOptions(options []optionItem, selected string) []shared.SelectBoxFieldOption {
+	converted := make([]shared.SelectBoxFieldOption, 0, len(options))
+	for _, option := range options {
+		converted = append(converted, shared.SelectBoxFieldOption{
+			Value:    option.Value,
+			Label:    option.Label,
+			Selected: option.Value == selected,
+		})
+	}
+	return converted
+}
+
+func editableSensorName(sensor SensorDetailsPageViewModel) string {
+	if strings.TrimSpace(sensor.Name) != "" {
+		return sensor.Name
+	}
+	return sensor.DeviceID
+}

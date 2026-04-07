@@ -1,0 +1,39 @@
+package shared
+
+import "github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/badge"
+
+type StatusBadgeTone string
+
+const (
+	StatusBadgeToneActive   StatusBadgeTone = "active"
+	StatusBadgeToneInactive StatusBadgeTone = "inactive"
+)
+
+type StatusBadgeProps struct {
+	Class string
+	Tone  StatusBadgeTone
+	Label string
+}
+
+templ StatusBadge(props StatusBadgeProps) {
+	@badge.Badge(badge.Props{
+		Variant: badge.VariantOutline,
+		Class: statusBadgeClasses(props),
+	}) {
+		{ props.Label }
+	}
+}
+
+func statusBadgeClasses(props StatusBadgeProps) string {
+	base := "rounded-full px-2.5 py-1 text-sm font-bold leading-none shadow-none"
+	if props.Class != "" {
+		base += " " + props.Class
+	}
+
+	switch props.Tone {
+	case StatusBadgeToneActive:
+		return base + " border-transparent bg-[var(--status-active-bg)] text-[var(--status-active-fg)]"
+	default:
+		return base + " border-transparent bg-[var(--status-inactive-bg)] text-[var(--status-inactive-fg)] dark:bg-[var(--status-inactive-bg-dark)] dark:text-[var(--status-inactive-fg-dark)]"
+	}
+}

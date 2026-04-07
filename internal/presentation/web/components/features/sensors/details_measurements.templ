@@ -1,0 +1,207 @@
+package sensors
+
+import (
+	"fmt"
+	"slices"
+	"strings"
+	"time"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/input"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+type measurementOption struct {
+	Value    string
+	Text     string
+	Selected bool
+}
+
+templ MeasurementTypeOptionsField(l10n Localizer, props MeasurementTypeOptionsProps) {
+	<div id="measurement-types-field">
+		if len(props.Options) == 0 {
+			@shared.FormField(l10n.Get("measurementtype"), "measurement-type-select-trigger") {
+				<div class="rounded-2xl border border-dashed border-border px-4 py-6 text-sm text-muted-foreground">
+					{ l10n.Get("chooseMeasurementtype") }
+				</div>
+			}
+		} else {
+			@shared.MultiSelectBoxField(shared.MultiSelectBoxFieldProps{
+				FieldID:           "measurement-type-select",
+				Name:              "measurementType-option[]",
+				Label:             l10n.Get("measurementtype"),
+				Placeholder:       l10n.Get("chooseMeasurementtype"),
+				ShowPills:         true,
+				SelectedCountText: l10n.Get("selecteditemcount"),
+				SearchPlaceholder: l10n.Get("search"),
+				Options:           measurementTypeFieldOptions(props.Options),
+			})
+		}
+	</div>
+}
+
+templ SensorDetailsMeasurementSection(l10n Localizer, sensor SensorDetailsPageViewModel) {
+	{{ startTime := measurementStartValue(sensor.Measurements) }}
+	{{ endTime := measurementEndValue(sensor.Measurements) }}
+	@shared.DetailSectionCard(
+		l10n.Get("measurementvalues"),
+		icon.Icon("chart-column")(icon.Props{Size: 24, Class: "text-foreground"}),
+	) {
+		<div class="flex flex-col gap-6 py-6 px-8">
+			<div class="flex flex-col gap-2">
+				@shared.FormHiddenLabel(l10n.Get("sensorMeasurementTypes"), "sensorMeasurementTypes")
+				<select
+					id="sensorMeasurementTypes"
+					name="sensorMeasurementTypes"
+					hx-get="/components/measurements"
+					hx-target="#measurementChartContainer"
+					hx-include="#timeAt,#endTimeAt"
+					hx-params="*"
+					hx-trigger="change"
+					class="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none"
+				>
+					for _, option := range measurementOptions(l10n, sensor.MeasurementTypes) {
+						<option value={ option.Value } selected?={ option.Selected }>{ option.Text }</option>
+					}
+				</select>
+			</div>
+			<div class="flex flex-col gap-2">
+				<div class="text-sm font-medium text-foreground">{ l10n.Get("timeinterval") }</div>
+				<div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+					@shared.FormHiddenLabel(l10n.Get("starttime"), "timeAt")
+					@input.Input(input.Props{
+						ID:    "timeAt",
+						Name:  "timeAt",
+						Type:  input.TypeDateTime,
+						Value: startTime,
+						Class: "h-10 rounded-xl bg-background",
+						Attributes: templ.Attributes{
+							"hx-get":     "/components/measurements",
+							"hx-target":  "#measurementChartContainer",
+							"hx-include": "#sensorMeasurementTypes,#endTimeAt",
+							"hx-params":  "*",
+							"hx-trigger": "change",
+						},
+					})
+					<span class="text-muted-foreground">-</span>
+					@shared.FormHiddenLabel(l10n.Get("endtime"), "endTimeAt")
+					@input.Input(input.Props{
+						ID:    "endTimeAt",
+						Name:  "endTimeAt",
+						Type:  input.TypeDateTime,
+						Value: endTime,
+						Class: "h-10 rounded-xl bg-background",
+						Attributes: templ.Attributes{
+							"hx-get":     "/components/measurements",
+							"hx-target":  "#measurementChartContainer",
+							"hx-include": "#sensorMeasurementTypes,#timeAt",
+							"hx-params":  "*",
+							"hx-trigger": "change",
+						},
+					})
+				</div>
+			</div>
+			<div
+				id="measurementChartContainer"
+				class="h-[40vh] w-full"
+				hx-get="/components/measurements"
+				hx-include="#sensorMeasurementTypes,#timeAt,#endTimeAt"
+				hx-params="*"
+				hx-trigger="load"
+			>
+				<div class="h-full w-full rounded-2xl border border-border/70 bg-muted/40"></div>
+			</div>
+		</div>
+	}
+}
+
+func MeasurementChartComponent(config shared.AdvancedChartConfig) templ.Component {
+	return shared.AdvancedChart(shared.AdvancedChartProps{
+		ID:     "measurement-chart",
+		Config: config,
+		Class:  "h-full w-full",
+	})
+}
+
+func measurementTypeFieldOptions(options []MeasurementTypeOption) []shared.SelectBoxFieldOption {
+	converted := make([]shared.SelectBoxFieldOption, 0, len(options))
+	for _, option := range options {
+		converted = append(converted, shared.SelectBoxFieldOption{
+			Value:    option.Value,
+			Label:    option.Label,
+			Selected: option.Selected,
+		})
+	}
+	return converted
+}
+
+func measurementOptions(l10n Localizer, measurementTypes []string) []measurementOption {
+	options := make([]measurementOption, 0, len(measurementTypes))
+	defaultID := defaultMeasurementType(measurementTypes)
+
+	for i, measurementID := range measurementTypes {
+		if measurementID == "" {
+			continue
+		}
+		options = append(options, measurementOption{
+			Value:    measurementID,
+			Text:     measurementLabel(l10n, measurementID),
+			Selected: i == 0 && measurementID == defaultID,
+		})
+	}
+
+	slices.SortFunc(options, func(a, b measurementOption) int {
+		return strings.Compare(a.Text, b.Text)
+	})
+
+	return options
+}
+
+func measurementLabel(l10n Localizer, measurementID string) string {
+	parts := strings.Split(measurementID, "/")
+	if len(parts) >= 2 {
+		text := strings.Join(parts[len(parts)-2:], "-")
+		port := ""
+		if len(parts) == 4 {
+			port = fmt.Sprintf(" (%s)", parts[1])
+		}
+		return l10n.Get(text) + port
+	}
+	return measurementID
+}
+
+func defaultMeasurementType(measurementTypes []string) string {
+	if len(measurementTypes) == 0 {
+		return ""
+	}
+	return measurementTypes[0]
+}
+
+func measurementEndValue(measurements []MeasurementViewModel) string {
+	if len(measurements) == 0 {
+		now := time.Now()
+		end := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 0, 0, now.Location())
+		return end.Format("2006-01-02T15:04")
+	}
+	latest := measurements[0].Timestamp
+	for _, measurement := range measurements[1:] {
+		if measurement.Timestamp.After(latest) {
+			latest = measurement.Timestamp
+		}
+	}
+	end := time.Date(latest.Year(), latest.Month(), latest.Day(), 23, 59, 0, 0, latest.Location())
+	return end.Format("2006-01-02T15:04")
+}
+
+func measurementStartValue(measurements []MeasurementViewModel) string {
+	if len(measurements) == 0 {
+		return time.Now().Add(-24 * time.Hour).Format("2006-01-02T15:04")
+	}
+	latest, err := time.Parse("2006-01-02T15:04", measurementEndValue(measurements))
+	if err != nil {
+		return time.Now().Add(-24 * time.Hour).Format("2006-01-02T15:04")
+	}
+	start := time.Date(latest.Year(), latest.Month(), latest.Day(), 0, 0, 0, 0, latest.Location())
+	return start.Format("2006-01-02T15:04")
+}

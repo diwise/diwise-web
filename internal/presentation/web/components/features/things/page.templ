@@ -1,0 +1,46 @@
+package things
+
+import (
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ ThingsPage(l10n Localizer, viewModel ThingsPageViewModel) {
+	<div class="flex flex-col gap-10">
+		<section class="flex flex-col gap-6">
+ni 			<div class="flex flex-col items-start gap-4">
+				@button.Button(button.Props{
+					Variant: button.VariantDefault,
+					Class:   "ml-auto w-fit shrink-0 rounded-xl px-4 whitespace-nowrap",
+					Attributes: templ.Attributes{
+						"hx-get":    "/components/things/new",
+						"hx-target": "#create-thing-modal-container",
+						"hx-swap":   "innerHTML",
+					},
+				}) {
+					{ l10n.Get("addthing") }
+				}
+				<div class="min-w-0 w-full">
+					@shared.SectionHeading(l10n.Get("things"), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+				</div>
+			</div>
+			<div id="create-thing-modal-container"></div>
+		</section>
+		<section class="flex flex-col gap-6">
+			@Filters(l10n, viewModel)
+			@ThingsDataList(l10n, viewModel)
+		</section>
+	</div>
+}
+
+templ ThingsDataList(l10n Localizer, viewModel ThingsPageViewModel) {
+	<div id="tableOrMap" class="w-full">
+		if viewModel.MapView {
+			@ThingsMap(l10n, viewModel)
+		} else {
+			@ThingsTableSection(l10n, viewModel)
+		}
+	</div>
+}

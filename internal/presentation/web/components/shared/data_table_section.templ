@@ -1,0 +1,32 @@
+package shared
+
+import "github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/card"
+
+templ DataTableSection(header templ.Component, footer templ.Component) {
+	<section id="tableview" class="flex flex-col gap-5">
+		if header != nil {
+			@header
+		}
+		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-0 bg-transparent shadow-none"}) {
+			<div class="overflow-x-auto">
+				{ children... }
+			</div>
+			if footer != nil {
+				@footer
+			}
+		}
+	</section>
+}
+
+templ DataTableHeader(summary, action templ.Component) {
+	<div class="flex items-center justify-between gap-4">
+		@summary
+		if action != nil {
+			@action
+		}
+	</div>
+}
+
+templ DataTableSummary(text string) {
+	<div class="text-sm text-muted-foreground">{ text }</div>
+}
