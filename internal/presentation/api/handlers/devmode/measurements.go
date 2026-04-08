@@ -44,3 +44,20 @@ func NewMeasurementsHandler(_ context.Context) http.HandlerFunc {
 		w.Write([]byte(response))
 	}
 }
+
+func NewMeasurementByIDHandler(_ context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		if id == "" {
+			http.Error(w, "missing measurement id", http.StatusBadRequest)
+			return
+		}
+
+		now := time.Now().UTC().Format(time.RFC3339)
+		response := fmt.Sprintf(`{"meta":{"totalRecords":2},"data":[{"id":"%s/3/9","timestamp":"%s","v":99},{"id":"%s/3424/0","timestamp":"%s","v":12345}]}`, id, now, id, now)
+
+		w.Header()["Content-Type"] = []string{"application/json"}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(response))
+	}
+}

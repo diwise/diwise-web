@@ -9,7 +9,7 @@ ARG BUILDARCH
 
 RUN echo $BUILDARCH
 
-RUN curl --fail -sL "https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.17/tailwindcss-linux-$BUILDARCH" -o tailwindcss
+RUN curl --fail -sL "https://github.com/tailwindlabs/tailwindcss/releases/download/v4.2.2/tailwindcss-linux-$BUILDARCH" -o tailwindcss
 RUN chmod +x tailwindcss
 
 COPY go.mod .
@@ -20,7 +20,7 @@ RUN go mod download
 COPY . .
 
 RUN templ generate
-RUN ./tailwindcss -c ./internal/presentation/web/css/tailwind.config.js -i ./internal/presentation/web/css/input.css -o ./assets/css/diwise.css
+RUN ./tailwindcss -i ./internal/presentation/web/css/input.css -o ./assets/css/diwise.css
 
 WORKDIR /app/cmd/diwise-web
 

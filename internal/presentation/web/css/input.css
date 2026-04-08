@@ -1,3 +1,143 @@
-@tailwind base;
-@tailwind utilities;
-@tailwind components;
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@source "../components/**/*.templ";
+@source "../components/**/*.go";
+
+@theme inline {
+  --font-sans: Arial, sans-serif;
+  --font-heading: Raleway, sans-serif;
+
+  --color-background-100: #fafafa;
+  --color-background-200: #f0f0f0;
+  --color-background-orange: #aa4e1f;
+  --color-content-background: #2f2f3c;
+  --color-err-prim-surf: #fbc1c1;
+  --color-err-prim-surf-hover: #fcd4d4;
+  --color-gray-30: #1c1c284d;
+  --color-gray-500: #68686d;
+  --color-green-700: #00733b;
+  --color-input-surface: #1c1c2880;
+  --color-input-surface-dark: #1c1c2880;
+  --color-orange-600: #db6900;
+  --color-primary-dark: #1f1f25;
+  --color-primary-green: #00592d;
+  --color-primary-green-accent: #c9e4d7;
+  --color-primary-surface: #1c1c28f2;
+  --color-primary-surface-hover: #1c1c28e0;
+  --color-primary-surface-dark: #fffffff2;
+  --color-primary-surface-dark-hover: #ffffffe0;
+  --color-primary-surface-blue: #005595;
+  --color-primary-surface-blue-dark: #cfe0ec;
+  --color-primary-surface-green-accent: #aad4bf;
+  --color-primary-surface-orange-accent: #ffa34d;
+  --color-primary-surface-white: #ffffff33;
+  --color-red-600: #d62e2e;
+  --color-secondary-text: #971a1a;
+  --color-secondary-outline-hover: #1c1c28a3;
+  --color-secondary-outline-hover-dark: #ffffffa3;
+  --color-tertiary-surface: #1c1c281f;
+  --color-tertiary-surface-hover: #1c1c2829;
+  --color-white-30: #ffffff4d;
+  --color-white-50: #ffffff80;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--card);
+  --color-popover-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+:root {
+  color-scheme: light;
+  --background: #ffffff;
+  --foreground: #1f1f25;
+  --card: #ffffff;
+  --card-foreground: #1f1f25;
+  --primary: #1c1c28f2;
+  --primary-foreground: #ffffff;
+  --secondary: #e7e5e4;
+  --secondary-foreground: #1f1f25;
+  --muted: #1c1c281f;
+  --muted-foreground: #68686d;
+  --accent: #1c1c281f;
+  --accent-foreground: #1f1f25;
+  --destructive: #d62e2e;
+  --border: rgba(28, 28, 40, 0.16);
+  --input: rgba(28, 28, 40, 0.5);
+  --ring: rgba(28, 28, 40, 0.28);
+  --status-active-bg: #c9e4d7;
+  --status-active-fg: #00592d;
+  --status-inactive-bg: rgba(28, 28, 40, 0.12);
+  --status-inactive-fg: #1f1f25;
+  --status-inactive-bg-dark: rgba(255, 255, 255, 0.2);
+  --status-inactive-fg-dark: #ffffff;
+  --status-online: #00733b;
+  --status-offline: #d62e2e;
+  --status-unknown: #db6900;
+  --chart-axis: #1f1f25;
+  --chart-ticks: #444450;
+  --chart-grid: #e2e2e8;
+  --chart-series-primary: #1f1f25;
+  --chart-series-secondary: #c24e18;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #2f2f3c;
+  --foreground: #f9fafb;
+  --card: #2f2f3c;
+  --card-foreground: #f9fafb;
+  --primary: #fffffff2;
+  --primary-foreground: #1f1f25;
+  --secondary: #e5e5e5;
+  --secondary-foreground: #f9fafb;
+  --muted: #ffffff33;
+  --muted-foreground: rgba(255, 255, 255, 0.68);
+  --accent: #ffffff33;
+  --accent-foreground: #f9fafb;
+  --destructive: #fbc1c1;
+  --border: rgba(255, 255, 255, 0.16);
+  --input: rgba(255, 255, 255, 0.5);
+  --ring: rgba(255, 255, 255, 0.3);
+  --status-active-bg: #c9e4d7;
+  --status-active-fg: #00592d;
+  --status-inactive-bg: rgba(28, 28, 40, 0.12);
+  --status-inactive-fg: #1f1f25;
+  --status-inactive-bg-dark: rgba(255, 255, 255, 0.2);
+  --status-inactive-fg-dark: #ffffff;
+  --status-online: #aad4bf;
+  --status-offline: #fbc1c1;
+  --status-unknown: #ffa34d;
+  --chart-axis: #fffffff2;
+  --chart-ticks: #e5e5e5;
+  --chart-grid: rgba(255, 255, 255, 0.16);
+  --chart-series-primary: #ffffff;
+  --chart-series-secondary: #c24e18;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+}

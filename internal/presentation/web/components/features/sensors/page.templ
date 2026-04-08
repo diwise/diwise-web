@@ -1,0 +1,30 @@
+package sensors
+
+import (
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ SensorsPage(l10n Localizer, viewModel SensorsPageViewModel) {
+	<div class="flex flex-col gap-10">
+		<section class="flex flex-col gap-6">
+			@shared.SectionHeading(l10n.Get("sensors"), icon.Rss(icon.Props{Size: 28, Class: "text-foreground"}))
+			@StatisticsCards(l10n, viewModel.Statistics)
+		</section>
+		<section class="flex flex-col gap-6">
+			@Filters(l10n, viewModel)
+			@SensorsDataList(l10n, viewModel)
+		</section>
+	</div>
+}
+
+templ SensorsDataList(l10n Localizer, viewModel SensorsPageViewModel) {
+	<div id="tableOrMap" class="w-full">
+		if viewModel.MapView {
+			@SensorsMap(l10n, viewModel)
+		} else {
+			@SensorsTableSection(l10n, viewModel)
+		}
+	</div>
+}

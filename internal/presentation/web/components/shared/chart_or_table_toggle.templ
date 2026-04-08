@@ -1,0 +1,48 @@
+package shared
+
+import (
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+type ChartOrTableToggleProps struct {
+	BaseID        string
+	HiddenInputID string
+	ChartView     bool
+	ChartLabel    string
+	TableLabel    string
+}
+
+templ ChartOrTableToggle(_ Localizer, props ChartOrTableToggleProps) {
+	{{ baseID := props.BaseID }}
+	if baseID == "" {
+		{{ baseID = "chart-or-table-toggle" }}
+	}
+	<div>
+		@TwoStateIconToggle(TwoStateIconToggleProps{
+		BaseID:         baseID,
+		HiddenInputID:  props.HiddenInputID,
+		ActiveLeft:     props.ChartView,
+		LeftLabel:      props.ChartLabel,
+		RightLabel:     props.TableLabel,
+		LeftValue:      "chart",
+		RightValue:     "table",
+		LeftIcon:       icon.Icon("chart-column")(icon.Props{Size: 16}),
+		RightIcon:      icon.Table(icon.Props{Size: 16}),
+		StorageKey:     "thingStatisticsView",
+	})
+		<script nonce={ templ.GetNonce(ctx) }>
+			window.onTwoStateIconToggleChange = function(hiddenInputID, value) {
+				if (hiddenInputID !== 'thingStatisticsView') {
+					return;
+				}
+				const chart = document.getElementById('thingMeasurementChartWrapper');
+				const table = document.getElementById('thingMeasurementTableWrapper');
+				if (chart && table) {
+					chart.classList.toggle('hidden', value !== 'chart');
+					table.classList.toggle('hidden', value === 'chart');
+				}
+			}
+		</script>
+	</div>
+}

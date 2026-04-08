@@ -3,6 +3,7 @@ module github.com/diwise/diwise-web
 go 1.26
 
 require (
+	github.com/Oudwins/tailwind-merge-go v0.2.1
 	github.com/a-h/templ v0.3.1001
 	github.com/diwise/frontend-toolkit v0.0.0-20250520152755-db65819e6ff6
 	github.com/diwise/service-chassis v0.0.0-20260318134535-fa183be51aed

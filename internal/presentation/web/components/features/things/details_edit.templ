@@ -1,0 +1,261 @@
+package things
+
+import (
+	"fmt"
+	"strings"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/input"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/tagsinput"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/textarea"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
+	<form action={ fmt.Sprintf("/things/%s", model.Thing.ID) } method="post" class="flex flex-col gap-8">
+		@EditThingDetailsHeader(l10n, model)
+		<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
+			<div class="flex flex-1 flex-col gap-8">
+				@EditThingDetailsSection(l10n, model)
+			</div>
+			@shared.ColumnDivider()
+			<div class="flex w-full flex-1 flex-col gap-8">
+				@EditThingLocationSection(l10n, model)
+			</div>
+		</div>
+		<div class="flex items-center justify-end gap-3">
+			@button.Button(button.Props{
+				Type:    button.TypeSubmit,
+				Variant: button.VariantDestructive,
+				Class:   "mr-auto rounded-xl px-4",
+				Attributes: templ.Attributes{
+					"formaction": fmt.Sprintf("/things/%s/delete", model.Thing.ID),
+					"onclick":    fmt.Sprintf("return confirm('%s %s?')", l10n.Get("deletethingconfirm"), strings.ReplaceAll(thingDisplayName(model.Thing), "'", "\\'")),
+				},
+			}) {
+				{ l10n.Get("delete") }
+			}
+			@button.Button(button.Props{
+				Href:    fmt.Sprintf("/things/%s", model.Thing.ID),
+				Variant: button.VariantOutline,
+				Class:   "rounded-xl px-4",
+			}) {
+				@icon.X(icon.Props{Class: "size-4"})
+				{ l10n.Get("cancel") }
+			}
+			@button.Button(button.Props{
+				Type:    button.TypeSubmit,
+				Variant: button.VariantDefault,
+				Class:   "rounded-xl px-4",
+			}) {
+				@icon.Check(icon.Props{Class: "size-4"})
+				{ l10n.Get("save") }
+			}
+		</div>
+	</form>
+}
+
+templ EditThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
+	<div class="flex flex-col gap-4">
+		<a
+			href={ string(templ.SafeURL(fmt.Sprintf("/things/%s", model.Thing.ID))) }
+			hx-get={ string(templ.SafeURL(fmt.Sprintf("/things/%s", model.Thing.ID))) }
+			hx-target="#app-shell"
+			hx-swap="outerHTML"
+			hx-replace-url="true"
+			class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+		>
+			<span aria-hidden="true">←</span>
+			<span>{ l10n.Get("things") }</span>
+		</a>
+		<div class="flex items-center justify-between gap-4">
+			<div class="min-w-0">
+				<h1 class="text-3xl font-bold font-heading text-foreground">{ l10n.Get("edit") } { thingDisplayName(model.Thing) }</h1>
+			</div>
+		</div>
+	</div>
+}
+
+templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
+	@shared.EditDetailSectionCard(l10n.Get("details"), icon.Info(icon.Props{Size: 24, Class: "text-foreground"})) {
+		<div class="grid gap-6 py-6 px-8">
+			<div class="grid gap-6 md:grid-cols-2">
+				@shared.FormReadOnlyField(l10n.Get("thingtype")) {
+					<div class="flex min-h-10 items-center px-0 text-sm text-foreground">
+						{ l10n.Get(model.Thing.Type) }
+					</div>
+				}
+				if strings.TrimSpace(model.Thing.SubType) != "" {
+					@shared.FormReadOnlyField(l10n.Get("category")) {
+						<div class="flex min-h-10 items-center px-0 text-sm text-foreground">
+							{ l10n.Get(model.Thing.SubType) }
+						</div>
+					}
+				}
+			</div>
+			<div class="grid gap-6 md:grid-cols-2">
+				@shared.FormField(l10n.Get("name"), "thing-name") {
+					@input.Input(input.Props{ID: "thing-name", Name: "name", Value: model.Thing.Name, Class: "h-10 rounded-xl bg-background"})
+				}
+				@shared.FormField(l10n.Get("alternativeName"), "thing-alternative-name") {
+					@input.Input(input.Props{ID: "thing-alternative-name", Name: "alternativeName", Value: model.Thing.AlternativeName, Class: "h-10 rounded-xl bg-background"})
+				}
+			</div>
+			<div class="grid gap-6 md:grid-cols-2">
+				@shared.SelectBoxField(shared.SelectBoxFieldProps{
+					FieldID:     "thing-organisation",
+					Name:        "organisation",
+					Label:       l10n.Get("organisation"),
+					Placeholder: l10n.Get("choose"),
+					NoSearch:    true,
+					Options:     tenantFieldOptions(model.Organisations, model.Thing.Tenant),
+				})
+			</div>
+			@EditThingTypeSpecificFields(l10n, model)
+			@shared.FormField(l10n.Get("sensorconnected"), "thing-current-device") {
+				@input.Input(input.Props{
+					ID:          "thing-current-device",
+					Name:        "currentDevice",
+					Value:       currentConnectedSensor(model),
+					Placeholder: l10n.Get("sensorconnected"),
+					Class:       "h-10 rounded-xl bg-background",
+				})
+			}
+			@shared.FormField(l10n.Get("tags"), "thing-tags") {
+				@tagsinput.TagsInput(tagsinput.Props{
+					ID:          "thing-tags",
+					Name:        "tags",
+					Value:       model.Thing.Tags,
+					Placeholder: l10n.Get("addtag"),
+					Class:       "rounded-xl bg-background",
+					Suggestions: model.TagOptions,
+				})
+			}
+			@shared.FormField(l10n.Get("description"), "thing-description") {
+				@textarea.Textarea(textarea.Props{
+					ID:          "thing-description",
+					Name:        "description",
+					Value:       model.Thing.Description,
+					Placeholder: l10n.Get("description"),
+					Class:       "min-h-36 rounded-xl bg-background",
+				})
+			}
+		</div>
+	}
+}
+
+templ EditThingTypeSpecificFields(l10n Localizer, model ThingDetailsPageViewModel) {
+	{{ fields := thingMeasurementFields(l10n, model.Thing) }}
+	if len(fields) > 0 {
+		@ThingMeasurementFieldsGrid(fields)
+	}
+}
+
+templ ThingNumericField(field ThingMeasurementField) {
+	@shared.FormField(field.Label, "thing-"+field.Name) {
+		<div class="flex items-center gap-3">
+			@input.Input(input.Props{
+				ID:    "thing-" + field.Name,
+				Name:  field.Name,
+				Type:  input.TypeNumber,
+				Value: field.Value,
+				Class: "h-10 rounded-xl bg-background",
+				Attributes: templ.Attributes{
+					"step": field.Step,
+					"min":  field.Min,
+					"max":  field.Max,
+				},
+			})
+			if field.Unit != "" {
+				<span class="text-sm text-muted-foreground">{ field.Unit }</span>
+			}
+		</div>
+	}
+}
+
+templ ThingMeasurementFieldsGrid(fields []ThingMeasurementField) {
+	<div class="grid gap-6 md:grid-cols-2">
+		for _, field := range fields {
+			@ThingNumericField(field)
+		}
+	</div>
+}
+
+templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) {
+	@shared.EditDetailSectionCard(
+		l10n.Get("location"),
+		icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
+	) {
+		<div class="flex flex-col gap-6 py-6 px-8">
+			<div class="grid gap-6 md:grid-cols-2">
+				@shared.FormField(l10n.Get("latitude"), "latitude") {
+					@input.Input(input.Props{
+						ID:    "latitude",
+						Name:  "latitude",
+						Type:  input.TypeNumber,
+						Value: formatCoordinate(model.Thing.Latitude),
+						Class: "h-10 rounded-xl bg-background",
+						Attributes: templ.Attributes{
+							"min":  "-90",
+							"max":  "90",
+							"step": "0.000001",
+						},
+					})
+				}
+				@shared.FormField(l10n.Get("longitude"), "longitude") {
+					@input.Input(input.Props{
+						ID:    "longitude",
+						Name:  "longitude",
+						Type:  input.TypeNumber,
+						Value: formatCoordinate(model.Thing.Longitude),
+						Class: "h-10 rounded-xl bg-background",
+						Attributes: templ.Attributes{
+							"min":  "-180",
+							"max":  "180",
+							"step": "0.000001",
+						},
+					})
+				}
+			</div>
+			@shared.Map("medium", false, true, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+		</div>
+	}
+}
+
+func thingMeasurementFields(l10n Localizer, thing ThingViewModel) []ThingMeasurementField {
+	value := func(key string) string {
+		if number, ok := thing.GetFloat(key); ok {
+			return fmt.Sprintf("%.2f", number)
+		}
+		return "0.00"
+	}
+
+	kind := strings.ToLower(strings.TrimSpace(thing.SubType))
+	if kind == "" {
+		kind = strings.ToLower(strings.TrimSpace(thing.Type))
+	}
+
+	switch kind {
+	case "container", "wastecontainer":
+		return []ThingMeasurementField{
+			{Label: l10n.Get("maxcontainerheight"), Name: "maxd", Value: value("maxd"), Unit: l10n.Get("m"), Step: "0.01"},
+			{Label: l10n.Get("maxfillinglevel"), Name: "maxl", Value: value("maxl"), Unit: l10n.Get("m"), Step: "0.01"},
+		}
+	case "sandstorage":
+		return []ThingMeasurementField{
+			{Label: l10n.Get("maxcontainerheight"), Name: "maxd", Value: value("maxd"), Unit: l10n.Get("m"), Step: "0.01"},
+			{Label: l10n.Get("maxfillinglevel"), Name: "maxl", Value: value("maxl"), Unit: l10n.Get("m"), Step: "0.01"},
+			{Label: l10n.Get("angle"), Name: "angle", Value: value("angle"), Unit: l10n.Get("degrees"), Step: "1", Min: "0", Max: "90"},
+		}
+	case "combinedseweroverflow", "sewer":
+		return []ThingMeasurementField{
+			{Label: l10n.Get("maxdistancesewer"), Name: "maxd", Value: value("maxd"), Unit: l10n.Get("m"), Step: "0.01"},
+			{Label: l10n.Get("maxwaterlevel"), Name: "maxl", Value: value("maxl"), Unit: l10n.Get("m"), Step: "0.01"},
+			{Label: l10n.Get("offset"), Name: "offset", Value: value("offset"), Unit: l10n.Get("m"), Step: "0.01"},
+		}
+	default:
+		return nil
+	}
+}

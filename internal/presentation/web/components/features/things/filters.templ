@@ -1,0 +1,171 @@
+package things
+
+import (
+	"fmt"
+	"slices"
+	"strings"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/selectbox"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ Filters(l10n Localizer, viewModel ThingsPageViewModel) {
+	@shared.ListFiltersCard(
+		shared.TableOrMapToggle(l10n, shared.TableOrMapToggleProps{
+			BaseID:        "things-view-mode",
+			FormID:        "things-filters-form",
+			HiddenInputID: "mapview",
+			MapView:       viewModel.MapView,
+			TableLabel:    l10n.Get("table"),
+			MapLabel:      l10n.Get("map"),
+		}),
+		shared.ExportAction(l10n, shared.ExportActionProps{
+			Href:   "/admin/export?export=things&accept=text/csv",
+			Form:   "things-filters-form",
+			Target: "_blank",
+			Fields: []string{"type", "tags"},
+		}),
+	) {
+		<form
+			id="things-filters-form"
+			class="grid gap-4 lg:grid-cols-2"
+			hx-get="/components/things/list"
+			hx-target="#tableOrMap"
+			hx-swap="outerHTML"
+			hx-trigger="change"
+		>
+			<input type="hidden" name="limit" value={ fmt.Sprintf("%d", viewModel.Paging.PageSize) }/>
+			<input type="hidden" id="mapview" name="mapview" value={ boolString(viewModel.MapView) }/>
+			<div class="flex flex-col gap-2">
+				@selectbox.SelectBox(selectbox.Props{ID: "type-filter"}) {
+					@selectbox.Trigger(selectbox.TriggerProps{
+						Name:              "type",
+						Multiple:          true,
+						SelectedCountText: l10n.Get("selecteditemcount"),
+						Class:             shared.FilterTriggerClass(),
+					}) {
+						@selectbox.Value(selectbox.ValueProps{
+							Placeholder: l10n.Get("type"),
+							Class:       shared.FilterTriggerValueClass(len(viewModel.Filters.SelectedTypes) > 0),
+						})
+					}
+					@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
+						@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+							for _, option := range viewModel.TypeOptions {
+								@selectbox.Item(selectbox.ItemProps{
+									Value:    option.Value,
+									Selected: contains(viewModel.Filters.SelectedTypes, option.Value),
+									Class:    shared.FilterDropdownItemClass(contains(viewModel.Filters.SelectedTypes, option.Value)),
+								}) {
+									{ option.Label }
+								}
+							}
+						}
+					}
+				}
+			</div>
+			<div class="flex flex-col gap-2">
+				@selectbox.SelectBox(selectbox.Props{ID: "tag-filter"}) {
+					@selectbox.Trigger(selectbox.TriggerProps{
+						Name:              "tags",
+						Multiple:          true,
+						SelectedCountText: l10n.Get("selecteditemcount"),
+						Class:             shared.FilterTriggerClass(),
+					}) {
+						@selectbox.Value(selectbox.ValueProps{
+							Placeholder: l10n.Get("tags"),
+							Class:       shared.FilterTriggerValueClass(len(viewModel.Filters.SelectedTags) > 0),
+						})
+					}
+					@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
+						@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+							for _, option := range viewModel.TagOptions {
+								@selectbox.Item(selectbox.ItemProps{
+									Value:    option.Value,
+									Selected: contains(viewModel.Filters.SelectedTags, option.Value),
+									Class:    shared.FilterDropdownItemClass(contains(viewModel.Filters.SelectedTags, option.Value)),
+								}) {
+									{ option.Value }
+								}
+							}
+						}
+					}
+				}
+			</div>
+		</form>
+	}
+	<div class="mt-4">
+		@shared.SelectedFiltersSummary(shared.SelectedFiltersSummaryProps{
+			ID:                   "selected-filters-summary",
+			FormID:               "things-filters-form",
+			PageSizeFormID:       "things-page-size-form",
+			TargetID:             "#tableOrMap",
+			ClearAllPagePath:     "/things",
+			ClearAllHXPath:       "/components/things/list",
+			ClearAllPageURL:      clearAllThingsPageHref(viewModel.Paging.PageSize, viewModel.MapView),
+			ClearAllHXURL:        clearAllThingsHXHref(viewModel.Paging.PageSize, viewModel.MapView),
+			SelectedFiltersLabel: l10n.Get("selectedfilters"),
+			NoFiltersLabel:       l10n.Get("nofilterselected"),
+			ClearAllLabel:        l10n.Get("clearall"),
+			TrackedFields:        []string{"type", "tags"},
+			PreserveFields:       []string{"limit", "mapview"},
+			Entries:              thingSelectedFilterEntries(viewModel),
+		})
+	</div>
+}
+
+func boolString(value bool) string {
+	if value {
+		return "true"
+	}
+	return "false"
+}
+
+func contains(values []string, expected string) bool {
+	return slices.Contains(values, expected)
+}
+
+func thingSelectedFilterEntries(viewModel ThingsPageViewModel) []shared.SelectedFilterEntry {
+	entries := make([]shared.SelectedFilterEntry, 0, len(viewModel.Filters.SelectedTypes)+len(viewModel.Filters.SelectedTags))
+	for _, selectedType := range viewModel.Filters.SelectedTypes {
+		selectedType = strings.TrimSpace(selectedType)
+		if selectedType == "" {
+			continue
+		}
+		entries = append(entries, shared.SelectedFilterEntry{
+			Name:  "type",
+			Value: selectedType,
+			Text:  thingTypeLabel(viewModel.TypeOptions, selectedType),
+		})
+	}
+	for _, selectedTag := range viewModel.Filters.SelectedTags {
+		selectedTag = strings.TrimSpace(selectedTag)
+		if selectedTag == "" {
+			continue
+		}
+		entries = append(entries, shared.SelectedFilterEntry{
+			Name:  "tags",
+			Value: selectedTag,
+			Text:  selectedTag,
+		})
+	}
+	return entries
+}
+
+func thingTypeLabel(options []TypeOption, value string) string {
+	for _, option := range options {
+		if option.Value == value && strings.TrimSpace(option.Label) != "" {
+			return option.Label
+		}
+	}
+	return value
+}
+
+func clearAllThingsPageHref(pageSize int, mapView bool) string {
+	return "/things?limit=" + fmt.Sprintf("%d", pageSize) + "&mapview=" + boolString(mapView)
+}
+
+func clearAllThingsHXHref(pageSize int, mapView bool) string {
+	return "/components/things/list?limit=" + fmt.Sprintf("%d", pageSize) + "&mapview=" + boolString(mapView)
+}

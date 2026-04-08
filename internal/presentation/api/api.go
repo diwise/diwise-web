@@ -12,11 +12,12 @@ import (
 	"time"
 
 	"github.com/diwise/diwise-web/internal/application"
-	"github.com/diwise/diwise-web/internal/presentation/api/handlers/components/admin"
-	"github.com/diwise/diwise-web/internal/presentation/api/handlers/components/home"
-	"github.com/diwise/diwise-web/internal/presentation/api/handlers/components/sensors"
-	"github.com/diwise/diwise-web/internal/presentation/api/handlers/components/things"
+	"github.com/diwise/diwise-web/internal/presentation/api/handlers/admin"
+	"github.com/diwise/diwise-web/internal/presentation/api/handlers/home"
+	"github.com/diwise/diwise-web/internal/presentation/api/handlers/sensors"
+	"github.com/diwise/diwise-web/internal/presentation/api/handlers/things"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
+	webutils "github.com/diwise/diwise-web/internal/presentation/web/utils"
 
 	"github.com/diwise/frontend-toolkit/pkg/assets"
 	"github.com/diwise/frontend-toolkit/pkg/locale"
@@ -159,12 +160,13 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	assetLoader, _ := assets.NewLoader(ctx,
 		assets.BasePath(assetPath), assets.Logger(logging.GetFromContext(ctx)),
 	)
+	webutils.ScriptURL = func(path string) string {
+		return assetLoader.Load(strings.TrimPrefix(path, "/assets")).Path()
+	}
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
-	// home
+
 	r.Handle("GET /", func() http.Handler {
-		// GET / catches ALL routes that no other handler matches, so we need to make sure that
-		// we only serve the homepage when the path actually IS / (or /home as handled below).
 		next := home.NewHomePage(ctx, l10n, assetLoader.Load, app)
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.URL.Path != "/" {
@@ -180,42 +182,29 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /components/home/usage", RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/tables/alarms", RequireHX(home.NewAlarmsTable(ctx, l10n, assetLoader.Load, app)))
 
-	// things
-	r.HandleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("POST /things", things.NewCreateThingComponentHandler(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("GET /things/{id}", things.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app))
-	r.HandleFunc("DELETE /things/{id}", things.DeleteThingComponentHandler(ctx, l10n, assetLoader.Load, app))
-
-	//things - components
-	r.Handle("GET /components/things", RequireHX(things.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("POST /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("DELETE /components/things/{id}", RequireHX(things.NewThingDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-
-	r.Handle("GET /components/tables/things", RequireHX(things.NewThingsTable(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/things/list", RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))
-
-	// sensors
 	r.HandleFunc("GET /sensors", sensors.NewSensorsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("GET /sensors/{id}", sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
-
-	r.Handle("GET /components/sensors/details", RequireHX(sensors.NewSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/sensors/details/edit", RequireHX(sensors.NewEditSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/sensors/details/sensorid-dialog", RequireHX(sensors.NewSensorIDDialogComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/sensors/details/detach", RequireHX(sensors.NewDetachSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("POST /components/sensors/details/attach", RequireHX(sensors.NewAttachSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("POST /components/sensors/details/detach", RequireHX(sensors.NewDetachSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.HandleFunc("POST /components/sensors/details", sensors.NewSaveSensorDetailsComponentHandler(ctx, l10n, assetLoader.Load, app))
-	//r.Handle("GET /components/sensors/{id}/batterylevel", RequireHX(sensors.NewBatteryLevelComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/tables/sensors", RequireHX(sensors.NewSensorsTable(ctx, l10n, assetLoader.Load, app)))
+	r.HandleFunc("POST /sensors/{id}", sensors.NewSaveSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
+	r.Handle("GET /components/sensors/{id}/attach", RequireHX(sensors.NewAttachSensorDialogHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /components/sensors/{id}/attach", RequireHX(sensors.NewAttachSensorDialogHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/{id}/detach", RequireHX(sensors.NewDetachSensorDialogHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /components/sensors/{id}/detach", RequireHX(sensors.NewDetachSensorDialogHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/attach/search-options", RequireHX(sensors.NewAttachSensorSearchOptionsHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/sensors/list", RequireHX(sensors.NewSensorsDataList(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/tables/sensors", RequireHX(sensors.NewSensorsTable(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/sensors/{id}/status", RequireHX(sensors.NewStatusChartsComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	//measurements
 	r.Handle("GET /components/measurements", RequireHX(sensors.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/things/{id}/measurements", RequireHX(things.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	// admin
-	r.Handle("GET /components/admin/types", RequireHX(admin.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /error", admin.NewErrorPage(ctx, l10n, assetLoader.Load, app))
+	r.Handle("GET /components/sensors/edit/measurement-types", RequireHX(sensors.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
+
+	r.HandleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("POST /things", things.NewCreateThingPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("GET /things/{id}", things.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("POST /things/{id}", things.NewSaveThingDetailsPage(ctx, l10n, assetLoader.Load, app))
+	r.HandleFunc("POST /things/{id}/delete", things.NewDeleteThingDetailsPage(ctx, l10n, assetLoader.Load, app))
+	r.Handle("GET /components/things/new", RequireHX(things.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/{id}/measurements", RequireHX(things.NewThingMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/list", RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))
+
 	r.Handle("GET /admin", admin.NewAdminPage(ctx, l10n, assetLoader.Load, app))
 
 	r.HandleFunc("GET /admin/export", func(w http.ResponseWriter, r *http.Request) {
