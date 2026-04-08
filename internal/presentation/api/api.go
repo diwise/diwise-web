@@ -189,6 +189,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("POST /components/sensors/{id}/attach", RequireHX(sensors.NewAttachSensorDialogHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/sensors/{id}/detach", RequireHX(sensors.NewDetachSensorDialogHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("POST /components/sensors/{id}/detach", RequireHX(sensors.NewDetachSensorDialogHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/attach/search-options", RequireHX(sensors.NewAttachSensorSearchOptionsHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/sensors/list", RequireHX(sensors.NewSensorsDataList(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/tables/sensors", RequireHX(sensors.NewSensorsTable(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/sensors/{id}/status", RequireHX(sensors.NewStatusChartsComponentHandler(ctx, l10n, assetLoader.Load, app)))

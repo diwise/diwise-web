@@ -245,6 +245,36 @@ func NewDetachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 	return http.HandlerFunc(fn)
 }
 
+func NewAttachSensorSearchOptionsHandler(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app sensorDetailsApp) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+
+		query := strings.TrimSpace(r.URL.Query().Get("q"))
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		args := map[string][]string{
+			"search": {query},
+		}
+
+		result, err := app.GetDevices(r.Context(), 0, 15, args)
+		if err != nil {
+			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
+			return
+		}
+
+		sensors := make([]featuresensors.SensorViewModel, 0, len(result.Devices))
+		for _, device := range result.Devices {
+			sensors = append(sensors, toViewModel(device))
+		}
+
+		model := featuresensors.AttachSensorSearchOptionsViewModel{Sensors: sensors}
+
+		component := featuresensors.AttachSensorSearchOptions(localizer, model)
+		helpers.WriteComponentResponse(r.Context(), w, r, component, 8*1024, 0)
+
+	}
+
+	return http.HandlerFunc(fn)
+}
+
 func buildSensorUpdateFields(r *http.Request) map[string]any {
 	fields := make(map[string]any)
 

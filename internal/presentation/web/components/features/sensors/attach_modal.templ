@@ -11,6 +11,8 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
+const attachSensorSearchEnabled = false
+
 templ AttachSensorDialog(l10n Localizer, _ AssetLoaderFunc, model AttachSensorDialogViewModel) {
 	@dialog.Dialog(dialog.Props{ID: "attach-sensor-dialog", Open: true}) {
 		@dialog.Content(dialog.ContentProps{
@@ -38,14 +40,18 @@ templ AttachSensorDialog(l10n Localizer, _ AssetLoaderFunc, model AttachSensorDi
 							{ model.ErrorMessage }
 						</div>
 					}
-					@shared.FormField(l10n.Get("sensorID"), "new-sensor-id") {
-						@input.Input(input.Props{
-							ID:          "new-sensor-id",
-							Name:        "newSensorID",
-							Value:       model.SensorID,
-							Placeholder: l10n.Get("sensorID"),
-							Class:       "h-12 rounded-xl bg-background px-4 text-base",
-						})
+					if attachSensorSearchEnabled {
+						@AttachSensorSearchField(l10n, model.SensorID)
+					} else {
+						@shared.FormField(l10n.Get("sensorID"), "new-sensor-id") {
+							@input.Input(input.Props{
+								ID:          "new-sensor-id",
+								Name:        "newSensorID",
+								Value:       model.SensorID,
+								Placeholder: l10n.Get("sensorID"),
+								Class:       "h-12 rounded-xl bg-background px-4 text-base",
+							})
+						}
 					}
 					@shared.SelectBoxField(shared.SelectBoxFieldProps{
 						FieldID:         "attach-sensor-type",
@@ -77,6 +83,9 @@ templ AttachSensorDialog(l10n Localizer, _ AssetLoaderFunc, model AttachSensorDi
 						{ l10n.Get("save") }
 					}
 				</div>
+				if attachSensorSearchEnabled {
+					@AttachSensorFormSyncScript()
+				}
 				@shared.RequiredSelectBoxValidationScript("attach-sensor-dialog-form")
 			</form>
 		}
@@ -133,11 +142,112 @@ templ DetachSensorDialog(l10n Localizer, _ AssetLoaderFunc, model DetachSensorDi
 	}
 }
 
+
+templ AttachSensorSearchField(l10n Localizer, sensorID string) {
+	@shared.FormField(l10n.Get("sensorID"), "attach-sensor-search") {
+			<div class="space-y-3">
+					@input.Input(input.Props{
+							ID:          "attach-sensor-search",
+							Name:        "q",
+							Value:       sensorID,
+							Placeholder: "Search sensor",
+							Class:       "h-12 rounded-xl bg-background px-4 text-base",
+							Attributes: templ.Attributes{
+									"hx-get":     "/components/sensors/attach/search-options",
+									"hx-target":  "#attach-sensor-search-results",
+									"hx-swap":    "innerHTML",
+									"hx-trigger": "input changed delay:300ms",
+							},
+					})
+					<input type="hidden" id="attach-selected-sensor" name="newSensorID" value={ sensorID }/>
+					<div 
+							id="attach-sensor-search-results"
+							class="rounded-xl border"
+					></div>
+			</div>
+	}
+}
+
+templ AttachSensorSearchOptions(l10n Localizer, model AttachSensorSearchOptionsViewModel) {
+	<div class="rounded-xl border divide-y divide-border/50">
+		if len(model.Sensors) == 0 {
+			<div class="px-4 py-3 text-sm text-muted-foreground">
+				{l10n.Get("sensormissing")}
+			</div>
+		} else {
+			<div class="grid gap-2 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+				<div>{ l10n.Get("name") }</div>
+				<div>{ l10n.Get("sensorID") }</div>
+			</div>
+		}
+		for _, sensor := range model.Sensors {
+			<button
+				type="button"
+				class="block w-full px-4 py-3 text-left transition hover:bg-muted"
+				{ templ.Attributes{
+					"onclick": fmt.Sprintf(
+						"document.getElementById('attach-sensor-search').value=%q;"+
+							"document.getElementById('attach-selected-sensor').value=%q;"+
+							"document.getElementById('attach-sensor-search-results').innerHTML='';",
+						sensor.DevEUI,
+						sensor.DevEUI,
+					),
+				}... }
+			>
+				<div class="grid gap-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+					<div class="min-w-0">
+						<div class="flex items-center gap-2">
+							<span class={ attachSensorActiveIndicatorClass(sensor.Active) }></span>
+							<div class="truncate text-sm font-medium text-foreground">
+								if sensor.Name != "" {
+									{ sensor.Name }
+								} else {
+									{ "-" }
+								}
+							</div>
+						</div>
+					</div>
+					<div class="min-w-0 truncate text-sm font-medium text-foreground">{ sensor.DevEUI }</div>
+				</div>
+			</button>
+		}
+	</div>
+}
+
+templ AttachSensorFormSyncScript() {
+	<script nonce={ templ.GetNonce(ctx) }>
+		(() => {
+			const form = document.getElementById('attach-sensor-dialog-form');
+			if (!form || form.dataset.attachSensorSync === 'true') return;
+			form.dataset.attachSensorSync = 'true';
+
+			const searchInput = document.getElementById('attach-sensor-search');
+			const hiddenInput = document.getElementById('attach-selected-sensor');
+			if (!(searchInput instanceof HTMLInputElement) || !(hiddenInput instanceof HTMLInputElement)) return;
+
+			searchInput.addEventListener('input', () => {
+				hiddenInput.value = searchInput.value.trim();
+			});
+
+			form.addEventListener('submit', () => {
+				hiddenInput.value = searchInput.value.trim();
+			});
+		})();
+	</script>
+}
+
 func currentSensorID(model AttachSensorDialogViewModel) string {
 	if model.CurrentSensorID != "" {
 		return model.CurrentSensorID
 	}
 	return "-"
+}
+
+func attachSensorActiveIndicatorClass(active bool) string {
+	if active {
+		return "inline-block size-2.5 rounded-full bg-[var(--status-online)]"
+	}
+	return "inline-block size-2.5 rounded-full bg-[var(--status-offline)]"
 }
 
 func detachPrompt(_ Localizer, model DetachSensorDialogViewModel) string {
