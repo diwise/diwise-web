@@ -74,6 +74,37 @@ func (s *Service) GetDevices(ctx context.Context, offset, limit int, args map[st
 	}, nil
 }
 
+func (s *Service) GetSensors(ctx context.Context, offset, limit int, args map[string][]string) (SensorResult, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-devices")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	params := url.Values{}
+	params.Add("limit", fmt.Sprintf("%d", limit))
+	params.Add("offset", fmt.Sprintf("%d", offset))
+	maps.Copy(params, args)
+
+	var res *client.ApiResponse
+	res, err = s.client.Get(ctx, s.client.SensorsManagementURL(), "", params)
+	if err != nil {
+		return SensorResult{}, err
+	}
+
+	var sensors []Sensor
+	err = json.Unmarshal(res.Data, &sensors)
+	if err != nil {
+		return SensorResult{}, err
+	}
+
+	return SensorResult{
+		Sensors:      sensors,
+		TotalRecords: int(res.Meta.TotalRecords),
+		Offset:       int(*res.Meta.Offset),
+		Limit:        int(*res.Meta.Limit),
+		Count:        len(sensors),
+	}, nil
+}
+
 func (s *Service) GetSensorStatus(ctx context.Context, id string) ([]SensorStatus, error) {
 	var err error
 	ctx, span := tracer.Start(ctx, "get-sensor-status")

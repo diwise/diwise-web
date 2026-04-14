@@ -10,6 +10,7 @@ import (
 type Management interface {
 	GetDevice(ctx context.Context, id string) (Device, error)
 	GetDevices(ctx context.Context, offset, limit int, args map[string][]string) (DeviceResult, error)
+	GetSensors(ctx context.Context, offset, limit int, args map[string][]string) (SensorResult, error)
 	UpdateDevice(ctx context.Context, deviceID string, fields map[string]any) error
 	UpdateSensor(ctx context.Context, sensorID string, fields map[string]any) error
 	Attach(ctx context.Context, deviceID string) error
@@ -98,6 +99,19 @@ func (d Device) ObservedAt() time.Time {
 
 type DeviceResult struct {
 	Devices      []Device
+	TotalRecords int
+	Count        int
+	Offset       int
+	Limit        int
+}
+
+type Sensor struct {
+	SensorID string  `json:"sensorID"`
+	Name     *string `json:"name"`
+}
+
+type SensorResult struct {
+	Sensors      []Sensor
 	TotalRecords int
 	Count        int
 	Offset       int
