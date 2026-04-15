@@ -162,10 +162,11 @@ templ EditSensorDetailsFormSection(l10n Localizer, sensor SensorDetailsPageViewM
 					HTMXAttrs: templ.Attributes{
 						"hx-get":     "/components/sensors/edit/measurement-types",
 						"hx-target":  "#measurement-types-field",
+						"hx-swap":    "outerHTML",
 						"hx-trigger": "change",
 					},
 				})
-				@MeasurementTypeOptionsField(l10n, MeasurementTypeOptionsProps{Options: sensor.TypeOptions})
+					@MeasurementTypeOptionsField(l10n, MeasurementTypeOptionsProps{Options: sensor.TypeOptions})
 			</div>
 			<div class="grid gap-6 md:grid-cols-2">
 				@shared.SelectBoxField(shared.SelectBoxFieldProps{
