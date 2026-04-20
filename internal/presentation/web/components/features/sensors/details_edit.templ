@@ -152,21 +152,16 @@ templ EditSensorDetailsFormSection(l10n Localizer, sensor SensorDetailsPageViewM
 				})
 			</div>
 			<div class="grid gap-6 md:grid-cols-2">
-				@shared.SelectBoxField(shared.SelectBoxFieldProps{
-					FieldID:     "sensor-type",
-					Name:        "sensorType",
-					Label:       l10n.Get("sensortype"),
-					Placeholder: l10n.Get("choose"),
-					NoSearch:    true,
-					Options:     sensorTypeFieldOptions(sensor.DeviceProfiles, sensor.DeviceProfileName),
-					HTMXAttrs: templ.Attributes{
-						"hx-get":     "/components/sensors/edit/measurement-types",
-						"hx-target":  "#measurement-types-field",
-						"hx-swap":    "outerHTML",
-						"hx-trigger": "change",
-					},
-				})
-					@MeasurementTypeOptionsField(l10n, MeasurementTypeOptionsProps{Options: sensor.TypeOptions})
+				@shared.FormField(l10n.Get("sensortype"), "sensor-type") {
+					@input.Input(input.Props{
+						ID:       "sensor-type",
+						Name:     "sensorType",
+						Value:    sensor.DeviceProfileName,
+						Disabled: true,
+						Class:    "h-10 rounded-xl bg-background w-full",
+					})
+				}
+				@MeasurementTypeOptionsField(l10n, MeasurementTypeOptionsProps{Options: sensor.TypeOptions})
 			</div>
 			<div class="grid gap-6 md:grid-cols-2">
 				@shared.SelectBoxField(shared.SelectBoxFieldProps{
