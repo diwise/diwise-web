@@ -29,14 +29,17 @@ templ PageSizeControl(props PageSizeControlProps) {
 		hx-trigger="change"
 	>
 		<span class="shrink-0 text-sm font-medium text-muted-foreground">{ props.Label }:</span>
-		@selectbox.SelectBox(selectbox.Props{ID: props.FormID + "-select"}) {
+		@selectbox.SelectBox(selectbox.Props{
+			ID:    props.FormID + "-select",
+			Class: "page-size-selectbox",
+		}) {
 			@selectbox.Trigger(selectbox.TriggerProps{
 				Name:  "limit",
-				Class: "h-9 min-w-[108px] justify-between rounded-xl bg-background px-3 text-sm shadow-xs",
+				Class: "h-9 min-w-[108px] justify-between rounded-xl bg-background px-3 text-left text-sm shadow-xs",
 			}) {
 				@selectbox.Value(selectbox.ValueProps{
 					Placeholder: strconv.Itoa(props.PageSize),
-					Class:       "text-sm text-foreground",
+					Class:       "text-left text-sm text-foreground",
 				})
 			}
 			@selectbox.Content(selectbox.ContentProps{
@@ -57,4 +60,13 @@ templ PageSizeControl(props PageSizeControlProps) {
 			}
 		}
 	</form>
+	<style nonce={ templ.GetNonce(ctx) }>
+		.page-size-selectbox [data-tui-selectbox-clear-trigger] {
+			display: none !important;
+		}
+
+		.page-size-selectbox [data-tui-selectbox-chevron] {
+			display: inline-flex !important;
+		}
+	</style>
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/selectbox"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/tagsinput"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/textarea"
+	"github.com/diwise/diwise-web/internal/presentation/web/utils"
 )
 
 // TemplUIScripts includes script tags for all currently installed templui components
@@ -17,11 +18,12 @@ import (
 templ TemplUIScripts() {
 	@input.Script()
 	@label.Script()
-	@popover.Script()
 	@checkbox.Script()
 	@dialog.Script()
 	@progress.Script()
 	@selectbox.Script()
 	@tagsinput.Script()
 	@textarea.Script()
+	@popover.Script()
+	<script defer nonce={ templ.GetNonce(ctx) } src={ utils.ScriptURL("/assets/js/popover-htmx-fix.js") }></script>
 }

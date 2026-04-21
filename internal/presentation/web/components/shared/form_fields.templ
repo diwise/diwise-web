@@ -135,12 +135,12 @@ templ SelectBoxField(props SelectBoxFieldProps) {
 				@selectbox.Trigger(selectbox.TriggerProps{
 					ID:    props.FieldID + "-trigger",
 					Name:  props.Name,
-					Class: "h-10 w-full justify-between rounded-xl bg-background px-3 text-sm shadow-xs",
+					Class: "h-10 w-full justify-between rounded-xl bg-background px-3 text-left text-sm shadow-xs",
 					Attributes: props.HTMXAttrs,
 				}) {
 					@selectbox.Value(selectbox.ValueProps{
 						Placeholder: props.Placeholder,
-						Class:       "w-full text-sm",
+						Class:       "w-full text-left text-sm",
 					})
 				}
 				@selectbox.Content(selectbox.ContentProps{
@@ -198,7 +198,7 @@ templ MultiSelectBoxField(props MultiSelectBoxFieldProps) {
 			}) {
 				@selectbox.Value(selectbox.ValueProps{
 					Placeholder: props.Placeholder,
-					Class:       "w-full text-sm",
+					Class:       "w-full text-left text-sm",
 				})
 			}
 			@selectbox.Content(selectbox.ContentProps{

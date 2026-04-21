@@ -11,7 +11,7 @@ import (
 	. "github.com/diwise/frontend-toolkit"
 )
 
-const attachSensorSearchEnabled = false
+const attachSensorSearchEnabled = true
 
 templ AttachSensorDialog(l10n Localizer, _ AssetLoaderFunc, model AttachSensorDialogViewModel) {
 	@dialog.Dialog(dialog.Props{ID: "attach-sensor-dialog", Open: true}) {
@@ -176,8 +176,9 @@ templ AttachSensorSearchOptions(l10n Localizer, model AttachSensorSearchOptionsV
 			</div>
 		} else {
 			<div class="grid gap-2 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
-				<div>{ l10n.Get("name") }</div>
 				<div>{ l10n.Get("sensorID") }</div>
+				<div>{ l10n.Get("name") }</div>
+				
 			</div>
 		}
 		for _, sensor := range model.Sensors {
@@ -189,25 +190,25 @@ templ AttachSensorSearchOptions(l10n Localizer, model AttachSensorSearchOptionsV
 						"document.getElementById('attach-sensor-search').value=%q;"+
 							"document.getElementById('attach-selected-sensor').value=%q;"+
 							"document.getElementById('attach-sensor-search-results').innerHTML='';",
-						sensor.DevEUI,
-						sensor.DevEUI,
+						sensor.SensorID,
+						sensor.SensorID,
 					),
 				}... }
 			>
 				<div class="grid gap-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+					<div class="min-w-0 truncate text-sm font-medium text-foreground">{ sensor.SensorID }</div>
 					<div class="min-w-0">
 						<div class="flex items-center gap-2">
-							<span class={ attachSensorActiveIndicatorClass(sensor.Active) }></span>
 							<div class="truncate text-sm font-medium text-foreground">
-								if sensor.Name != "" {
-									{ sensor.Name }
+								if sensor.Name != nil && *sensor.Name != "" {
+									{ *sensor.Name }
 								} else {
 									{ "-" }
 								}
 							</div>
 						</div>
 					</div>
-					<div class="min-w-0 truncate text-sm font-medium text-foreground">{ sensor.DevEUI }</div>
+					
 				</div>
 			</button>
 		}

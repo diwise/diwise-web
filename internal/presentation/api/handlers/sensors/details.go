@@ -251,18 +251,22 @@ func NewAttachSensorSearchOptionsHandler(_ context.Context, l10n LocaleBundle, _
 		query := strings.TrimSpace(r.URL.Query().Get("q"))
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		args := map[string][]string{
-			"search": {query},
+			"assigned": {"false"},
+			"search":   {query},
 		}
 
-		result, err := app.GetDevices(r.Context(), 0, 15, args)
+		result, err := app.GetSensors(r.Context(), 0, 15, args)
 		if err != nil {
 			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
 			return
 		}
 
-		sensors := make([]featuresensors.SensorViewModel, 0, len(result.Devices))
-		for _, device := range result.Devices {
-			sensors = append(sensors, toViewModel(device))
+		sensors := make([]featuresensors.SensorSearchViewModel, 0, len(result.Sensors))
+		for _, sensor := range result.Sensors {
+			sensors = append(sensors, featuresensors.SensorSearchViewModel{
+				Name:     sensor.Name,
+				SensorID: sensor.SensorID,
+			})
 		}
 
 		model := featuresensors.AttachSensorSearchOptionsViewModel{Sensors: sensors}

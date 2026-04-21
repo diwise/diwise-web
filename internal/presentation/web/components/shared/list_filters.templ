@@ -17,14 +17,14 @@ templ ListFiltersCard(toggle templ.Component, actions ...templ.Component) {
 }
 
 func FilterTriggerClass() string {
-	return "h-10 w-full justify-between rounded-xl bg-background px-3 text-sm shadow-xs"
+	return "h-10 w-full justify-between rounded-xl bg-background px-3 text-left text-sm shadow-xs"
 }
 
 func FilterTriggerValueClass(hasValue bool) string {
 	if hasValue {
-		return "grow text-foreground"
+		return "grow text-left text-foreground"
 	}
-	return "grow text-muted-foreground"
+	return "grow text-left text-muted-foreground"
 }
 
 func FilterDropdownContentClass() string {
