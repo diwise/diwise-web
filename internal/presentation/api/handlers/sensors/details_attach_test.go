@@ -204,6 +204,10 @@ func (a *testDeviceApp) GetDevices(context.Context, int, int, map[string][]strin
 	return devices.DeviceResult{}, nil
 }
 
+func (a *testDeviceApp) GetSensors(context.Context, int, int, map[string][]string) (devices.SensorResult, error) {
+	return devices.SensorResult{}, nil
+}
+
 func (a *testDeviceApp) Attach(ctx context.Context, deviceID string) error {
 	if a.attachFunc != nil {
 		return a.attachFunc(ctx, deviceID)
