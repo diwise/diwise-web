@@ -59,7 +59,8 @@ templ Home(l10n Localizer, viewModel HomeViewModel) {
 						<div
 							class="h-[320px] w-full xl:min-h-[22rem]"
 							hx-get="/components/home/usage"
-							hx-trigger="load, every 60m"
+							hx-trigger="load, every 60m, diwise:themechange from:window"
+							hx-vals="js:{theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'}"
 						>
 							@skeleton.Skeleton(skeleton.Props{Class: "h-full w-full rounded-2xl"})
 						</div>

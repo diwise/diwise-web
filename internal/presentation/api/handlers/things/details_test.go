@@ -151,6 +151,32 @@ func TestThingMeasurementChartConfigUsesMaxDistanceForDistanceCharts(t *testing.
 	is.Equal(1.0, *config.Options.Scales["y"].Ticks.StepSize)
 }
 
+func TestLatestMeasurementViewModelUsesSelectedMeasurement(t *testing.T) {
+	is := is.New(t)
+
+	valuePercent := 72.5
+	valueMeters := 1.4
+	summary := latestMeasurementViewModel("thing-1", []appthings.Measurement{
+		{
+			ID:        "thing-1/3435/0",
+			Timestamp: time.Date(2026, 4, 22, 9, 0, 0, 0, time.UTC),
+			Unit:      "%",
+			Value:     &valuePercent,
+		},
+		{
+			ID:        "thing-1/3435/1",
+			Timestamp: time.Date(2026, 4, 22, 9, 5, 0, 0, time.UTC),
+			Unit:      "m",
+			Value:     &valueMeters,
+		},
+	}, "3435-1")
+
+	is.Equal("3435-1", summary.Label)
+	is.Equal("m", summary.Unit)
+	is.True(summary.Value != nil)
+	is.Equal(valueMeters, *summary.Value)
+}
+
 type noopLocalizer struct{}
 
 func (noopLocalizer) Get(key string) string {

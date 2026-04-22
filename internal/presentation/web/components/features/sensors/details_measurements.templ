@@ -108,7 +108,8 @@ templ SensorDetailsMeasurementSection(l10n Localizer, sensor SensorDetailsPageVi
 				hx-get="/components/measurements"
 				hx-include="#sensorMeasurementTypes,#timeAt,#endTimeAt"
 				hx-params="*"
-				hx-trigger="load"
+				hx-trigger="load, diwise:themechange from:window"
+				hx-vals="js:{theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'}"
 			>
 				<div class="h-full w-full rounded-2xl border border-border/70 bg-muted/40"></div>
 			</div>

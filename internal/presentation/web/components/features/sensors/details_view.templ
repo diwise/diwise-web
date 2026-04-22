@@ -155,7 +155,8 @@ templ SensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageViewMod
 				id="statusChartContainer"
 				class="h-[420px] w-full"
 				hx-get={ string(templ.SafeURL(fmt.Sprintf("/components/sensors/%s/status", sensor.DeviceID))) }
-				hx-trigger="load"
+				hx-trigger="load, diwise:themechange from:window"
+				hx-vals="js:{theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'}"
 			>
 				<div class="h-full w-full rounded-2xl border border-border/70 bg-muted/40"></div>
 			</div>

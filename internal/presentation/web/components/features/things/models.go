@@ -143,9 +143,11 @@ type MeasurementOption struct {
 }
 
 type ThingMeasurementPanelProps struct {
-	Chart templ.Component
-	Rows  []MeasurementTableRow
-	Empty bool
+	Chart               templ.Component
+	Rows                []MeasurementTableRow
+	Empty               bool
+	SummaryMeasurement  LatestMeasurementViewModel
+	SelectedMeasurement string
 }
 
 type MeasurementTableRow struct {
