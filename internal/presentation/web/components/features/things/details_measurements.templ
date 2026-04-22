@@ -116,7 +116,8 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 					id="thingMeasurementContent"
 					hx-get={ fmt.Sprintf("/components/things/%s/measurements", model.Thing.ID) }
 					hx-include="#thing-stats-form"
-					hx-trigger="load"
+					hx-trigger="load, diwise:themechange from:window"
+					hx-vals="js:{theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'}"
 				>
 					<div class="flex flex-col gap-4">
 						<div class="flex flex-col gap-2">
