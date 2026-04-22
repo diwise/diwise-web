@@ -210,10 +210,9 @@ func thingTypeSpecificRows(l10n Localizer, thing ThingViewModel) []shared.Detail
 templ thingPropertyLines(l10n Localizer, lines []string, missingMessage string) {
 	{{ visibleLines := make([]string, 0, len(lines)) }}
 	for _, line := range lines {
-		if strings.TrimSpace(line) == "" {
-			continue
+		if strings.TrimSpace(line) != "" {
+			{{ visibleLines = append(visibleLines, line) }}
 		}
-		{{ visibleLines = append(visibleLines, line) }}
 	}
 	if len(visibleLines) == 0 {
 		<span class="italic text-muted-foreground">{ missingMessage }</span>
