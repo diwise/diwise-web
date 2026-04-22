@@ -1,6 +1,8 @@
 (function () {
   "use strict";
 
+  var resizeObservers = new WeakMap();
+
   function parseJSONNode(id) {
     if (!id) {
       return null;
@@ -16,6 +18,42 @@
     } catch (_err) {
       return null;
     }
+  }
+
+  function canvasReady(canvas) {
+    if (!canvas || !canvas.isConnected) {
+      return false;
+    }
+
+    var rect = canvas.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  }
+
+  function ensureResizeObserver(canvas) {
+    if (!canvas || typeof Chart === "undefined" || typeof Chart.getChart !== "function") {
+      return;
+    }
+
+    if (resizeObservers.has(canvas) || typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    var resizeObserver = new ResizeObserver(function () {
+      var chart = Chart.getChart(canvas);
+      if (chart && canvasReady(canvas)) {
+        chart.resize();
+        chart.update("none");
+        return;
+      }
+
+      initChart(canvas, 0);
+    });
+
+    resizeObserver.observe(canvas);
+    if (canvas.parentElement) {
+      resizeObserver.observe(canvas.parentElement);
+    }
+    resizeObservers.set(canvas, resizeObserver);
   }
 
   function initChart(canvas, attempt) {
@@ -37,6 +75,11 @@
       return;
     }
 
+    if (!canvasReady(canvas)) {
+      ensureResizeObserver(canvas);
+      return;
+    }
+
     var existing = Chart.getChart(canvas);
     if (existing) {
       existing.destroy();
@@ -44,6 +87,7 @@
 
     try {
       new Chart(canvas, config);
+      ensureResizeObserver(canvas);
     } catch (err) {
       var needsDateAdapter =
         err &&
@@ -79,20 +123,18 @@
 
   function refresh(root) {
     canvases(root).forEach(function (canvas) {
-      initChart(canvas, 0);
+      requestAnimationFrame(function () {
+        initChart(canvas, 0);
+      });
     });
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    setTimeout(function () {
-      refresh(document);
-    }, 0);
+    refresh(document);
   });
 
-  document.body.addEventListener("htmx:afterSwap", function (event) {
+  document.body.addEventListener("htmx:afterSettle", function (event) {
     var target = event && event.detail ? event.detail.target : document;
-    setTimeout(function () {
-      refresh(target || document);
-    }, 0);
+    refresh(target || document);
   });
 })();

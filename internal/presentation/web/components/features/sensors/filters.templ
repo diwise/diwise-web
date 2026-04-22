@@ -30,7 +30,7 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 	) {
 		<form
 			id="sensors-filters-form"
-			class="grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_repeat(4,minmax(0,1fr))]"
+			class="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center"
 			hx-get="/components/sensors/list"
 			hx-target="#tableOrMap"
 			hx-swap="outerHTML"
@@ -38,7 +38,7 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 		>
 			<input type="hidden" name="limit" value={ strconv.Itoa(viewModel.Paging.PageSize) }/>
 			<input type="hidden" id="mapview" name="mapview" value={ boolString(viewModel.MapView) }/>
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2 lg:w-[15rem] lg:shrink-0">
 				@input.Input(input.Props{
 					ID:          "search",
 					Name:        "search",
@@ -51,7 +51,7 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 					},
 				})
 			</div>
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2 lg:w-48 lg:shrink-0">
 				@selectbox.SelectBox(selectbox.Props{ID: "type-filter"}) {
 					@selectbox.Trigger(selectbox.TriggerProps{
 						Name:              "type",
@@ -85,7 +85,7 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 					}
 				}
 			</div>
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2 lg:w-40 lg:shrink-0">
 				@selectbox.SelectBox(selectbox.Props{ID: "active-filter"}) {
 					@selectbox.Trigger(selectbox.TriggerProps{
 						Name:  "active",
@@ -122,7 +122,7 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 					}
 				}
 			</div>
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2 lg:w-40 lg:shrink-0">
 				@selectbox.SelectBox(selectbox.Props{ID: "online-filter"}) {
 					@selectbox.Trigger(selectbox.TriggerProps{
 						Name:  "online",
@@ -159,7 +159,7 @@ templ Filters(l10n Localizer, viewModel SensorsPageViewModel) {
 					}
 				}
 			</div>
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2 lg:w-52 lg:shrink-0">
 				@input.Input(input.Props{
 					ID:    "lastseen",
 					Name:  "lastseen",
