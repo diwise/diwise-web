@@ -29,7 +29,7 @@ templ Filters(l10n Localizer, viewModel ThingsPageViewModel) {
 	) {
 		<form
 			id="things-filters-form"
-			class="grid gap-4 lg:grid-cols-2"
+			class="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center"
 			hx-get="/components/things/list"
 			hx-target="#tableOrMap"
 			hx-swap="outerHTML"
@@ -37,7 +37,7 @@ templ Filters(l10n Localizer, viewModel ThingsPageViewModel) {
 		>
 			<input type="hidden" name="limit" value={ fmt.Sprintf("%d", viewModel.Paging.PageSize) }/>
 			<input type="hidden" id="mapview" name="mapview" value={ boolString(viewModel.MapView) }/>
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2 lg:w-44 lg:shrink-0">
 				@selectbox.SelectBox(selectbox.Props{ID: "type-filter"}) {
 					@selectbox.Trigger(selectbox.TriggerProps{
 						Name:              "type",
@@ -65,7 +65,7 @@ templ Filters(l10n Localizer, viewModel ThingsPageViewModel) {
 					}
 				}
 			</div>
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-2 lg:w-44 lg:shrink-0">
 				@selectbox.SelectBox(selectbox.Props{ID: "tag-filter"}) {
 					@selectbox.Trigger(selectbox.TriggerProps{
 						Name:              "tags",

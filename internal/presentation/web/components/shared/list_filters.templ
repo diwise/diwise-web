@@ -5,13 +5,17 @@ import "github.com/diwise/diwise-web/internal/presentation/web/components/shared
 templ ListFiltersCard(toggle templ.Component, actions ...templ.Component) {
 	@card.Card(card.Props{Class: "rounded-2xl border-border/80 bg-card shadow-sm"}) {
 		@card.Content(card.ContentProps{Class: "p-5"}) {
-			<div class="mb-4 flex items-center justify-end gap-3">
-				@toggle
-				if len(actions) > 0 && actions[0] != nil {
-					@actions[0]
-				}
+			<div class="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-start lg:justify-between">
+				<div class="min-w-0 flex-1">
+					{ children... }
+				</div>
+				<div class="flex items-center justify-end gap-3 lg:ml-auto lg:shrink-0">
+					if len(actions) > 0 && actions[0] != nil {
+						@actions[0]
+					}
+					@toggle
+				</div>
 			</div>
-			{ children... }
 		}
 	}
 }

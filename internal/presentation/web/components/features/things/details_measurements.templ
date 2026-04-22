@@ -25,7 +25,7 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 					{ l10n.Get("missingdata") }
 				</div>
 			} else {
-				<form id="thing-stats-form" action="/admin/export" method="get" class="flex flex-col gap-6">
+				<form id="thing-stats-form" action="/admin/export" method="get" class="flex flex-col gap-6" hx-sync="#thingMeasurementPanel:replace">
 					<input type="hidden" name="export" value="thing"/>
 					<input type="hidden" name="accept" value="text/csv"/>
 					<input type="hidden" name="thingid" value={ model.Thing.ID }/>

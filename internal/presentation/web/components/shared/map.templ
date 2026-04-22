@@ -100,6 +100,11 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                 return;
             }
 
+            function resolveDarkMode() {
+                const hasStoredTheme = 'theme' in localStorage;
+                return localStorage.theme === 'dark' || (!hasStoredTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            }
+
             const lightModeTileLayer = Leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                 maxZoom: 16, // 200 meters
             });
@@ -118,16 +123,14 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             const showPopup = m.getAttribute('data-show-popup') === 'true';
             const editMode = m.getAttribute('data-edit-mode') === 'true';
             const map = Leaflet.map(mapContainerID).setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
-            const isDarkMode = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-            let layers = {};
             var newMarker = null;
             
             Leaflet.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
 
-            updateMapForTheme(isDarkMode);
-            
-            addFeaturesToMap(geodata, map, isDarkMode, editMode);
+            const initialIsDarkMode = resolveDarkMode();
+            updateMapForTheme(initialIsDarkMode);
+            addFeaturesToMap(geodata, map, initialIsDarkMode, editMode);
             
             map.on('click', onMapClick);
 
@@ -176,6 +179,17 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                     lightModeTileLayer.addTo(map);
                 }
             }
+
+            const onThemeChange = function(event) {
+                if (!document.body.contains(m)) {
+                    window.removeEventListener('diwise:themechange', onThemeChange);
+                    map.remove();
+                    return;
+                }
+                updateMapForTheme(Boolean(event.detail && event.detail.isDark));
+            };
+
+            window.addEventListener('diwise:themechange', onThemeChange);
 
             function createMarker(latlng, icon, editMode = false, onDragCallback = null, zIndexOffset = 0) {
                 let marker = Leaflet.marker(latlng, {

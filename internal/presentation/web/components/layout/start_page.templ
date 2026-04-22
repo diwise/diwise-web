@@ -89,9 +89,9 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 			localStorage.theme = theme;
 			document.cookie = `theme=${theme}; path=/; max-age=31536000;`;
 			const isDark = document.documentElement.classList.contains('dark');
-			if (typeof updateMapForTheme === 'function') {
-				updateMapForTheme(isDark);
-			}
+			window.dispatchEvent(new CustomEvent('diwise:themechange', {
+				detail: { theme, isDark },
+			}));
 		}
 
 		function reloadPage() {
