@@ -119,7 +119,7 @@ func NewThingMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle,
 
 		activeMeasurement := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("measurement")))
 		if activeMeasurement == "" {
-			component := featuresthings.ThingMeasurementPanel(l10n.For(r.Header.Get("Accept-Language")), featuresthings.ThingMeasurementPanelProps{
+			component := featuresthings.ThingMeasurementContent(l10n.For(r.Header.Get("Accept-Language")), featuresthings.ThingMeasurementPanelProps{
 				Empty: true,
 			})
 			helpers.WriteComponentResponse(ctx, w, r, component, 8*1024, 0)
@@ -130,6 +130,11 @@ func NewThingMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle,
 		startTime := getThingTime(r, "timeAt", startOfDay(time.Now().UTC()))
 		endTime := getThingTime(r, "endTimeAt", endOfDay(time.Now().UTC()))
 		query := measurementQuery(activeMeasurement, startTime, endTime)
+		latestValues, err := app.GetLatestValues(ctx, id)
+		if err != nil {
+			http.Error(w, "could not fetch latest thing measurements", http.StatusInternalServerError)
+			return
+		}
 
 		thing, err := app.GetThing(ctx, id, query)
 		if err != nil {
@@ -137,12 +142,14 @@ func NewThingMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle,
 			return
 		}
 
-		panel := featuresthings.ThingMeasurementPanel(localizer, featuresthings.ThingMeasurementPanelProps{
-			Chart: featuresthings.ThingMeasurementChartComponent(thingMeasurementChartConfig(r, localizer, activeMeasurement, thing)),
-			Rows:  measurementRows(thing.Values),
-			Empty: len(thing.Values) == 0 || countMeasurements(thing.Values) == 0,
+		content := featuresthings.ThingMeasurementContent(localizer, featuresthings.ThingMeasurementPanelProps{
+			Chart:               featuresthings.ThingMeasurementChartComponent(thingMeasurementChartConfig(r, localizer, activeMeasurement, thing)),
+			Rows:                measurementRows(thing.Values),
+			Empty:               len(thing.Values) == 0 || countMeasurements(thing.Values) == 0,
+			SummaryMeasurement:  latestMeasurementViewModel(id, latestValues, activeMeasurement),
+			SelectedMeasurement: activeMeasurement,
 		})
-		helpers.WriteComponentResponse(ctx, w, r, panel, 24*1024, 5*time.Minute)
+		helpers.WriteComponentResponse(ctx, w, r, content, 24*1024, 5*time.Minute)
 	}
 
 	return http.HandlerFunc(fn)
@@ -239,6 +246,30 @@ func latestMeasurementLabel(thingID string, measurement appthings.Measurement) s
 	}
 
 	return strings.ReplaceAll(trimmed, "/", "-")
+}
+
+func latestMeasurementViewModel(thingID string, measurements []appthings.Measurement, selected string) featuresthings.LatestMeasurementViewModel {
+	for _, measurement := range measurements {
+		label := latestMeasurementLabel(thingID, measurement)
+		if label != selected {
+			continue
+		}
+
+		item := featuresthings.LatestMeasurementViewModel{
+			ID:        measurement.ID,
+			Label:     label,
+			Timestamp: measurement.Timestamp,
+			Unit:      measurement.Unit,
+			Value:     measurement.Value,
+			BoolValue: measurement.BoolValue,
+		}
+		if measurement.StringValue != nil {
+			item.StringValue = *measurement.StringValue
+		}
+		return item
+	}
+
+	return featuresthings.LatestMeasurementViewModel{Label: selected}
 }
 
 func buildThingUpdateFields(form url.Values) map[string]any {
