@@ -9,12 +9,13 @@ func fallbackComponent(component templ.Component) templ.Component {
 }
 
 templ TableFooter(left, right templ.Component) {
-	<div class="mt-2 flex flex-col gap-4 border-t border-border/70 bg-background pt-5 sm:flex-row sm:items-center sm:justify-between">
-		<div class="flex min-w-0 flex-1 items-center">
+	<div class="mt-2 flex flex-col gap-4 border-t border-border/70 bg-background pt-5 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+		<div class="flex min-w-0 flex-1 items-center sm:justify-self-start">
 			@fallbackComponent(left)
 		</div>
-		<div class="flex min-w-0 items-center justify-start sm:justify-end">
+		<div class="flex min-w-0 items-center justify-start sm:justify-self-center sm:justify-center">
 			@fallbackComponent(right)
 		</div>
+		<div class="hidden sm:block" aria-hidden="true"></div>
 	</div>
 }
