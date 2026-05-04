@@ -418,6 +418,12 @@ other = "{n} valda"
 [sensorconnected]
 other = "Kopplad sensor"
 
+[multisensorsearchplaceholder]
+other = "Klistra in eller sok efter DevEUI och tryck Enter"
+
+[invalidconnectedsensor]
+other = "Kunde inte hitta kopplad sensor \"{{.sensor}}\""
+
 [sensorID]
 other = "Sensor ID"
 

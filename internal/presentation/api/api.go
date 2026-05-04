@@ -203,6 +203,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.HandleFunc("POST /things/{id}/delete", things.NewDeleteThingDetailsPage(ctx, l10n, assetLoader.Load, app))
 	r.Handle("GET /components/things/new", RequireHX(things.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/things/{id}/measurements", RequireHX(things.NewThingMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/search-compatible-sensor-options", RequireHX(things.NewCompatibleSensorSearchOptionsHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/things/list", RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))
 
 	r.Handle("GET /admin", admin.NewAdminPage(ctx, l10n, assetLoader.Load, app))

@@ -148,6 +148,10 @@ func TestNewCreateThingPageCreatesThingWhenSaveFlagPresent(t *testing.T) {
 type testThingsApp struct {
 	newThingCalled bool
 	createdThing   appthings.Thing
+	thing          appthings.Thing
+	validSensors   []appthings.SensorIdentifier
+	devices        map[string]devices.Device
+	updateCalled   bool
 }
 
 func (a *testThingsApp) NewThing(_ context.Context, thing appthings.Thing) error {
@@ -161,15 +165,26 @@ func (a *testThingsApp) GetThings(context.Context, int, int, map[string][]string
 }
 
 func (a *testThingsApp) GetThing(context.Context, string, map[string][]string) (appthings.Thing, error) {
-	return appthings.Thing{}, nil
+	return a.thing, nil
 }
 
 func (a *testThingsApp) GetLatestValues(context.Context, string) ([]appthings.Measurement, error) {
 	return nil, nil
 }
 
-func (a *testThingsApp) GetValidSensors(context.Context, []string) ([]appthings.SensorIdentifier, error) {
-	return nil, nil
+func (a *testThingsApp) GetValidSensors(context.Context, []string, string) ([]appthings.SensorIdentifier, error) {
+	return a.validSensors, nil
+}
+
+func (a *testThingsApp) GetDevice(_ context.Context, id string) (devices.Device, error) {
+	device, ok := a.devices[id]
+	if !ok {
+		return devices.Device{}, http.ErrMissingFile
+	}
+	if device.DeviceID == "" {
+		device.DeviceID = id
+	}
+	return device, nil
 }
 
 func (a *testThingsApp) ConnectSensor(context.Context, string, []string) error {
@@ -177,6 +192,7 @@ func (a *testThingsApp) ConnectSensor(context.Context, string, []string) error {
 }
 
 func (a *testThingsApp) UpdateThing(context.Context, string, map[string]any) error {
+	a.updateCalled = true
 	return nil
 }
 

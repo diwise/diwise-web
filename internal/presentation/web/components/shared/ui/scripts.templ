@@ -10,6 +10,7 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/selectbox"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/tagsinput"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/textarea"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/toast"
 	"github.com/diwise/diwise-web/internal/presentation/web/utils"
 )
 
@@ -25,5 +26,6 @@ templ TemplUIScripts() {
 	@tagsinput.Script()
 	@textarea.Script()
 	@popover.Script()
+	@toast.Script()
 	<script defer nonce={ templ.GetNonce(ctx) } src={ utils.ScriptURL("/assets/js/popover-htmx-fix.js") }></script>
 }

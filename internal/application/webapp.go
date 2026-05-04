@@ -145,8 +145,8 @@ func (a *App) GetTypes(ctx context.Context) ([]string, error) {
 	return a.things.GetTypes(ctx)
 }
 
-func (a *App) GetValidSensors(ctx context.Context, urns []string) ([]things.SensorIdentifier, error) {
-	return a.things.GetValidSensors(ctx, urns)
+func (a *App) GetValidSensors(ctx context.Context, urns []string, search string) ([]things.SensorIdentifier, error) {
+	return a.things.GetValidSensors(ctx, urns, search)
 }
 
 func (a *App) ConnectSensor(ctx context.Context, thingID string, refDevices []string) error {

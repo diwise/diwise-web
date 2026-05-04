@@ -1,0 +1,486 @@
+package shared
+
+import (
+	"fmt"
+	"net/url"
+	"sort"
+	"strings"
+
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/badge"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/input"
+)
+
+type SensorSearchFieldProps struct {
+	Label         string
+	FieldID       string
+	QueryName     string
+	HiddenFieldID string
+	HiddenName    string
+	Value         string
+	HiddenValue   string
+	Placeholder   string
+	SearchURL     string
+	ExtraQuery    map[string]string
+	ResultsID     string
+	InputClass    string
+	ResultsClass  string
+}
+
+type MultiSensorSearchFieldProps struct {
+	Label               string
+	FieldID             string
+	QueryName           string
+	HiddenName          string
+	SelectedContainerID string
+	Selected            []SensorSearchSelectedItem
+	Description         string
+	Placeholder         string
+	SearchURL           string
+	ExtraQuery          map[string]string
+	ResultsID           string
+	InputClass          string
+	ResultsClass        string
+}
+
+type SensorSearchOptionItem struct {
+	Value     string
+	Primary   string
+	Secondary string
+	Display   string
+}
+
+type SensorSearchSelectedItem struct {
+	Value string
+	Label string
+}
+
+type SensorSearchOptionsProps struct {
+	PrimaryHeader   string
+	SecondaryHeader string
+	QueryInputID    string
+	HiddenInputID   string
+	HiddenInputName string
+	SelectedID      string
+	ResultsID       string
+	EmptyText       string
+	Multiple        bool
+	Options         []SensorSearchOptionItem
+}
+
+templ SensorSearchField(props SensorSearchFieldProps) {
+	@FormField(props.Label, props.FieldID) {
+		<div class="space-y-3">
+			@input.Input(input.Props{
+				ID:          props.FieldID,
+				Name:        sensorSearchQueryName(props),
+				Value:       props.Value,
+				Placeholder: props.Placeholder,
+				Class:       sensorSearchInputClass(props),
+				Attributes: templ.Attributes{
+					"hx-get":     sensorSearchURL(props),
+					"hx-target":  "#" + props.ResultsID,
+					"hx-swap":    "innerHTML",
+					"hx-trigger": "input changed delay:300ms",
+				},
+			})
+			<input type="hidden" id={ props.HiddenFieldID } name={ props.HiddenName } value={ sensorSearchHiddenValue(props) }/>
+			<div id={ props.ResultsID } class={ sensorSearchResultsClass(props) }></div>
+		</div>
+		@SensorSearchFieldSyncScript(props.FieldID, props.HiddenFieldID, props.ResultsID)
+	}
+}
+
+templ MultiSensorSearchField(props MultiSensorSearchFieldProps) {
+	@FormField(props.Label, props.FieldID) {
+		<div class="space-y-3">
+			@input.Input(input.Props{
+				ID:          props.FieldID,
+				Name:        sensorSearchQueryNameMulti(props),
+				Placeholder: props.Placeholder,
+				Class:       sensorSearchInputClassMulti(props),
+				Attributes: templ.Attributes{
+					"hx-get":                              sensorSearchURLMulti(props),
+					"hx-target":                           "#" + props.ResultsID,
+					"hx-swap":                             "innerHTML",
+					"hx-trigger":                          "input changed delay:300ms",
+					"data-multi-sensor-search-field":      "true",
+					"data-multi-sensor-search-selected-id": props.SelectedContainerID,
+					"data-multi-sensor-search-results-id":  props.ResultsID,
+					"data-multi-sensor-search-hidden-name": props.HiddenName,
+				},
+			})
+			<input type="hidden" name={ props.HiddenName } value=""/>
+			<div id={ props.SelectedContainerID } class="flex flex-wrap gap-2 empty:hidden">
+				for _, selected := range props.Selected {
+					@multiSensorSearchSelectedItem(props.HiddenName, selected)
+				}
+			</div>
+			<div id={ props.ResultsID } class={ sensorSearchResultsClassMulti(props) }></div>
+		</div>
+		@FormDescription(props.Description)
+		@MultiSensorSearchFieldScript()
+	}
+}
+
+templ SensorSearchOptions(props SensorSearchOptionsProps) {
+	<div class="rounded-xl border divide-y divide-border/50">
+		if len(props.Options) == 0 {
+			<div class="px-4 py-3 text-sm text-muted-foreground">
+				{ props.EmptyText }
+			</div>
+		} else {
+			<div class="grid gap-2 px-4 py-2 text-[11px] uppercase tracking-[0.18em] text-muted-foreground sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+				<div>{ props.PrimaryHeader }</div>
+				<div>{ props.SecondaryHeader }</div>
+			</div>
+		}
+		for _, option := range props.Options {
+			<button
+				type="button"
+				class="block w-full px-4 py-3 text-left transition hover:bg-muted"
+				{ sensorSearchOptionAttributes(props, option)... }
+			>
+				<div class="grid gap-2 sm:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+					<div class="min-w-0 truncate text-sm font-medium text-foreground">{ option.Primary }</div>
+					<div class="min-w-0 truncate text-sm text-foreground">{ sensorSearchSecondary(option.Secondary) }</div>
+				</div>
+			</button>
+		}
+	</div>
+}
+
+templ multiSensorSearchSelectedItem(hiddenName string, selected SensorSearchSelectedItem) {
+	<div
+		class="inline-flex"
+		data-sensor-search-item=""
+		data-sensor-search-value={ selected.Value }
+	>
+		@badge.Badge(badge.Props{
+			Variant: badge.VariantOutline,
+			Class:   multiSensorSearchChipClass(),
+		}) {
+			<span>{ selected.Label }</span>
+			<button
+				type="button"
+				class="inline-flex size-5 items-center justify-center rounded-full text-muted-foreground transition hover:bg-background hover:text-foreground"
+				onclick="window.diwiseMultiSensorSearch.remove(this)"
+				aria-label="Remove sensor"
+			>
+				<span aria-hidden="true">&times;</span>
+			</button>
+			<input type="hidden" name={ hiddenName } value={ selected.Value }/>
+		}
+	</div>
+}
+
+templ SensorSearchFieldSyncScript(fieldID, hiddenFieldID, resultsID string) {
+	<script
+		nonce={ templ.GetNonce(ctx) }
+		data-sensor-search-field-id={ fieldID }
+		data-sensor-search-hidden-field-id={ hiddenFieldID }
+		data-sensor-search-results-id={ resultsID }
+	>
+		(() => {
+			const script = document.currentScript;
+			const searchInput = document.getElementById(script?.dataset.sensorSearchFieldId || '');
+			const hiddenInput = document.getElementById(script?.dataset.sensorSearchHiddenFieldId || '');
+			const results = document.getElementById(script?.dataset.sensorSearchResultsId || '');
+			if (!(searchInput instanceof HTMLInputElement) || !(hiddenInput instanceof HTMLInputElement)) return;
+			if (searchInput.dataset.sensorSearchSync === 'true') return;
+			searchInput.dataset.sensorSearchSync = 'true';
+
+			searchInput.addEventListener('input', () => {
+				const trimmed = searchInput.value.trim();
+				hiddenInput.value = trimmed;
+				if (trimmed !== "") return;
+				if (results) {
+					results.innerHTML = "";
+				}
+			});
+
+			searchInput.addEventListener('htmx:beforeRequest', (event) => {
+				if (searchInput.value.trim() !== "") return;
+				if (results) {
+					results.innerHTML = "";
+				}
+				event.preventDefault();
+			});
+		})();
+	</script>
+}
+
+templ MultiSensorSearchFieldScript() {
+	<script
+		nonce={ templ.GetNonce(ctx) }
+		data-multi-sensor-search-chip-class={ multiSensorSearchChipClass() }
+	>
+		(() => {
+			const script = document.currentScript;
+			const chipClass = script?.dataset.multiSensorSearchChipClass || '';
+			if (!window.diwiseMultiSensorSearch) {
+				const escapeHtml = (value) => String(value || '')
+					.replaceAll('&', '&amp;')
+					.replaceAll('<', '&lt;')
+					.replaceAll('>', '&gt;')
+					.replaceAll('"', '&quot;')
+					.replaceAll("'", '&#39;');
+
+				window.diwiseMultiSensorSearch = {
+					add(fieldID, selectedID, resultsID, hiddenName, display, value) {
+						const searchInput = document.getElementById(fieldID);
+						const selectedContainer = document.getElementById(selectedID);
+						const results = document.getElementById(resultsID);
+						if (!(searchInput instanceof HTMLInputElement) || !selectedContainer || !results) return false;
+
+						const values = splitValues(value);
+						if (!values.length) return false;
+
+						let added = false;
+						values.forEach((itemValue, index) => {
+							const trimmedValue = itemValue.trim();
+							if (!trimmedValue) return;
+
+							const existing = selectedContainer.querySelector(`[data-sensor-search-value="${cssEscape(trimmedValue)}"]`);
+							if (existing) return;
+
+							const item = document.createElement('div');
+							item.className = 'inline-flex';
+							item.dataset.sensorSearchItem = '';
+							item.dataset.sensorSearchValue = trimmedValue;
+							item.innerHTML =
+								`<span class="${escapeHtml(chipClass)}">` +
+									`<span>${escapeHtml(index === 0 ? (display || trimmedValue) : trimmedValue)}</span>` +
+									`<button type="button" class="inline-flex size-5 items-center justify-center rounded-full text-muted-foreground transition hover:bg-background hover:text-foreground" onclick="window.diwiseMultiSensorSearch.remove(this)" aria-label="Remove sensor"><span aria-hidden="true">&times;</span></button>` +
+									`<input type="hidden" name="${escapeHtml(hiddenName)}" value="${escapeHtml(trimmedValue)}"/>` +
+								`</span>`;
+							selectedContainer.appendChild(item);
+							added = true;
+						});
+
+					searchInput.value = "";
+					searchInput.dataset.multiSensorSearchSuppressResults = "true";
+					results.innerHTML = "";
+					searchInput.focus();
+
+					return added;
+					},
+					commit(fieldID, selectedID, resultsID, hiddenName) {
+						const searchInput = document.getElementById(fieldID);
+						if (!(searchInput instanceof HTMLInputElement)) return false;
+						const raw = searchInput.value.trim();
+						if (!raw) return false;
+						return window.diwiseMultiSensorSearch.add(fieldID, selectedID, resultsID, hiddenName, raw, raw);
+					},
+					remove(trigger) {
+						const item = trigger?.closest?.('[data-sensor-search-item]');
+						if (!item) return;
+						item.remove();
+					},
+					init(root = document) {
+						initMultiSensorSearchFields(root);
+					},
+				};
+			}
+
+			window.diwiseMultiSensorSearch.init(document);
+
+			function initMultiSensorSearchFields(root) {
+				root.querySelectorAll('[data-multi-sensor-search-field]').forEach((input) => {
+				if (!(input instanceof HTMLInputElement) || input.dataset.multiSensorSearchInit === 'true') return;
+				input.dataset.multiSensorSearchInit = 'true';
+
+				const selectedID = input.dataset.multiSensorSearchSelectedId || '';
+				const resultsID = input.dataset.multiSensorSearchResultsId || '';
+				const hiddenName = input.dataset.multiSensorSearchHiddenName || '';
+				const form = input.form;
+
+				input.addEventListener('keydown', (event) => {
+					if (event.key !== 'Enter' && event.key !== ',') return;
+					event.preventDefault();
+					event.stopPropagation();
+					if (!input.value.trim()) return;
+					window.diwiseMultiSensorSearch.commit(input.id, selectedID, resultsID, hiddenName);
+				});
+
+				input.addEventListener('input', () => {
+					if (input.value.trim() != "") {
+						input.dataset.multiSensorSearchSuppressResults = 'false';
+					}
+				});
+
+				input.addEventListener('htmx:beforeRequest', (event) => {
+					if (input.dataset.multiSensorSearchSuppressResults !== 'true' && input.value.trim() != "") return;
+					input.dataset.multiSensorSearchSuppressResults = 'false';
+					const results = document.getElementById(resultsID);
+					if (results) {
+						results.innerHTML = "";
+					}
+					event.preventDefault();
+				});
+
+				if (form && form.dataset.multiSensorSearchSubmitInit !== 'true') {
+					form.dataset.multiSensorSearchSubmitInit = 'true';
+					form.addEventListener('submit', (event) => {
+						let committed = false;
+						form.querySelectorAll('[data-multi-sensor-search-field]').forEach((field) => {
+							if (!(field instanceof HTMLInputElement)) return;
+							committed = window.diwiseMultiSensorSearch.commit(
+								field.id,
+								field.dataset.multiSensorSearchSelectedId || '',
+								field.dataset.multiSensorSearchResultsId || '',
+								field.dataset.multiSensorSearchHiddenName || '',
+							) || committed;
+						});
+						if (committed) {
+							event.preventDefault();
+						}
+					});
+				}
+			});
+			}
+
+			function cssEscape(value) {
+				if (window.CSS && typeof window.CSS.escape === 'function') {
+					return window.CSS.escape(value);
+				}
+				return String(value).replace(/["\\]/g, '\\$&');
+			}
+
+			function splitValues(value) {
+				return String(value || '')
+					.split(/[\n,]+/)
+					.map((part) => part.trim())
+					.filter(Boolean);
+			}
+		})();
+	</script>
+}
+
+func sensorSearchURL(props SensorSearchFieldProps) string {
+	return sensorSearchURLValues(props.SearchURL, props.ExtraQuery)
+}
+
+func sensorSearchURLMulti(props MultiSensorSearchFieldProps) string {
+	return sensorSearchURLValues(props.SearchURL, props.ExtraQuery)
+}
+
+func sensorSearchURLValues(baseURL string, extraQuery map[string]string) string {
+	if len(extraQuery) == 0 {
+		return baseURL
+	}
+
+	values := url.Values{}
+	keys := make([]string, 0, len(extraQuery))
+	for key := range extraQuery {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		value := strings.TrimSpace(extraQuery[key])
+		if value == "" {
+			continue
+		}
+		values.Set(key, value)
+	}
+	if len(values) == 0 {
+		return baseURL
+	}
+
+	return baseURL + "?" + values.Encode()
+}
+
+func sensorSearchInputClassMulti(props MultiSensorSearchFieldProps) string {
+	if strings.TrimSpace(props.InputClass) != "" {
+		return props.InputClass
+	}
+	return "h-10 rounded-xl bg-background"
+}
+
+func sensorSearchResultsClassMulti(props MultiSensorSearchFieldProps) string {
+	if strings.TrimSpace(props.ResultsClass) != "" {
+		return props.ResultsClass
+	}
+	return "rounded-xl border"
+}
+
+func sensorSearchQueryNameMulti(props MultiSensorSearchFieldProps) string {
+	if strings.TrimSpace(props.QueryName) != "" {
+		return props.QueryName
+	}
+	return "q"
+}
+
+func sensorSearchOptionAttributes(props SensorSearchOptionsProps, option SensorSearchOptionItem) templ.Attributes {
+	if props.Multiple {
+		return templ.Attributes{
+			"onclick": fmt.Sprintf(
+				"window.diwiseMultiSensorSearch.add(%q,%q,%q,%q,%q,%q);return false;",
+				props.QueryInputID,
+				props.SelectedID,
+				props.ResultsID,
+				props.HiddenInputName,
+				sensorSearchDisplay(option),
+				option.Value,
+			),
+		}
+	}
+
+	return templ.Attributes{
+		"onclick": fmt.Sprintf(
+			"document.getElementById('%s').value=%q;"+
+				"document.getElementById('%s').value=%q;"+
+				"document.getElementById('%s').innerHTML='';",
+			props.QueryInputID,
+			sensorSearchDisplay(option),
+			props.HiddenInputID,
+			option.Value,
+			props.ResultsID,
+		),
+	}
+}
+
+func sensorSearchInputClass(props SensorSearchFieldProps) string {
+	if strings.TrimSpace(props.InputClass) != "" {
+		return props.InputClass
+	}
+	return "h-10 rounded-xl bg-background"
+}
+
+func sensorSearchResultsClass(props SensorSearchFieldProps) string {
+	if strings.TrimSpace(props.ResultsClass) != "" {
+		return props.ResultsClass
+	}
+	return "rounded-xl border"
+}
+
+func sensorSearchQueryName(props SensorSearchFieldProps) string {
+	if strings.TrimSpace(props.QueryName) != "" {
+		return props.QueryName
+	}
+	return "q"
+}
+
+func sensorSearchSecondary(value string) string {
+	if strings.TrimSpace(value) == "" {
+		return "-"
+	}
+	return value
+}
+
+func sensorSearchHiddenValue(props SensorSearchFieldProps) string {
+	if strings.TrimSpace(props.HiddenValue) != "" {
+		return props.HiddenValue
+	}
+	return props.Value
+}
+
+func sensorSearchDisplay(option SensorSearchOptionItem) string {
+	if strings.TrimSpace(option.Display) != "" {
+		return option.Display
+	}
+	return option.Primary
+}
+
+func multiSensorSearchChipClass() string {
+	return "inline-flex items-center gap-2 rounded-full border border-border/70 bg-muted/40 px-3 py-1.5 text-sm text-foreground"
+}
