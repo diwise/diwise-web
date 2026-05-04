@@ -10,12 +10,23 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/input"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/tagsinput"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/textarea"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/toast"
 	. "github.com/diwise/frontend-toolkit"
 )
 
 templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
-	<form action={ fmt.Sprintf("/things/%s", model.Thing.ID) } method="post" class="flex flex-col gap-8">
+	<form
+		action={ fmt.Sprintf("/things/%s", model.Thing.ID) }
+		method="post"
+		class="flex flex-col gap-8"
+		hx-post={ fmt.Sprintf("/things/%s", model.Thing.ID) }
+		hx-target="#thing-edit-toast"
+		hx-swap="innerHTML"
+	>
 		@EditThingDetailsHeader(l10n, model)
+		<div id="thing-edit-toast">
+			@EditThingToast(model.ToastMessage)
+		</div>
 		<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
 			<div class="flex flex-1 flex-col gap-8">
 				@EditThingDetailsSection(l10n, model)
@@ -28,33 +39,50 @@ templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
 		<div class="flex items-center justify-end gap-3">
 			@button.Button(button.Props{
 				Type:    button.TypeSubmit,
-				Variant: button.VariantDestructive,
-				Class:   "mr-auto rounded-xl px-4",
-				Attributes: templ.Attributes{
-					"formaction": fmt.Sprintf("/things/%s/delete", model.Thing.ID),
-					"onclick":    fmt.Sprintf("return confirm('%s %s?')", l10n.Get("deletethingconfirm"), strings.ReplaceAll(thingDisplayName(model.Thing), "'", "\\'")),
-				},
+				Variant: button.VariantDefault,
+				Class:   "order-3 rounded-xl px-4",
 			}) {
-				{ l10n.Get("delete") }
+				@icon.Check(icon.Props{Class: "size-4"})
+				{ l10n.Get("save") }
 			}
 			@button.Button(button.Props{
 				Href:    fmt.Sprintf("/things/%s", model.Thing.ID),
 				Variant: button.VariantOutline,
-				Class:   "rounded-xl px-4",
+				Class:   "order-2 rounded-xl px-4",
 			}) {
 				@icon.X(icon.Props{Class: "size-4"})
 				{ l10n.Get("cancel") }
 			}
 			@button.Button(button.Props{
 				Type:    button.TypeSubmit,
-				Variant: button.VariantDefault,
-				Class:   "rounded-xl px-4",
+				Variant: button.VariantDestructive,
+				Class:   "order-1 mr-auto rounded-xl px-4",
+				Attributes: templ.Attributes{
+					"formaction": fmt.Sprintf("/things/%s/delete", model.Thing.ID),
+					"hx-post":    fmt.Sprintf("/things/%s/delete", model.Thing.ID),
+					"hx-target":  "#app-shell",
+					"hx-swap":    "outerHTML",
+					"hx-replace-url": "true",
+					"onclick":    fmt.Sprintf("return confirm('%s %s?')", l10n.Get("deletethingconfirm"), strings.ReplaceAll(thingDisplayName(model.Thing), "'", "\\'")),
+				},
 			}) {
-				@icon.Check(icon.Props{Class: "size-4"})
-				{ l10n.Get("save") }
+				{ l10n.Get("delete") }
 			}
 		</div>
 	</form>
+}
+
+templ EditThingToast(message string) {
+	if strings.TrimSpace(message) != "" {
+		@toast.Toast(toast.Props{
+			Description: message,
+			Variant:     toast.VariantError,
+			Dismissible: true,
+			Icon:        true,
+			ShowIndicator: true,
+			Position: "bottom-right",
+		})
+	}
 }
 
 templ EditThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
@@ -114,14 +142,10 @@ templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
 				})
 			</div>
 			@EditThingTypeSpecificFields(l10n, model)
-			@shared.FormField(l10n.Get("sensorconnected"), "thing-current-device") {
-				@input.Input(input.Props{
-					ID:          "thing-current-device",
-					Name:        "currentDevice",
-					Value:       currentConnectedSensor(model),
-					Placeholder: l10n.Get("sensorconnected"),
-					Class:       "h-10 rounded-xl bg-background",
-				})
+			if model.AllowsMultipleConnectedSensors {
+				@CompatibleMultiSensorSearchField(l10n, model)
+			} else {
+				@CompatibleSensorSearchField(l10n, model)
 			}
 			@shared.FormField(l10n.Get("tags"), "thing-tags") {
 				@tagsinput.TagsInput(tagsinput.Props{
@@ -146,11 +170,59 @@ templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	}
 }
 
+templ CompatibleSensorSearchField(l10n Localizer, model ThingDetailsPageViewModel) {
+	@shared.SensorSearchField(shared.SensorSearchFieldProps{
+		Label:         l10n.Get("sensorconnected"),
+		FieldID:       "thing-current-device-search",
+		HiddenFieldID: "thing-current-device",
+		HiddenName:    "currentDevice",
+		Value:         currentConnectedSensorValue(model),
+		HiddenValue:   currentConnectedSensorValue(model),
+		Placeholder:   l10n.Get("sensorconnected"),
+		SearchURL:     "/components/things/search-compatible-sensor-options",
+		ExtraQuery: map[string]string{
+			"thingID": model.Thing.ID,
+		},
+		ResultsID: "thing-current-device-results",
+		InputClass: "h-10 rounded-xl bg-background",
+	})
+}
+
+templ CompatibleMultiSensorSearchField(l10n Localizer, model ThingDetailsPageViewModel) {
+	@shared.MultiSensorSearchField(shared.MultiSensorSearchFieldProps{
+		Label:               l10n.Get("sensorconnected"),
+		FieldID:             "thing-current-device-search",
+		HiddenName:          "currentDevice",
+		SelectedContainerID: "thing-current-device-selected",
+		Selected:            connectedSensorSearchItems(model),
+		Description:         "",
+		Placeholder:         l10n.Get("multisensorsearchplaceholder"),
+		SearchURL:           "/components/things/search-compatible-sensor-options",
+		ExtraQuery: map[string]string{
+			"thingID": model.Thing.ID,
+			"usage":   "multi",
+		},
+		ResultsID:  "thing-current-device-results",
+		InputClass: "h-10 rounded-xl bg-background",
+	})
+}
+
 templ EditThingTypeSpecificFields(l10n Localizer, model ThingDetailsPageViewModel) {
 	{{ fields := thingMeasurementFields(l10n, model.Thing) }}
 	if len(fields) > 0 {
 		@ThingMeasurementFieldsGrid(fields)
 	}
+}
+
+func connectedSensorSearchItems(model ThingDetailsPageViewModel) []shared.SensorSearchSelectedItem {
+	items := make([]shared.SensorSearchSelectedItem, 0, len(model.ConnectedSensors))
+	for _, sensor := range model.ConnectedSensors {
+		items = append(items, shared.SensorSearchSelectedItem{
+			Value: sensor.Label,
+			Label: sensor.Label,
+		})
+	}
+	return items
 }
 
 templ ThingNumericField(field ThingMeasurementField) {

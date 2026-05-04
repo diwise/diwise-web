@@ -106,11 +106,11 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             }
 
             const lightModeTileLayer = Leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                maxZoom: 16, // 200 meters
+                maxZoom: 18, // 50 meters
             });
 
             const darkModeTileLayer = Leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                maxZoom: 16,
+                maxZoom: 18,
             });
 
             const m = document.getElementById('map');

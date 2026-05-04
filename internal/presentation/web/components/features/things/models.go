@@ -112,14 +112,21 @@ type MeasurementViewModel struct {
 }
 
 type ThingDetailsPageViewModel struct {
-	Thing               ThingViewModel
-	LatestValues        []LatestMeasurementViewModel
-	ConnectedNames      []string
-	ValidSensors        []SensorOption
-	Organisations       []string
-	TagOptions          []string
-	MeasurementOptions  []MeasurementOption
-	SelectedMeasurement string
+	Thing                          ThingViewModel
+	LatestValues                   []LatestMeasurementViewModel
+	ConnectedSensors               []ConnectedSensorViewModel
+	AllowsMultipleConnectedSensors bool
+	ValidSensors                   []SensorOption
+	Organisations                  []string
+	TagOptions                     []string
+	MeasurementOptions             []MeasurementOption
+	SelectedMeasurement            string
+	ToastMessage                   string
+}
+
+type ConnectedSensorViewModel struct {
+	DeviceID string
+	Label    string
 }
 
 type SensorOption struct {

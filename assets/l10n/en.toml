@@ -418,6 +418,12 @@ other = "{n} selected"
 [sensorconnected]
 other = "Connected sensor"
 
+[multisensorsearchplaceholder]
+other = "Paste or search DevEUI, then press Enter"
+
+[invalidconnectedsensor]
+other = "Could not find connected sensor \"{{.sensor}}\""
+
 [sensorID]
 other = "Sensor ID"
 

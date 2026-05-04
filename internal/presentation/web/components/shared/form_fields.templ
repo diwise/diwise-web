@@ -232,6 +232,7 @@ templ RequiredSelectBoxValidationScript(rootID string) {
 
 			const fields = Array.from(root.querySelectorAll('[data-v2-required-selectbox]'));
 			if (fields.length === 0) return;
+			const submitButtons = Array.from(root.querySelectorAll('button[type="submit"], input[type="submit"]'));
 
 			const validateField = (field) => {
 				const hiddenInput = field.querySelector('[data-tui-selectbox-hidden-input]');
@@ -256,29 +257,45 @@ templ RequiredSelectBoxValidationScript(rootID string) {
 				return valid;
 			};
 
-			fields.forEach((field) => {
-				const hiddenInput = field.querySelector('[data-tui-selectbox-hidden-input]');
-				if (hiddenInput) {
-					hiddenInput.addEventListener('change', () => validateField(field));
-					hiddenInput.addEventListener('input', () => validateField(field));
-				}
-
-				field.addEventListener('click', () => {
-					requestAnimationFrame(() => requestAnimationFrame(() => validateField(field)));
-				}, true);
-			});
-
-			root.addEventListener('submit', (event) => {
+			const validateAllFields = () => {
 				let valid = true;
 				fields.forEach((field) => {
 					if (!validateField(field)) {
 						valid = false;
 					}
 				});
-				if (!valid) {
+				submitButtons.forEach((button) => {
+					button.disabled = !valid;
+				});
+				return valid;
+			};
+
+			fields.forEach((field) => {
+				const hiddenInput = field.querySelector('[data-tui-selectbox-hidden-input]');
+				if (hiddenInput) {
+					hiddenInput.addEventListener('change', () => validateAllFields());
+					hiddenInput.addEventListener('input', () => validateAllFields());
+				}
+
+				field.addEventListener('click', () => {
+					requestAnimationFrame(() => requestAnimationFrame(() => validateAllFields()));
+				}, true);
+			});
+
+			root.addEventListener('submit', (event) => {
+				if (!validateAllFields()) {
 					event.preventDefault();
 				}
 			});
+
+			root.addEventListener('htmx:beforeRequest', (event) => {
+				if (event.target !== root) return;
+				if (!validateAllFields()) {
+					event.preventDefault();
+				}
+			});
+
+			validateAllFields();
 		})();
 	</script>
 }

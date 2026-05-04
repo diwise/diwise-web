@@ -3,6 +3,7 @@ package things
 import (
 	"cmp"
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"net/http"
@@ -19,6 +20,7 @@ import (
 	featuresthings "github.com/diwise/diwise-web/internal/presentation/web/components/features/things"
 	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/toast"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
 	. "github.com/diwise/frontend-toolkit"
@@ -63,7 +65,9 @@ func NewThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoa
 	return http.HandlerFunc(fn)
 }
 
-func NewSaveThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
+func NewSaveThingDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingsApp) http.HandlerFunc {
+	version := helpers.GetVersion(ctx)
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		if id == "" {
@@ -76,8 +80,37 @@ func NewSaveThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderFun
 			return
 		}
 
-		if err := app.UpdateThing(r.Context(), id, buildThingUpdateFields(r.Form)); err != nil {
+		fields, err := buildThingUpdateFields(r.Context(), app, id, r.Form)
+		if err != nil {
+			localizer := l10n.For(r.Header.Get("Accept-Language"))
+			message := localizeThingValidationMessage(localizer, err)
+			if helpers.IsHxRequest(r) {
+				helpers.WriteComponentResponse(r.Context(), w, r, thingValidationToast(message), 4*1024, 0)
+				return
+			}
+
+			model, modelErr := composeDetailsModel(r.Context(), id, app, true)
+			if modelErr != nil {
+				http.Error(w, "could not fetch thing", http.StatusInternalServerError)
+				return
+			}
+			applySubmittedThingDetailsForm(&model, r.Form)
+			model.ToastMessage = message
+
+			content := featuresthings.EditThingDetailsPage(localizer, model)
+			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
+			helpers.WriteComponentResponse(r.Context(), w, r, page, 32*1024, 0)
+			return
+		}
+
+		if err := app.UpdateThing(r.Context(), id, fields); err != nil {
 			http.Error(w, "could not update thing", http.StatusInternalServerError)
+			return
+		}
+
+		if helpers.IsHxRequest(r) {
+			w.Header().Set("HX-Redirect", fmt.Sprintf("/things/%s", id))
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 
@@ -97,6 +130,12 @@ func NewDeleteThingDetailsPage(_ context.Context, _ LocaleBundle, _ AssetLoaderF
 
 		if err := app.DeleteThing(r.Context(), id); err != nil {
 			http.Error(w, "could not delete thing", http.StatusInternalServerError)
+			return
+		}
+
+		if helpers.IsHxRequest(r) {
+			w.Header().Set("HX-Redirect", "/things")
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 
@@ -155,6 +194,58 @@ func NewThingMeasurementComponentHandler(ctx context.Context, l10n LocaleBundle,
 	return http.HandlerFunc(fn)
 }
 
+func NewCompatibleSensorSearchOptionsHandler(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app thingsApp) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+
+		query := strings.TrimSpace(r.URL.Query().Get("q"))
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		thingID := strings.TrimSpace(r.URL.Query().Get("thingID"))
+		usage := strings.TrimSpace(r.URL.Query().Get("usage"))
+		if thingID == "" {
+			http.Error(w, "missing thing id", http.StatusBadRequest)
+			return
+		}
+
+		thing, err := app.GetThing(r.Context(), thingID, nil)
+		if err != nil {
+			http.Error(w, "could not fetch thing", http.StatusInternalServerError)
+			return
+		}
+
+		validSensors, err := app.GetValidSensors(r.Context(), thing.ValidURNs, query)
+		if err != nil {
+			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
+			return
+		}
+
+		options := make([]shared.SensorSearchOptionItem, 0, len(validSensors))
+		for _, sensor := range validSensors {
+			options = append(options, shared.SensorSearchOptionItem{
+				Value:     sensor.SensorID,
+				Primary:   sensor.SensorID,
+				Secondary: sensor.Name,
+				Display:   sensor.SensorID,
+			})
+		}
+
+		component := shared.SensorSearchOptions(shared.SensorSearchOptionsProps{
+			PrimaryHeader:   localizer.Get("deveui"),
+			SecondaryHeader: localizer.Get("sensorName"),
+			QueryInputID:    "thing-current-device-search",
+			HiddenInputID:   "thing-current-device",
+			HiddenInputName: "currentDevice",
+			SelectedID:      "thing-current-device-selected",
+			ResultsID:       "thing-current-device-results",
+			EmptyText:       localizer.Get("sensormissing"),
+			Multiple:        usage == "multi",
+			Options:         options,
+		})
+		helpers.WriteComponentResponse(r.Context(), w, r, component, 8*1024, 0)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
 func composeDetailsModel(ctx context.Context, id string, app thingsApp, includeEditOptions bool) (featuresthings.ThingDetailsPageViewModel, error) {
 	thing, err := app.GetThing(ctx, id, nil)
 	if err != nil {
@@ -167,18 +258,21 @@ func composeDetailsModel(ctx context.Context, id string, app thingsApp, includeE
 	}
 
 	model := featuresthings.ThingDetailsPageViewModel{
-		Thing:              toViewModel(thing),
-		LatestValues:       make([]featuresthings.LatestMeasurementViewModel, 0, len(latestValues)),
-		ConnectedNames:     make([]string, 0, len(thing.RefDevices)),
-		ValidSensors:       make([]featuresthings.SensorOption, 0),
-		MeasurementOptions: make([]featuresthings.MeasurementOption, 0, len(latestValues)),
+		Thing:                          toViewModel(thing),
+		LatestValues:                   make([]featuresthings.LatestMeasurementViewModel, 0, len(latestValues)),
+		ConnectedSensors:               make([]featuresthings.ConnectedSensorViewModel, 0, len(thing.RefDevices)),
+		AllowsMultipleConnectedSensors: allowsMultipleConnectedSensors(thing),
+		ValidSensors:                   make([]featuresthings.SensorOption, 0),
+		MeasurementOptions:             make([]featuresthings.MeasurementOption, 0, len(latestValues)),
 	}
 
 	for _, ref := range thing.RefDevices {
-		if ref.DeviceID == "" || slices.Contains(model.ConnectedNames, ref.DeviceID) {
+		if ref.DeviceID == "" || slices.ContainsFunc(model.ConnectedSensors, func(sensor featuresthings.ConnectedSensorViewModel) bool {
+			return sensor.DeviceID == ref.DeviceID
+		}) {
 			continue
 		}
-		model.ConnectedNames = append(model.ConnectedNames, ref.DeviceID)
+		model.ConnectedSensors = append(model.ConnectedSensors, connectedSensorViewModel(ctx, app, ref.DeviceID))
 	}
 
 	for _, measurement := range latestValues {
@@ -218,10 +312,10 @@ func composeDetailsModel(ctx context.Context, id string, app thingsApp, includeE
 	if includeEditOptions {
 		model.Organisations = app.GetTenants(ctx)
 		model.TagOptions, _ = app.GetTags(ctx)
-		validSensors, _ := app.GetValidSensors(ctx, thing.ValidURNs)
+		validSensors, _ := app.GetValidSensors(ctx, thing.ValidURNs, "")
 		for _, sensor := range validSensors {
 			model.ValidSensors = append(model.ValidSensors, featuresthings.SensorOption{
-				Value: sensor.DeviceID,
+				Value: sensor.SensorID,
 				Label: fmt.Sprintf("%s (%s)", sensor.SensorID, sensor.Decoder),
 			})
 		}
@@ -231,6 +325,38 @@ func composeDetailsModel(ctx context.Context, id string, app thingsApp, includeE
 	}
 
 	return model, nil
+}
+
+func connectedSensorViewModel(ctx context.Context, app thingsApp, deviceID string) featuresthings.ConnectedSensorViewModel {
+	model := featuresthings.ConnectedSensorViewModel{
+		DeviceID: deviceID,
+		Label:    deviceID,
+	}
+
+	device, err := app.GetDevice(ctx, deviceID)
+	if err != nil {
+		return model
+	}
+
+	if strings.TrimSpace(device.SensorID) != "" {
+		model.Label = strings.TrimSpace(device.SensorID)
+	}
+
+	return model
+}
+
+func allowsMultipleConnectedSensors(thing appthings.Thing) bool {
+	kind := strings.ToLower(strings.TrimSpace(thing.SubType))
+	if kind == "" {
+		kind = strings.ToLower(strings.TrimSpace(thing.Type))
+	}
+
+	switch kind {
+	case "room", "pointofinterest", "beach":
+		return true
+	default:
+		return false
+	}
 }
 
 func latestMeasurementLabel(thingID string, measurement appthings.Measurement) string {
@@ -272,7 +398,7 @@ func latestMeasurementViewModel(thingID string, measurements []appthings.Measure
 	return featuresthings.LatestMeasurementViewModel{Label: selected}
 }
 
-func buildThingUpdateFields(form url.Values) map[string]any {
+func buildThingUpdateFields(ctx context.Context, app thingsApp, thingID string, form url.Values) (map[string]any, error) {
 	asFloat := func(s string) (float64, bool) {
 		if f, err := strconv.ParseFloat(strings.TrimSpace(s), 64); err == nil {
 			return f, true
@@ -284,12 +410,13 @@ func buildThingUpdateFields(form url.Values) map[string]any {
 	if tags := normalizeListValues(form["tags"]); len(tags) > 0 {
 		fields["tags"] = tags
 	}
-	if refs := normalizeListValues(form["currentDevice"]); len(refs) > 0 {
-		devices := make([]appthings.RefDevice, 0, len(refs))
-		for _, ref := range refs {
-			devices = append(devices, appthings.RefDevice{DeviceID: ref})
-		}
-		fields["refDevices"] = devices
+	currentDeviceValues, hasCurrentDeviceField := form["currentDevice"]
+	if refs, err := resolveConnectedSensorRefs(ctx, app, thingID, currentDeviceValues); err != nil {
+		return nil, err
+	} else if hasCurrentDeviceField && len(refs) == 0 {
+		fields["refDevices"] = []appthings.RefDevice{}
+	} else if len(refs) > 0 {
+		fields["refDevices"] = refs
 	}
 
 	for formKey, fieldKey := range map[string]string{
@@ -331,7 +458,55 @@ func buildThingUpdateFields(form url.Values) map[string]any {
 		}
 	}
 
-	return fields
+	return fields, nil
+}
+
+func resolveConnectedSensorRefs(ctx context.Context, app thingsApp, thingID string, submittedValues []string) ([]appthings.RefDevice, error) {
+	values := normalizeListValues(submittedValues)
+	if len(values) == 0 {
+		return nil, nil
+	}
+
+	thing, err := app.GetThing(ctx, thingID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	refs := make([]appthings.RefDevice, 0, len(values))
+	for _, value := range values {
+		deviceID, err := resolveConnectedSensorDeviceID(ctx, app, thing.ValidURNs, value)
+		if err != nil {
+			return nil, err
+		}
+		refs = append(refs, appthings.RefDevice{DeviceID: deviceID})
+	}
+
+	return refs, nil
+}
+
+func resolveConnectedSensorDeviceID(ctx context.Context, app thingsApp, validURNs []string, value string) (string, error) {
+	trimmed := strings.TrimSpace(value)
+	if trimmed == "" {
+		return "", fmt.Errorf("connected sensor value is empty")
+	}
+
+	device, err := app.GetDevice(ctx, trimmed)
+	if err == nil && strings.TrimSpace(device.DeviceID) != "" {
+		return strings.TrimSpace(device.DeviceID), nil
+	}
+
+	validSensors, err := app.GetValidSensors(ctx, validURNs, trimmed)
+	if err != nil {
+		return "", err
+	}
+
+	for _, sensor := range validSensors {
+		if strings.EqualFold(strings.TrimSpace(sensor.SensorID), trimmed) {
+			return sensor.DeviceID, nil
+		}
+	}
+
+	return "", unresolvedConnectedSensorError{value: trimmed}
 }
 
 func normalizeListValues(values []string) []string {
@@ -365,6 +540,56 @@ func normalizeCSVList(value string) []string {
 	}
 
 	return items
+}
+
+func applySubmittedThingDetailsForm(model *featuresthings.ThingDetailsPageViewModel, form url.Values) {
+	model.Thing.Name = strings.TrimSpace(form.Get("name"))
+	model.Thing.AlternativeName = strings.TrimSpace(form.Get("alternativeName"))
+	model.Thing.Description = strings.TrimSpace(form.Get("description"))
+	model.Thing.Tenant = strings.TrimSpace(form.Get("organisation"))
+	if tags := normalizeListValues(form["tags"]); len(tags) > 0 {
+		model.Thing.Tags = tags
+	} else {
+		model.Thing.Tags = nil
+	}
+
+	rawSensors := normalizeListValues(form["currentDevice"])
+	model.ConnectedSensors = make([]featuresthings.ConnectedSensorViewModel, 0, len(rawSensors))
+	for _, sensor := range rawSensors {
+		model.ConnectedSensors = append(model.ConnectedSensors, featuresthings.ConnectedSensorViewModel{
+			DeviceID: sensor,
+			Label:    sensor,
+		})
+	}
+}
+
+func thingValidationToast(message string) templ.Component {
+	return toast.Toast(toast.Props{
+		Description:   strings.TrimSpace(message),
+		Variant:       toast.VariantError,
+		Dismissible:   true,
+		Icon:          true,
+		ShowIndicator: true,
+	})
+}
+
+type unresolvedConnectedSensorError struct {
+	value string
+}
+
+func (e unresolvedConnectedSensorError) Error() string {
+	return fmt.Sprintf("could not resolve connected sensor %q", e.value)
+}
+
+func localizeThingValidationMessage(localizer Localizer, err error) string {
+	var unresolvedErr unresolvedConnectedSensorError
+	if errors.As(err, &unresolvedErr) {
+		return localizer.GetWithData("invalidconnectedsensor", map[string]any{
+			"sensor": unresolvedErr.value,
+		})
+	}
+
+	return err.Error()
 }
 
 func getThingTime(r *http.Request, key string, def time.Time) time.Time {

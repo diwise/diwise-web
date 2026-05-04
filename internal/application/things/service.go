@@ -153,12 +153,15 @@ func (s *Service) ConnectSensor(ctx context.Context, thingID string, refDevices 
 	return s.client.Patch(ctx, s.client.ThingManagementURL(), t.ID, b)
 }
 
-func (s *Service) GetValidSensors(ctx context.Context, urns []string) ([]SensorIdentifier, error) {
+func (s *Service) GetValidSensors(ctx context.Context, urns []string, search string) ([]SensorIdentifier, error) {
 	var err error
 	ctx, span := tracer.Start(ctx, "get-valid-sensors")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
-	params := url.Values{"urn": urns}
+	params := url.Values{"urns": urns}
+	if search != "" {
+		params.Add("search", search)
+	}
 	res, err := s.client.Get(ctx, s.client.DeviceManagementURL(), "", params)
 	if err != nil {
 		return []SensorIdentifier{}, err
@@ -167,6 +170,7 @@ func (s *Service) GetValidSensors(ctx context.Context, urns []string) ([]SensorI
 	var devices []struct {
 		SensorID      string `json:"sensorID,omitempty"`
 		DeviceID      string `json:"deviceID"`
+		Name          string `json:"name,omitempty"`
 		DeviceProfile struct {
 			Decoder string `json:"decoder,omitempty"`
 		} `json:"deviceProfile"`
@@ -177,7 +181,7 @@ func (s *Service) GetValidSensors(ctx context.Context, urns []string) ([]SensorI
 
 	ids := make([]SensorIdentifier, 0, len(devices))
 	for _, d := range devices {
-		ids = append(ids, SensorIdentifier{SensorID: d.SensorID, DeviceID: d.DeviceID, Decoder: d.DeviceProfile.Decoder})
+		ids = append(ids, SensorIdentifier{SensorID: d.SensorID, DeviceID: d.DeviceID, Name: d.Name, Decoder: d.DeviceProfile.Decoder})
 	}
 
 	return ids, nil

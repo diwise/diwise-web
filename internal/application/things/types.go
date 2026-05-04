@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/diwise/diwise-web/internal/application/client"
+	"github.com/diwise/diwise-web/internal/application/devices"
 )
 
 type Management interface {
@@ -17,8 +18,9 @@ type Management interface {
 	DeleteThing(ctx context.Context, thingID string) error
 	GetTags(ctx context.Context) ([]string, error)
 	GetTypes(ctx context.Context) ([]string, error)
-	GetValidSensors(ctx context.Context, types []string) ([]SensorIdentifier, error)
+	GetValidSensors(ctx context.Context, types []string, search string) ([]SensorIdentifier, error)
 	ConnectSensor(ctx context.Context, thingID string, refDevices []string) error
+	GetDevice(ctx context.Context, id string) (devices.Device, error)
 }
 
 type Thing struct {
@@ -154,6 +156,7 @@ type Measurement struct {
 type SensorIdentifier struct {
 	SensorID string `json:"sensorID,omitempty"`
 	DeviceID string `json:"deviceID"`
+	Name     string `json:"name,omitempty"`
 	Decoder  string `json:"decoder"`
 }
 
