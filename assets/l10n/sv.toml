@@ -419,10 +419,37 @@ other = "{n} valda"
 other = "Kopplad sensor"
 
 [multisensorsearchplaceholder]
-other = "Klistra in eller sok efter DevEUI och tryck Enter"
+other = "Välj en eller flera..."
 
 [invalidconnectedsensor]
 other = "Kunde inte hitta kopplad sensor \"{{.sensor}}\""
+
+[attachsensoridrequired]
+other = "SensorID kan inte vara tomt"
+
+[attachsensorprofilerequired]
+other = "Sensorprofil måste väljas"
+
+[attachsensorfailed]
+other = "Kunde inte koppla sensorn"
+
+[attachdevicenotfound]
+other = "Enheten hittades inte"
+
+[attachsensorconflict]
+other = "SensorID är redan kopplad till en annan enhet"
+
+[attachsensorprofileupdatefailed]
+other = "Kunde inte uppdatera sensorprofil"
+
+[attachsensornotfound]
+other = "Sensorn hittades inte"
+
+[attachsensorprofileinvalid]
+other = "Ogiltig sensorprofil"
+
+[detachsensorfailed]
+other = "Kunde inte koppla bort sensorn"
 
 [sensorID]
 other = "Sensor ID"

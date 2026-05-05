@@ -134,12 +134,3 @@ type DetachSensorDialogViewModel struct {
 	SensorName   string
 	ErrorMessage string
 }
-
-type SensorSearchViewModel struct {
-	SensorID string
-	Name     *string
-}
-
-type AttachSensorSearchOptionsViewModel struct {
-	Sensors []SensorSearchViewModel
-}

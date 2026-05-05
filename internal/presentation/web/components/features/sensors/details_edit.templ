@@ -11,6 +11,7 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/form"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/input"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/toast"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/textarea"
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -25,6 +26,7 @@ templ EditSensorDetailsPage(l10n Localizer, _ AssetLoaderFunc, sensor SensorDeta
 		<form action={ fmt.Sprintf("/sensors/%s", sensor.DeviceID) } method="post" class="flex flex-col gap-8">
 			<input type="hidden" name="id" value={ sensor.DeviceID }/>
 			@EditSensorDetailsHeader(l10n, sensor)
+			<div id="sensor-edit-toast"></div>
 			<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
 				<div class="flex flex-1 flex-col gap-8">
 					@EditSensorDetailsFormSection(l10n, sensor)
@@ -68,6 +70,19 @@ templ EditSensorDetailsPage(l10n Localizer, _ AssetLoaderFunc, sensor SensorDeta
 			})();
 		</script>
 	</div>
+}
+
+templ EditSensorToast(message string) {
+	if strings.TrimSpace(message) != "" {
+		@toast.Toast(toast.Props{
+			Description:   message,
+			Variant:       toast.VariantError,
+			Dismissible:   true,
+			Icon:          true,
+			ShowIndicator: true,
+			Position:      "bottom-right",
+		})
+	}
 }
 
 templ EditSensorDetailsHeader(l10n Localizer, sensor SensorDetailsPageViewModel) {

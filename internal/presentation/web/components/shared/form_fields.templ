@@ -3,8 +3,9 @@ package shared
 import (
 	"strings"
 
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/custom/selectbox"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/form"
-	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/selectbox"
+	templuiselectbox "github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/selectbox"
 )
 
 func NativeSelectClass() string {
@@ -28,6 +29,15 @@ type SelectBoxFieldProps struct {
 	NoSearch        bool
 	Options         []SelectBoxFieldOption
 	HTMXAttrs       templ.Attributes
+	SearchURL       string
+	SearchQueryName string
+	SearchDelay     string
+	SearchTargetID  string
+	SearchExtraQuery map[string]string
+	RemoteSearch    bool
+	LoadingText     string
+	EmptyText       string
+	SearchPlaceholder string
 }
 
 type MultiSelectBoxFieldProps struct {
@@ -42,6 +52,14 @@ type MultiSelectBoxFieldProps struct {
 	ShowPills         bool
 	SelectedCountText string
 	Options           []SelectBoxFieldOption
+	SearchURL         string
+	SearchQueryName   string
+	SearchDelay       string
+	SearchTargetID    string
+	SearchExtraQuery  map[string]string
+	RemoteSearch      bool
+	LoadingText       string
+	EmptyText         string
 }
 
 func formFieldLabelClass() string {
@@ -112,6 +130,8 @@ templ FormMessage(text string, variant form.MessageVariant) {
 templ SelectBoxField(props SelectBoxFieldProps) {
 	{{ messageID := props.FieldID + "-message" }}
 	{{ hasTooltip := strings.TrimSpace(props.TooltipText) != "" }}
+	{{ searchTargetID := selectBoxSearchTargetID(props.FieldID, props.SearchTargetID) }}
+	{{ hiddenInputAttrs := selectBoxHiddenInputAttributes(props.HTMXAttrs, props.Options, false) }}
 	@form.Item() {
 		<div class="flex items-center gap-2">
 			@form.Label(form.LabelProps{
@@ -131,30 +151,65 @@ templ SelectBoxField(props SelectBoxFieldProps) {
 				data-v2-required-message-id={ messageID }
 			}
 		>
-			@selectbox.SelectBox(selectbox.Props{ID: props.FieldID}) {
-				@selectbox.Trigger(selectbox.TriggerProps{
-					ID:    props.FieldID + "-trigger",
-					Name:  props.Name,
-					Class: "h-10 w-full justify-between rounded-xl bg-background px-3 text-left text-sm shadow-xs",
-					Attributes: props.HTMXAttrs,
-				}) {
-					@selectbox.Value(selectbox.ValueProps{
-						Placeholder: props.Placeholder,
-						Class:       "w-full text-left text-sm",
-					})
+			if props.RemoteSearch {
+				@customselectbox.SelectBox(customselectbox.Props{ID: props.FieldID}) {
+					@customselectbox.Trigger(customselectbox.TriggerProps{
+						ID:    props.FieldID + "-trigger",
+						Name:  props.Name,
+						Class: "h-10 w-full justify-between rounded-xl bg-background px-3 text-left text-sm shadow-xs",
+						Attributes: hiddenInputAttrs,
+					}) {
+						@customselectbox.Value(customselectbox.ValueProps{
+							Placeholder: props.Placeholder,
+							Class:       "w-full text-left text-sm",
+						})
+					}
+					@customselectbox.Content(customselectbox.ContentProps{
+						SearchPlaceholder: props.SearchPlaceholder,
+						SearchURL:         props.SearchURL,
+						SearchQueryName:   props.SearchQueryName,
+						SearchDelay:       props.SearchDelay,
+						SearchTargetID:    searchTargetID,
+						SearchExtraQuery:  props.SearchExtraQuery,
+						LoadingText:       props.LoadingText,
+						EmptyText:         props.EmptyText,
+						Class:             "rounded-xl border-border/80 p-0 shadow-lg",
+					}) {
+						@customselectbox.Options(customselectbox.OptionsProps{
+							ID:        searchTargetID + "-group",
+							GroupClass: "p-2",
+							ItemClass: "rounded-xl px-3 py-2 text-sm transition hover:bg-muted data-[tui-selectbox-selected=true]:bg-primary data-[tui-selectbox-selected=true]:text-primary-foreground",
+							EmptyText: props.EmptyText,
+							Options:   toCustomSelectBoxOptions(props.Options),
+						})
+					}
 				}
-				@selectbox.Content(selectbox.ContentProps{
-					NoSearch: props.NoSearch,
-					Class:    "rounded-xl border-border/80 p-0 shadow-lg",
-				}) {
-					@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
-						for _, option := range props.Options {
-							@selectbox.Item(selectbox.ItemProps{
-								Value:    option.Value,
-								Selected: option.Selected,
-								Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-muted data-[tui-selectbox-selected=true]:bg-primary data-[tui-selectbox-selected=true]:text-primary-foreground",
-							}) {
-								{ option.Label }
+			} else {
+				@templuiselectbox.SelectBox(templuiselectbox.Props{ID: props.FieldID}) {
+					@templuiselectbox.Trigger(templuiselectbox.TriggerProps{
+						ID:    props.FieldID + "-trigger",
+						Name:  props.Name,
+						Class: "h-10 w-full justify-between rounded-xl bg-background px-3 text-left text-sm shadow-xs",
+						Attributes: hiddenInputAttrs,
+					}) {
+						@templuiselectbox.Value(templuiselectbox.ValueProps{
+							Placeholder: props.Placeholder,
+							Class:       "w-full text-left text-sm",
+						})
+					}
+					@templuiselectbox.Content(templuiselectbox.ContentProps{
+						NoSearch: props.NoSearch,
+						Class:    "rounded-xl border-border/80 p-0 shadow-lg",
+					}) {
+						@templuiselectbox.Group(templuiselectbox.GroupProps{Class: "p-2"}) {
+							for _, option := range props.Options {
+								@templuiselectbox.Item(templuiselectbox.ItemProps{
+									Value:    option.Value,
+									Selected: option.Selected,
+									Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-muted data-[tui-selectbox-selected=true]:bg-primary data-[tui-selectbox-selected=true]:text-primary-foreground",
+								}) {
+									{ option.Label }
+								}
 							}
 						}
 					}
@@ -175,6 +230,8 @@ templ SelectBoxField(props SelectBoxFieldProps) {
 
 templ MultiSelectBoxField(props MultiSelectBoxFieldProps) {
 	{{ hasTooltip := strings.TrimSpace(props.TooltipText) != "" }}
+	{{ searchTargetID := selectBoxSearchTargetID(props.FieldID, props.SearchTargetID) }}
+	{{ hiddenInputAttrs := selectBoxHiddenInputAttributes(nil, props.Options, true) }}
 	@form.Item() {
 		<div class="flex items-center gap-2">
 			@form.Label(form.LabelProps{
@@ -187,33 +244,72 @@ templ MultiSelectBoxField(props MultiSelectBoxFieldProps) {
 				@HelpTooltip(props.TooltipText)
 			}
 		</div>
-		@selectbox.SelectBox(selectbox.Props{ID: props.FieldID}) {
-			@selectbox.Trigger(selectbox.TriggerProps{
-				ID:                props.FieldID + "-trigger",
-				Name:              props.Name,
-				Multiple:          true,
-				ShowPills:         props.ShowPills,
-				SelectedCountText: props.SelectedCountText,
-				Class:             "min-h-10 h-auto justify-between rounded-xl bg-background px-3 py-2 text-left shadow-xs",
-			}) {
-				@selectbox.Value(selectbox.ValueProps{
-					Placeholder: props.Placeholder,
-					Class:       "w-full text-left text-sm",
-				})
+		if props.RemoteSearch {
+			@customselectbox.SelectBox(customselectbox.Props{ID: props.FieldID, Multiple: true}) {
+				@customselectbox.Trigger(customselectbox.TriggerProps{
+					ID:                props.FieldID + "-trigger",
+					Name:              props.Name,
+					Multiple:          true,
+					ShowPills:         props.ShowPills,
+					SelectedCountText: props.SelectedCountText,
+					Class:             "min-h-10 h-auto justify-between rounded-xl bg-background px-3 py-2 text-left shadow-xs",
+					Attributes:        hiddenInputAttrs,
+				}) {
+					@customselectbox.Value(customselectbox.ValueProps{
+						Placeholder: props.Placeholder,
+						Class:       "w-full text-left text-sm",
+					})
+				}
+				@customselectbox.Content(customselectbox.ContentProps{
+					SearchPlaceholder: props.SearchPlaceholder,
+					SearchURL:         props.SearchURL,
+					SearchQueryName:   props.SearchQueryName,
+					SearchDelay:       props.SearchDelay,
+					SearchTargetID:    searchTargetID,
+					SearchExtraQuery:  props.SearchExtraQuery,
+					LoadingText:       props.LoadingText,
+					EmptyText:         props.EmptyText,
+					Class:             "rounded-2xl border border-border/80 bg-popover p-0 shadow-xl",
+				}) {
+					@customselectbox.Options(customselectbox.OptionsProps{
+						ID:         searchTargetID + "-group",
+						GroupClass: "p-2",
+						ItemClass:  "rounded-xl px-3 py-2 text-sm transition hover:bg-muted data-[tui-selectbox-selected=true]:bg-primary data-[tui-selectbox-selected=true]:text-primary-foreground",
+						EmptyText:  props.EmptyText,
+						Options:    toCustomSelectBoxOptions(props.Options),
+					})
+				}
 			}
-			@selectbox.Content(selectbox.ContentProps{
-				NoSearch:          props.NoSearch,
-				SearchPlaceholder: props.SearchPlaceholder,
-				Class:             "rounded-2xl border border-border/80 bg-popover p-0 shadow-xl",
-			}) {
-				@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
-					for _, option := range props.Options {
-						@selectbox.Item(selectbox.ItemProps{
-							Value:    option.Value,
-							Selected: option.Selected,
-							Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-muted data-[tui-selectbox-selected=true]:bg-primary data-[tui-selectbox-selected=true]:text-primary-foreground",
-						}) {
-							{ option.Label }
+		} else {
+			@templuiselectbox.SelectBox(templuiselectbox.Props{ID: props.FieldID}) {
+				@templuiselectbox.Trigger(templuiselectbox.TriggerProps{
+					ID:                props.FieldID + "-trigger",
+					Name:              props.Name,
+					Multiple:          true,
+					ShowPills:         props.ShowPills,
+					SelectedCountText: props.SelectedCountText,
+					Class:             "min-h-10 h-auto justify-between rounded-xl bg-background px-3 py-2 text-left shadow-xs",
+					Attributes:        hiddenInputAttrs,
+				}) {
+					@templuiselectbox.Value(templuiselectbox.ValueProps{
+						Placeholder: props.Placeholder,
+						Class:       "w-full text-left text-sm",
+					})
+				}
+				@templuiselectbox.Content(templuiselectbox.ContentProps{
+					NoSearch:          props.NoSearch,
+					SearchPlaceholder: props.SearchPlaceholder,
+					Class:             "rounded-2xl border border-border/80 bg-popover p-0 shadow-xl",
+				}) {
+					@templuiselectbox.Group(templuiselectbox.GroupProps{Class: "p-2"}) {
+						for _, option := range props.Options {
+							@templuiselectbox.Item(templuiselectbox.ItemProps{
+								Value:    option.Value,
+								Selected: option.Selected,
+								Class:    "rounded-xl px-3 py-2 text-sm transition hover:bg-muted data-[tui-selectbox-selected=true]:bg-primary data-[tui-selectbox-selected=true]:text-primary-foreground",
+							}) {
+								{ option.Label }
+							}
 						}
 					}
 				}
@@ -221,6 +317,54 @@ templ MultiSelectBoxField(props MultiSelectBoxFieldProps) {
 		}
 		@FormDescription(props.Description)
 	}
+}
+
+func selectBoxSearchTargetID(fieldID, configured string) string {
+	if strings.TrimSpace(configured) != "" {
+		return configured
+	}
+	return fieldID + "-options"
+}
+
+func toCustomSelectBoxOptions(options []SelectBoxFieldOption) []customselectbox.Option {
+	converted := make([]customselectbox.Option, 0, len(options))
+	for _, option := range options {
+		converted = append(converted, customselectbox.Option{
+			Value:        option.Value,
+			Label:        option.Label,
+			PrimaryLabel: option.Label,
+			Selected:     option.Selected,
+		})
+	}
+	return converted
+}
+
+func selectBoxHiddenInputAttributes(attrs templ.Attributes, options []SelectBoxFieldOption, multiple bool) templ.Attributes {
+	merged := templ.Attributes{}
+	for key, value := range attrs {
+		merged[key] = value
+	}
+
+	if selected := selectedSelectBoxFieldValue(options, multiple); strings.TrimSpace(selected) != "" {
+		merged["value"] = selected
+	}
+
+	return merged
+}
+
+func selectedSelectBoxFieldValue(options []SelectBoxFieldOption, multiple bool) string {
+	selected := make([]string, 0, len(options))
+	for _, option := range options {
+		if !option.Selected || strings.TrimSpace(option.Value) == "" {
+			continue
+		}
+		selected = append(selected, option.Value)
+		if !multiple {
+			break
+		}
+	}
+
+	return strings.Join(selected, ",")
 }
 
 templ RequiredSelectBoxValidationScript(rootID string) {
