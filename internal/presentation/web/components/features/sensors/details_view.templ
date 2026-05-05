@@ -101,7 +101,6 @@ templ SensorDetailsPropertiesSection(l10n Localizer, sensor SensorDetailsPageVie
 		<div class="py-6 px-8">
 			@shared.DetailList([]shared.DetailListItem{
 				{Label: l10n.Get("deveui"), Value: sensor.DevEUI},
-				{Label: l10n.Get("id"), Value: sensor.DeviceID},
 				{Label: l10n.Get("sensortype"), Value: sensor.DeviceProfileName},
 				{Label: l10n.Get("environment"), Value: localizedOrFallback(l10n, sensor.Environment)},
 				{Label: l10n.Get("organisation"), Value: sensor.Tenant},
