@@ -136,6 +136,36 @@
 		return event.detail.target || event.detail.elt || null;
 	}
 
+	function isRemoteSelectboxOptionSwap(event) {
+		const target = swapTargetFromEvent(event);
+		return isRemoteSelectboxOptionsElement(target);
+	}
+
+	function isRemoteSelectboxRequest(event) {
+		const elt = event && event.detail && event.detail.elt;
+		if (!(elt instanceof Element)) {
+			return false;
+		}
+
+		return elt.matches("[data-diwise-selectbox-remote-input]");
+	}
+
+	function isRemoteSelectboxOptionsElement(element) {
+		if (!(element instanceof Element)) {
+			return false;
+		}
+
+		return element.matches("[data-diwise-selectbox-options-root]");
+	}
+
+	function isWithinRemoteSelectboxOptions(element) {
+		if (!(element instanceof Element)) {
+			return false;
+		}
+
+		return isRemoteSelectboxOptionsElement(element) || element.closest("[data-diwise-selectbox-options-root]") !== null;
+	}
+
 	function resetSelectboxTarget(element) {
 		if (!element || typeof element.querySelector !== "function") {
 			return;
@@ -155,19 +185,31 @@
 		}
 
 		body.addEventListener("htmx:beforeSwap", function (event) {
+			if (isRemoteSelectboxOptionSwap(event)) {
+				return;
+			}
+
 			openPopovers().forEach((popover) => closePopover(popover.id));
 			const target = swapTargetFromEvent(event);
 			removePopoversForElement(target);
 			resetSelectboxTarget(target);
 		});
 
-		body.addEventListener("htmx:beforeRequest", function () {
+		body.addEventListener("htmx:beforeRequest", function (event) {
+			if (isRemoteSelectboxRequest(event)) {
+				return;
+			}
+
 			// Close any open dropdown immediately for visual feedback.
 			openPopovers().forEach((popover) => closePopover(popover.id));
 		});
 
 		body.addEventListener("htmx:beforeCleanupElement", function (event) {
 			const element = event.detail && event.detail.elt;
+			if (isWithinRemoteSelectboxOptions(element)) {
+				return;
+			}
+
 			closePopoversForElement(element);
 			removePopoversForElement(element);
 		});

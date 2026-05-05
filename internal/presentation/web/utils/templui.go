@@ -3,6 +3,9 @@ package utils
 
 import (
 	"fmt"
+	"net/url"
+	"sort"
+	"strings"
 	"time"
 
 	"crypto/rand"
@@ -71,4 +74,32 @@ var ScriptVersion = fmt.Sprintf("%d", time.Now().Unix())
 //	}
 var ScriptURL = func(path string) string {
 	return path + "?v=" + ScriptVersion
+}
+
+// BuildURLWithSortedQuery appends non-empty query parameters in stable key order.
+func BuildURLWithSortedQuery(baseURL string, query map[string]string) string {
+	if len(query) == 0 {
+		return baseURL
+	}
+
+	values := url.Values{}
+	keys := make([]string, 0, len(query))
+	for key := range query {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		value := strings.TrimSpace(query[key])
+		if value == "" {
+			continue
+		}
+		values.Set(key, value)
+	}
+
+	if len(values) == 0 {
+		return baseURL
+	}
+
+	return baseURL + "?" + values.Encode()
 }

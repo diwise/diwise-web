@@ -32,8 +32,11 @@ func TestNewAttachSensorDialogHandlerRequiresSensorID(t *testing.T) {
 
 	handler.ServeHTTP(rec, req)
 
-	is.Equal(http.StatusBadRequest, rec.Code)
-	is.True(strings.Contains(rec.Body.String(), "SensorID kan inte vara tomt"))
+	is.Equal(http.StatusOK, rec.Code)
+	is.Equal("#sensor-edit-toast", rec.Header().Get("HX-Retarget"))
+	is.Equal("innerHTML", rec.Header().Get("HX-Reswap"))
+	is.True(strings.Contains(rec.Body.String(), "attachsensoridrequired"))
+	is.True(strings.Contains(rec.Body.String(), "data-tui-toast"))
 }
 
 func TestNewAttachSensorDialogHandlerRefreshesEditPageOnSuccess(t *testing.T) {
@@ -99,8 +102,11 @@ func TestNewAttachSensorDialogHandlerReturnsConflictForAttachConflict(t *testing
 
 	handler.ServeHTTP(rec, req)
 
-	is.Equal(http.StatusConflict, rec.Code)
-	is.True(strings.Contains(rec.Body.String(), "SensorID är redan kopplad till en annan enhet"))
+	is.Equal(http.StatusOK, rec.Code)
+	is.Equal("#sensor-edit-toast", rec.Header().Get("HX-Retarget"))
+	is.Equal("innerHTML", rec.Header().Get("HX-Reswap"))
+	is.True(strings.Contains(rec.Body.String(), "attachsensorconflict"))
+	is.True(strings.Contains(rec.Body.String(), "data-tui-toast"))
 }
 
 func TestNewAttachSensorDialogHandlerReturnsNotFoundForMissingSensorOnUpdate(t *testing.T) {
@@ -125,8 +131,76 @@ func TestNewAttachSensorDialogHandlerReturnsNotFoundForMissingSensorOnUpdate(t *
 
 	handler.ServeHTTP(rec, req)
 
-	is.Equal(http.StatusNotFound, rec.Code)
-	is.True(strings.Contains(rec.Body.String(), "Sensorn hittades inte"))
+	is.Equal(http.StatusOK, rec.Code)
+	is.Equal("#sensor-edit-toast", rec.Header().Get("HX-Retarget"))
+	is.Equal("innerHTML", rec.Header().Get("HX-Reswap"))
+	is.True(strings.Contains(rec.Body.String(), "attachsensornotfound"))
+	is.True(strings.Contains(rec.Body.String(), "data-tui-toast"))
+}
+
+func TestNewAttachSensorDialogHandlerKeepsSelectedSensorOnValidationError(t *testing.T) {
+	is := is.New(t)
+
+	handler := NewAttachSensorDialogHandler(context.Background(), testLocaleBundle(), nil, newTestDeviceApp())
+
+	form := url.Values{
+		"newSensorID": {"sensor-123"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/components/sensors/device-1/attach", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("HX-Request", "true")
+	req.SetPathValue("id", "device-1")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+	is.Equal(http.StatusOK, rec.Code)
+	is.Equal("#sensor-edit-toast", rec.Header().Get("HX-Retarget"))
+	is.Equal("innerHTML", rec.Header().Get("HX-Reswap"))
+	is.True(strings.Contains(body, "attachsensorprofilerequired"))
+	is.True(strings.Contains(body, "data-tui-toast"))
+}
+
+func TestNewAttachSensorSearchOptionsHandlerReturnsCustomSelectboxOptions(t *testing.T) {
+	is := is.New(t)
+
+	name := "Weather sensor"
+	app := newTestDeviceApp()
+	app.sensors = []devices.Sensor{
+		{SensorID: "sensor-123", Name: &name},
+	}
+
+	handler := NewAttachSensorSearchOptionsHandler(context.Background(), testLocaleBundle(), nil, app)
+
+	req := httptest.NewRequest(http.MethodGet, "/components/sensors/attach/search-options?q=weather", nil)
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+	is.Equal(http.StatusOK, rec.Code)
+	is.True(strings.Contains(body, `data-tui-selectbox-value="sensor-123"`))
+	is.True(strings.Contains(body, "sensor-123"))
+	is.True(strings.Contains(body, "Weather sensor"))
+	is.True(strings.Contains(body, `data-diwise-selectbox-secondary-label="Weather sensor"`))
+}
+
+func TestNewAttachSensorSearchOptionsHandlerReturnsEmptyState(t *testing.T) {
+	is := is.New(t)
+
+	handler := NewAttachSensorSearchOptionsHandler(context.Background(), testLocaleBundle(), nil, newTestDeviceApp())
+
+	req := httptest.NewRequest(http.MethodGet, "/components/sensors/attach/search-options?q=missing", nil)
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+	is.Equal(http.StatusOK, rec.Code)
+	is.True(strings.Contains(body, "sensormissing"))
 }
 
 func TestNewDetachSensorDialogHandlerReturnsDialogOnGet(t *testing.T) {
@@ -174,6 +248,7 @@ func TestNewDetachSensorDialogHandlerRefreshesEditPageOnSuccess(t *testing.T) {
 type testDeviceApp struct {
 	device           devices.Device
 	deviceProfiles   []devices.SensorProfile
+	sensors          []devices.Sensor
 	measurements     []measurements.Value
 	attachFunc       func(ctx context.Context, deviceID string) error
 	deattachFunc     func(ctx context.Context, deviceID string) error
@@ -205,7 +280,7 @@ func (a *testDeviceApp) GetDevices(context.Context, int, int, map[string][]strin
 }
 
 func (a *testDeviceApp) GetSensors(context.Context, int, int, map[string][]string) (devices.SensorResult, error) {
-	return devices.SensorResult{}, nil
+	return devices.SensorResult{Sensors: a.sensors}, nil
 }
 
 func (a *testDeviceApp) Attach(ctx context.Context, deviceID string) error {

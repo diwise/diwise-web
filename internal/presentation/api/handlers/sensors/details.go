@@ -18,6 +18,8 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	featuresensors "github.com/diwise/diwise-web/internal/presentation/web/components/features/sensors"
 	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
+	customselectbox "github.com/diwise/diwise-web/internal/presentation/web/components/shared/custom/selectbox"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/toast"
 
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -143,30 +145,25 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 			model.SelectedType = sensorType
 
 			if sensorID == "" {
-				model.ErrorMessage = "SensorID kan inte vara tomt"
-				renderDialog(http.StatusBadRequest, model)
+				writeAttachToast(r.Context(), w, localizer.Get("attachsensoridrequired"))
 				return
 			}
 
 			if sensorType == "" {
-				model.ErrorMessage = "Sensorprofil måste väljas"
-				renderDialog(http.StatusBadRequest, model)
+				writeAttachToast(r.Context(), w, localizer.Get("attachsensorprofilerequired"))
 				return
 			}
 
 			attachCtx := devices.WithAttachSensorID(r.Context(), sensorID)
 			if err := app.Attach(attachCtx, id); err != nil {
-				status := http.StatusInternalServerError
-				model.ErrorMessage = "Kunde inte koppla sensorn"
+				message := localizer.Get("attachsensorfailed")
 				switch {
 				case errors.Is(err, appclient.ErrNotFound):
-					status = http.StatusNotFound
-					model.ErrorMessage = "Enheten hittades inte"
+					message = localizer.Get("attachdevicenotfound")
 				case errors.Is(err, appclient.ErrConflict):
-					status = http.StatusConflict
-					model.ErrorMessage = "SensorID är redan kopplad till en annan enhet"
+					message = localizer.Get("attachsensorconflict")
 				}
-				renderDialog(status, model)
+				writeAttachToast(r.Context(), w, message)
 				return
 			}
 
@@ -174,17 +171,14 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 				"sensorID":        sensorID,
 				"sensorProfileID": sensorType,
 			}); err != nil {
-				status := http.StatusInternalServerError
-				model.ErrorMessage = "Kunde inte uppdatera sensorprofil"
+				message := localizer.Get("attachsensorprofileupdatefailed")
 				switch {
 				case errors.Is(err, appclient.ErrNotFound):
-					status = http.StatusNotFound
-					model.ErrorMessage = "Sensorn hittades inte"
+					message = localizer.Get("attachsensornotfound")
 				case errors.Is(err, appclient.ErrConflict):
-					status = http.StatusConflict
-					model.ErrorMessage = "Ogiltig sensorprofil"
+					message = localizer.Get("attachsensorprofileinvalid")
 				}
-				renderDialog(status, model)
+				writeAttachToast(r.Context(), w, message)
 				return
 			}
 
@@ -227,7 +221,7 @@ func NewDetachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 			}
 
 			if err := app.Deattach(r.Context(), id); err != nil {
-				model.ErrorMessage = "Kunde inte koppla bort sensorn"
+				model.ErrorMessage = localizer.Get("detachsensorfailed")
 				component := featuresensors.DetachSensorDialog(localizer, assets, model)
 				writeComponentStatus(r.Context(), w, http.StatusOK, component)
 				return
@@ -261,17 +255,26 @@ func NewAttachSensorSearchOptionsHandler(_ context.Context, l10n LocaleBundle, _
 			return
 		}
 
-		sensors := make([]featuresensors.SensorSearchViewModel, 0, len(result.Sensors))
+		options := make([]customselectbox.Option, 0, len(result.Sensors))
 		for _, sensor := range result.Sensors {
-			sensors = append(sensors, featuresensors.SensorSearchViewModel{
-				Name:     sensor.Name,
-				SensorID: sensor.SensorID,
+			name := ""
+			if sensor.Name != nil {
+				name = strings.TrimSpace(*sensor.Name)
+			}
+			options = append(options, customselectbox.Option{
+				Value:          sensor.SensorID,
+				Label:          sensor.SensorID,
+				PrimaryLabel:   sensor.SensorID,
+				SecondaryLabel: name,
 			})
 		}
 
-		model := featuresensors.AttachSensorSearchOptionsViewModel{Sensors: sensors}
-
-		component := featuresensors.AttachSensorSearchOptions(localizer, model)
+		component := customselectbox.Options(customselectbox.OptionsProps{
+			GroupClass: "p-2",
+			ItemClass:  "rounded-xl px-3 py-2 text-sm transition hover:bg-muted data-[tui-selectbox-selected=true]:bg-primary data-[tui-selectbox-selected=true]:text-primary-foreground",
+			EmptyText:  localizer.Get("sensormissing"),
+			Options:    options,
+		})
 		helpers.WriteComponentResponse(r.Context(), w, r, component, 8*1024, 0)
 
 	}
@@ -484,6 +487,19 @@ func composeDetachDialogModel(ctx context.Context, id string, app sensorDetailsA
 		SensorID:   model.DevEUI,
 		SensorName: name,
 	}, nil
+}
+
+func writeAttachToast(ctx context.Context, w http.ResponseWriter, message string) {
+	w.Header().Set("HX-Retarget", "#sensor-edit-toast")
+	w.Header().Set("HX-Reswap", "innerHTML")
+	writeComponentStatus(ctx, w, http.StatusOK, toast.Toast(toast.Props{
+		Description:   strings.TrimSpace(message),
+		Variant:       toast.VariantError,
+		Dismissible:   true,
+		Icon:          true,
+		ShowIndicator: true,
+		Position:      "bottom-right",
+	}))
 }
 
 func writeComponentStatus(ctx context.Context, w http.ResponseWriter, status int, component templ.Component) {

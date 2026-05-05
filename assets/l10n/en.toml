@@ -419,10 +419,37 @@ other = "{n} selected"
 other = "Connected sensor"
 
 [multisensorsearchplaceholder]
-other = "Paste or search DevEUI, then press Enter"
+other = "Choose one or more..."
 
 [invalidconnectedsensor]
 other = "Could not find connected sensor \"{{.sensor}}\""
+
+[attachsensoridrequired]
+other = "Sensor ID cannot be empty"
+
+[attachsensorprofilerequired]
+other = "Sensor profile must be selected"
+
+[attachsensorfailed]
+other = "Could not attach sensor"
+
+[attachdevicenotfound]
+other = "Device not found"
+
+[attachsensorconflict]
+other = "Sensor ID is already attached to another device"
+
+[attachsensorprofileupdatefailed]
+other = "Could not update sensor profile"
+
+[attachsensornotfound]
+other = "Sensor not found"
+
+[attachsensorprofileinvalid]
+other = "Invalid sensor profile"
+
+[detachsensorfailed]
+other = "Could not detach sensor"
 
 [sensorID]
 other = "Sensor ID"

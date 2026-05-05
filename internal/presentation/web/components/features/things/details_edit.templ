@@ -143,9 +143,9 @@ templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
 			</div>
 			@EditThingTypeSpecificFields(l10n, model)
 			if model.AllowsMultipleConnectedSensors {
-				@CompatibleMultiSensorSearchField(l10n, model)
+				@CompatibleMultiSensorSelectBoxField(l10n, model)
 			} else {
-				@CompatibleSensorSearchField(l10n, model)
+				@CompatibleSensorSelectBoxField(l10n, model)
 			}
 			@shared.FormField(l10n.Get("tags"), "thing-tags") {
 				@tagsinput.TagsInput(tagsinput.Props{
@@ -170,40 +170,42 @@ templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	}
 }
 
-templ CompatibleSensorSearchField(l10n Localizer, model ThingDetailsPageViewModel) {
-	@shared.SensorSearchField(shared.SensorSearchFieldProps{
-		Label:         l10n.Get("sensorconnected"),
-		FieldID:       "thing-current-device-search",
-		HiddenFieldID: "thing-current-device",
-		HiddenName:    "currentDevice",
-		Value:         currentConnectedSensorValue(model),
-		HiddenValue:   currentConnectedSensorValue(model),
-		Placeholder:   l10n.Get("sensorconnected"),
-		SearchURL:     "/components/things/search-compatible-sensor-options",
-		ExtraQuery: map[string]string{
+templ CompatibleSensorSelectBoxField(l10n Localizer, model ThingDetailsPageViewModel) {
+	@shared.SelectBoxField(shared.SelectBoxFieldProps{
+		FieldID:           "thing-current-device",
+		Name:              "currentDevice",
+		Label:             l10n.Get("sensorconnected"),
+		Placeholder:       l10n.Get("sensorconnected"),
+		SearchPlaceholder: l10n.Get("sensorconnected"),
+		SearchURL:         "/components/things/search-compatible-sensor-options",
+		SearchExtraQuery: map[string]string{
 			"thingID": model.Thing.ID,
 		},
-		ResultsID: "thing-current-device-results",
-		InputClass: "h-10 rounded-xl bg-background",
+		RemoteSearch: true,
+		LoadingText:  "Searching...",
+		EmptyText:    l10n.Get("sensormissing"),
+		Options:      connectedSensorSelectBoxOptions(model),
 	})
 }
 
-templ CompatibleMultiSensorSearchField(l10n Localizer, model ThingDetailsPageViewModel) {
-	@shared.MultiSensorSearchField(shared.MultiSensorSearchFieldProps{
-		Label:               l10n.Get("sensorconnected"),
-		FieldID:             "thing-current-device-search",
-		HiddenName:          "currentDevice",
-		SelectedContainerID: "thing-current-device-selected",
-		Selected:            connectedSensorSearchItems(model),
-		Description:         "",
-		Placeholder:         l10n.Get("multisensorsearchplaceholder"),
-		SearchURL:           "/components/things/search-compatible-sensor-options",
-		ExtraQuery: map[string]string{
+templ CompatibleMultiSensorSelectBoxField(l10n Localizer, model ThingDetailsPageViewModel) {
+	@shared.MultiSelectBoxField(shared.MultiSelectBoxFieldProps{
+		FieldID:           "thing-current-device",
+		Name:              "currentDevice",
+		Label:             l10n.Get("sensorconnected"),
+		Placeholder:       l10n.Get("multisensorsearchplaceholder"),
+		SearchPlaceholder: l10n.Get("multisensorsearchplaceholder"),
+		ShowPills:         true,
+		SelectedCountText: "{n} sensors selected",
+		SearchURL:         "/components/things/search-compatible-sensor-options",
+		SearchExtraQuery: map[string]string{
 			"thingID": model.Thing.ID,
 			"usage":   "multi",
 		},
-		ResultsID:  "thing-current-device-results",
-		InputClass: "h-10 rounded-xl bg-background",
+		RemoteSearch: true,
+		LoadingText:  "Searching...",
+		EmptyText:    l10n.Get("sensormissing"),
+		Options:      connectedSensorSelectBoxOptions(model),
 	})
 }
 
@@ -214,15 +216,16 @@ templ EditThingTypeSpecificFields(l10n Localizer, model ThingDetailsPageViewMode
 	}
 }
 
-func connectedSensorSearchItems(model ThingDetailsPageViewModel) []shared.SensorSearchSelectedItem {
-	items := make([]shared.SensorSearchSelectedItem, 0, len(model.ConnectedSensors))
+func connectedSensorSelectBoxOptions(model ThingDetailsPageViewModel) []shared.SelectBoxFieldOption {
+	options := make([]shared.SelectBoxFieldOption, 0, len(model.ConnectedSensors))
 	for _, sensor := range model.ConnectedSensors {
-		items = append(items, shared.SensorSearchSelectedItem{
-			Value: sensor.Label,
-			Label: sensor.Label,
+		options = append(options, shared.SelectBoxFieldOption{
+			Value:    sensor.Label,
+			Label:    sensor.Label,
+			Selected: true,
 		})
 	}
-	return items
+	return options
 }
 
 templ ThingNumericField(field ThingMeasurementField) {

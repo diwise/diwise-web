@@ -20,6 +20,7 @@ import (
 	featuresthings "github.com/diwise/diwise-web/internal/presentation/web/components/features/things"
 	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	customselectbox "github.com/diwise/diwise-web/internal/presentation/web/components/shared/custom/selectbox"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/toast"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 
@@ -200,7 +201,6 @@ func NewCompatibleSensorSearchOptionsHandler(_ context.Context, l10n LocaleBundl
 		query := strings.TrimSpace(r.URL.Query().Get("q"))
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		thingID := strings.TrimSpace(r.URL.Query().Get("thingID"))
-		usage := strings.TrimSpace(r.URL.Query().Get("usage"))
 		if thingID == "" {
 			http.Error(w, "missing thing id", http.StatusBadRequest)
 			return
@@ -218,27 +218,26 @@ func NewCompatibleSensorSearchOptionsHandler(_ context.Context, l10n LocaleBundl
 			return
 		}
 
-		options := make([]shared.SensorSearchOptionItem, 0, len(validSensors))
+		options := make([]customselectbox.Option, 0, len(validSensors))
 		for _, sensor := range validSensors {
-			options = append(options, shared.SensorSearchOptionItem{
-				Value:     sensor.SensorID,
-				Primary:   sensor.SensorID,
-				Secondary: sensor.Name,
-				Display:   sensor.SensorID,
+			name := strings.TrimSpace(sensor.Name)
+			if name == "" {
+				name = strings.TrimSpace(sensor.Decoder)
+			}
+
+			options = append(options, customselectbox.Option{
+				Value:          sensor.SensorID,
+				Label:          sensor.SensorID,
+				PrimaryLabel:   sensor.SensorID,
+				SecondaryLabel: name,
 			})
 		}
 
-		component := shared.SensorSearchOptions(shared.SensorSearchOptionsProps{
-			PrimaryHeader:   localizer.Get("deveui"),
-			SecondaryHeader: localizer.Get("sensorName"),
-			QueryInputID:    "thing-current-device-search",
-			HiddenInputID:   "thing-current-device",
-			HiddenInputName: "currentDevice",
-			SelectedID:      "thing-current-device-selected",
-			ResultsID:       "thing-current-device-results",
-			EmptyText:       localizer.Get("sensormissing"),
-			Multiple:        usage == "multi",
-			Options:         options,
+		component := customselectbox.Options(customselectbox.OptionsProps{
+			GroupClass: "p-2",
+			ItemClass:  "rounded-xl px-3 py-2 text-sm transition hover:bg-muted data-[tui-selectbox-selected=true]:bg-primary data-[tui-selectbox-selected=true]:text-primary-foreground",
+			EmptyText:  localizer.Get("sensormissing"),
+			Options:    options,
 		})
 		helpers.WriteComponentResponse(r.Context(), w, r, component, 8*1024, 0)
 	}

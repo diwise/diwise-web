@@ -203,17 +203,18 @@ func TestNewSaveThingDetailsPageRendersEditPageWithToastForUnknownConnectedSenso
 	is.True(strings.Contains(body, "data-tui-toast"))
 	is.True(strings.Contains(body, "Could not find connected sensor"))
 	is.True(strings.Contains(body, "missing-sensor"))
-	is.True(strings.Contains(body, "name=\"currentDevice\" value=\"missing-sensor\""))
+	is.True(strings.Contains(body, "name=\"currentDevice\""))
+	is.True(strings.Contains(body, "value=\"missing-sensor\""))
 	is.True(!app.updateCalled)
 }
 
 type testAsset string
 
-func (a testAsset) Body() []byte          { return nil }
-func (a testAsset) ContentLength() int    { return 0 }
-func (a testAsset) ContentType() string   { return "text/plain" }
-func (a testAsset) Path() string          { return string(a) }
-func (a testAsset) SHA256() string        { return "" }
+func (a testAsset) Body() []byte        { return nil }
+func (a testAsset) ContentLength() int  { return 0 }
+func (a testAsset) ContentType() string { return "text/plain" }
+func (a testAsset) Path() string        { return string(a) }
+func (a testAsset) SHA256() string      { return "" }
 
 func pathValue(value string) string {
 	if strings.TrimSpace(value) == "" {
@@ -447,8 +448,11 @@ func TestNewCompatibleSensorSearchOptionsHandlerFiltersValidSensors(t *testing.T
 	body := rec.Body.String()
 	is.Equal(http.StatusOK, rec.Code)
 	is.True(strings.Contains(body, "alpha-1"))
+	is.True(strings.Contains(body, "weather"))
 	is.True(strings.Contains(body, "beta-2"))
 	is.True(!strings.Contains(body, "device-1"))
+	is.True(strings.Contains(body, "data-tui-selectbox-value=\"alpha-1\""))
+	is.True(strings.Contains(body, `data-diwise-selectbox-secondary-label="weather"`))
 }
 
 func TestNewCompatibleSensorSearchOptionsHandlerSupportsMultiUsage(t *testing.T) {
@@ -473,8 +477,10 @@ func TestNewCompatibleSensorSearchOptionsHandlerSupportsMultiUsage(t *testing.T)
 
 	body := rec.Body.String()
 	is.Equal(http.StatusOK, rec.Code)
-	is.True(strings.Contains(body, "diwiseMultiSensorSearch.add"))
-	is.True(strings.Contains(body, "currentDevice"))
+	is.True(strings.Contains(body, "data-tui-selectbox-value=\"alpha-1\""))
+	is.True(strings.Contains(body, "alpha-1"))
+	is.True(strings.Contains(body, "weather"))
+	is.True(strings.Contains(body, "select-item"))
 }
 
 func TestLocalizeThingValidationMessageInterpolatesSensorName(t *testing.T) {
@@ -502,7 +508,7 @@ func testLocaleBundle() *ftkmock.LocaleBundleMock {
 	return &ftkmock.LocaleBundleMock{
 		ForFunc: func(string) frontendtoolkit.Localizer {
 			return &ftkmock.LocalizerMock{
-				GetFunc:         func(key string) string { return key },
+				GetFunc: func(key string) string { return key },
 				GetWithDataFunc: func(key string, data map[string]any) string {
 					if key == "invalidconnectedsensor" {
 						return "Could not find connected sensor \"" + fmt.Sprint(data["sensor"]) + "\""
