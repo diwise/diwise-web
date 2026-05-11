@@ -159,7 +159,7 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 					middlewares = append(middlewares, api.GrafanaProxy(flags[grafanaURL]))
 				}
 
-				middlewares = append(middlewares, authz.Middleware)
+				middlewares = append(middlewares, authz.Middleware, api.RequireAuthentication)
 
 				err = api.RegisterHandlers(ctx, mux, middlewares, svcCfg.app, flags[webAssetPath])
 				if err != nil {
