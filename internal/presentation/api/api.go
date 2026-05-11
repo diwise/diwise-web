@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/diwise/diwise-web/internal/application"
+	"github.com/diwise/diwise-web/internal/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/admin"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/home"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/sensors"
@@ -129,6 +130,37 @@ func RequireHX(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(w, r)
+	})
+}
+
+func RequireAuthentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+
+		if path == "/home" ||
+			path == "/login" ||
+			path == "/logout" ||
+			path == "/favicon.ico" ||
+			strings.HasPrefix(path, "/assets/") ||
+			strings.HasPrefix(path, "/events/") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if authz.IsLoggedIn(r.Context()) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		loginURL := "/home"
+
+		if helpers.IsHxRequest(r) {
+			w.Header().Set("HX-Redirect", loginURL)
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		http.Redirect(w, r, loginURL, http.StatusFound)
 	})
 }
 
