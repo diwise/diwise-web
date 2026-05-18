@@ -15,7 +15,7 @@ func ThingsMap(l10n Localizer, model ThingsPageViewModel) templ.Component {
 
 	mapData := shared.NewMapData(62.3908, 17.3069)
 	mapData.CurrentView = "thing"
-	return shared.Map("large", true, false, mapData, thingsToMapFeature(l10n, model.Things))
+	return shared.Map("large", true, false, shared.EditShapeMarker, mapData, thingsToMapFeature(l10n, model.Things))
 }
 
 func thingsToMapFeature(l10n Localizer, things []ThingViewModel) shared.FeatureCollection {

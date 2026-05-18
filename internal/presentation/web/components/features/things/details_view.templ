@@ -84,7 +84,7 @@ templ ThingDetailsLocationSection(l10n Localizer, model ThingDetailsPageViewMode
 			})
 			if model.Thing.Latitude != 0 && model.Thing.Longitude != 0 {
 				<div class="w-full overflow-hidden rounded-2xl">
-					@shared.Map("medium", false, false, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+					@shared.Map("medium", false, false, shared.EditShapeMarker, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
 				</div>
 			} else {
 				<div class="italic text-muted-foreground">

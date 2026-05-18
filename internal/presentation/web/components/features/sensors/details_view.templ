@@ -133,7 +133,7 @@ templ SensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageViewM
 				{Label: l10n.Get("longitude"), Value: formatCoordinate(sensor.Longitude)},
 			})
 			if sensor.Latitude != 0 && sensor.Longitude != 0 {
-				@shared.Map("medium", false, false, shared.NewMapData(sensor.Latitude, sensor.Longitude), sensorDetailsMapFeature(sensor))
+				@shared.Map("medium", false, false, shared.EditShapeMarker, shared.NewMapData(sensor.Latitude, sensor.Longitude), sensorDetailsMapFeature(sensor))
 			} else {
 				<div class="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
 					{ l10n.Get("missing") }

@@ -277,7 +277,7 @@ templ EditSensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageV
 					})
 				}
 			</div>
-			@shared.Map("medium", false, true, shared.NewMapData(sensor.Latitude, sensor.Longitude), sensorDetailsMapFeature(sensor))
+			@shared.Map("medium", false, true, shared.EditShapeMarker, shared.NewMapData(sensor.Latitude, sensor.Longitude), sensorDetailsMapFeature(sensor))
 		</div>
 	}
 }

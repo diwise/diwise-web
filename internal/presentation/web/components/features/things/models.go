@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
 )
 
 type ThingsPageViewModel struct {
@@ -62,6 +63,9 @@ type ThingViewModel struct {
 	Latest          map[string]MeasurementViewModel
 	ObservedAt      time.Time
 	Properties      map[string]any
+	EditShape       shared.EditShape
+	Geometry        *shared.GeoJSONGeometry
+	GeometryJSON    string
 }
 
 func (t ThingViewModel) HasWarning() bool {

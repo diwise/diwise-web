@@ -10,7 +10,16 @@ type mapData struct {
 	Longitude   float64
 	Zoom        int
 	CurrentView string
+	Geometry    *GeoJSONGeometry
 }
+
+type EditShape string
+
+const (
+	EditShapeMarker   EditShape = "marker"
+	EditShapePolygon  EditShape = "polygon"
+	EditShapePolyline EditShape = "polyline"
+)
 
 func newMapData(lat, lon float64) mapData {
 	md := mapData{Latitude: lat, Longitude: lon, Zoom: 15}
@@ -28,6 +37,12 @@ func newMapData(lat, lon float64) mapData {
 
 func NewMapData(lat, lon float64) mapData {
 	return newMapData(lat, lon)
+}
+
+func NewMapDataWithGeometry(lat, lon float64, geometry *GeoJSONGeometry) mapData {
+	md := newMapData(lat, lon)
+	md.Geometry = geometry
+	return md
 }
 
 func NewFeatureCollection(features []Feature) FeatureCollection {
@@ -72,15 +87,35 @@ type Point struct {
 	Coordinates []float64 `json:"coordinates"`
 }
 
+type GeoJSONGeometry struct {
+	Type        string `json:"type"`
+	Coordinates any    `json:"coordinates"`
+}
+
+func NewPolygonGeometry(coordinates [][][]float64) *GeoJSONGeometry {
+	return &GeoJSONGeometry{
+		Type:        "Polygon",
+		Coordinates: coordinates,
+	}
+}
+
+func NewPolylineGeometry(coordinates [][]float64) *GeoJSONGeometry {
+	return &GeoJSONGeometry{
+		Type:        "LineString",
+		Coordinates: coordinates,
+	}
+}
+
 var mapHandle = templ.NewOnceHandle()
 
-templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollection ...FeatureCollection) {
+templ Map(mapsize string, showPopup, editmode bool, editshape EditShape, data mapData, featureCollection ...FeatureCollection) {
 	<div
 		id="map"
 		data-map={ templ.JSONString(data) }
 		data-features={ templ.JSONString(featureCollection) }
 		data-show-popup={ fmt.Sprintf("%t", showPopup) }
 		data-edit-mode={ fmt.Sprintf("%t", editmode) }
+		data-edit-shape={ string(editshape) }
 		if mapsize == "small" {
 			class="w-full z-0 h-[30vh]"
 		}
@@ -99,6 +134,13 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             if (!Leaflet || typeof Leaflet.tileLayer !== 'function' || typeof Leaflet.map !== 'function') {
                 return;
             }
+            // Leaflet.draw resolves `L` at interaction time, so keep the global on Leaflet
+            // while this map is active even if other deferred scripts replaced it.
+            function restoreLeafletGlobal() {
+                window.L = Leaflet;
+            }
+
+            restoreLeafletGlobal();
 
             function resolveDarkMode() {
                 const hasStoredTheme = 'theme' in localStorage;
@@ -122,17 +164,182 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             
             const showPopup = m.getAttribute('data-show-popup') === 'true';
             const editMode = m.getAttribute('data-edit-mode') === 'true';
+            const editShape = m.getAttribute('data-edit-shape') || 'marker';
+            const geometryEditMode = editMode && editShape !== 'marker';
             const map = Leaflet.map(mapContainerID).setView([mapData.Latitude, mapData.Longitude], mapData.Zoom);
 
             var newMarker = null;
+            var drawnGeometryLayer = null;
             
             Leaflet.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
 
             const initialIsDarkMode = resolveDarkMode();
             updateMapForTheme(initialIsDarkMode);
-            addFeaturesToMap(geodata, map, initialIsDarkMode, editMode);
+            const drawnGeometryItems = geometryEditMode ? Leaflet.featureGroup().addTo(map) : null;
+            if (geometryEditMode && mapData.Geometry) {
+                drawnGeometryLayer = addGeometryFeatureToMap(mapData.Geometry, drawnGeometryItems);
+            }
+            addFeaturesToMap(geodata, map, initialIsDarkMode, editMode && !geometryEditMode, drawnGeometryItems);
             
-            map.on('click', onMapClick);
+            if (geometryEditMode) {
+                initialiseGeometryDrawing(map, drawnGeometryItems, editShape);
+            } else {
+                map.on('click', onMapClick);
+            }
+
+            function ensurePolygonInput() {
+                let input = document.getElementById('geometry');
+                if (input) {
+                    return input;
+                }
+
+                const form = m.closest('form');
+                if (!form) {
+                    return null;
+                }
+
+                input = document.createElement('input');
+                input.type = 'hidden';
+                input.id = 'geometry';
+                input.name = 'geometry';
+                form.appendChild(input);
+                return input;
+            }
+
+            function updateGeometryInput(layer) {
+                const input = ensurePolygonInput();
+                if (!input || !layer || typeof layer.toGeoJSON !== 'function') {
+                    return;
+                }
+
+                input.value = JSON.stringify(layer.toGeoJSON().geometry);
+                console.log('thing geometry', JSON.parse(input.value));
+            }
+
+            function clearGeometryInput() {
+                const input = ensurePolygonInput();
+                if (input) {
+                    input.value = '';
+                }
+                console.log('thing geometry', null);
+            }
+
+            function polygonStyle() {
+                return {
+                    color: '#00733B',
+                    weight: 3,
+                    opacity: 0.95,
+                    fillColor: '#00733B',
+                    fillOpacity: 0.18
+                };
+            }
+
+            function geometryToLatLngs(geometry) {
+                if (!geometry || !geometry.type || !geometry.coordinates) {
+                    return null;
+                }
+
+                if (geometry.type === 'Polygon' && Array.isArray(geometry.coordinates)) {
+                    return geometry.coordinates.map(ring => ring.map(point => [point[1], point[0]]));
+                }
+
+                if (geometry.type === 'LineString' && Array.isArray(geometry.coordinates)) {
+                    return geometry.coordinates.map(point => [point[1], point[0]]);
+                }
+
+                return null;
+            }
+
+            function addGeometryFeatureToMap(geometry, geometryEditGroup) {
+                const latlngs = geometryToLatLngs(geometry);
+                if (!latlngs) {
+                    return null;
+                }
+
+                const layer = geometry.type === 'LineString'
+                    ? Leaflet.polyline(latlngs, polygonStyle())
+                    : Leaflet.polygon(latlngs, polygonStyle());
+
+                if (geometryEditGroup) {
+                    geometryEditGroup.addLayer(layer);
+                } else {
+                    layer.addTo(map);
+                }
+
+                updateGeometryInput(layer);
+
+                const bounds = layer.getBounds && layer.getBounds();
+                if (bounds && bounds.isValid && bounds.isValid()) {
+                    map.fitBounds(bounds);
+                }
+
+                return layer;
+            }
+
+            function initialiseGeometryDrawing(map, drawnItems, shape) {
+                restoreLeafletGlobal();
+
+                if (!drawnItems || !Leaflet.Control || typeof Leaflet.Control.Draw !== 'function') {
+                    return;
+                }
+
+                const drawControl = new Leaflet.Control.Draw({
+                    draw: {
+                        polygon: shape === 'polygon' ? {
+                            allowIntersection: false,
+                            showArea: true,
+                            shapeOptions: polygonStyle()
+                        } : false,
+                        polyline: shape === 'polyline' ? {
+                            shapeOptions: polygonStyle()
+                        } : false,
+                        rectangle: false,
+                        circle: false,
+                        marker: false,
+                        circlemarker: false
+                    },
+                    edit: {
+                        featureGroup: drawnItems,
+                        edit: true,
+                        remove: true
+                    }
+                });
+
+                map.addControl(drawControl);
+                map.getContainer().addEventListener('click', restoreLeafletGlobal, true);
+                map.getContainer().addEventListener('mousedown', restoreLeafletGlobal, true);
+                map.getContainer().addEventListener('touchstart', restoreLeafletGlobal, true);
+
+                map.on('draw:drawstart', function() {
+                    restoreLeafletGlobal();
+                    drawnItems.clearLayers();
+                    drawnGeometryLayer = null;
+                    clearGeometryInput();
+                });
+
+                map.on('draw:created', function(event) {
+                    restoreLeafletGlobal();
+                    drawnItems.clearLayers();
+                    drawnGeometryLayer = event.layer;
+                    drawnGeometryLayer.setStyle(polygonStyle());
+                    drawnItems.addLayer(drawnGeometryLayer);
+                    updateGeometryInput(drawnGeometryLayer);
+                });
+
+                map.on('draw:edited', function(event) {
+                    restoreLeafletGlobal();
+                    event.layers.eachLayer(function(layer) {
+                        drawnGeometryLayer = layer;
+                        updateGeometryInput(layer);
+                    });
+                });
+
+                map.on('draw:deleted', function() {
+                    restoreLeafletGlobal();
+                    drawnGeometryLayer = null;
+                    clearGeometryInput();
+                });
+            }
 
             function onMapClick(e) {
                 if (editMode) {
@@ -378,7 +585,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                 return popup;
             }
             
-            function addFeaturesToMap(gd, m, isDarkMode, editMode) {                                        
+            function addFeaturesToMap(gd, m, isDarkMode, editMode, geometryEditGroup = null) {                                        
                 if (gd && Array.isArray(gd)) {
                     var bounds = Leaflet.latLngBounds();
                     
@@ -392,6 +599,11 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                 const { iconUrl } = getIconByTypeAndTheme(type, subtype, isDarkMode);
 
                                 Leaflet.geoJSON(feature, {
+                                    style: function(feature) {
+                                        if (feature.geometry && feature.geometry.type === 'Polygon') {
+                                            return polygonStyle();
+                                        }
+                                    },
                                     pointToLayer: function(feature, latlng) {
                                         const fillingLevelHtml = feature.properties.missingdata
                                             ? ''
@@ -429,7 +641,16 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 
                                         return marker;
                                     },
+                                    filter: function(feature) {
+                                        return !(geometryEditMode && feature.geometry && feature.geometry.type === 'Point');
+                                    },
                                     onEachFeature: function(feature, layer) {
+                                        if (geometryEditGroup && feature.geometry && (feature.geometry.type === 'Polygon' || feature.geometry.type === 'LineString')) {
+                                            geometryEditGroup.addLayer(layer);
+                                            drawnGeometryLayer = layer;
+                                            updateGeometryInput(layer);
+                                        }
+
                                         if (showPopup) {
                                             var cv = mapData.CurrentView;
                                             var popupContent = null;

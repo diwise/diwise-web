@@ -50,5 +50,5 @@ func SensorsMap(l10n Localizer, model SensorsPageViewModel) templ.Component {
 
 	mapData := shared.NewMapData(62.3908, 17.3069)
 	mapData.CurrentView = "sensor"
-	return shared.Map("large", true, false, mapData, sensorsToMapFeature(l10n, model))
+	return shared.Map("large", true, false, shared.EditShapeMarker, mapData, sensorsToMapFeature(l10n, model))
 }

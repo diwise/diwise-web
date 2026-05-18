@@ -3,6 +3,7 @@ package things
 import (
 	"cmp"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -264,6 +265,10 @@ func composeDetailsModel(ctx context.Context, id string, app thingsApp, includeE
 		ValidSensors:                   make([]featuresthings.SensorOption, 0),
 		MeasurementOptions:             make([]featuresthings.MeasurementOption, 0, len(latestValues)),
 	}
+	shape, geometry := featuresthings.ThingEditMapConfig(model.Thing)
+	model.Thing.EditShape = shape
+	model.Thing.Geometry = geometry
+	model.Thing.GeometryJSON = geometryJSONString(geometry)
 
 	for _, ref := range thing.RefDevices {
 		if ref.DeviceID == "" || slices.ContainsFunc(model.ConnectedSensors, func(sensor featuresthings.ConnectedSensorViewModel) bool {
@@ -449,6 +454,17 @@ func buildThingUpdateFields(ctx context.Context, app thingsApp, thingID string, 
 		}
 	}
 
+	if rawGeometry, hasGeometry := form["geometry"]; hasGeometry {
+		geometryJSON := strings.TrimSpace(strings.Join(rawGeometry, ""))
+		if geometryJSON == "" {
+			fields["geometry"] = nil
+		} else if json.Valid([]byte(geometryJSON)) {
+			fields["geometry"] = json.RawMessage(geometryJSON)
+		} else {
+			return nil, fmt.Errorf("invalid geometry JSON")
+		}
+	}
+
 	for _, key := range []string{"maxl", "maxd", "angle", "offset"} {
 		if value := strings.TrimSpace(form.Get(key)); value != "" {
 			if parsed, ok := asFloat(value); ok {
@@ -560,6 +576,32 @@ func applySubmittedThingDetailsForm(model *featuresthings.ThingDetailsPageViewMo
 			Label:    sensor,
 		})
 	}
+
+	if rawGeometry, hasGeometry := form["geometry"]; hasGeometry {
+		geometryJSON := strings.TrimSpace(strings.Join(rawGeometry, ""))
+		model.Thing.GeometryJSON = geometryJSON
+		if geometryJSON == "" {
+			model.Thing.Geometry = nil
+		} else {
+			var geometry shared.GeoJSONGeometry
+			if err := json.Unmarshal([]byte(geometryJSON), &geometry); err == nil {
+				model.Thing.Geometry = &geometry
+			}
+		}
+	}
+}
+
+func geometryJSONString(geometry *shared.GeoJSONGeometry) string {
+	if geometry == nil {
+		return ""
+	}
+
+	b, err := json.Marshal(geometry)
+	if err != nil {
+		return ""
+	}
+
+	return string(b)
 }
 
 func thingValidationToast(message string) templ.Component {

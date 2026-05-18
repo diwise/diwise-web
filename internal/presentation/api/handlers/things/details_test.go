@@ -2,6 +2,7 @@ package things
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -60,6 +61,30 @@ func TestBuildThingUpdateFieldsMapsEditForm(t *testing.T) {
 	is.Equal(2.5, fields["maxd"])
 	is.Equal(3.75, fields["angle"])
 	is.Equal(4.5, fields["offset"])
+}
+
+func TestBuildThingUpdateFieldsMapsGeometryField(t *testing.T) {
+	is := is.New(t)
+
+	geometry := `{"type":"Polygon","coordinates":[[[17.301991,62.399907],[17.303535,62.397818],[17.301991,62.399907]]]}`
+
+	fields, err := buildThingUpdateFields(context.Background(), &testThingsApp{}, "thing-1", url.Values{
+		"geometry": {geometry},
+	})
+
+	is.NoErr(err)
+	is.Equal(json.RawMessage(geometry), fields["geometry"])
+}
+
+func TestBuildThingUpdateFieldsClearsGeometryWhenEmpty(t *testing.T) {
+	is := is.New(t)
+
+	fields, err := buildThingUpdateFields(context.Background(), &testThingsApp{}, "thing-1", url.Values{
+		"geometry": {""},
+	})
+
+	is.NoErr(err)
+	is.Equal(nil, fields["geometry"])
 }
 
 func TestBuildThingUpdateFieldsHandlesRepeatedTagValues(t *testing.T) {
@@ -133,6 +158,25 @@ func TestApplySubmittedThingDetailsFormKeepsSubmittedSensorValues(t *testing.T) 
 		DeviceID: "missing-sensor",
 		Label:    "missing-sensor",
 	}}, model.ConnectedSensors)
+}
+
+func TestApplySubmittedThingDetailsFormKeepsGeometryValues(t *testing.T) {
+	is := is.New(t)
+
+	model := featuresthings.ThingDetailsPageViewModel{
+		Thing: featuresthings.ThingViewModel{
+			Type: "Building",
+		},
+	}
+
+	geometry := `{"type":"Polygon","coordinates":[[[17.301991,62.399907],[17.303535,62.397818],[17.301991,62.399907]]]}`
+	applySubmittedThingDetailsForm(&model, url.Values{
+		"geometry": {geometry},
+	})
+
+	is.Equal(geometry, model.Thing.GeometryJSON)
+	is.True(model.Thing.Geometry != nil)
+	is.Equal("Polygon", model.Thing.Geometry.Type)
 }
 
 func TestNewSaveThingDetailsPageReturnsToastForUnknownConnectedSensorHXRequest(t *testing.T) {
@@ -226,10 +270,12 @@ func pathValue(value string) string {
 func TestAllowsMultipleConnectedSensorsByThingType(t *testing.T) {
 	is := is.New(t)
 
-	is.True(allowsMultipleConnectedSensors(appthings.Thing{Type: "Building"}))
 	is.True(allowsMultipleConnectedSensors(appthings.Thing{Type: "Room"}))
-	is.True(allowsMultipleConnectedSensors(appthings.Thing{Type: "Sewer"}))
-	is.True(allowsMultipleConnectedSensors(appthings.Thing{Type: "Container", SubType: "Sandstorage"}))
+	is.True(allowsMultipleConnectedSensors(appthings.Thing{Type: "PointOfInterest"}))
+	is.True(allowsMultipleConnectedSensors(appthings.Thing{Type: "Beach"}))
+	is.True(!allowsMultipleConnectedSensors(appthings.Thing{Type: "Building"}))
+	is.True(!allowsMultipleConnectedSensors(appthings.Thing{Type: "Sewer"}))
+	is.True(!allowsMultipleConnectedSensors(appthings.Thing{Type: "Container", SubType: "Sandstorage"}))
 	is.True(!allowsMultipleConnectedSensors(appthings.Thing{Type: "Container", SubType: "WasteContainer"}))
 	is.True(!allowsMultipleConnectedSensors(appthings.Thing{Type: "Lifebuoy"}))
 }
@@ -391,7 +437,7 @@ func TestComposeDetailsModelUsesConnectedSensorDevEUIForEditDisplay(t *testing.T
 	}}, model.ConnectedSensors)
 }
 
-func TestComposeDetailsModelMarksSandstorageAsMultiSensor(t *testing.T) {
+func TestComposeDetailsModelDoesNotMarkSandstorageAsMultiSensor(t *testing.T) {
 	is := is.New(t)
 
 	model, err := composeDetailsModel(context.Background(), "thing-1", &testThingsApp{
@@ -404,7 +450,7 @@ func TestComposeDetailsModelMarksSandstorageAsMultiSensor(t *testing.T) {
 	}, true)
 
 	is.NoErr(err)
-	is.True(model.AllowsMultipleConnectedSensors)
+	is.True(!model.AllowsMultipleConnectedSensors)
 }
 
 func TestComposeDetailsModelFallsBackToDeviceIDWhenSensorLookupFails(t *testing.T) {

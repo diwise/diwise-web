@@ -264,37 +264,41 @@ templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) 
 		icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
 		<div class="flex flex-col gap-6 py-6 px-8">
-			<div class="grid gap-6 md:grid-cols-2">
-				@shared.FormField(l10n.Get("latitude"), "latitude") {
-					@input.Input(input.Props{
-						ID:    "latitude",
-						Name:  "latitude",
-						Type:  input.TypeNumber,
-						Value: formatCoordinate(model.Thing.Latitude),
-						Class: "h-10 rounded-xl bg-background",
-						Attributes: templ.Attributes{
-							"min":  "-90",
-							"max":  "90",
-							"step": "0.000001",
-						},
-					})
+			if model.Thing.EditShape == shared.EditShapeMarker {
+				<div class="grid gap-6 md:grid-cols-2">
+					@shared.FormField(l10n.Get("latitude"), "latitude") {
+						@input.Input(input.Props{
+							ID:    "latitude",
+							Name:  "latitude",
+							Type:  input.TypeNumber,
+							Value: formatCoordinate(model.Thing.Latitude),
+							Class: "h-10 rounded-xl bg-background",
+							Attributes: templ.Attributes{
+								"min":  "-90",
+								"max":  "90",
+								"step": "0.000001",
+							},
+						})
+					}
+						@shared.FormField(l10n.Get("longitude"), "longitude") {
+							@input.Input(input.Props{
+								ID:    "longitude",
+							Name:  "longitude",
+							Type:  input.TypeNumber,
+							Value: formatCoordinate(model.Thing.Longitude),
+							Class: "h-10 rounded-xl bg-background",
+							Attributes: templ.Attributes{
+								"min":  "-180",
+								"max":  "180",
+								"step": "0.000001",
+								},
+							})
+						}
+					</div>
+				} else {
+					<input type="hidden" id="geometry" name="geometry" value={ model.Thing.GeometryJSON }/>
 				}
-				@shared.FormField(l10n.Get("longitude"), "longitude") {
-					@input.Input(input.Props{
-						ID:    "longitude",
-						Name:  "longitude",
-						Type:  input.TypeNumber,
-						Value: formatCoordinate(model.Thing.Longitude),
-						Class: "h-10 rounded-xl bg-background",
-						Attributes: templ.Attributes{
-							"min":  "-180",
-							"max":  "180",
-							"step": "0.000001",
-						},
-					})
-				}
-			</div>
-			@shared.Map("medium", false, true, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
+			@shared.Map("medium", false, true, model.Thing.EditShape, shared.NewMapDataWithGeometry(model.Thing.Latitude, model.Thing.Longitude, model.Thing.Geometry), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
 		</div>
 	}
 }

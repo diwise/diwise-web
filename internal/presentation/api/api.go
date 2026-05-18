@@ -363,12 +363,16 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 
 	// Handle requests for leaflet images /assets/<leafletcss-sha>/images/<image>.png
 	leafletSHA := assetLoader.Load("/css/leaflet.css").SHA256()
+	leafletDrawSHA := assetLoader.Load("/leaflet-draw/leaflet.draw.css").SHA256()
 
 	assets.RegisterEndpoints(ctx, assetLoader, assets.WithMux(r),
 		assets.WithImmutableExpiry(48*time.Hour),
 		assets.WithRedirect("/favicon.ico", "/icons/favicon.ico", http.StatusFound),
 		assets.WithRedirect(
 			fmt.Sprintf("/assets/%s/images/{img}", leafletSHA), "/images/leaflet-{img}", http.StatusMovedPermanently,
+		),
+		assets.WithRedirect(
+			fmt.Sprintf("/assets/%s/images/{img}", leafletDrawSHA), "/leaflet-draw/images/{img}", http.StatusMovedPermanently,
 		),
 	)
 

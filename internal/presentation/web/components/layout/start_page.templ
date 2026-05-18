@@ -41,6 +41,8 @@ templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, main
 			<script src={ asset("/js/htmx.min.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 			<script src={ asset("/js/htmx-ext-sse.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 			<script src={ asset("/js/leaflet.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+			<link href={ asset("/leaflet-draw/leaflet.draw.css").Path() } rel="stylesheet"/>
+     		<script src={ asset("/leaflet-draw/leaflet.draw.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 			<script nonce={ csp.Nonce(ctx) }>
 				// Some v2 deferred scripts mutate the global `L`, so pin Leaflet immediately after load.
 				window.__diwiseLeaflet = window.L;
