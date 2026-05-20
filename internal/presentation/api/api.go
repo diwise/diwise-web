@@ -2,6 +2,7 @@ package api
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application"
 	"github.com/diwise/diwise-web/internal/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/admin"
@@ -18,7 +20,9 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/sensors"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/things"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/toast"
 	webutils "github.com/diwise/diwise-web/internal/presentation/web/utils"
+	frontendtoolkit "github.com/diwise/frontend-toolkit"
 
 	"github.com/diwise/frontend-toolkit/pkg/assets"
 	"github.com/diwise/frontend-toolkit/pkg/locale"
@@ -152,16 +156,73 @@ func RequireAuthentication(next http.Handler) http.Handler {
 			return
 		}
 
-		loginURL := "/home"
-
-		if helpers.IsHxRequest(r) {
-			w.Header().Set("HX-Redirect", loginURL)
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-
-		http.Redirect(w, r, loginURL, http.StatusFound)
+		redirectForAuth(w, r, "/home")
 	})
+}
+
+func NewAuthzDeniedHandler(redirectURL string, l10n frontendtoolkit.LocaleBundle) authz.DeniedHandler {
+	return func(w http.ResponseWriter, r *http.Request, denial authz.Denial) {
+		switch denial.Status {
+		case http.StatusUnauthorized:
+			redirectForAuth(w, r, redirectURL)
+		case http.StatusForbidden:
+			if helpers.IsHxRequest(r) {
+				localizer := l10n.For(r.Header.Get("Accept-Language"))
+				writeAuthzDeniedToast(
+					r.Context(),
+					w,
+					localizer.Get("missingpermission"),
+					localizer.Get("missingpermissiondescription"),
+				)
+				return
+			}
+
+			redirectForAuth(w, r, redirectURL)
+		default:
+			http.Error(w, http.StatusText(denial.Status), denial.Status)
+		}
+	}
+}
+
+func writeAuthzDeniedToast(ctx context.Context, w http.ResponseWriter, title, message string) {
+	component := toast.Toast(toast.Props{
+		Title:         strings.TrimSpace(title),
+		Description:   strings.TrimSpace(message),
+		Variant:       toast.VariantError,
+		Dismissible:   true,
+		Icon:          true,
+		ShowIndicator: true,
+		Position:      toast.PositionBottomRight,
+	})
+
+	writeToastResponse(ctx, w, "#app-toast", component)
+}
+
+func writeToastResponse(ctx context.Context, w http.ResponseWriter, target string, component templ.Component) {
+	var buf bytes.Buffer
+	if err := component.Render(ctx, &buf); err != nil {
+		http.Error(w, "could not render toast", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("HX-Retarget", target)
+	w.Header().Set("HX-Reswap", "beforeend")
+	w.Header().Set("HX-Replace-Url", "false")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	// HTMX does not swap 4xx responses by default, so return 200 for the toast fragment.
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(buf.Bytes())
+}
+
+func redirectForAuth(w http.ResponseWriter, r *http.Request, redirectURL string) {
+	if helpers.IsHxRequest(r) {
+		w.Header().Set("HX-Redirect", redirectURL)
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
 
 func VersionReloader(version string) func(http.Handler) http.Handler {
@@ -185,7 +246,10 @@ func VersionReloader(version string) func(http.Handler) http.Handler {
 	}
 }
 
-func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func(http.Handler) http.Handler, app *application.App, assetPath string) error {
+func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func(http.Handler) http.Handler, authorizer authz.Authorizer, app *application.App, assetPath string) error {
+	if authorizer == nil {
+		return errors.New("api access authorizer is required")
+	}
 
 	r := http.NewServeMux()
 
@@ -214,7 +278,8 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /components/home/usage", RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/tables/alarms", RequireHX(home.NewAlarmsTable(ctx, l10n, assetLoader.Load, app)))
 
-	r.HandleFunc("GET /sensors", sensors.NewSensorsPage(ctx, l10n, assetLoader.Load, app))
+	r.Handle("GET /sensors", authorizer.RequireAccess(authz.ReadSensors)(http.HandlerFunc(sensors.NewSensorsPage(ctx, l10n, assetLoader.Load, app))))
+
 	r.HandleFunc("GET /sensors/{id}", sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("POST /sensors/{id}", sensors.NewSaveSensorDetailsPage(ctx, l10n, assetLoader.Load, app))
 	r.Handle("GET /components/sensors/{id}/attach", RequireHX(sensors.NewAttachSensorDialogHandler(ctx, l10n, assetLoader.Load, app)))
@@ -233,7 +298,9 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.HandleFunc("GET /things/{id}", things.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("POST /things/{id}", things.NewSaveThingDetailsPage(ctx, l10n, assetLoader.Load, app))
 	r.HandleFunc("POST /things/{id}/delete", things.NewDeleteThingDetailsPage(ctx, l10n, assetLoader.Load, app))
-	r.Handle("GET /components/things/new", RequireHX(things.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app)))
+
+	r.Handle("GET /components/things/new", authorizer.RequireAccess(authz.CreateThings)(RequireHX(things.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app))))
+
 	r.Handle("GET /components/things/{id}/measurements", RequireHX(things.NewThingMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/things/search-compatible-sensor-options", RequireHX(things.NewCompatibleSensorSearchOptionsHandler(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/things/list", RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app)))

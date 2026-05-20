@@ -274,6 +274,12 @@ other = "Data saknas"
 [missingpage]
 other = "Sida saknas"
 
+[missingpermission]
+other = "Behörighet saknas"
+
+[missingpermissiondescription]
+other = "Du saknar behörighet för den här åtgärden."
+
 [mm]
 other = "mm"
 

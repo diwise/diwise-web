@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/api"
 	"github.com/diwise/diwise-web/internal/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
+	"github.com/diwise/frontend-toolkit/pkg/locale"
 	"github.com/diwise/frontend-toolkit/pkg/middleware"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	"github.com/diwise/service-chassis/pkg/infrastructure/buildinfo"
@@ -159,9 +161,21 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 					middlewares = append(middlewares, api.GrafanaProxy(flags[grafanaURL]))
 				}
 
-				middlewares = append(middlewares, authz.Middleware, api.RequireAuthentication)
+				policyPath := filepath.Join(flags[webAssetPath], "config", "authz.rego")
+				policyFile, err := os.Open(policyPath)
+				if err != nil {
+					return fmt.Errorf("failed to open authz policy %q: %w", policyPath, err)
+				}
+				defer policyFile.Close()
 
-				err = api.RegisterHandlers(ctx, mux, middlewares, svcCfg.app, flags[webAssetPath])
+				l10n := locale.NewLocalizer(flags[webAssetPath], "sv", "en")
+				authorizer, err := authz.NewAuthorizer(ctx, policyFile, authz.WithDeniedHandler(api.NewAuthzDeniedHandler("/home", l10n)))
+				if err != nil {
+					return fmt.Errorf("failed to create new authorizer: %s", err.Error())
+				}
+				middlewares = append(middlewares, authorizer.WithAuthorizationContext, api.RequireAuthentication)
+
+				err = api.RegisterHandlers(ctx, mux, middlewares, authorizer, svcCfg.app, flags[webAssetPath])
 				if err != nil {
 					return fmt.Errorf("failed to create new api handler: %s", err.Error())
 				}

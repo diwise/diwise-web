@@ -274,6 +274,12 @@ other = "Missing data"
 [missingpage]
 other = "Page is missing"
 
+[missingpermission]
+other = "Missing permission"
+
+[missingpermissiondescription]
+other = "You are missing permission for this action."
+
 [mm]
 other = "mm"
 

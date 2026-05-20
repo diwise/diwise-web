@@ -67,6 +67,7 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 	<body id="body" hx-ext="sse" sse-connect={ "/events/" + version } sse-close="goodbye" class="min-h-screen bg-background text-foreground">
 		<div id="sse" class="hidden" sse-swap="upgrade,hello,tick"></div>
 		@AppShell(l10n, asset, mainContent)
+		<div id="app-toast"></div>
 	</body>
 	<script nonce={ csp.Nonce(ctx) }>
 		function applyThemeClass(theme) {
