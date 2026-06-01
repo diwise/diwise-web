@@ -23,15 +23,7 @@ const (
 	ReadAdmin Scope = "admin"
 )
 
-var AnyScope Scope = Scope("any")
-
-type ContextLoader interface {
-	WithAuthorizationContext(http.Handler) http.Handler
-}
-
-type Authorizer interface {
-	RequireAccess(scopes ...Scope) func(http.Handler) http.Handler
-}
+const AnyScope Scope = "any"
 
 type DenialReason string
 
@@ -48,6 +40,18 @@ type Denial struct {
 
 type DeniedHandler func(http.ResponseWriter, *http.Request, Denial)
 
+type AuthenticationBypass func(*http.Request) bool
+
+// TenantResolver resolves the tenant for a request before tenant-scoped
+// authorization is evaluated.
+type TenantResolver func(context.Context, *http.Request) (string, error)
+
+type Authorizer interface {
+	RequireAuthentication(AuthenticationBypass) func(http.Handler) http.Handler
+	RequireAccess(scopes ...Scope) func(http.Handler) http.Handler
+	RequireTenantAccess(scope Scope, resolve TenantResolver) func(http.Handler) http.Handler
+}
+
 type Option func(*authorizer)
 
 func WithDeniedHandler(handler DeniedHandler) Option {
@@ -58,16 +62,7 @@ func WithDeniedHandler(handler DeniedHandler) Option {
 	}
 }
 
-func defaultDeniedHandler(w http.ResponseWriter, _ *http.Request, denial Denial) {
-	http.Error(w, http.StatusText(denial.Status), denial.Status)
-}
-
-type authorizer struct {
-	resolver      accessResolver
-	deniedHandler DeniedHandler
-}
-
-func NewAuthorizer(ctx context.Context, policies io.Reader, opts ...Option) (*authorizer, error) {
+func NewAuthorizer(ctx context.Context, policies io.Reader, opts ...Option) (Authorizer, error) {
 	module, err := io.ReadAll(policies)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read authz policies: %w", err)
@@ -82,8 +77,8 @@ func NewAuthorizer(ctx context.Context, policies io.Reader, opts ...Option) (*au
 	}
 
 	a := &authorizer{
-		resolver:      &opaAccessResolver{query: query},
-		deniedHandler: defaultDeniedHandler,
+		accessMapResolver: &opaAccessResolver{query: query},
+		deniedHandler:     defaultDeniedHandler,
 	}
 
 	for _, opt := range opts {
@@ -91,4 +86,13 @@ func NewAuthorizer(ctx context.Context, policies io.Reader, opts ...Option) (*au
 	}
 
 	return a, nil
+}
+
+type authorizer struct {
+	accessMapResolver accessResolver
+	deniedHandler     DeniedHandler
+}
+
+func defaultDeniedHandler(w http.ResponseWriter, _ *http.Request, denial Denial) {
+	http.Error(w, http.StatusText(denial.Status), denial.Status)
 }

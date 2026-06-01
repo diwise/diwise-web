@@ -13,6 +13,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application/admin"
 	"github.com/diwise/diwise-web/internal/application/devices"
+	"github.com/diwise/diwise-web/internal/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	featuresensors "github.com/diwise/diwise-web/internal/presentation/web/components/features/sensors"
 	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
@@ -52,27 +53,6 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 	return http.HandlerFunc(fn)
 }
 
-func NewSensorsTable(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		ctx := helpers.Decorate(
-			r.Context(),
-			v2layout.CurrentComponent, "sensors",
-		)
-
-		localizer := l10n.For(r.Header.Get("Accept-Language"))
-		model, err := composeListModel(ctx, r, app, false)
-		if err != nil {
-			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
-			return
-		}
-
-		component := featuresensors.SensorsTableSection(localizer, model)
-		helpers.WriteComponentResponse(ctx, w, r, component, 16*1024, 0)
-	}
-
-	return http.HandlerFunc(fn)
-}
-
 func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
@@ -107,6 +87,8 @@ func composeListModel(ctx context.Context, r *http.Request, app sensorsApp, incl
 		offset = 0
 		limit = 1000
 	}
+
+	args["tenant"] = authz.GetTenantsWithAllowedScopes(ctx, authz.ReadSensors)
 
 	result, err := app.GetDevices(ctx, offset, limit, args)
 	if err != nil {

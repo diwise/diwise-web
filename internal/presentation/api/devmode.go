@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/base64"
 	"net/http"
 	"strings"
 
@@ -23,9 +24,18 @@ func NoCache(next http.Handler) http.Handler {
 
 func NoLogin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r.Header.Set("Authorization", "Bearer devmode")
+		r.Header.Set("Authorization", devModeBearerToken)
 		next.ServeHTTP(w, r)
 	})
+}
+
+var devModeBearerToken = "Bearer " + devModeAccessToken()
+
+func devModeAccessToken() string {
+	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"none"}`))
+	payload := base64.RawURLEncoding.EncodeToString([]byte(`{"diwise-write":"true","tenants":["default","test"]}`))
+
+	return header + "." + payload + "."
 }
 
 func InstallDevmodeHandlers(ctx context.Context, mux *http.ServeMux) *http.ServeMux {

@@ -8,14 +8,14 @@ import (
 )
 
 type accessResolver interface {
-	ResolveAccess(ctx context.Context, token string) (accessMap, error)
+	ResolveAccess(ctx context.Context, token string) (AccessMap, error)
 }
 
 type opaAccessResolver struct {
 	query rego.PreparedEvalQuery
 }
 
-func (r *opaAccessResolver) ResolveAccess(ctx context.Context, token string) (accessMap, error) {
+func (r *opaAccessResolver) ResolveAccess(ctx context.Context, token string) (AccessMap, error) {
 	results, err := r.query.Eval(ctx, rego.EvalInput(map[string]any{
 		"token": token,
 	}))
@@ -39,7 +39,7 @@ func (r *opaAccessResolver) ResolveAccess(ctx context.Context, token string) (ac
 //
 // OPA returns map[string]any and []any because policy data is dynamic.
 // This helper validates the shape and converts strings into Scope values.
-func accessMapFromPolicyBinding(binding any) (accessMap, error) {
+func accessMapFromPolicyBinding(binding any) (AccessMap, error) {
 	result, ok := binding.(map[string]any)
 	if !ok {
 		return nil, fmt.Errorf("expected authz policy to return object, got %T", binding)
@@ -55,7 +55,7 @@ func accessMapFromPolicyBinding(binding any) (accessMap, error) {
 		return nil, fmt.Errorf("authz policy access has unexpected type %T", anyAccess)
 	}
 
-	accessObj := accessMap{}
+	accessObj := AccessMap{}
 	for tenant, anyScopes := range access {
 		scopeSlice, ok := anyScopes.([]any)
 		if !ok {

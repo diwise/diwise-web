@@ -169,12 +169,12 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 				defer policyFile.Close()
 
 				l10n := locale.NewLocalizer(flags[webAssetPath], "sv", "en")
-				authorizer, err := authz.NewAuthorizer(ctx, policyFile, authz.WithDeniedHandler(api.NewAuthzDeniedHandler("/home", l10n)))
+				deniedHandler := api.NewAuthzDeniedHandler("/home", l10n)
+				authorizer, err := authz.NewAuthorizer(ctx, policyFile, authz.WithDeniedHandler(deniedHandler))
 				if err != nil {
 					return fmt.Errorf("failed to create new authorizer: %s", err.Error())
 				}
-				middlewares = append(middlewares, authorizer.WithAuthorizationContext, api.RequireAuthentication)
-
+				middlewares = append(middlewares, api.AuthzDeniedResponse(deniedHandler), authorizer.RequireAuthentication(api.IsPublicAuthenticationRequest))
 				err = api.RegisterHandlers(ctx, mux, middlewares, authorizer, svcCfg.app, flags[webAssetPath])
 				if err != nil {
 					return fmt.Errorf("failed to create new api handler: %s", err.Error())

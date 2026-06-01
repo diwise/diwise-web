@@ -146,9 +146,14 @@ func TestNewSaveThingDetailsPageReturnsToastForUnknownConnectedSensorHXRequest(t
 			Type:      "Building",
 		},
 	}
-	handler := NewSaveThingDetailsPage(context.Background(), testLocaleBundle(), func(name string) frontendtoolkit.Asset {
+	authorizer, err := authz.NewAuthorizer(context.Background(), strings.NewReader(`package example.authz
+
+  	allow := {"access": {}}`))
+	is.NoErr(err)
+
+	handler := authorizer.RequireAuthentication(nil)(NewSaveThingDetailsPage(context.Background(), testLocaleBundle(), func(name string) frontendtoolkit.Asset {
 		return testAsset(pathValue(name))
-	}, app)
+	}, app))
 
 	form := url.Values{
 		"name":          {"Thing One"},
@@ -191,7 +196,7 @@ func TestNewSaveThingDetailsPageRendersEditPageWithToastForUnknownConnectedSenso
 	}
 	req := httptest.NewRequest(http.MethodPost, "/things/thing-1", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req = req.WithContext(context.WithValue(req.Context(), authz.LoggedIn, "yes"))
+	req.Header.Set("Authorization", "Bearer test")
 	rec := httptest.NewRecorder()
 	req.SetPathValue("id", "thing-1")
 

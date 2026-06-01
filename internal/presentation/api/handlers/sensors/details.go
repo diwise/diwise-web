@@ -15,6 +15,7 @@ import (
 	appclient "github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
+	"github.com/diwise/diwise-web/internal/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	featuresensors "github.com/diwise/diwise-web/internal/presentation/web/components/features/sensors"
 	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
@@ -49,7 +50,7 @@ func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 		editMode := r.URL.Query().Get("mode") == "edit"
 		model, err := composeDetailsModel(ctx, id, app, localizer, editMode)
 		if err != nil {
-			http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+			writeSensorHandlerError(w, "could not fetch sensor", err)
 			return
 		}
 
@@ -80,8 +81,20 @@ func NewSaveSensorDetailsPage(ctx context.Context, _ LocaleBundle, _ AssetLoader
 			return
 		}
 
-		if err := app.UpdateDevice(r.Context(), id, buildSensorUpdateFields(r)); err != nil {
+		fields, err := buildSensorUpdateFields(r.Context(), r)
+		if err != nil {
+			writeSensorHandlerError(w, "could not update sensor", err)
+			return
+		}
+
+		if err := app.UpdateDevice(r.Context(), id, fields); err != nil {
 			http.Error(w, "could not update sensor", http.StatusInternalServerError)
+			return
+		}
+
+		if helpers.IsHxRequest(r) {
+			w.Header().Set("HX-Redirect", fmt.Sprintf("/sensors/%s", id))
+			w.WriteHeader(http.StatusOK)
 			return
 		}
 
@@ -123,7 +136,7 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 		case http.MethodGet:
 			model, err := composeAttachDialogModel(r.Context(), id, app)
 			if err != nil {
-				http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+				writeSensorHandlerError(w, "could not fetch sensor", err)
 				return
 			}
 			renderDialog(http.StatusOK, model)
@@ -135,7 +148,7 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 
 			model, err := composeAttachDialogModel(r.Context(), id, app)
 			if err != nil {
-				http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+				writeSensorHandlerError(w, "could not fetch sensor", err)
 				return
 			}
 
@@ -183,7 +196,7 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 			}
 
 			if err := writeUpdatedEditPage(r.Context(), w, r, l10n.For(r.Header.Get("Accept-Language")), assets, id, app); err != nil {
-				http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+				writeSensorHandlerError(w, "could not fetch sensor", err)
 				return
 			}
 		default:
@@ -208,7 +221,7 @@ func NewDetachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 		case http.MethodGet:
 			model, err := composeDetachDialogModel(r.Context(), id, app)
 			if err != nil {
-				http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+				writeSensorHandlerError(w, "could not fetch sensor", err)
 				return
 			}
 			component := featuresensors.DetachSensorDialog(localizer, assets, model)
@@ -216,7 +229,7 @@ func NewDetachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 		case http.MethodPost:
 			model, err := composeDetachDialogModel(r.Context(), id, app)
 			if err != nil {
-				http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+				writeSensorHandlerError(w, "could not fetch sensor", err)
 				return
 			}
 
@@ -228,7 +241,7 @@ func NewDetachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 			}
 
 			if err := writeUpdatedEditPage(r.Context(), w, r, localizer, assets, id, app); err != nil {
-				http.Error(w, "could not fetch sensor", http.StatusInternalServerError)
+				writeSensorHandlerError(w, "could not fetch sensor", err)
 				return
 			}
 		default:
@@ -282,7 +295,7 @@ func NewAttachSensorSearchOptionsHandler(_ context.Context, l10n LocaleBundle, _
 	return http.HandlerFunc(fn)
 }
 
-func buildSensorUpdateFields(r *http.Request) map[string]any {
+func buildSensorUpdateFields(ctx context.Context, r *http.Request) (map[string]any, error) {
 	fields := make(map[string]any)
 
 	for k := range r.Form {
@@ -309,6 +322,10 @@ func buildSensorUpdateFields(r *http.Request) map[string]any {
 		}
 
 		if k == "organisation" {
+			err := authz.RequireTenantAccessForContext(ctx, v, authz.UpdateSensors)
+			if err != nil {
+				return nil, err
+			}
 			fields["tenant"] = v
 			continue
 		}
@@ -338,7 +355,7 @@ func buildSensorUpdateFields(r *http.Request) map[string]any {
 		fields[k] = v
 	}
 
-	return fields
+	return fields, nil
 }
 
 func normalizeMeasurementTypeValues(values []string) []string {
@@ -448,12 +465,21 @@ func composeDetailsModel(ctx context.Context, id string, app sensorDetailsApp, l
 	}
 
 	if includeEditOptions {
-		model.Organisations = app.GetTenants(ctx)
+		model.Organisations = authz.GetTenantsWithAllowedScopes(ctx, authz.UpdateSensors)
 		model.DeviceProfiles = deviceProfileOptions(app.GetDeviceProfiles(ctx))
 		model.TypeOptions = measurementTypeOptions(l10n, app.GetDeviceProfiles(ctx), model.DeviceProfileName, model.Types, sensorTypeLabels(device.Types))
 	}
 
 	return model, nil
+}
+
+func writeSensorHandlerError(w http.ResponseWriter, message string, err error) {
+	if errors.Is(err, authz.ErrAccessDenied) {
+		http.Error(w, "access denied", http.StatusForbidden)
+		return
+	}
+
+	http.Error(w, message, http.StatusInternalServerError)
 }
 
 func composeAttachDialogModel(ctx context.Context, id string, app sensorDetailsApp) (featuresensors.AttachSensorDialogViewModel, error) {
