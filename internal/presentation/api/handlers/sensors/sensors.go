@@ -36,7 +36,8 @@ func NewSensorsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
-		model, err := composeListModel(ctx, r, app, true)
+		access, _ := authz.AccessFromContext(ctx)
+		model, err := composeListModel(ctx, access, r, app, true)
 		if err != nil {
 			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
 			return
@@ -61,7 +62,8 @@ func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 		)
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
-		model, err := composeListModel(ctx, r, app, false)
+		access, _ := authz.AccessFromContext(ctx)
+		model, err := composeListModel(ctx, access, r, app, false)
 		if err != nil {
 			http.Error(w, "could not fetch sensors", http.StatusInternalServerError)
 			return
@@ -74,7 +76,7 @@ func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 	return http.HandlerFunc(fn)
 }
 
-func composeListModel(ctx context.Context, r *http.Request, app sensorsApp, includePageMeta bool) (featuresensors.SensorsPageViewModel, error) {
+func composeListModel(ctx context.Context, access authz.AccessMap, r *http.Request, app sensorsApp, includePageMeta bool) (featuresensors.SensorsPageViewModel, error) {
 	pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 	offset, limit := helpers.GetOffsetAndLimit(r)
 	showMap := r.URL.Query().Get("mapview") == "true"
@@ -88,7 +90,7 @@ func composeListModel(ctx context.Context, r *http.Request, app sensorsApp, incl
 		limit = 1000
 	}
 
-	args["tenant"] = authz.GetTenantsWithAllowedScopes(ctx, authz.ReadSensors)
+	args["tenant"] = authz.TenantsWithScopes(access, authz.ReadSensors)
 
 	result, err := app.GetDevices(ctx, offset, limit, args)
 	if err != nil {

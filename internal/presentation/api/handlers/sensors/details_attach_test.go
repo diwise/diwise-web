@@ -13,7 +13,6 @@ import (
 	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
-	"github.com/diwise/diwise-web/internal/presentation/api/authz"
 	frontendtoolkit "github.com/diwise/frontend-toolkit"
 	ftkmock "github.com/diwise/frontend-toolkit/mock"
 	"github.com/matryer/is"
@@ -29,7 +28,6 @@ func TestNewAttachSensorDialogHandlerRequiresSensorID(t *testing.T) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "device-1")
-	req = withSensorTestAccess(req)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -97,7 +95,6 @@ func TestNewAttachSensorDialogHandlerRefreshesEditPageOnSuccess(t *testing.T) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "device-1")
-	req = withSensorTestAccess(req)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -127,7 +124,6 @@ func TestNewAttachSensorDialogHandlerReturnsConflictForAttachConflict(t *testing
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "device-1")
-	req = withSensorTestAccess(req)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -157,7 +153,6 @@ func TestNewAttachSensorDialogHandlerReturnsNotFoundForMissingSensorOnUpdate(t *
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "device-1")
-	req = withSensorTestAccess(req)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -181,7 +176,6 @@ func TestNewAttachSensorDialogHandlerKeepsSelectedSensorOnValidationError(t *tes
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "device-1")
-	req = withSensorTestAccess(req)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -243,7 +237,6 @@ func TestNewDetachSensorDialogHandlerReturnsDialogOnGet(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/components/sensors/device-1/detach", nil)
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "device-1")
-	req = withSensorTestAccess(req)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -267,7 +260,6 @@ func TestNewDetachSensorDialogHandlerRefreshesEditPageOnSuccess(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/components/sensors/device-1/detach", nil)
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "device-1")
-	req = withSensorTestAccess(req)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -367,10 +359,6 @@ func (a *testDeviceApp) GetMeasurementData(context.Context, string, ...client.In
 
 func (a *testDeviceApp) GetAlarms(context.Context, int, int, map[string][]string) (alarms.Result, error) {
 	return alarms.Result{}, nil
-}
-
-func withSensorTestAccess(req *http.Request) *http.Request {
-	return req.WithContext(testAccessContext("tenant-a", authz.ReadSensors, authz.UpdateSensors))
 }
 
 var _ admin.Management = (*testDeviceApp)(nil)

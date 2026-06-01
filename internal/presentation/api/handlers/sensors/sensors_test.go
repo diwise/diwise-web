@@ -1,12 +1,10 @@
 package sensors
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/url"
 	"testing"
-	_ "unsafe"
 
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/presentation/api/authz"
@@ -55,7 +53,7 @@ func TestBuildSensorUpdateFieldsMapsEditForm(t *testing.T) {
 	}
 	req := &http.Request{Form: form}
 
-	fields, err := buildSensorUpdateFields(testAccessContext("tenant-a", authz.UpdateSensors), req)
+	fields, err := buildSensorUpdateFields(testAccess("tenant-a", authz.UpdateSensors), req)
 
 	is.NoErr(err)
 	is.Equal("device-1", fields["deviceID"])
@@ -83,7 +81,7 @@ func TestBuildSensorUpdateFieldsSplitsCommaSeparatedMeasurementTypes(t *testing.
 	}
 	req := &http.Request{Form: form}
 
-	fields, err := buildSensorUpdateFields(context.Background(), req)
+	fields, err := buildSensorUpdateFields(nil, req)
 
 	is.NoErr(err)
 	is.Equal([]string{"urn:1", "urn:2"}, fields["types"])
@@ -98,7 +96,7 @@ func TestBuildSensorUpdateFieldsDoesNotForceInactiveWhenCheckboxMissing(t *testi
 	}
 	req := &http.Request{Form: form}
 
-	fields, err := buildSensorUpdateFields(context.Background(), req)
+	fields, err := buildSensorUpdateFields(nil, req)
 
 	is.NoErr(err)
 	_, hasActive := fields["active"]
@@ -112,22 +110,19 @@ func TestBuildSensorUpdateFieldsRejectsUnauthorizedTenant(t *testing.T) {
 		"organisation": {"tenant-a"},
 	}}
 
-	_, err := buildSensorUpdateFields(context.Background(), req)
+	_, err := buildSensorUpdateFields(nil, req)
 
 	is.True(errors.Is(err, authz.ErrAccessDenied))
 }
 
-//go:linkname authzWithAccess github.com/diwise/diwise-web/internal/presentation/api/authz.withAccess
-func authzWithAccess(context.Context, authz.AccessMap) context.Context
-
-func testAccessContext(tenant string, scopes ...authz.Scope) context.Context {
+func testAccess(tenant string, scopes ...authz.Scope) authz.AccessMap {
 	access := authz.AccessMap{
 		tenant: map[authz.Scope]struct{}{},
 	}
 	for _, scope := range scopes {
 		access[tenant][scope] = struct{}{}
 	}
-	return authzWithAccess(context.Background(), access)
+	return access
 }
 
 func TestMeasurementTypeOptionsUsesMatchingProfileAndSelection(t *testing.T) {

@@ -23,8 +23,6 @@ const (
 	ReadAdmin Scope = "admin"
 )
 
-const AnyScope Scope = "any"
-
 type DenialReason string
 
 const (
