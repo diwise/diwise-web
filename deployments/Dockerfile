@@ -9,15 +9,20 @@ ARG BUILDARCH
 
 RUN echo $BUILDARCH
 
-RUN curl --fail -sL "https://github.com/tailwindlabs/tailwindcss/releases/download/v4.2.2/tailwindcss-linux-$BUILDARCH" -o tailwindcss
-RUN chmod +x tailwindcss
+RUN case "$BUILDARCH" in \
+    amd64) TAILWIND_ARCH=x64 ;; \
+    arm64) TAILWIND_ARCH=arm64 ;; \
+    *) TAILWIND_ARCH="$BUILDARCH" ;; \
+  esac \
+  && curl --fail -sL "https://github.com/tailwindlabs/tailwindcss/releases/download/v4.2.2/tailwindcss-linux-$TAILWIND_ARCH" -o tailwindcss \
+  && chmod +x tailwindcss
 
 COPY go.mod .
 COPY go.sum .
 
-RUN go mod download
-
 COPY . .
+
+RUN go mod download
 
 RUN templ generate
 RUN ./tailwindcss -i ./internal/presentation/web/css/input.css -o ./assets/css/diwise.css

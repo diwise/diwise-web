@@ -2,6 +2,7 @@ package sensors
 
 import (
 	"context"
+	"maps"
 	"net/http"
 	"time"
 
@@ -109,13 +110,13 @@ func measurementChartConfig(r *http.Request, measurements appmeasurements.Data) 
 			Scales: map[string]shared.AxisScale{
 				"x": measurementTimeScale(theme),
 				"y": {
-					Offset:      boolPtr(true),
+					Offset:      new(true),
 					BeginAtZero: &beginAtZero,
 					Ticks: &shared.AxisTicks{
 						Color: theme.MutedForeground,
 					},
 					Grid: &shared.AxisGrid{
-						Display: boolPtr(true),
+						Display: new(true),
 						Color:   theme.Grid,
 					},
 					Border: &shared.AxisBorder{
@@ -246,9 +247,7 @@ func statusChartConfig(r *http.Request, labels []string, datasets []shared.Advan
 		"x": measurementTimeScale(theme),
 	}
 
-	for key, scale := range yScales {
-		scales[key] = scale
-	}
+	maps.Copy(scales, yScales)
 
 	return shared.AdvancedChartConfig{
 		Type: "line",
@@ -311,8 +310,8 @@ func statusScaleConfig(r *http.Request, title, position string, min, max float64
 	return shared.AxisScale{
 		Type:     "linear",
 		Position: position,
-		Min:      floatPtr(min),
-		Max:      floatPtr(max),
+		Min:      new(min),
+		Max:      new(max),
 		Title: &shared.AxisTitle{
 			Display: true,
 			Text:    title,
@@ -324,7 +323,7 @@ func statusScaleConfig(r *http.Request, title, position string, min, max float64
 		},
 		Grid: &shared.AxisGrid{
 			DrawOnChartArea: false,
-			Display:         boolPtr(true),
+			Display:         new(true),
 			Color:           theme.Grid,
 		},
 		Border: &shared.AxisBorder{
@@ -343,7 +342,7 @@ func measurementTimeScale(theme chartThemeConfig) shared.AxisScale {
 			MaxTicksLimit: 8,
 		},
 		Grid: &shared.AxisGrid{
-			Display: boolPtr(false),
+			Display: new(false),
 			Color:   theme.Border,
 		},
 		Border: &shared.AxisBorder{
@@ -390,10 +389,12 @@ func chartTheme(isDark bool) chartThemeConfig {
 	}
 }
 
+//go:fix inline
 func floatPtr(v float64) *float64 {
-	return &v
+	return new(v)
 }
 
+//go:fix inline
 func boolPtr(v bool) *bool {
-	return &v
+	return new(v)
 }
