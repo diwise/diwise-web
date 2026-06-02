@@ -11,9 +11,11 @@ go install github.com/go-delve/delve/cmd/dlv@latest
 ```
 
 ### tailwind css
+
 https://github.com/tailwindlabs/tailwindcss
 
 ### Visual Studio Code add-on
+
 https://marketplace.visualstudio.com/items?itemName=a-h.templ
 
 ### Configuration
