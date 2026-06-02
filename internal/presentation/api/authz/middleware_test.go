@@ -12,7 +12,7 @@ import (
 func authorizedRequest(access AccessMap) *http.Request {
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	ctx := withAuthorizationContextLoaded(context.WithValue(req.Context(), loggedInCtxKey, true))
-	ctx = withAccess(ctx, access)
+	ctx = WithAccess(ctx, access)
 	return req.WithContext(ctx)
 }
 

@@ -1,10 +1,12 @@
 package authz
 
+import "context"
+
 type AccessMap map[string]map[Scope]struct{}
 
 // RequireTenantAccess returns nil if tenant has the requested scope.
-func RequireTenantAccess(access AccessMap, tenant string, scope Scope) error {
-
+func RequireTenantAccess(ctx context.Context, tenant string, scope Scope) error {
+	access, _ := AccessFromContext(ctx)
 	if tenant == "" || !hasAllScopes(access[tenant], scope) {
 		return AccessDeniedError{Tenant: tenant, Scope: scope}
 	}
@@ -12,7 +14,8 @@ func RequireTenantAccess(access AccessMap, tenant string, scope Scope) error {
 }
 
 // TenantsWithScopes returns tenants that grant every requested scope.
-func TenantsWithScopes(access AccessMap, scopes ...Scope) []string {
+func TenantsWithScopes(ctx context.Context, scopes ...Scope) []string {
+	access, _ := AccessFromContext(ctx)
 	tenants := FilterAccessByScopes(access, scopes...)
 
 	result := make([]string, 0, len(tenants))

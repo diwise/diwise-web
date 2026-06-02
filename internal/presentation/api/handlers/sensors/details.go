@@ -48,8 +48,7 @@ func NewSensorDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		editMode := r.URL.Query().Get("mode") == "edit"
-		access, _ := authz.AccessFromContext(ctx)
-		model, err := composeDetailsModel(ctx, access, id, app, localizer, editMode)
+		model, err := composeDetailsModel(ctx, id, app, localizer, editMode)
 		if err != nil {
 			writeSensorHandlerError(w, "could not fetch sensor", err)
 			return
@@ -82,8 +81,7 @@ func NewSaveSensorDetailsPage(ctx context.Context, _ LocaleBundle, _ AssetLoader
 			return
 		}
 
-		access, _ := authz.AccessFromContext(r.Context())
-		fields, err := buildSensorUpdateFields(access, r)
+		fields, err := buildSensorUpdateFields(r.Context(), r)
 		if err != nil {
 			writeSensorHandlerError(w, "could not update sensor", err)
 			return
@@ -129,7 +127,6 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 		}
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
-		access, _ := authz.AccessFromContext(r.Context())
 		renderDialog := func(status int, model featuresensors.AttachSensorDialogViewModel) {
 			component := featuresensors.AttachSensorDialog(localizer, assets, model)
 			writeComponentStatus(r.Context(), w, status, component)
@@ -137,7 +134,7 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 
 		switch r.Method {
 		case http.MethodGet:
-			model, err := composeAttachDialogModel(r.Context(), access, id, app)
+			model, err := composeAttachDialogModel(r.Context(), id, app)
 			if err != nil {
 				writeSensorHandlerError(w, "could not fetch sensor", err)
 				return
@@ -149,7 +146,7 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 				return
 			}
 
-			model, err := composeAttachDialogModel(r.Context(), access, id, app)
+			model, err := composeAttachDialogModel(r.Context(), id, app)
 			if err != nil {
 				writeSensorHandlerError(w, "could not fetch sensor", err)
 				return
@@ -198,7 +195,7 @@ func NewAttachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 				return
 			}
 
-			if err := writeUpdatedEditPage(r.Context(), access, w, r, l10n.For(r.Header.Get("Accept-Language")), assets, id, app); err != nil {
+			if err := writeUpdatedEditPage(r.Context(), w, r, l10n.For(r.Header.Get("Accept-Language")), assets, id, app); err != nil {
 				writeSensorHandlerError(w, "could not fetch sensor", err)
 				return
 			}
@@ -219,7 +216,6 @@ func NewDetachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 		}
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
-		access, _ := authz.AccessFromContext(r.Context())
 
 		switch r.Method {
 		case http.MethodGet:
@@ -244,7 +240,7 @@ func NewDetachSensorDialogHandler(_ context.Context, l10n LocaleBundle, assets A
 				return
 			}
 
-			if err := writeUpdatedEditPage(r.Context(), access, w, r, localizer, assets, id, app); err != nil {
+			if err := writeUpdatedEditPage(r.Context(), w, r, localizer, assets, id, app); err != nil {
 				writeSensorHandlerError(w, "could not fetch sensor", err)
 				return
 			}
@@ -299,7 +295,7 @@ func NewAttachSensorSearchOptionsHandler(_ context.Context, l10n LocaleBundle, _
 	return http.HandlerFunc(fn)
 }
 
-func buildSensorUpdateFields(access authz.AccessMap, r *http.Request) (map[string]any, error) {
+func buildSensorUpdateFields(ctx context.Context, r *http.Request) (map[string]any, error) {
 	fields := make(map[string]any)
 
 	for k := range r.Form {
@@ -326,7 +322,7 @@ func buildSensorUpdateFields(access authz.AccessMap, r *http.Request) (map[strin
 		}
 
 		if k == "organisation" {
-			err := authz.RequireTenantAccess(access, v, authz.UpdateSensors)
+			err := authz.RequireTenantAccess(ctx, v, authz.UpdateSensors)
 			if err != nil {
 				return nil, err
 			}
@@ -381,7 +377,7 @@ func normalizeMeasurementTypeValues(values []string) []string {
 	return normalized
 }
 
-func composeDetailsModel(ctx context.Context, access authz.AccessMap, id string, app sensorDetailsApp, l10n Localizer, includeEditOptions bool) (featuresensors.SensorDetailsPageViewModel, error) {
+func composeDetailsModel(ctx context.Context, id string, app sensorDetailsApp, l10n Localizer, includeEditOptions bool) (featuresensors.SensorDetailsPageViewModel, error) {
 	device, err := app.GetDevice(ctx, id)
 	if err != nil {
 		return featuresensors.SensorDetailsPageViewModel{}, err
@@ -469,7 +465,7 @@ func composeDetailsModel(ctx context.Context, access authz.AccessMap, id string,
 	}
 
 	if includeEditOptions {
-		model.Organisations = authz.TenantsWithScopes(access, authz.UpdateSensors)
+		model.Organisations = authz.TenantsWithScopes(ctx, authz.UpdateSensors)
 		model.DeviceProfiles = deviceProfileOptions(app.GetDeviceProfiles(ctx))
 		model.TypeOptions = measurementTypeOptions(l10n, app.GetDeviceProfiles(ctx), model.DeviceProfileName, model.Types, sensorTypeLabels(device.Types))
 	}
@@ -486,8 +482,8 @@ func writeSensorHandlerError(w http.ResponseWriter, message string, err error) {
 	http.Error(w, message, http.StatusInternalServerError)
 }
 
-func composeAttachDialogModel(ctx context.Context, access authz.AccessMap, id string, app sensorDetailsApp) (featuresensors.AttachSensorDialogViewModel, error) {
-	model, err := composeDetailsModel(ctx, access, id, app, nil, true)
+func composeAttachDialogModel(ctx context.Context, id string, app sensorDetailsApp) (featuresensors.AttachSensorDialogViewModel, error) {
+	model, err := composeDetailsModel(ctx, id, app, nil, true)
 	if err != nil {
 		return featuresensors.AttachSensorDialogViewModel{}, err
 	}
@@ -502,7 +498,7 @@ func composeAttachDialogModel(ctx context.Context, access authz.AccessMap, id st
 }
 
 func composeDetachDialogModel(ctx context.Context, id string, app sensorDetailsApp) (featuresensors.DetachSensorDialogViewModel, error) {
-	model, err := composeDetailsModel(ctx, nil, id, app, nil, false)
+	model, err := composeDetailsModel(ctx, id, app, nil, false)
 	if err != nil {
 		return featuresensors.DetachSensorDialogViewModel{}, err
 	}
@@ -544,8 +540,8 @@ func writeComponentStatus(ctx context.Context, w http.ResponseWriter, status int
 	_, _ = w.Write(buf.Bytes())
 }
 
-func writeUpdatedEditPage(ctx context.Context, access authz.AccessMap, w http.ResponseWriter, r *http.Request, localizer Localizer, assets AssetLoaderFunc, id string, app sensorDetailsApp) error {
-	model, err := composeDetailsModel(ctx, access, id, app, localizer, true)
+func writeUpdatedEditPage(ctx context.Context, w http.ResponseWriter, r *http.Request, localizer Localizer, assets AssetLoaderFunc, id string, app sensorDetailsApp) error {
+	model, err := composeDetailsModel(ctx, id, app, localizer, true)
 	if err != nil {
 		return err
 	}

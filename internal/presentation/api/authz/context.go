@@ -44,6 +44,7 @@ func withAuthorizationContextLoaded(ctx context.Context) context.Context {
 	return context.WithValue(ctx, authorizationContextLoadedCtxKey, true)
 }
 
-func withAccess(ctx context.Context, access AccessMap) context.Context {
+// WithAccess returns a context carrying authorization access.
+func WithAccess(ctx context.Context, access AccessMap) context.Context {
 	return context.WithValue(ctx, accessCtxKey, access)
 }

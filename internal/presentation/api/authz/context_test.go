@@ -17,7 +17,7 @@ func TestAccessFromContextReturnsStoredAccess(t *testing.T) {
 		},
 	}
 
-	got, ok := AccessFromContext(withAccess(context.Background(), access))
+	got, ok := AccessFromContext(WithAccess(context.Background(), access))
 
 	is.True(ok)
 	is.Equal(access, got)
@@ -32,10 +32,27 @@ func TestRequireTenantAccessDeniesMissingTenant(t *testing.T) {
 		},
 	}
 
-	err := RequireTenantAccess(access, "tenant-b", UpdateSensors)
+	err := RequireTenantAccess(WithAccess(context.Background(), access), "tenant-b", UpdateSensors)
 
 	is.True(errors.Is(err, ErrAccessDenied))
 	is.Equal(AccessDeniedError{Tenant: "tenant-b", Scope: UpdateSensors}, err)
+}
+
+func TestTenantsWithScopesReturnsTenantsFromContext(t *testing.T) {
+	is := is.New(t)
+
+	access := AccessMap{
+		"tenant-a": map[Scope]struct{}{
+			UpdateSensors: struct{}{},
+		},
+		"tenant-b": map[Scope]struct{}{
+			ReadSensors: struct{}{},
+		},
+	}
+
+	tenants := TenantsWithScopes(WithAccess(context.Background(), access), UpdateSensors)
+
+	is.Equal([]string{"tenant-a"}, tenants)
 }
 
 func TestFilterAccessByScopesKeepsTenantsWithAllScopes(t *testing.T) {

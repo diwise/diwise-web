@@ -1,6 +1,7 @@
 package sensors
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/url"
@@ -53,7 +54,7 @@ func TestBuildSensorUpdateFieldsMapsEditForm(t *testing.T) {
 	}
 	req := &http.Request{Form: form}
 
-	fields, err := buildSensorUpdateFields(testAccess("tenant-a", authz.UpdateSensors), req)
+	fields, err := buildSensorUpdateFields(testAccessContext("tenant-a", authz.UpdateSensors), req)
 
 	is.NoErr(err)
 	is.Equal("device-1", fields["deviceID"])
@@ -81,7 +82,7 @@ func TestBuildSensorUpdateFieldsSplitsCommaSeparatedMeasurementTypes(t *testing.
 	}
 	req := &http.Request{Form: form}
 
-	fields, err := buildSensorUpdateFields(nil, req)
+	fields, err := buildSensorUpdateFields(context.Background(), req)
 
 	is.NoErr(err)
 	is.Equal([]string{"urn:1", "urn:2"}, fields["types"])
@@ -96,7 +97,7 @@ func TestBuildSensorUpdateFieldsDoesNotForceInactiveWhenCheckboxMissing(t *testi
 	}
 	req := &http.Request{Form: form}
 
-	fields, err := buildSensorUpdateFields(nil, req)
+	fields, err := buildSensorUpdateFields(context.Background(), req)
 
 	is.NoErr(err)
 	_, hasActive := fields["active"]
@@ -110,7 +111,7 @@ func TestBuildSensorUpdateFieldsRejectsUnauthorizedTenant(t *testing.T) {
 		"organisation": {"tenant-a"},
 	}}
 
-	_, err := buildSensorUpdateFields(nil, req)
+	_, err := buildSensorUpdateFields(context.Background(), req)
 
 	is.True(errors.Is(err, authz.ErrAccessDenied))
 }
@@ -123,6 +124,10 @@ func testAccess(tenant string, scopes ...authz.Scope) authz.AccessMap {
 		access[tenant][scope] = struct{}{}
 	}
 	return access
+}
+
+func testAccessContext(tenant string, scopes ...authz.Scope) context.Context {
+	return authz.WithAccess(context.Background(), testAccess(tenant, scopes...))
 }
 
 func TestMeasurementTypeOptionsUsesMatchingProfileAndSelection(t *testing.T) {

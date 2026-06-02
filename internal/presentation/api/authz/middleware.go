@@ -53,7 +53,7 @@ func (a *authorizer) RequireAccess(scopes ...Scope) func(http.Handler) http.Hand
 				return
 			}
 
-			next.ServeHTTP(w, req)
+			next.ServeHTTP(w, req.WithContext(WithAccess(req.Context(), filteredAccess)))
 		})
 	}
 }
@@ -78,8 +78,7 @@ func (a *authorizer) RequireTenantAccess(scope Scope, resolve TenantResolver) fu
 				return
 			}
 
-			access, _ := AccessFromContext(req.Context())
-			if err := RequireTenantAccess(access, tenant, scope); err != nil {
+			if err := RequireTenantAccess(req.Context(), tenant, scope); err != nil {
 				a.deny(w, req, Denial{
 					Status:         http.StatusForbidden,
 					Reason:         DenialReasonForbidden,
@@ -131,6 +130,6 @@ func (a *authorizer) ensureAuthorizationContext(r *http.Request) (*http.Request,
 		return nil, http.StatusInternalServerError, fmt.Errorf("resolve access: %w", err)
 	}
 
-	ctx = withAccess(ctx, access)
+	ctx = WithAccess(ctx, access)
 	return r.WithContext(ctx), 0, nil
 }
