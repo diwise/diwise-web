@@ -146,14 +146,9 @@ func TestNewSaveThingDetailsPageReturnsToastForUnknownConnectedSensorHXRequest(t
 			Type:      "Building",
 		},
 	}
-	authorizer, err := authz.NewAuthorizer(context.Background(), strings.NewReader(`package example.authz
-
-  	allow := {"access": {}}`))
-	is.NoErr(err)
-
-	handler := authorizer.RequireAuthentication(nil)(NewSaveThingDetailsPage(context.Background(), testLocaleBundle(), func(name string) frontendtoolkit.Asset {
+	handler := NewSaveThingDetailsPage(context.Background(), testLocaleBundle(), func(name string) frontendtoolkit.Asset {
 		return testAsset(pathValue(name))
-	}, app))
+	}, app)
 
 	form := url.Values{
 		"name":          {"Thing One"},
@@ -186,9 +181,14 @@ func TestNewSaveThingDetailsPageRendersEditPageWithToastForUnknownConnectedSenso
 			Type:      "Building",
 		},
 	}
-	handler := NewSaveThingDetailsPage(context.Background(), testLocaleBundle(), func(name string) frontendtoolkit.Asset {
+	authorizer, err := authz.NewAuthorizer(context.Background(), strings.NewReader(`package example.authz
+
+  	allow := {"access": {}}`))
+	is.NoErr(err)
+
+	handler := authorizer.Authenticate()(NewSaveThingDetailsPage(context.Background(), testLocaleBundle(), func(name string) frontendtoolkit.Asset {
 		return testAsset(pathValue(name))
-	}, app)
+	}, app))
 
 	form := url.Values{
 		"name":          {"Thing One"},

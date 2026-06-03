@@ -16,7 +16,7 @@ func authorizedRequest(access AccessMap) *http.Request {
 	return req.WithContext(ctx)
 }
 
-func TestRequireAccessMiddlewareFiltersContextAccess(t *testing.T) {
+func TestRequireAccessMiddlewarePreservesContextAccess(t *testing.T) {
 	is := is.New(t)
 
 	access := AccessMap{
@@ -33,11 +33,11 @@ func TestRequireAccessMiddlewareFiltersContextAccess(t *testing.T) {
 	}
 
 	a := &authorizer{}
-	var filteredAccess AccessMap
+	var gotAccess AccessMap
 
 	handler := a.RequireAccess(ReadSensors)(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var ok bool
-		filteredAccess, ok = AccessFromContext(r.Context())
+		gotAccess, ok = AccessFromContext(r.Context())
 		is.True(ok)
 		w.WriteHeader(http.StatusNoContent)
 	}))
@@ -46,15 +46,7 @@ func TestRequireAccessMiddlewareFiltersContextAccess(t *testing.T) {
 	handler.ServeHTTP(response, authorizedRequest(access))
 
 	is.Equal(http.StatusNoContent, response.Code)
-	is.Equal(AccessMap{
-		"tenant-a": map[Scope]struct{}{
-			ReadSensors:   struct{}{},
-			UpdateSensors: struct{}{},
-		},
-		"tenant-c": map[Scope]struct{}{
-			ReadSensors: struct{}{},
-		},
-	}, filteredAccess)
+	is.Equal(access, gotAccess)
 }
 
 func TestRequireAccessMiddlewareDeniesWhenNoTenantMatches(t *testing.T) {

@@ -68,7 +68,7 @@ func TestFilterAccessByScopesKeepsTenantsWithAllScopes(t *testing.T) {
 		},
 	}
 
-	filtered := FilterAccessByScopes(access, ReadSensors, UpdateSensors)
+	filtered := FilterAccessByScopes(WithAccess(context.Background(), access), ReadSensors, UpdateSensors)
 
 	is.Equal(AccessMap{
 		"tenant-a": map[Scope]struct{}{
