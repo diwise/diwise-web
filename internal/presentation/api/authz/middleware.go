@@ -7,25 +7,6 @@ import (
 	"strings"
 )
 
-func (a *authorizer) RequireAuthentication(bypass AuthenticationBypass) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			req, status, err := a.ensureAuthorizationContext(r)
-			if err != nil {
-				http.Error(w, http.StatusText(status), status)
-				return
-			}
-
-			if IsLoggedIn(req.Context()) || (bypass != nil && bypass(req)) {
-				next.ServeHTTP(w, req)
-				return
-			}
-
-			a.denyUnauthenticated(w, req)
-		})
-	}
-}
-
 func (a *authorizer) RequireAccess(scopes ...Scope) func(http.Handler) http.Handler {
 	requiredScopes := append([]Scope(nil), scopes...)
 
@@ -34,6 +15,11 @@ func (a *authorizer) RequireAccess(scopes ...Scope) func(http.Handler) http.Hand
 			req, status, err := a.ensureAuthorizationContext(r)
 			if err != nil {
 				http.Error(w, http.StatusText(status), status)
+				return
+			}
+
+			if len(requiredScopes) == 0 {
+				next.ServeHTTP(w, req)
 				return
 			}
 

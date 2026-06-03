@@ -45,7 +45,6 @@ type AuthenticationBypass func(*http.Request) bool
 type TenantResolver func(context.Context, *http.Request) (string, error)
 
 type Authorizer interface {
-	RequireAuthentication(AuthenticationBypass) func(http.Handler) http.Handler
 	RequireAccess(scopes ...Scope) func(http.Handler) http.Handler
 	RequireTenantAccess(scope Scope, resolve TenantResolver) func(http.Handler) http.Handler
 }

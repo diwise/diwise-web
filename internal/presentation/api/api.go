@@ -137,19 +137,6 @@ func RequireHX(next http.Handler) http.Handler {
 	})
 }
 
-func IsPublicAuthenticationRequest(r *http.Request) bool {
-	return IsPublicAuthenticationPath(r.URL.Path)
-}
-
-func IsPublicAuthenticationPath(path string) bool {
-	switch path {
-	case "/home", "/login", "/logout", "/favicon.ico":
-		return true
-	default:
-		return strings.HasPrefix(path, "/assets/") || strings.HasPrefix(path, "/events/")
-	}
-}
-
 func NewAuthzDeniedHandler(redirectURL string, l10n frontendtoolkit.LocaleBundle) authz.DeniedHandler {
 	return func(w http.ResponseWriter, r *http.Request, denial authz.Denial) {
 		switch denial.Status {
@@ -267,30 +254,37 @@ func RegisterHandlers(
 		return assetLoader.Load(strings.TrimPrefix(path, "/assets")).Path()
 	}
 
-	l10n := locale.NewLocalizer(assetPath, "sv", "en")
-
-	r.Handle("GET /", func() http.Handler {
-		next := home.NewHomePage(ctx, l10n, assetLoader.Load, app)
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.URL.Path != "/" {
-				w.WriteHeader(http.StatusNotFound)
-				return
-			}
-
-			next(w, r)
-		})
-	}())
-	r.HandleFunc("GET /home", home.NewHomePage(ctx, l10n, assetLoader.Load, app))
-	r.Handle("GET /components/home/statistics", RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/home/usage", RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/tables/alarms", RequireHX(home.NewAlarmsTable(ctx, l10n, assetLoader.Load, app)))
-
-	//Sensors
+	//requiredscopes
 	readSensor := authorizer.RequireAccess(authz.ReadSensors)
 	updateSensor := authorizer.RequireAccess(authz.UpdateSensors)
 	readSensorTenant := authorizer.RequireTenantAccess(authz.ReadSensors, NewTenantResolverFromSensorPath(app))
 	updateSensorTenant := authorizer.RequireTenantAccess(authz.UpdateSensors, NewTenantResolverFromSensorPath(app))
+	readThing := authorizer.RequireAccess(authz.ReadThings)
+	createThing := authorizer.RequireAccess(authz.CreateThings)
+	readThingTenant := authorizer.RequireTenantAccess(authz.ReadThings, NewTenantResolverFromThingsPath(app))
+	updateThingTenant := authorizer.RequireTenantAccess(authz.UpdateThings, NewTenantResolverFromThingsPath(app))
+	deleteThingTenant := authorizer.RequireTenantAccess(authz.DeleteThings, NewTenantResolverFromThingsPath(app))
+	updateThingTenantFromQuery := authorizer.RequireTenantAccess(authz.UpdateThings, NewTenantResolverFromThingsQuery(app))
 
+	l10n := locale.NewLocalizer(assetPath, "sv", "en")
+
+	//Home
+	next := home.NewHomePage(ctx, l10n, assetLoader.Load, app)
+	handleFunc("GET /", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		next(w, r)
+	}), authorizer.RequireAccess())
+
+	handleFunc("GET /home", home.NewHomePage(ctx, l10n, assetLoader.Load, app), readSensor)
+	handleFunc("GET /components/home/statistics", home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app), RequireHX, readSensor)
+	handleFunc("GET /components/home/usage", home.NewUsageHandler(ctx, l10n, assetLoader.Load, app), RequireHX, readSensor)
+	handleFunc("GET /components/tables/alarms", home.NewAlarmsTable(ctx, l10n, assetLoader.Load, app), RequireHX, readSensor)
+
+	//Sensors
 	handleFunc("GET /sensors", sensors.NewSensorsPage(ctx, l10n, assetLoader.Load, app), readSensor)
 	handleFunc("GET /sensors/{id}", sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app), readSensorTenant)
 	handleFunc("POST /sensors/{id}", sensors.NewSaveSensorDetailsPage(ctx, l10n, assetLoader.Load, app), updateSensorTenant)
@@ -305,13 +299,6 @@ func RegisterHandlers(
 	r.Handle("GET /components/sensors/edit/measurement-types", RequireHX(sensors.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app)))
 
 	//Things
-	readThing := authorizer.RequireAccess(authz.ReadThings)
-	createThing := authorizer.RequireAccess(authz.CreateThings)
-	readThingTenant := authorizer.RequireTenantAccess(authz.ReadThings, NewTenantResolverFromThingsPath(app))
-	updateThingTenant := authorizer.RequireTenantAccess(authz.UpdateThings, NewTenantResolverFromThingsPath(app))
-	deleteThingTenant := authorizer.RequireTenantAccess(authz.DeleteThings, NewTenantResolverFromThingsPath(app))
-	updateThingTenantFromQuery := authorizer.RequireTenantAccess(authz.UpdateThings, NewTenantResolverFromThingsQuery(app))
-
 	handleFunc("GET /things", things.NewThingsPage(ctx, l10n, assetLoader.Load, app), readThing)
 	handleFunc("POST /things", things.NewCreateThingPage(ctx, l10n, assetLoader.Load, app), createThing)
 	handleFunc("GET /things/{id}", things.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app), readThingTenant)

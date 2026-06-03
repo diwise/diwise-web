@@ -174,7 +174,7 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 				if err != nil {
 					return fmt.Errorf("failed to create new authorizer: %s", err.Error())
 				}
-				middlewares = append(middlewares, api.AuthzDeniedResponse(deniedHandler), authorizer.RequireAuthentication(api.IsPublicAuthenticationRequest))
+				middlewares = append(middlewares, api.AuthzDeniedResponse(deniedHandler))
 				err = api.RegisterHandlers(ctx, mux, middlewares, authorizer, svcCfg.app, flags[webAssetPath])
 				if err != nil {
 					return fmt.Errorf("failed to create new api handler: %s", err.Error())
