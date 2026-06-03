@@ -3,6 +3,7 @@ package auth
 import (
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
 	. "github.com/diwise/frontend-toolkit"
 )
 
@@ -25,5 +26,20 @@ templ NotLoggedIn(l10n Localizer, asset AssetLoaderFunc) {
 				</div>
 			</div>
 		</div>
+	</div>
+}
+
+templ NoHomeAccess(l10n Localizer) {
+
+	<div class="flex flex-col gap-10">
+		<section class="flex flex-col gap-6">
+			@shared.SectionHeading(l10n.Get("home"), icon.Rss(icon.Props{Size: 28, Class: "text-foreground"}))
+		</section>
+			
+				<div class="space-y-3">
+					<h1 class="font-heading text-3xl font-bold text-foreground">{ l10n.Get("homeaccessmissing") }</h1>
+					<p class="text-base leading-7 text-muted-foreground">{ l10n.Get("homeaccessmissingdescription") }</p>
+				</div>
+			
 	</div>
 }

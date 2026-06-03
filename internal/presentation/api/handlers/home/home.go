@@ -16,7 +16,9 @@ import (
 	appclient "github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
+	"github.com/diwise/diwise-web/internal/presentation/api/authz"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
+	featureauth "github.com/diwise/diwise-web/internal/presentation/web/components/features/auth"
 	featurehome "github.com/diwise/diwise-web/internal/presentation/web/components/features/home"
 	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
@@ -28,6 +30,37 @@ type homeApp interface {
 	alarms.Management
 	devices.Management
 	measurements.Management
+}
+
+func NewRootPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app homeApp) http.HandlerFunc {
+	version := helpers.GetVersion(ctx)
+	homePage := NewHomePage(ctx, l10n, assets, app)
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		if authz.IsLoggedIn(r.Context()) && !authz.HasAccess(r.Context(), authz.ReadSensors) {
+			ctx := helpers.Decorate(
+				r.Context(),
+				v2layout.CurrentComponent, "home",
+			)
+			localizer := l10n.For(r.Header.Get("Accept-Language"))
+			content := featureauth.NoHomeAccess(localizer)
+			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
+			if helpers.IsHxRequest(r) {
+				page = v2layout.AppShell(localizer, assets, content)
+			}
+			helpers.WriteComponentResponse(ctx, w, r, page, 16*1024, 0)
+			return
+		}
+
+		homePage(w, r)
+	}
+
+	return http.HandlerFunc(fn)
 }
 
 func NewHomePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app homeApp) http.HandlerFunc {

@@ -160,6 +160,12 @@ other = "Graf"
 [home]
 other = "Hem"
 
+[homeaccessmissing]
+other = "Ingen åtkomst till hem"
+
+[homeaccessmissingdescription]
+other = "Ditt konto är inloggat men saknar behörighet att visa översikten."
+
 [hours]
 other = "timmar"
 

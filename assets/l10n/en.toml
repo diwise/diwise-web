@@ -160,6 +160,12 @@ other = "Graph"
 [home]
 other = "Home"
 
+[homeaccessmissing]
+other = "No access to home"
+
+[homeaccessmissingdescription]
+other = "Your account is signed in but does not have permission to view the overview."
+
 [hours]
 other = "hours"
 

@@ -271,15 +271,7 @@ func RegisterHandlers(
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
 
 	//Home
-	next := home.NewHomePage(ctx, l10n, assetLoader.Load, app)
-	r.Handle("GET /", Auth(authorizer.Authenticate(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/" {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-		next(w, r)
-	})))
-
+	r.Handle("GET /", Auth(authorizer.Authenticate(), home.NewRootPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /home", Auth(readSensor, home.NewHomePage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/home/statistics", RequireHX(Auth(readSensor, home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("GET /components/home/usage", RequireHX(Auth(readSensor, home.NewUsageHandler(ctx, l10n, assetLoader.Load, app))))
