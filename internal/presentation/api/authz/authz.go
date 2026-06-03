@@ -20,7 +20,7 @@ const (
 	UpdateThings Scope = "things.update"
 	DeleteThings Scope = "things.delete"
 
-	ReadAdmin Scope = "admin"
+	Admin Scope = "admin"
 )
 
 type DenialReason string
