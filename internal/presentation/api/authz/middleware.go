@@ -7,6 +7,19 @@ import (
 	"strings"
 )
 
+func (a *authorizer) Authenticate() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			req, status, err := a.ensureAuthorizationContext(r)
+			if err != nil {
+				http.Error(w, http.StatusText(status), status)
+				return
+			}
+			next.ServeHTTP(w, req)
+		})
+	}
+}
+
 func (a *authorizer) RequireAccess(scopes ...Scope) func(http.Handler) http.Handler {
 	requiredScopes := append([]Scope(nil), scopes...)
 
@@ -18,19 +31,12 @@ func (a *authorizer) RequireAccess(scopes ...Scope) func(http.Handler) http.Hand
 				return
 			}
 
-			if len(requiredScopes) == 0 {
-				next.ServeHTTP(w, req)
-				return
-			}
-
 			if !IsLoggedIn(req.Context()) {
 				a.denyUnauthenticated(w, req)
 				return
 			}
 
-			access, _ := AccessFromContext(req.Context())
-			filteredAccess := FilterAccessByScopes(access, requiredScopes...)
-			if len(filteredAccess) == 0 {
+			if !HasAccess(req.Context(), requiredScopes...) {
 				a.deny(w, req, Denial{
 					Status:         http.StatusForbidden,
 					Reason:         DenialReasonForbidden,
@@ -39,7 +45,7 @@ func (a *authorizer) RequireAccess(scopes ...Scope) func(http.Handler) http.Hand
 				return
 			}
 
-			next.ServeHTTP(w, req.WithContext(WithAccess(req.Context(), filteredAccess)))
+			next.ServeHTTP(w, req)
 		})
 	}
 }

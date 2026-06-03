@@ -13,10 +13,17 @@ func RequireTenantAccess(ctx context.Context, tenant string, scope Scope) error 
 	return nil
 }
 
+func HasAccess(ctx context.Context, scopes ...Scope) bool {
+	filteredAccess := FilterAccessByScopes(ctx, scopes...)
+	if len(filteredAccess) == 0 {
+		return false
+	}
+	return true
+}
+
 // TenantsWithScopes returns tenants that grant every requested scope.
 func TenantsWithScopes(ctx context.Context, scopes ...Scope) []string {
-	access, _ := AccessFromContext(ctx)
-	tenants := FilterAccessByScopes(access, scopes...)
+	tenants := FilterAccessByScopes(ctx, scopes...)
 
 	result := make([]string, 0, len(tenants))
 	for tenant := range tenants {
@@ -27,11 +34,12 @@ func TenantsWithScopes(ctx context.Context, scopes ...Scope) []string {
 }
 
 // FilterAccessByScopes returns only tenants that have all requested scopes.
-func FilterAccessByScopes(access AccessMap, scopes ...Scope) AccessMap {
+func FilterAccessByScopes(ctx context.Context, scopes ...Scope) AccessMap {
+	access, _ := AccessFromContext(ctx)
 	filteredAccess := AccessMap{}
-	for tenant, allowedScopes := range access {
-		if hasAllScopes(allowedScopes, scopes...) {
-			filteredAccess[tenant] = allowedScopes
+	for tenant, tenenatScopes := range access {
+		if hasAllScopes(tenenatScopes, scopes...) {
+			filteredAccess[tenant] = tenenatScopes
 		}
 	}
 

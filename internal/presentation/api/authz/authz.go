@@ -38,14 +38,16 @@ type Denial struct {
 
 type DeniedHandler func(http.ResponseWriter, *http.Request, Denial)
 
-type AuthenticationBypass func(*http.Request) bool
-
 // TenantResolver resolves the tenant for a request before tenant-scoped
 // authorization is evaluated.
 type TenantResolver func(context.Context, *http.Request) (string, error)
 
 type Authorizer interface {
+	// Authenticate enriches the request context with authentication and authorization information.
+	Authenticate() func(http.Handler) http.Handler
+	// RequireAccess requires that the user has access to the requested resource with at least one of the provided scopes.
 	RequireAccess(scopes ...Scope) func(http.Handler) http.Handler
+	// RequireTenantAccess requires that the user has access to the requested tenant-scoped resource with the provided scope.
 	RequireTenantAccess(scope Scope, resolve TenantResolver) func(http.Handler) http.Handler
 }
 

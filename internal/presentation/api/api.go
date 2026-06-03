@@ -272,7 +272,7 @@ func RegisterHandlers(
 
 	//Home
 	next := home.NewHomePage(ctx, l10n, assetLoader.Load, app)
-	r.Handle("GET /", Auth(authorizer.RequireAccess(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	r.Handle("GET /", Auth(authorizer.Authenticate(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			w.WriteHeader(http.StatusNotFound)
 			return
