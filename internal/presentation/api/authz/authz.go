@@ -13,11 +13,17 @@ const AuthToken tokenKey = "jwt-token"
 const LoggedIn loggedInKey = "logged-in"
 
 func NewContextFromAuthorizationHeader(ctx context.Context, r *http.Request) (context.Context, error) {
-	authHeader, _ := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+	var found bool
+	authHeader := r.Header.Get("Authorization")
+	if authHeader, found = strings.CutPrefix(authHeader, "Bearer "); !found {
+		authHeader, _ = strings.CutPrefix(authHeader, "bearer ")
+	}
+
 	if authHeader != "" {
 		ctx = context.WithValue(ctx, LoggedIn, "yes")
 		ctx = context.WithValue(ctx, AuthToken, authHeader)
 	}
+
 	return ctx, nil
 }
 
