@@ -67,32 +67,9 @@ func (a *impl) OptionalAccess(scopes ...Scope) func(http.Handler) http.Handler {
 	}
 }
 
-func WithTokenFromAuthorizationHeader(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token, found := bearerToken(r)
-		if token != "" && found {
-			r = r.WithContext(WithToken(r.Context(), token))
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
-
 func LoggedIn(ctx context.Context) bool {
 	access, ok := ctx.Value(accessCtxKey).(accessMap)
 	return ok && len(access) > 0
-}
-
-func Token(ctx context.Context) string {
-	if token, ok := ctx.Value(tokenCtxKey).(string); ok {
-		return token
-	}
-
-	return ""
-}
-
-func WithToken(ctx context.Context, token string) context.Context {
-	return context.WithValue(ctx, tokenCtxKey, token)
 }
 
 func (a *impl) optionalAccessFromToken(r *http.Request, token string, requiredScopes []Scope, validateScopes []string) (accessMap, bool) {
@@ -126,8 +103,4 @@ func (a *impl) optionalAccessFromToken(r *http.Request, token string, requiredSc
 	}
 
 	return accessObj, true
-}
-
-func bearerToken(r *http.Request) (string, bool) {
-	return strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
 }

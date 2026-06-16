@@ -62,9 +62,9 @@ func (a *impl) RequireAccess(scopes ...Scope) func(http.Handler) http.Handler {
 			_, span := tracer.Start(r.Context(), "check-auth")
 			defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
-			token := r.Header.Get("Authorization")
+			token, ok := bearerToken(r)
 
-			if token == "" || !strings.HasPrefix(token, "Bearer ") {
+			if token == "" || !ok {
 				err = errors.New("authorization header missing")
 				logger.Info(err.Error())
 				http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
@@ -76,7 +76,7 @@ func (a *impl) RequireAccess(scopes ...Scope) func(http.Handler) http.Handler {
 			input := map[string]any{
 				"method": r.Method,
 				"path":   path[1:],
-				"token":  token[7:],
+				"token":  token,
 				"scopes": validateScopes,
 			}
 
@@ -130,6 +130,7 @@ func (a *impl) RequireAccess(scopes ...Scope) func(http.Handler) http.Handler {
 					return
 				}
 
+				r = r.WithContext(WithToken(r.Context(), token))
 				r = r.WithContext(WithAccess(r.Context(), accessObj))
 			}
 
@@ -306,4 +307,20 @@ func IsAllowed(allowedTenants []string, s string) bool {
 
 func WithAccess(ctx context.Context, access accessMap) context.Context {
 	return context.WithValue(ctx, accessCtxKey, access)
+}
+
+func WithToken(ctx context.Context, token string) context.Context {
+	return context.WithValue(ctx, tokenCtxKey, token)
+}
+
+func Token(ctx context.Context) string {
+	if token, ok := ctx.Value(tokenCtxKey).(string); ok {
+		return token
+	}
+
+	return ""
+}
+
+func bearerToken(r *http.Request) (string, bool) {
+	return strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
 }
