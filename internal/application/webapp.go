@@ -16,7 +16,7 @@ import (
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
 	"github.com/diwise/diwise-web/internal/application/things"
-	"github.com/diwise/diwise-web/internal/presentation/api/authz"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 	"go.opentelemetry.io/otel"
@@ -218,7 +218,7 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 	}
 
 	headers := map[string][]string{
-		"Authorization": {"Bearer " + authz.Token(ctx)},
+		"Authorization": {"Bearer " + auth.Token(ctx)},
 		"Accept":        {accept},
 	}
 	query.Add("export", "true")
@@ -236,7 +236,7 @@ func (a *App) Import(ctx context.Context, t string, f io.Reader) error {
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
 	headers := map[string][]string{
-		"Authorization": {"Bearer " + authz.Token(ctx)},
+		"Authorization": {"Bearer " + auth.Token(ctx)},
 	}
 
 	targetURL := ""

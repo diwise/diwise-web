@@ -7,7 +7,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application"
-	"github.com/diwise/diwise-web/internal/presentation/api/authz"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	featureadmin "github.com/diwise/diwise-web/internal/presentation/web/components/features/admin"
 	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
@@ -25,7 +25,7 @@ func NewAdminPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		model := featureadmin.AdminViewModel{
-			Token: authz.Token(ctx),
+			Token: auth.Token(ctx),
 		}
 
 		adminPage := featureadmin.AdminPage(localizer, model)

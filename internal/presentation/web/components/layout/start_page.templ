@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	apiauth "github.com/diwise/diwise-web/internal/presentation/api/auth"
 	auth "github.com/diwise/diwise-web/internal/presentation/web/components/features/auth"
-	"github.com/diwise/diwise-web/internal/presentation/api/authz"
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
 	ui "github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
@@ -55,7 +55,7 @@ templ StartPage(version string, localizer Localizer, asset AssetLoaderFunc, main
 			<link rel="icon" type="image/x-icon" href={ asset("/icons/favicon.ico").Path() }/>
 			<title>diwise</title>
 		</head>
-		if authz.IsLoggedIn(ctx) {
+		if apiauth.LoggedIn(ctx) {
 			@Body(version, localizer, asset, mainContent)
 		} else {
 			@auth.NotLoggedIn(localizer, asset)
