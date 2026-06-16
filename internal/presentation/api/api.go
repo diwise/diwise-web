@@ -177,14 +177,14 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 		return fmt.Errorf("failed to read api auth policies: %w", err)
 	}
 
-	// authenticator, err := auth.NewAuthenticator(
-	// 	ctx,
-	// 	bytes.NewReader(policyBytes),
-	// 	opts...,
-	// )
-	// if err != nil {
-	// 	return fmt.Errorf("failed to create api authenticator: %w", err)
-	// }
+	authenticator, err := auth.NewAuthenticator(
+		ctx,
+		bytes.NewReader(policyBytes),
+		opts...,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create api authenticator: %w", err)
+	}
 
 	optionalAuthenticator, err := auth.NewOptionalAccess(
 		ctx,
@@ -197,12 +197,11 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 
 	optionalAccess := optionalAuthenticator.OptionalAccess(auth.AnyScope)
 
-	protect := func(next http.Handler) http.Handler {
-		return next
-		//return authenticator.RequireAccess(auth.AnyScope)(next)
+	protect := func(scope auth.Scope, next http.Handler) http.Handler {
+		return authenticator.RequireAccess(scope)(next)
 	}
-	protectFunc := func(next http.HandlerFunc) http.Handler {
-		return protect(next)
+	protectFunc := func(scope auth.Scope, next http.HandlerFunc) http.Handler {
+		return protect(scope, next)
 	}
 
 	assetLoader, _ := assets.NewLoader(ctx,
@@ -226,37 +225,36 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 		})
 	}()))
 	r.Handle("GET /home", optionalAccess(home.NewHomePage(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/home/statistics", protect(RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("GET /components/home/usage", protect(RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("GET /components/tables/alarms", protect(RequireHX(home.NewAlarmsTable(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/home/statistics", protect(ReadSensors, RequireHX(home.NewOverviewCardsHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/home/usage", protect(ReadSensors, RequireHX(home.NewUsageHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/tables/alarms", protect(ReadSensors, RequireHX(home.NewAlarmsTable(ctx, l10n, assetLoader.Load, app))))
 
-	r.Handle("GET /sensors", protectFunc(sensors.NewSensorsPage(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /sensors/{id}", protectFunc(sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("POST /sensors/{id}", protectFunc(sensors.NewSaveSensorDetailsPage(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/sensors/{id}/attach", protect(RequireHX(sensors.NewAttachSensorDialogHandler(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("POST /components/sensors/{id}/attach", protect(RequireHX(sensors.NewAttachSensorDialogHandler(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("GET /components/sensors/{id}/detach", protect(RequireHX(sensors.NewDetachSensorDialogHandler(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("POST /components/sensors/{id}/detach", protect(RequireHX(sensors.NewDetachSensorDialogHandler(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("GET /components/sensors/attach/search-options", protect(RequireHX(sensors.NewAttachSensorSearchOptionsHandler(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("GET /components/sensors/list", protect(RequireHX(sensors.NewSensorsDataList(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("GET /components/tables/sensors", protect(RequireHX(sensors.NewSensorsTable(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("GET /components/sensors/{id}/status", protect(RequireHX(sensors.NewStatusChartsComponentHandler(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("GET /components/measurements", protect(RequireHX(sensors.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("GET /components/sensors/edit/measurement-types", protect(RequireHX(sensors.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /sensors", protectFunc(ReadSensors, sensors.NewSensorsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /sensors/{id}", protectFunc(ReadSensors, sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /sensors/{id}", protectFunc(UpdateSensors, sensors.NewSaveSensorDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/{id}/attach", protect(UpdateSensors, RequireHX(sensors.NewAttachSensorDialogHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("POST /components/sensors/{id}/attach", protect(UpdateSensors, RequireHX(sensors.NewAttachSensorDialogHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/sensors/{id}/detach", protect(UpdateSensors, RequireHX(sensors.NewDetachSensorDialogHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("POST /components/sensors/{id}/detach", protect(UpdateSensors, RequireHX(sensors.NewDetachSensorDialogHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/sensors/attach/search-options", protect(UpdateSensors, RequireHX(sensors.NewAttachSensorSearchOptionsHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/sensors/list", protect(ReadSensors, RequireHX(sensors.NewSensorsDataList(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/tables/sensors", protect(ReadSensors, RequireHX(sensors.NewSensorsTable(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/sensors/{id}/status", protect(ReadSensors, RequireHX(sensors.NewStatusChartsComponentHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/measurements", protect(ReadSensors, RequireHX(sensors.NewMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/sensors/edit/measurement-types", protect(UpdateSensors, RequireHX(sensors.NewMeasurementTypesComponentHandler(ctx, l10n, assetLoader.Load, app))))
 
-	r.Handle("GET /things", protectFunc(things.NewThingsPage(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("POST /things", protectFunc(things.NewCreateThingPage(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /things/{id}", protectFunc(things.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("POST /things/{id}", protectFunc(things.NewSaveThingDetailsPage(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("POST /things/{id}/delete", protectFunc(things.NewDeleteThingDetailsPage(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /components/things/new", protect(RequireHX(things.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("GET /components/things/{id}/measurements", protect(RequireHX(things.NewThingMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("GET /components/things/search-compatible-sensor-options", protect(RequireHX(things.NewCompatibleSensorSearchOptionsHandler(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("GET /components/things/list", protect(RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /things", protectFunc(ReadThings, things.NewThingsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /things", protectFunc(CreateThings, things.NewCreateThingPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /things/{id}", protectFunc(ReadThings, things.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /things/{id}", protectFunc(UpdateThings, things.NewSaveThingDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /things/{id}/delete", protectFunc(DeleteThings, things.NewDeleteThingDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things/new", protect(CreateThings, RequireHX(things.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/things/{id}/measurements", protect(ReadThings, RequireHX(things.NewThingMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/things/search-compatible-sensor-options", protect(UpdateThings, RequireHX(things.NewCompatibleSensorSearchOptionsHandler(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/things/list", protect(ReadThings, RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app))))
 
-	r.Handle("GET /admin", protect(admin.NewAdminPage(ctx, l10n, assetLoader.Load, app)))
-
-	r.Handle("GET /admin/export", protectFunc(func(w http.ResponseWriter, r *http.Request) {
+	r.Handle("GET /admin", admin.NewAdminPage(ctx, l10n, assetLoader.Load, app))
+	r.Handle("GET /admin/export", protectFunc(Admin, func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 
 		if !query.Has("export") {
@@ -289,7 +287,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 		w.WriteHeader(http.StatusOK)
 		w.Write(b)
 	}))
-	r.Handle("POST /admin/import", protectFunc(func(w http.ResponseWriter, r *http.Request) {
+	r.Handle("POST /admin/import", protectFunc(Admin, func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
 		defer r.Body.Close()
