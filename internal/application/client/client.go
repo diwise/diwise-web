@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/diwise/diwise-web/internal/presentation/api/authz"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -100,7 +100,7 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 		log.Error("could not create http request", "error", err)
 		return nil, fmt.Errorf("failed to create http request: %s", err.Error())
 	}
-	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
 	req.Header.Add("Accept", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -158,7 +158,7 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -203,7 +203,7 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -248,7 +248,7 @@ func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -293,7 +293,7 @@ func (c *Client) Delete(ctx context.Context, baseURL string) error {
 		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

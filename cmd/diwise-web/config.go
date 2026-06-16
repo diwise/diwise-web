@@ -18,6 +18,8 @@ const (
 
 	devModeEnabled
 	webAssetPath
+	authzAccessObject
+	policiesFile
 
 	appRoot
 	adminURL
