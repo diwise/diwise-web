@@ -386,7 +386,16 @@ func Token(ctx context.Context) string {
 }
 
 func bearerToken(r *http.Request) (string, bool) {
-	return strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+	parts := strings.Fields(r.Header.Get("Authorization"))
+	if len(parts) != 2 {
+		return "", false
+	}
+
+	if !strings.EqualFold(parts[0], "Bearer") {
+		return "", false
+	}
+
+	return parts[1], true
 }
 
 func LoggedIn(ctx context.Context) bool {
