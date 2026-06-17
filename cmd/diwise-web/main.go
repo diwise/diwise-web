@@ -34,13 +34,24 @@ const serviceName string = "diwise-web"
 const devModeAuthzPolicy = `
 package example.authz
 
-default allow := false
+import rego.v1
 
-allow = response if {
+default allow := {"tenants": [], "access": {}}
+
+allow := response if {
+	input.token == "devmode"
 	response := {
 		"tenants": ["default"],
 		"access": {
-			"default": ["web.access"]
+			"default": [
+				"sensors.read",
+				"sensors.update",
+				"things.read",
+				"things.create",
+				"things.update",
+				"things.delete",
+				"admin",
+			]
 		}
 	}
 }
@@ -78,7 +89,7 @@ func main() {
 
 	ctx, cfg.cancelContext = context.WithCancel(ctx)
 
-	policies, err := os.Open(flags[policiesFile])
+	policies, err := authPolicies(flags)
 	exitIf(err, logger, "unable to open opa policy file")
 
 	runner, err := initialize(ctx, flags, policies, cfg)
@@ -93,6 +104,14 @@ func main() {
 func newConfig(_ context.Context, _ FlagMap) (*AppConfig, error) {
 	cfg := &AppConfig{}
 	return cfg, nil
+}
+
+func authPolicies(flags FlagMap) (io.ReadCloser, error) {
+	if flags[devModeEnabled] == "true" {
+		return io.NopCloser(strings.NewReader(devModeAuthzPolicy)), nil
+	}
+
+	return os.Open(flags[policiesFile])
 }
 
 func initialize(ctx context.Context, flags FlagMap, policiesFile io.ReadCloser, cfg *AppConfig) (servicerunner.Runner[AppConfig], error) {

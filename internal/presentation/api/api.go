@@ -230,8 +230,8 @@ func AccessDenied(version string, l10n frontend.LocaleBundle, asset frontend.Ass
 
 			// Other errors from internal requests that marked access denied
 			if appclient.AccessDenied(ctx) != appclient.AccessDeniedNone {
-				// writeAccessDeniedToastResponse(w, r, version, l10n, asset)
-				// return
+				writeAccessDeniedToastResponse(w, r, version, l10n, asset)
+				return
 			}
 
 			writeCapturedResponse(w, capture)
