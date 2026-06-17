@@ -22,6 +22,11 @@ var ErrNotFound = fmt.Errorf("not found")
 var ErrUnauthorized = fmt.Errorf("unauthorized")
 var ErrConflict = fmt.Errorf("conflict")
 
+func errUnauthorized(ctx context.Context) error {
+	MarkAccessDenied(ctx)
+	return fmt.Errorf("request failed: %w", ErrUnauthorized)
+}
+
 type Meta struct {
 	TotalRecords uint64  `json:"totalRecords"`
 	Offset       *uint64 `json:"offset,omitempty"`
@@ -118,7 +123,7 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
-		return nil, fmt.Errorf("request failed: %w", ErrUnauthorized)
+		return nil, errUnauthorized(ctx)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
@@ -171,7 +176,7 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
-		return fmt.Errorf("request failed: %w", ErrUnauthorized)
+		return errUnauthorized(ctx)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
@@ -216,7 +221,7 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
-		return fmt.Errorf("request failed: %w", ErrUnauthorized)
+		return errUnauthorized(ctx)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
@@ -261,7 +266,7 @@ func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
-		return fmt.Errorf("request failed: %w", ErrUnauthorized)
+		return errUnauthorized(ctx)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
@@ -305,7 +310,7 @@ func (c *Client) Delete(ctx context.Context, baseURL string) error {
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
-		return fmt.Errorf("request failed: %w", ErrUnauthorized)
+		return errUnauthorized(ctx)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
