@@ -13,17 +13,22 @@ import (
 	"strings"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application"
+	appclient "github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/admin"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/home"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/sensors"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/things"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
+	authcomponents "github.com/diwise/diwise-web/internal/presentation/web/components/features/auth"
 	webutils "github.com/diwise/diwise-web/internal/presentation/web/utils"
 
+	frontend "github.com/diwise/frontend-toolkit"
 	"github.com/diwise/frontend-toolkit/pkg/assets"
 	"github.com/diwise/frontend-toolkit/pkg/locale"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 )
 
@@ -168,6 +173,144 @@ func VersionReloader(version string) func(http.Handler) http.Handler {
 	}
 }
 
+type responseCapture struct {
+	header     http.Header
+	body       bytes.Buffer
+	statusCode int
+}
+
+func newResponseCapture() *responseCapture {
+	return &responseCapture{header: make(http.Header)}
+}
+
+func (c *responseCapture) Header() http.Header {
+	return c.header
+}
+
+func (c *responseCapture) Write(data []byte) (int, error) {
+	if c.statusCode == 0 {
+		c.statusCode = http.StatusOK
+	}
+	return c.body.Write(data)
+}
+
+func (c *responseCapture) WriteHeader(statusCode int) {
+	if c.statusCode != 0 {
+		return
+	}
+	c.statusCode = statusCode
+}
+
+func AccessDeniedToToast(asset frontend.AssetLoaderFunc) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if !shouldCaptureForAccessDeniedToast(r) {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			ctx := appclient.WithAccessDeniedTracker(r.Context())
+			r = r.WithContext(ctx)
+
+			capture := newResponseCapture()
+			next.ServeHTTP(capture, r)
+
+			if appclient.AccessDenied(ctx) || capturedAuthenticatedUnauthorized(r, capture) {
+				writeAccessDeniedToastResponse(w, r, asset)
+				return
+			}
+
+			writeCapturedResponse(w, capture)
+		})
+	}
+}
+
+func capturedAuthenticatedUnauthorized(r *http.Request, capture *responseCapture) bool {
+	if capture.statusCode != http.StatusUnauthorized {
+		return false
+	}
+
+	return hasBearerToken(r)
+}
+
+func hasBearerToken(r *http.Request) bool {
+	token, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+	return ok && strings.TrimSpace(token) != ""
+}
+
+func shouldCaptureForAccessDeniedToast(r *http.Request) bool {
+	if isEventStream(r) || isUpgradeRequest(r) {
+		return false
+	}
+
+	return helpers.IsHxRequest(r) || strings.Contains(r.Header.Get("Accept"), "text/html")
+}
+
+func isEventStream(r *http.Request) bool {
+	return strings.Contains(r.Header.Get("Accept"), "text/event-stream")
+}
+
+func isUpgradeRequest(r *http.Request) bool {
+	return r.Header.Get("Upgrade") != "" || strings.Contains(strings.ToLower(r.Header.Get("Connection")), "upgrade")
+}
+
+func writeCapturedResponse(w http.ResponseWriter, capture *responseCapture) {
+	copyHeaders(w.Header(), capture.Header())
+
+	status := capture.statusCode
+	if status == 0 {
+		status = http.StatusOK
+	}
+
+	w.WriteHeader(status)
+	if capture.body.Len() > 0 {
+		_, _ = w.Write(capture.body.Bytes())
+	}
+}
+
+func copyHeaders(dst, src http.Header) {
+	for key, values := range src {
+		dst.Del(key)
+		for _, value := range values {
+			dst.Add(key, value)
+		}
+	}
+}
+
+func writeAccessDeniedToastResponse(w http.ResponseWriter, r *http.Request, asset frontend.AssetLoaderFunc) {
+	ctx := r.Context()
+	component := authcomponents.AccessDeniedToast()
+	status := http.StatusUnauthorized
+
+	if helpers.IsHxRequest(r) {
+		w.Header().Set("HX-Retarget", "body")
+		w.Header().Set("HX-Reswap", "beforeend")
+		status = http.StatusOK
+	} else {
+		component = authcomponents.AccessDeniedPage(asset)
+	}
+
+	body, err := renderComponent(ctx, component)
+	if err != nil {
+		logging.GetFromContext(ctx).Error("failed to render access denied toast", "err", err.Error())
+		http.Error(w, "access denied", http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(body)))
+	w.WriteHeader(status)
+	_, _ = w.Write(body)
+}
+
+func renderComponent(ctx context.Context, component templ.Component) ([]byte, error) {
+	var buf bytes.Buffer
+	ctx = templ.WithNonce(ctx, csp.Nonce(ctx))
+	err := component.Render(ctx, &buf)
+	return buf.Bytes(), err
+}
+
 func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func(http.Handler) http.Handler, app *application.App, assetPath string, authPolicies io.Reader, opts ...auth.Option) error {
 
 	r := http.NewServeMux()
@@ -212,6 +355,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	}
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
+	middleware = append(middleware, AccessDeniedToToast(assetLoader.Load))
 
 	r.Handle("GET /", optionalAccess(func() http.Handler {
 		next := home.NewHomePage(ctx, l10n, assetLoader.Load, app)
