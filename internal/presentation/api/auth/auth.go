@@ -16,6 +16,10 @@ import (
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 )
 
+type tokenContextKey struct{ name string }
+
+var tokenCtxKey = &tokenContextKey{"jwt-token"}
+
 type accessContextKey struct{ name string }
 
 var accessCtxKey = &accessContextKey{"access"}
@@ -27,6 +31,7 @@ type Scope string
 var AnyScope Scope = Scope("any")
 
 type Enticator interface {
+	Login(scopes ...Scope) func(http.Handler) http.Handler
 	RequireAccess(scopes ...Scope) func(http.Handler) http.Handler
 }
 
@@ -47,6 +52,31 @@ func WithAccessObjectAuthorization(enabled bool) Option {
 type impl struct {
 	query             rego.PreparedEvalQuery
 	accessObjectAuthz bool
+}
+
+func (a *impl) Login(scopes ...Scope) func(http.Handler) http.Handler {
+	requiredScopes := normalizeRequiredScopes(scopes...)
+	validateScopes := scopesAsStrings(requiredScopes)
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			token, found := bearerToken(r)
+			if token == "" || !found {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			accessObj, ok := a.optionalAccessFromToken(r, token, requiredScopes, validateScopes)
+			if !ok {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			ctx := WithToken(r.Context(), token)
+			ctx = WithAccess(ctx, accessObj)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
 }
 
 func (a *impl) RequireAccess(scopes ...Scope) func(http.Handler) http.Handler {
@@ -230,6 +260,39 @@ func legacyTenantsFromResult(result map[string]any, requiredScopes []Scope) (acc
 	return accessObj, nil
 }
 
+func (a *impl) optionalAccessFromToken(r *http.Request, token string, requiredScopes []Scope, validateScopes []string) (accessMap, bool) {
+	path := strings.Split(r.URL.Path, "/")
+
+	input := map[string]any{
+		"method": r.Method,
+		"path":   path[1:],
+		"token":  token,
+		"scopes": validateScopes,
+	}
+
+	results, err := a.query.Eval(r.Context(), rego.EvalInput(input))
+	if err != nil || len(results) == 0 {
+		return nil, false
+	}
+
+	binding := results[0].Bindings["x"]
+	if allowed, ok := binding.(bool); ok && !allowed {
+		return nil, false
+	}
+
+	result, ok := binding.(map[string]any)
+	if !ok {
+		return nil, false
+	}
+
+	accessObj, err := a.accessFromResult(result, requiredScopes)
+	if err != nil || len(accessObj) == 0 {
+		return nil, false
+	}
+
+	return accessObj, true
+}
+
 func normalizeRequiredScopes(scopes ...Scope) []Scope {
 	if len(scopes) == 1 && scopes[0] == AnyScope {
 		return []Scope{}
@@ -323,4 +386,9 @@ func Token(ctx context.Context) string {
 
 func bearerToken(r *http.Request) (string, bool) {
 	return strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+}
+
+func LoggedIn(ctx context.Context) bool {
+	access, ok := ctx.Value(accessCtxKey).(accessMap)
+	return ok && len(access) > 0
 }
