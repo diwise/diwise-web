@@ -331,16 +331,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 		return fmt.Errorf("failed to create api authenticator: %w", err)
 	}
 
-	optionalAuthenticator, err := auth.NewOptionalAccess(
-		ctx,
-		bytes.NewReader(policyBytes),
-		opts...,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create optional api authenticator: %w", err)
-	}
-
-	optionalAccess := optionalAuthenticator.OptionalAccess(auth.AnyScope)
+	optionalAccess := authenticator.Login(auth.AnyScope)
 
 	protect := func(scope auth.Scope, next http.Handler) http.Handler {
 		return authenticator.RequireAccess(scope)(next)
