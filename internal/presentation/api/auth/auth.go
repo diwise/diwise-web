@@ -31,7 +31,7 @@ type Scope string
 var AnyScope Scope = Scope("any")
 
 type Enticator interface {
-	Login(scopes ...Scope) func(http.Handler) http.Handler
+	OptionalAuth(scopes ...Scope) func(http.Handler) http.Handler
 	RequireAccess(scopes ...Scope) func(http.Handler) http.Handler
 }
 
@@ -54,7 +54,7 @@ type impl struct {
 	accessObjectAuthz bool
 }
 
-func (a *impl) Login(scopes ...Scope) func(http.Handler) http.Handler {
+func (a *impl) OptionalAuth(scopes ...Scope) func(http.Handler) http.Handler {
 	requiredScopes := normalizeRequiredScopes(scopes...)
 	validateScopes := scopesAsStrings(requiredScopes)
 
@@ -131,7 +131,7 @@ func (a *impl) RequireAccess(scopes ...Scope) func(http.Handler) http.Handler {
 				if ok && !allowed {
 					err = errors.New("authorization failed")
 					logger.Warn(err.Error())
-					http.Error(w, "Unauthorized", http.StatusUnauthorized)
+					http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 					return
 				}
 
@@ -156,7 +156,8 @@ func (a *impl) RequireAccess(scopes ...Scope) func(http.Handler) http.Handler {
 					// requested scopes were not allowed in any tenant
 					err = errors.New("authorization failed")
 					logger.Warn(err.Error())
-					http.Error(w, "Unauthorized", http.StatusUnauthorized)
+					// Token is valid but requested scopes not allowed → 403 Forbidden
+					http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 					return
 				}
 

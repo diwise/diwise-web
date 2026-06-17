@@ -294,8 +294,12 @@ func GET(ctx context.Context, targetUrl string, headers map[string][]string, par
 	defer response.Body.Close()
 
 	if response.StatusCode == http.StatusUnauthorized {
-		client.MarkAccessDenied(ctx)
+		client.MarkAuthDenied(ctx)
 		return nil, fmt.Errorf("request failed: %w", client.ErrUnauthorized)
+	}
+	if response.StatusCode == http.StatusForbidden {
+		client.MarkPermissionDenied(ctx)
+		return nil, fmt.Errorf("request failed: forbidden")
 	}
 
 	if response.StatusCode >= http.StatusBadRequest {
@@ -358,8 +362,12 @@ func FileUpload(ctx context.Context, targetUrl string, headers map[string][]stri
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusUnauthorized {
-		client.MarkAccessDenied(ctx)
+		client.MarkAuthDenied(ctx)
 		return fmt.Errorf("request failed: %w", client.ErrUnauthorized)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		client.MarkPermissionDenied(ctx)
+		return fmt.Errorf("request failed: forbidden")
 	}
 
 	if resp.StatusCode >= http.StatusBadRequest {

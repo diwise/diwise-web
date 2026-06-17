@@ -202,7 +202,7 @@ func (c *responseCapture) WriteHeader(statusCode int) {
 	c.statusCode = statusCode
 }
 
-func AccessDeniedToToast(version string, l10n frontend.LocaleBundle, asset frontend.AssetLoaderFunc) func(http.Handler) http.Handler {
+func AccessDenied(version string, l10n frontend.LocaleBundle, asset frontend.AssetLoaderFunc) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !shouldCaptureForAccessDeniedToast(r) {
@@ -216,9 +216,22 @@ func AccessDeniedToToast(version string, l10n frontend.LocaleBundle, asset front
 			capture := newResponseCapture()
 			next.ServeHTTP(capture, r)
 
-			if appclient.AccessDenied(ctx) || capturedAuthenticatedUnauthorized(r, capture) {
+			// 401: Authentication failure (no token/invalid token) → redirect to /home
+			if capture.statusCode == http.StatusUnauthorized {
+				redirectToHome(w, r)
+				return
+			}
+
+			// 403: Authorization failure (valid token but insufficient scopes) → show toast
+			if capture.statusCode == http.StatusForbidden {
 				writeAccessDeniedToastResponse(w, r, version, l10n, asset)
 				return
+			}
+
+			// Other errors from internal requests that marked access denied
+			if appclient.AccessDenied(ctx) != appclient.AccessDeniedNone {
+				// writeAccessDeniedToastResponse(w, r, version, l10n, asset)
+				// return
 			}
 
 			writeCapturedResponse(w, capture)
@@ -226,17 +239,14 @@ func AccessDeniedToToast(version string, l10n frontend.LocaleBundle, asset front
 	}
 }
 
-func capturedAuthenticatedUnauthorized(r *http.Request, capture *responseCapture) bool {
-	if capture.statusCode != http.StatusUnauthorized {
-		return false
+func redirectToHome(w http.ResponseWriter, r *http.Request) {
+	if strings.EqualFold(r.Header.Get("HX-Request"), "true") {
+		w.Header().Set("HX-Redirect", "/home")
+		w.WriteHeader(http.StatusOK)
+		return
 	}
 
-	return hasBearerToken(r)
-}
-
-func hasBearerToken(r *http.Request) bool {
-	token, ok := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
-	return ok && strings.TrimSpace(token) != ""
+	http.Redirect(w, r, "/home", http.StatusFound)
 }
 
 func shouldCaptureForAccessDeniedToast(r *http.Request) bool {
@@ -331,7 +341,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 		return fmt.Errorf("failed to create api authenticator: %w", err)
 	}
 
-	optionalAccess := authenticator.Login(auth.AnyScope)
+	optionalAccess := authenticator.OptionalAuth(auth.AnyScope)
 
 	protect := func(scope auth.Scope, next http.Handler) http.Handler {
 		return authenticator.RequireAccess(scope)(next)
@@ -348,7 +358,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	}
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
-	middleware = append(middleware, AccessDeniedToToast(helpers.GetVersion(ctx), l10n, assetLoader.Load))
+	middleware = append(middleware, AccessDenied(helpers.GetVersion(ctx), l10n, assetLoader.Load))
 
 	r.Handle("GET /", optionalAccess(func() http.Handler {
 		next := home.NewHomePage(ctx, l10n, assetLoader.Load, app)
@@ -390,7 +400,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /components/things/search-compatible-sensor-options", protect(UpdateThings, RequireHX(things.NewCompatibleSensorSearchOptionsHandler(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("GET /components/things/list", protect(ReadThings, RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app))))
 
-	r.Handle("GET /admin", admin.NewAdminPage(ctx, l10n, assetLoader.Load, app))
+	r.Handle("GET /admin", protect(Admin, admin.NewAdminPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /admin/export", protectFunc(Admin, func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query()
 

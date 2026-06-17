@@ -9,15 +9,23 @@ import (
 
 type accessDeniedTrackerKey struct{}
 
+type AccessDeniedType int32
+
+const (
+	AccessDeniedNone       AccessDeniedType = 0
+	AccessDeniedAuth       AccessDeniedType = 401
+	AccessDeniedPermission AccessDeniedType = 403
+)
+
 type accessDeniedTracker struct {
-	denied atomic.Bool
+	denied atomic.Int32
 }
 
 func WithAccessDeniedTracker(ctx context.Context) context.Context {
 	return context.WithValue(ctx, accessDeniedTrackerKey{}, &accessDeniedTracker{})
 }
 
-func MarkAccessDenied(ctx context.Context) {
+func markAccessDenied(ctx context.Context, deniedType AccessDeniedType) {
 	if auth.Token(ctx) == "" {
 		return
 	}
@@ -27,14 +35,22 @@ func MarkAccessDenied(ctx context.Context) {
 		return
 	}
 
-	tracker.denied.Store(true)
+	tracker.denied.Store(int32(deniedType))
 }
 
-func AccessDenied(ctx context.Context) bool {
+func MarkAuthDenied(ctx context.Context) {
+	markAccessDenied(ctx, AccessDeniedAuth)
+}
+
+func MarkPermissionDenied(ctx context.Context) {
+	markAccessDenied(ctx, AccessDeniedPermission)
+}
+
+func AccessDenied(ctx context.Context) AccessDeniedType {
 	tracker, ok := ctx.Value(accessDeniedTrackerKey{}).(*accessDeniedTracker)
 	if !ok {
-		return false
+		return AccessDeniedNone
 	}
 
-	return tracker.denied.Load()
+	return AccessDeniedType(tracker.denied.Load())
 }

@@ -23,8 +23,13 @@ var ErrUnauthorized = fmt.Errorf("unauthorized")
 var ErrConflict = fmt.Errorf("conflict")
 
 func errUnauthorized(ctx context.Context) error {
-	MarkAccessDenied(ctx)
+	MarkAuthDenied(ctx)
 	return fmt.Errorf("request failed: %w", ErrUnauthorized)
+}
+
+func errForbidden(ctx context.Context) error {
+	MarkPermissionDenied(ctx)
+	return fmt.Errorf("request failed: forbidden")
 }
 
 type Meta struct {
@@ -125,6 +130,10 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 		log.Error("request failed with unauthorized status")
 		return nil, errUnauthorized(ctx)
 	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		return nil, errForbidden(ctx)
+	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
 		return nil, fmt.Errorf("request failed: %w", ErrNotFound)
@@ -178,6 +187,10 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 		log.Error("request failed with unauthorized status")
 		return errUnauthorized(ctx)
 	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		return errForbidden(ctx)
+	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
 		return fmt.Errorf("request failed: %w", ErrNotFound)
@@ -222,6 +235,10 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
 		return errUnauthorized(ctx)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		return errForbidden(ctx)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
@@ -268,6 +285,10 @@ func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 		log.Error("request failed with unauthorized status")
 		return errUnauthorized(ctx)
 	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		return errForbidden(ctx)
+	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
 		return fmt.Errorf("request failed: %w", ErrNotFound)
@@ -311,6 +332,10 @@ func (c *Client) Delete(ctx context.Context, baseURL string) error {
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
 		return errUnauthorized(ctx)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		return errForbidden(ctx)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
