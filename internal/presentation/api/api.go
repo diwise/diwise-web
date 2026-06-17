@@ -23,6 +23,7 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/things"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	authcomponents "github.com/diwise/diwise-web/internal/presentation/web/components/features/auth"
+	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
 	webutils "github.com/diwise/diwise-web/internal/presentation/web/utils"
 
 	frontend "github.com/diwise/frontend-toolkit"
@@ -201,7 +202,7 @@ func (c *responseCapture) WriteHeader(statusCode int) {
 	c.statusCode = statusCode
 }
 
-func AccessDeniedToToast(asset frontend.AssetLoaderFunc) func(http.Handler) http.Handler {
+func AccessDeniedToToast(version string, l10n frontend.LocaleBundle, asset frontend.AssetLoaderFunc) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !shouldCaptureForAccessDeniedToast(r) {
@@ -216,7 +217,7 @@ func AccessDeniedToToast(asset frontend.AssetLoaderFunc) func(http.Handler) http
 			next.ServeHTTP(capture, r)
 
 			if appclient.AccessDenied(ctx) || capturedAuthenticatedUnauthorized(r, capture) {
-				writeAccessDeniedToastResponse(w, r, asset)
+				writeAccessDeniedToastResponse(w, r, version, l10n, asset)
 				return
 			}
 
@@ -277,17 +278,18 @@ func copyHeaders(dst, src http.Header) {
 	}
 }
 
-func writeAccessDeniedToastResponse(w http.ResponseWriter, r *http.Request, asset frontend.AssetLoaderFunc) {
+func writeAccessDeniedToastResponse(w http.ResponseWriter, r *http.Request, version string, l10n frontend.LocaleBundle, asset frontend.AssetLoaderFunc) {
 	ctx := r.Context()
 	component := authcomponents.AccessDeniedToast()
 	status := http.StatusUnauthorized
 
 	if helpers.IsHxRequest(r) {
-		w.Header().Set("HX-Retarget", "body")
-		w.Header().Set("HX-Reswap", "beforeend")
+		w.Header().Set("HX-Retarget", "#toast-container")
+		w.Header().Set("HX-Reswap", "innerHTML")
 		status = http.StatusOK
 	} else {
-		component = authcomponents.AccessDeniedPage(asset)
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		component = v2layout.AccessDeniedShell(version, localizer, asset, component)
 	}
 
 	body, err := renderComponent(ctx, component)
@@ -355,7 +357,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	}
 
 	l10n := locale.NewLocalizer(assetPath, "sv", "en")
-	middleware = append(middleware, AccessDeniedToToast(assetLoader.Load))
+	middleware = append(middleware, AccessDeniedToToast(helpers.GetVersion(ctx), l10n, assetLoader.Load))
 
 	r.Handle("GET /", optionalAccess(func() http.Handler {
 		next := home.NewHomePage(ctx, l10n, assetLoader.Load, app)
