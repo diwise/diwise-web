@@ -267,7 +267,7 @@ func normalizeMultiValueFilter(args url.Values, key string) []string {
 
 	selectedValues := make([]string, 0, len(rawValues))
 	for _, rawValue := range rawValues {
-		for _, part := range strings.Split(rawValue, ",") {
+		for part := range strings.SplitSeq(rawValue, ",") {
 			part = strings.TrimSpace(part)
 			if part == "" || slices.Contains(selectedValues, part) {
 				continue
@@ -292,7 +292,7 @@ func selectedValues(values url.Values, key string) []string {
 
 	result := make([]string, 0, len(raw))
 	for _, item := range raw {
-		for _, part := range strings.Split(item, ",") {
+		for part := range strings.SplitSeq(item, ",") {
 			part = strings.TrimSpace(part)
 			if part == "" || slices.Contains(result, part) {
 				continue

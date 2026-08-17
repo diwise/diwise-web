@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/diwise/diwise-web/internal/presentation/api/authz"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -21,6 +21,16 @@ import (
 var ErrNotFound = fmt.Errorf("not found")
 var ErrUnauthorized = fmt.Errorf("unauthorized")
 var ErrConflict = fmt.Errorf("conflict")
+
+func errUnauthorized(ctx context.Context) error {
+	MarkAuthDenied(ctx)
+	return fmt.Errorf("request failed: %w", ErrUnauthorized)
+}
+
+func errForbidden(ctx context.Context) error {
+	MarkPermissionDenied(ctx)
+	return fmt.Errorf("request failed: forbidden")
+}
 
 type Meta struct {
 	TotalRecords uint64  `json:"totalRecords"`
@@ -100,7 +110,7 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 		log.Error("could not create http request", "error", err)
 		return nil, fmt.Errorf("failed to create http request: %s", err.Error())
 	}
-	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
 	req.Header.Add("Accept", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -118,7 +128,11 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
-		return nil, fmt.Errorf("request failed: %w", ErrUnauthorized)
+		return nil, errUnauthorized(ctx)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		return nil, errForbidden(ctx)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
@@ -158,7 +172,7 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -171,7 +185,11 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
-		return fmt.Errorf("request failed: %w", ErrUnauthorized)
+		return errUnauthorized(ctx)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		return errForbidden(ctx)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
@@ -203,7 +221,7 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -216,7 +234,11 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
-		return fmt.Errorf("request failed: %w", ErrUnauthorized)
+		return errUnauthorized(ctx)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		return errForbidden(ctx)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
@@ -248,7 +270,7 @@ func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -261,7 +283,11 @@ func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
-		return fmt.Errorf("request failed: %w", ErrUnauthorized)
+		return errUnauthorized(ctx)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		return errForbidden(ctx)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
@@ -293,7 +319,7 @@ func (c *Client) Delete(ctx context.Context, baseURL string) error {
 		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+authz.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -305,7 +331,11 @@ func (c *Client) Delete(ctx context.Context, baseURL string) error {
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
-		return fmt.Errorf("request failed: %w", ErrUnauthorized)
+		return errUnauthorized(ctx)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		return errForbidden(ctx)
 	}
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")

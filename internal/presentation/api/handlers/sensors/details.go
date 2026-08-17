@@ -348,7 +348,7 @@ func normalizeMeasurementTypeValues(values []string) []string {
 
 	normalized := make([]string, 0, len(values))
 	for _, value := range values {
-		for _, part := range strings.Split(value, ",") {
+		for part := range strings.SplitSeq(value, ",") {
 			part = strings.TrimSpace(part)
 			if part == "" || slices.Contains(normalized, part) {
 				continue

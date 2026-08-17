@@ -530,7 +530,7 @@ func normalizeCSVList(value string) []string {
 	}
 
 	items := make([]string, 0)
-	for _, part := range strings.Split(value, ",") {
+	for part := range strings.SplitSeq(value, ",") {
 		part = strings.TrimSpace(part)
 		if part == "" || slices.Contains(items, part) {
 			continue
@@ -659,13 +659,13 @@ func thingMeasurementChartConfig(r *http.Request, l10n Localizer, measurement st
 
 	beginAtZero := false
 	yScale := shared.AxisScale{
-		Offset:      boolPtr(true),
+		Offset:      new(true),
 		BeginAtZero: &beginAtZero,
 		Ticks: &shared.AxisTicks{
 			Color: theme.MutedForeground,
 		},
 		Grid: &shared.AxisGrid{
-			Display: boolPtr(true),
+			Display: new(true),
 			Color:   theme.Grid,
 		},
 		Border: &shared.AxisBorder{
@@ -924,7 +924,7 @@ func measurementTimeScale(theme chartThemeConfig) shared.AxisScale {
 			MaxTicksLimit: 8,
 		},
 		Grid: &shared.AxisGrid{
-			Display: boolPtr(false),
+			Display: new(false),
 			Color:   theme.Border,
 		},
 		Border: &shared.AxisBorder{
@@ -943,6 +943,7 @@ func measurementTimeScale(theme chartThemeConfig) shared.AxisScale {
 	}
 }
 
+//go:fix inline
 func boolPtr(v bool) *bool {
-	return &v
+	return new(v)
 }

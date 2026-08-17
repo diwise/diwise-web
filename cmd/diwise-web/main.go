@@ -4,15 +4,17 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/diwise/diwise-web/internal/application"
 	"github.com/diwise/diwise-web/internal/presentation/api"
-	"github.com/diwise/diwise-web/internal/presentation/api/authz"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	"github.com/diwise/frontend-toolkit/pkg/middleware"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
@@ -29,6 +31,32 @@ import (
 
 const serviceName string = "diwise-web"
 
+const devModeAuthzPolicy = `
+package example.authz
+
+import rego.v1
+
+default allow := {"tenants": [], "access": {}}
+
+allow := response if {
+	input.token == "devmode"
+	response := {
+		"tenants": ["default"],
+		"access": {
+			"default": [
+				"sensors.read",
+				"sensors.update",
+				"things.read",
+				"things.create",
+				"things.update",
+				"things.delete",
+				"admin",
+			]
+		}
+	}
+}
+`
+
 func DefaultFlags() FlagMap {
 	return FlagMap{
 		listenAddress: "",     // listen on all ipv4 and ipv6 interfaces
@@ -37,6 +65,8 @@ func DefaultFlags() FlagMap {
 
 		devModeEnabled:        "false",
 		contentSecurityPolicy: "strict",
+		policiesFile:          "/opt/diwise/config/authz.rego",
+		authzAccessObject:     "true",
 	}
 }
 
@@ -59,7 +89,10 @@ func main() {
 
 	ctx, cfg.cancelContext = context.WithCancel(ctx)
 
-	runner, err := initialize(ctx, flags, cfg)
+	policies, err := authPolicies(flags)
+	exitIf(err, logger, "unable to open opa policy file")
+
+	runner, err := initialize(ctx, flags, policies, cfg)
 	exitIf(err, logger, "failed to initialize service")
 
 	err = runner.Run(ctx)
@@ -73,7 +106,15 @@ func newConfig(_ context.Context, _ FlagMap) (*AppConfig, error) {
 	return cfg, nil
 }
 
-func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunner.Runner[AppConfig], error) {
+func authPolicies(flags FlagMap) (io.ReadCloser, error) {
+	if flags[devModeEnabled] == "true" {
+		return io.NopCloser(strings.NewReader(devModeAuthzPolicy)), nil
+	}
+
+	return os.Open(flags[policiesFile])
+}
+
+func initialize(ctx context.Context, flags FlagMap, policiesFile io.ReadCloser, cfg *AppConfig) (servicerunner.Runner[AppConfig], error) {
 
 	devModeEnabled := flags[devModeEnabled] == "true"
 
@@ -159,9 +200,12 @@ func initialize(ctx context.Context, flags FlagMap, cfg *AppConfig) (servicerunn
 					middlewares = append(middlewares, api.GrafanaProxy(flags[grafanaURL]))
 				}
 
-				middlewares = append(middlewares, authz.Middleware, api.RequireAuthentication)
+				accessObjectAuthz, err := strconv.ParseBool(flags[authzAccessObject])
+				if err != nil {
+					return fmt.Errorf("invalid authz access object flag: %w", err)
+				}
 
-				err = api.RegisterHandlers(ctx, mux, middlewares, svcCfg.app, flags[webAssetPath])
+				err = api.RegisterHandlers(ctx, mux, middlewares, svcCfg.app, flags[webAssetPath], policiesFile, auth.WithAccessObjectAuthorization(accessObjectAuthz))
 				if err != nil {
 					return fmt.Errorf("failed to create new api handler: %s", err.Error())
 				}
@@ -218,6 +262,8 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 	flags[servicePort] = envOrDef(ctx, "SERVICE_PORT", flags[servicePort])
 	flags[controlPort] = envOrDef(ctx, "CONTROL_PORT", flags[controlPort])
 	flags[webAssetPath] = envOrDef(ctx, "DIWISEWEB_ASSET_PATH", "/opt/diwise/assets")
+	flags[policiesFile] = envOrDef(ctx, "POLICIES_FILE", flags[policiesFile])
+	flags[authzAccessObject] = envOrDef(ctx, "AUTHZ_ACCESS_OBJECT_ENABLED", flags[authzAccessObject])
 	flags[contentSecurityPolicy] = envOrDef(ctx, "CONTENT_SECURITY_POLICY", flags[contentSecurityPolicy])
 	flags[grafanaURL] = envOrDef(ctx, "GRAFANA_URL", flags[grafanaURL])
 
@@ -239,6 +285,8 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 	flag.BoolFunc("devmode", "enable devmode with fake backend data", apply(devModeEnabled))
 	flag.Func("csp", "set content security policy to strict, report or off", apply(contentSecurityPolicy))
 	flag.Func("grafana", "url to embedded grafana instance", apply(grafanaURL))
+	flag.Func("policies", "an authorization policy file", apply(policiesFile))
+	flag.Func("authz-access-object", "enable access-object authorization policy result model", apply(authzAccessObject))
 	flag.Func("web-assets", "path to web assets folder", apply(webAssetPath))
 	flag.Parse()
 

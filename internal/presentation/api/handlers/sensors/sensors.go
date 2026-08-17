@@ -165,7 +165,7 @@ func normalizeTypeFilter(args url.Values) []string {
 
 	selectedTypes := make([]string, 0, len(rawTypes))
 	for _, rawValue := range rawTypes {
-		for _, part := range strings.Split(rawValue, ",") {
+		for part := range strings.SplitSeq(rawValue, ",") {
 			part = strings.TrimSpace(part)
 			if part == "" || slices.Contains(selectedTypes, part) {
 				continue
