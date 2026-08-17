@@ -4,9 +4,9 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/toast"
 )
 
-templ AccessDeniedToast() {
+templ AccessDeniedToast(title string) {
 	@toast.Toast(toast.Props{
-		Title:         "access denied",
+		Title:         title,
 		Variant:       toast.VariantError,
 		Dismissible:   true,
 		ShowIndicator: true,
