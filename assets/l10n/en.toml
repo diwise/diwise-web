@@ -4,6 +4,9 @@ other = ">30%"
 [50]
 other = ">50%"
 
+[accessdenied]
+other = "Access denied"
+
 [activate]
 other = "Activate sensor"
 

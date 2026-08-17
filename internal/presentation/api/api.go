@@ -290,8 +290,10 @@ func copyHeaders(dst, src http.Header) {
 
 func writeAccessDeniedToastResponse(w http.ResponseWriter, r *http.Request, version string, l10n frontend.LocaleBundle, asset frontend.AssetLoaderFunc) {
 	ctx := r.Context()
-	component := authcomponents.AccessDeniedToast()
 	status := http.StatusUnauthorized
+
+	localizer := l10n.For(r.Header.Get("Accept-Language"))
+	component := authcomponents.AccessDeniedToast(localizer.Get("accessdenied"))
 
 	if helpers.IsHxRequest(r) {
 		w.Header().Set("HX-Retarget", "#toast-container")
