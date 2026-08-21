@@ -7,6 +7,7 @@ type SensorsPageViewModel struct {
 	Sensors        []SensorViewModel
 	Paging         PagingViewModel
 	DeviceProfiles []string
+	Organisations  []string
 	Filters        FiltersViewModel
 	MapView        bool
 }

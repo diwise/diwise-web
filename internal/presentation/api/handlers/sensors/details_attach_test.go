@@ -250,6 +250,7 @@ type testDeviceApp struct {
 	deviceProfiles   []devices.SensorProfile
 	sensors          []devices.Sensor
 	measurements     []measurements.Value
+	newDeviceFunc    func(ctx context.Context, fields map[string]any) error
 	attachFunc       func(ctx context.Context, deviceID string) error
 	deattachFunc     func(ctx context.Context, deviceID string) error
 	updateSensorFunc func(ctx context.Context, deviceID string, fields map[string]any) error
@@ -281,6 +282,13 @@ func (a *testDeviceApp) GetDevices(context.Context, int, int, map[string][]strin
 
 func (a *testDeviceApp) GetSensors(context.Context, int, int, map[string][]string) (devices.SensorResult, error) {
 	return devices.SensorResult{Sensors: a.sensors}, nil
+}
+
+func (a *testDeviceApp) NewDevice(ctx context.Context, fields map[string]any) error {
+	if a.newDeviceFunc != nil {
+		return a.newDeviceFunc(ctx, fields)
+	}
+	return nil
 }
 
 func (a *testDeviceApp) Attach(ctx context.Context, deviceID string) error {

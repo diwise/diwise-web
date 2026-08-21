@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/card"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/dialog"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/table"
 	. "github.com/diwise/frontend-toolkit"
@@ -73,18 +75,19 @@ templ SensorsTableSection(l10n Localizer, viewModel SensorsPageViewModel) {
 					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("deveui") } }
 					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("batterylevel") } }
 					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("lastseen") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3 text-right"}) { <span class="sr-only">{ l10n.Get("actions") }</span> }
 				}
 			}
 			@table.Body() {
 				if len(viewModel.Sensors) == 0 {
 					@table.Row() {
-						@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "7"}}) {
+						@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "8"}}) {
 							{ l10n.Get("nosensors") }
 						}
 					}
 				} else {
 					for _, sensor := range viewModel.Sensors {
-						@SensorRow(l10n, sensor)
+						@SensorRow(l10n, sensor, viewModel.DeviceProfiles, viewModel.Organisations)
 					}
 				}
 			}
@@ -92,14 +95,11 @@ templ SensorsTableSection(l10n Localizer, viewModel SensorsPageViewModel) {
 	}
 }
 
-templ SensorRow(l10n Localizer, sensor SensorViewModel) {
-	@shared.ClickableTableRow(shared.ClickableTableRowProps{
-		Href:    fmt.Sprintf("/sensors/%s", sensor.DeviceID),
-		Target:  "#app-shell",
-		Swap:    "outerHTML",
-		Replace: true,
-	}) {
-		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+templ SensorRow(l10n Localizer, sensor SensorViewModel, deviceProfiles []string, organisations []string) {
+	
+	if sensor.Type == "unknown" {
+		@shared.TableRow(shared.TableRowProps{}) {
+			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			<div class="inline-flex items-center gap-2">
 				<span class={ onlineIndicatorClass(sensor.Online) }></span>
 				if sensor.Online {
@@ -109,47 +109,211 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel) {
 				}
 			</div>
 		}
-		@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
-			<span class="font-bold text-foreground">
-				if sensor.Name != "" {
-					{ sensor.Name }
+			@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
+				<span class="font-bold text-foreground">
+					if sensor.Name != "" {
+						{ sensor.Name }
+					} else {
+						{ sensor.DeviceID }
+					}
+				</span>
+			}
+			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+				if sensor.Active {
+					@shared.StatusBadge(shared.StatusBadgeProps{Tone: shared.StatusBadgeToneActive, Label: l10n.Get("active")})
 				} else {
-					{ sensor.DeviceID }
+					@shared.StatusBadge(shared.StatusBadgeProps{Tone: shared.StatusBadgeToneInactive, Label: l10n.Get("inactive")})
 				}
-			</span>
-		}
-		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
-			if sensor.Active {
-				@shared.StatusBadge(shared.StatusBadgeProps{Tone: shared.StatusBadgeToneActive, Label: l10n.Get("active")})
-			} else {
-				@shared.StatusBadge(shared.StatusBadgeProps{Tone: shared.StatusBadgeToneInactive, Label: l10n.Get("inactive")})
+			}
+			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+				if sensor.Type != "" {
+					{ sensor.Type }
+				} else {
+					{ "-" }
+				}
+			}
+			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+				if sensor.HasAlerts {
+					<span class="font-semibold text-destructive">{ sensor.DevEUI }</span>
+				} else {
+					{ sensor.DevEUI }
+				}
+			}
+			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+				{ formatBattery(sensor.BatteryLevel) }
+			}
+			@table.Cell(table.CellProps{Class: "px-6 py-3 text-muted-foreground"}) {
+				if sensor.LastSeen.IsZero() {
+					{ "-" }
+				} else {
+					{ sensor.LastSeen.Format("2006-01-02, 15:04") }
+				}
+			}
+			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+				@AddUnknownSensorDialog(l10n, sensor, deviceProfiles, organisations)
 			}
 		}
-		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
-			if sensor.Type != "" {
-				{ sensor.Type }
-			} else {
-				{ "-" }
+	} else {
+		@shared.ClickableTableRow(shared.ClickableTableRowProps{
+			Href:    fmt.Sprintf("/sensors/%s", sensor.DeviceID),
+			Target:  "#app-shell",
+			Swap:    "outerHTML",
+			Replace: true,
+		}) {
+			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+				<div class="inline-flex items-center gap-2">
+					<span class={ onlineIndicatorClass(sensor.Online) }></span>
+					if sensor.Online {
+						{ l10n.Get("online") }
+					} else {
+						{ l10n.Get("offline") }
+					}
+				</div>
 			}
-		}
-		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
-			if sensor.HasAlerts {
-				<span class="font-semibold text-destructive">{ sensor.DevEUI }</span>
-			} else {
-				{ sensor.DevEUI }
+			@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
+				<span class="font-bold text-foreground">
+					if sensor.Name != "" {
+						{ sensor.Name }
+					} else {
+						{ sensor.DeviceID }
+					}
+				</span>
 			}
-		}
-		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
-			{ formatBattery(sensor.BatteryLevel) }
-		}
-		@table.Cell(table.CellProps{Class: "px-6 py-3 text-muted-foreground"}) {
-			if sensor.LastSeen.IsZero() {
-				{ "-" }
-			} else {
-				{ sensor.LastSeen.Format("2006-01-02, 15:04") }
+			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+				if sensor.Active {
+					@shared.StatusBadge(shared.StatusBadgeProps{Tone: shared.StatusBadgeToneActive, Label: l10n.Get("active")})
+				} else {
+					@shared.StatusBadge(shared.StatusBadgeProps{Tone: shared.StatusBadgeToneInactive, Label: l10n.Get("inactive")})
+				}
 			}
+			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+				if sensor.Type != "" {
+					{ sensor.Type }
+				} else {
+					{ "-" }
+				}
+			}
+			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+				if sensor.HasAlerts {
+					<span class="font-semibold text-destructive">{ sensor.DevEUI }</span>
+				} else {
+					{ sensor.DevEUI }
+				}
+			}
+			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+				{ formatBattery(sensor.BatteryLevel) }
+			}
+			@table.Cell(table.CellProps{Class: "px-6 py-3 text-muted-foreground"}) {
+				if sensor.LastSeen.IsZero() {
+					{ "-" }
+				} else {
+					{ sensor.LastSeen.Format("2006-01-02, 15:04") }
+				}
+			}
+			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {}
 		}
 	}
+}
+
+templ AddUnknownSensorDialog(l10n Localizer, sensor SensorViewModel, deviceProfiles []string, organisations []string) {
+	{{ tenantFieldID := fmt.Sprintf("add-sensor-%s-tenant", sensor.DevEUI) }}
+	{{ sensorTypeFieldID := fmt.Sprintf("add-sensor-%s-type", sensor.DevEUI) }}
+	{{ dialogID := fmt.Sprintf("add-sensor-%s-dialog", sensor.DevEUI) }}
+	{{ formID := fmt.Sprintf("add-sensor-%s-form", sensor.DevEUI) }}
+	@dialog.Dialog(dialog.Props{ID: dialogID}) {
+		@dialog.Trigger() {
+			@button.Button(button.Props{
+				Variant: button.VariantDefault,
+				Size:    button.SizeSm,
+				Class:   "rounded-xl px-3",
+			}) {
+				@icon.Plus(icon.Props{Class: "size-4"})
+				Lägg till
+			}
+		}
+		@dialog.Content(dialog.ContentProps{
+			Class:           "max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
+			HideCloseButton: true,
+		}) {
+			<form
+				id={ formID }
+				action="/components/sensors/create"
+				method="post"
+				class="flex flex-col"
+				hx-post="/components/sensors/create"
+				hx-target="#app-shell"
+				hx-swap="outerHTML"
+			>
+				<input type="hidden" name="sensorID" value={ sensor.DevEUI }/>
+				<input type="hidden" name="name" value={ sensor.Name }/>
+				<div class="border-b border-border/60 px-6 py-5">
+					<h2 class="text-2xl font-bold font-heading text-foreground">Lägg till sensor</h2>
+					<div class="mt-1 text-sm text-muted-foreground">{ sensor.DevEUI }</div>
+				</div>
+				<div class="grid gap-6 px-6 py-6">
+					@shared.FormField(l10n.Get("organisation"), tenantFieldID) {
+						<select
+							id={ tenantFieldID }
+							name="tenant"
+							required
+							class={ shared.NativeSelectClass() }
+						>
+							<option value="" selected disabled>{ l10n.Get("choose") }</option>
+							for _, option := range organisationFieldOptions(organisations, "") {
+								<option value={ option.Value }>{ option.Label }</option>
+							}
+						</select>
+					}
+					@shared.FormField(l10n.Get("sensortype"), sensorTypeFieldID) {
+						<select
+							id={ sensorTypeFieldID }
+							name="sensorType"
+							required
+							class={ shared.NativeSelectClass() }
+						>
+							<option value="" selected disabled>{ l10n.Get("choose") }</option>
+							for _, option := range sensorProfileOptions(deviceProfiles) {
+								<option value={ option.Value }>{ option.Label }</option>
+							}
+						</select>
+					}
+				</div>
+				<div class="flex items-center justify-end gap-3 border-t border-border/60 px-6 py-5">
+					@dialog.Close(dialog.CloseProps{For: dialogID}) {
+						@button.Button(button.Props{
+							Variant: button.VariantOutline,
+							Class:   "rounded-xl px-4",
+						}) {
+							@icon.X(icon.Props{Class: "size-4"})
+							{ l10n.Get("cancel") }
+						}
+					}
+					@button.Button(button.Props{
+						Type:    button.TypeSubmit,
+						Variant: button.VariantDefault,
+						Class:   "rounded-xl px-4",
+					}) {
+						@icon.Check(icon.Props{Class: "size-4"})
+						{ l10n.Get("save") }
+					}
+				</div>
+			</form>
+		}
+	}
+}
+
+func sensorProfileOptions(profiles []string) []shared.SelectBoxFieldOption {
+	items := make([]shared.SelectBoxFieldOption, 0, len(profiles))
+	for _, profile := range profiles {
+		if profile == "unknown" {
+			continue
+		}
+		items = append(items, shared.SelectBoxFieldOption{
+			Value: profile,
+			Label: profile,
+		})
+	}
+	return items
 }
 
 func formatBattery(level int) string {

@@ -69,6 +69,10 @@ func (a *App) GetSensors(ctx context.Context, offset, limit int, args map[string
 	return a.devices.GetSensors(ctx, offset, limit, args)
 }
 
+func (a *App) NewDevice(ctx context.Context, fields map[string]any) error {
+	return a.devices.NewDevice(ctx, fields)
+}
+
 func (a *App) UpdateDevice(ctx context.Context, deviceID string, fields map[string]any) error {
 	return a.devices.UpdateDevice(ctx, deviceID, fields)
 }

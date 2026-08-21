@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"maps"
 	"net/url"
+	"strings"
 
 	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
@@ -124,6 +125,20 @@ func (s *Service) GetSensorStatus(ctx context.Context, id string) ([]SensorStatu
 	return statuses, nil
 }
 
+func (s *Service) NewDevice(ctx context.Context, fields map[string]any) error {
+	var err error
+	ctx, span := tracer.Start(ctx, "new-device")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	var b []byte
+	b, err = json.Marshal(fields)
+	if err != nil {
+		return err
+	}
+
+	return s.client.Post(ctx, s.client.DeviceManagementURL(), b)
+}
+
 func (s *Service) UpdateDevice(ctx context.Context, deviceID string, fields map[string]any) error {
 	var err error
 	ctx, span := tracer.Start(ctx, "update-device")
@@ -149,7 +164,7 @@ func (s *Service) UpdateSensor(ctx context.Context, sensorID string, fields map[
 		return err
 	}
 
-	endpoint := fmt.Sprintf("%s/%s", s.client.SensorsManagementURL(), sensorID)
+	endpoint := fmt.Sprintf("%s/%s", strings.TrimSuffix(s.client.SensorsManagementURL(), "/"), url.PathEscape(sensorID))
 	return s.client.Put(ctx, endpoint, b)
 }
 
