@@ -10,6 +10,28 @@ type ClickableTableRowProps struct {
 	Replace bool
 }
 
+type TableRowProps struct {
+	ID         string
+	Class      string
+	Attributes templ.Attributes
+	Selected   bool
+}
+
+templ TableRow(props TableRowProps) {
+	{{ className := "border-border/70" }}
+	if props.Class != "" {
+		{{ className += " " + props.Class }}
+	}
+	@table.Row(table.RowProps{
+		ID:         props.ID,
+		Class:      className,
+		Attributes: props.Attributes,
+		Selected:   props.Selected,
+	}) {
+		{ children... }
+	}
+}
+
 templ ClickableTableRow(props ClickableTableRowProps) {
 	{{ attrs := templ.Attributes{} }}
 	{{ className := "cursor-pointer border-border/70 hover:bg-muted/70 hover:[&_td]:bg-muted/70" }}
