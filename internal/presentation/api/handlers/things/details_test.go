@@ -14,7 +14,7 @@ import (
 	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	appthings "github.com/diwise/diwise-web/internal/application/things"
-	"github.com/diwise/diwise-web/internal/presentation/api/authz"
+	apiauth "github.com/diwise/diwise-web/internal/presentation/api/auth"
 	featuresthings "github.com/diwise/diwise-web/internal/presentation/web/components/features/things"
 	frontendtoolkit "github.com/diwise/frontend-toolkit"
 	ftkmock "github.com/diwise/frontend-toolkit/mock"
@@ -181,9 +181,14 @@ func TestNewSaveThingDetailsPageRendersEditPageWithToastForUnknownConnectedSenso
 			Type:      "Building",
 		},
 	}
-	handler := NewSaveThingDetailsPage(context.Background(), testLocaleBundle(), func(name string) frontendtoolkit.Asset {
+	authenticator, err := apiauth.NewAuthenticator(context.Background(), strings.NewReader(`package example.authz
+
+	allow := {"tenants": ["default"]}`))
+	is.NoErr(err)
+
+	handler := authenticator.RequireAccess()(NewSaveThingDetailsPage(context.Background(), testLocaleBundle(), func(name string) frontendtoolkit.Asset {
 		return testAsset(pathValue(name))
-	}, app)
+	}, app))
 
 	form := url.Values{
 		"name":          {"Thing One"},
@@ -191,7 +196,7 @@ func TestNewSaveThingDetailsPageRendersEditPageWithToastForUnknownConnectedSenso
 	}
 	req := httptest.NewRequest(http.MethodPost, "/things/thing-1", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req = req.WithContext(context.WithValue(req.Context(), authz.LoggedIn, "yes"))
+	req.Header.Set("Authorization", "Bearer test")
 	rec := httptest.NewRecorder()
 	req.SetPathValue("id", "thing-1")
 
