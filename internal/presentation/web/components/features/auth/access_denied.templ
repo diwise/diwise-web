@@ -1,0 +1,15 @@
+package auth
+
+import (
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/toast"
+)
+
+templ AccessDeniedToast(title string) {
+	@toast.Toast(toast.Props{
+		Title:         title,
+		Variant:       toast.VariantError,
+		Dismissible:   true,
+		ShowIndicator: true,
+		Icon:          true,
+	})
+}

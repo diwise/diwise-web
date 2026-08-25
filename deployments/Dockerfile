@@ -40,6 +40,7 @@ WORKDIR /opt/diwise
 
 COPY --from=builder --chown=1001 /app/cmd/diwise-web/diwise-web /opt/diwise
 COPY --from=builder --chown=1001 /app/assets /opt/diwise/assets
+COPY --from=builder --chown=1001 /app/config/authz.rego /opt/diwise/config/authz.rego
 
 RUN chown 1001 /opt/diwise
 

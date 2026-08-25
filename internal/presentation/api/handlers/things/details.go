@@ -345,17 +345,15 @@ func connectedSensorViewModel(ctx context.Context, app thingsApp, deviceID strin
 }
 
 func allowsMultipleConnectedSensors(thing appthings.Thing) bool {
-	kind := strings.ToLower(strings.TrimSpace(thing.SubType))
-	if kind == "" {
-		kind = strings.ToLower(strings.TrimSpace(thing.Type))
+	thingType := strings.ToLower(strings.TrimSpace(thing.Type))
+	subType := strings.ToLower(strings.TrimSpace(thing.SubType))
+
+	switch thingType {
+	case "building", "room", "sewer", "pointofinterest", "beach":
+		return true
 	}
 
-	switch kind {
-	case "room", "pointofinterest", "beach":
-		return true
-	default:
-		return false
-	}
+	return thingType == "container" && subType == "sandstorage"
 }
 
 func latestMeasurementLabel(thingID string, measurement appthings.Measurement) string {

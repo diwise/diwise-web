@@ -1,11 +1,15 @@
 package sensors
 
 import (
+	"context"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/diwise/diwise-web/internal/application/devices"
+	"github.com/google/uuid"
 	"github.com/matryer/is"
 )
 
@@ -96,6 +100,53 @@ func TestBuildSensorUpdateFieldsDoesNotForceInactiveWhenCheckboxMissing(t *testi
 
 	_, hasActive := fields["active"]
 	is.Equal(false, hasActive)
+}
+
+func TestNewCreateSensorDeviceHandlerCreatesDeviceAndRedirects(t *testing.T) {
+	is := is.New(t)
+
+	app := newTestDeviceApp()
+	createdDeviceID := ""
+	callOrder := []string{}
+	app.updateSensorFunc = func(_ context.Context, sensorID string, fields map[string]any) error {
+		callOrder = append(callOrder, "update-sensor")
+		is.Equal("sensor-123", sensorID)
+		is.Equal("sensor-123", fields["sensorID"])
+		is.Equal("decoder-x", fields["sensorProfileID"])
+		return nil
+	}
+	app.newDeviceFunc = func(_ context.Context, fields map[string]any) error {
+		callOrder = append(callOrder, "new-device")
+		deviceID, ok := fields["deviceID"].(string)
+		is.True(ok)
+		_, err := uuid.Parse(deviceID)
+		is.NoErr(err)
+		createdDeviceID = deviceID
+		is.Equal("sensor-123", fields["sensorID"])
+		is.Equal("Sensor Name", fields["name"])
+		is.Equal("tenant-a", fields["tenant"])
+		_, hasSensorProfileID := fields["sensorProfileID"]
+		is.Equal(false, hasSensorProfileID)
+		return nil
+	}
+
+	handler := NewCreateSensorDeviceHandler(context.Background(), testLocaleBundle(), nil, app)
+	form := url.Values{
+		"sensorID":   {"sensor-123"},
+		"name":       {"Sensor Name"},
+		"sensorType": {"decoder-x"},
+		"tenant":     {"tenant-a"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/components/sensors/create", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusNoContent, rec.Code)
+	is.Equal("/sensors/"+createdDeviceID+"?mode=edit", rec.Header().Get("HX-Redirect"))
+	is.Equal([]string{"update-sensor", "new-device"}, callOrder)
 }
 
 func TestMeasurementTypeOptionsUsesMatchingProfileAndSelection(t *testing.T) {

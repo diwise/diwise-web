@@ -16,6 +16,7 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	featuresensors "github.com/diwise/diwise-web/internal/presentation/web/components/features/sensors"
 	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
+	"github.com/google/uuid"
 
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -94,6 +95,68 @@ func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 	return http.HandlerFunc(fn)
 }
 
+func NewCreateSensorDeviceHandler(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "could not parse form data", http.StatusBadRequest)
+			return
+		}
+
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		sensorID := strings.TrimSpace(r.FormValue("sensorID"))
+		name := strings.TrimSpace(r.FormValue("name"))
+		sensorType := strings.TrimSpace(r.FormValue("sensorType"))
+		tenant := strings.TrimSpace(r.FormValue("tenant"))
+
+		if sensorID == "" {
+			http.Error(w, localizer.Get("attachsensoridrequired"), http.StatusBadRequest)
+			return
+		}
+		if sensorType == "" {
+			http.Error(w, localizer.Get("attachsensorprofilerequired"), http.StatusBadRequest)
+			return
+		}
+		if tenant == "" {
+			http.Error(w, localizer.Get("organisation"), http.StatusBadRequest)
+			return
+		}
+
+		deviceID := uuid.NewString()
+		if err := app.UpdateSensor(r.Context(), sensorID, map[string]any{
+			"sensorID":        sensorID,
+			"sensorProfileID": sensorType,
+		}); err != nil {
+			http.Error(w, "could not update sensor", http.StatusInternalServerError)
+			return
+		}
+
+		fields := map[string]any{
+			"deviceID": deviceID,
+			"sensorID": sensorID,
+			"tenant":   tenant,
+		}
+		if name != "" {
+			fields["name"] = name
+		}
+
+		if err := app.NewDevice(r.Context(), fields); err != nil {
+			http.Error(w, "could not create sensor device", http.StatusInternalServerError)
+			return
+		}
+
+		redirectURL := "/sensors/" + url.PathEscape(deviceID) + "?mode=edit"
+		if helpers.IsHxRequest(r) {
+			w.Header().Set("HX-Redirect", redirectURL)
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		http.Redirect(w, r, redirectURL, http.StatusFound)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
 func composeListModel(ctx context.Context, r *http.Request, app sensorsApp, includePageMeta bool) (featuresensors.SensorsPageViewModel, error) {
 	pageIndex := helpers.UrlParamOrDefault(r, "page", "1")
 	offset, limit := helpers.GetOffsetAndLimit(r)
@@ -144,6 +207,9 @@ func composeListModel(ctx context.Context, r *http.Request, app sensorsApp, incl
 		model.Sensors = append(model.Sensors, toViewModel(device))
 	}
 
+	model.DeviceProfiles = getDeviceProfiles(ctx, app)
+	model.Organisations = app.GetTenants(ctx)
+
 	if includePageMeta {
 		stats, err := getStatistics(ctx, app)
 		if err != nil {
@@ -151,7 +217,6 @@ func composeListModel(ctx context.Context, r *http.Request, app sensorsApp, incl
 		}
 
 		model.Statistics = stats
-		model.DeviceProfiles = getDeviceProfiles(ctx, app)
 	}
 
 	return model, nil

@@ -11,6 +11,7 @@ type Management interface {
 	GetDevice(ctx context.Context, id string) (Device, error)
 	GetDevices(ctx context.Context, offset, limit int, args map[string][]string) (DeviceResult, error)
 	GetSensors(ctx context.Context, offset, limit int, args map[string][]string) (SensorResult, error)
+	NewDevice(ctx context.Context, fields map[string]any) error
 	UpdateDevice(ctx context.Context, deviceID string, fields map[string]any) error
 	UpdateSensor(ctx context.Context, sensorID string, fields map[string]any) error
 	Attach(ctx context.Context, deviceID string) error

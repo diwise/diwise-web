@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -292,6 +293,15 @@ func GET(ctx context.Context, targetUrl string, headers map[string][]string, par
 	}
 	defer response.Body.Close()
 
+	if response.StatusCode == http.StatusUnauthorized {
+		client.MarkAuthDenied(ctx)
+		return nil, fmt.Errorf("request failed: %w", client.ErrUnauthorized)
+	}
+	if response.StatusCode == http.StatusForbidden {
+		client.MarkPermissionDenied(ctx)
+		return nil, fmt.Errorf("request failed: forbidden")
+	}
+
 	if response.StatusCode >= http.StatusBadRequest {
 		return nil, fmt.Errorf("request failed: %d", response.StatusCode)
 	}
@@ -350,6 +360,15 @@ func FileUpload(ctx context.Context, targetUrl string, headers map[string][]stri
 		return err
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		client.MarkAuthDenied(ctx)
+		return fmt.Errorf("request failed: %w", client.ErrUnauthorized)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		client.MarkPermissionDenied(ctx)
+		return fmt.Errorf("request failed: forbidden")
+	}
 
 	if resp.StatusCode >= http.StatusBadRequest {
 		return fmt.Errorf("request failed: %d", resp.StatusCode)
