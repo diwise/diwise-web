@@ -95,6 +95,26 @@ func NewSensorsDataList(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 	return http.HandlerFunc(fn)
 }
 
+func NewCreateSensorDialogHandler(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		sensor := featuresensors.SensorViewModel{
+			DevEUI: strings.TrimSpace(r.URL.Query().Get("sensorID")),
+			Name:   strings.TrimSpace(r.URL.Query().Get("name")),
+		}
+
+		if sensor.DevEUI == "" {
+			http.Error(w, "missing sensor id", http.StatusBadRequest)
+			return
+		}
+
+		component := featuresensors.AddUnknownSensorDialog(localizer, sensor, getDeviceProfiles(r.Context(), app), app.GetTenants(r.Context()))
+		helpers.WriteComponentResponse(r.Context(), w, r, component, 16*1024, 0)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
 func NewCreateSensorDeviceHandler(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app sensorsApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {

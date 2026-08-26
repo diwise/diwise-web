@@ -359,6 +359,17 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 		return protect(scope, next)
 	}
 
+	protectEditModeFunc := func(readScope, updateScope auth.Scope, next http.HandlerFunc) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			scope := readScope
+			if r.URL.Query().Get("mode") == "edit" {
+				scope = updateScope
+			}
+
+			protect(scope, next).ServeHTTP(w, r)
+		})
+	}
+
 	assetLoader, _ := assets.NewLoader(ctx,
 		assets.BasePath(assetPath), assets.Logger(logging.GetFromContext(ctx)),
 	)
@@ -386,8 +397,9 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /components/tables/alarms", protect(ReadSensors, RequireHX(home.NewAlarmsTable(ctx, l10n, assetLoader.Load, app))))
 
 	r.Handle("GET /sensors", protectFunc(ReadSensors, sensors.NewSensorsPage(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /sensors/{id}", protectFunc(ReadSensors, sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /sensors/{id}", protectEditModeFunc(ReadSensors, UpdateSensors, sensors.NewSensorDetailsPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("POST /sensors/{id}", protectFunc(UpdateSensors, sensors.NewSaveSensorDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/sensors/create", protect(CreateSensors, RequireHX(sensors.NewCreateSensorDialogHandler(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("POST /components/sensors/create", protect(CreateSensors, RequireHX(sensors.NewCreateSensorDeviceHandler(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("GET /components/sensors/{id}/attach", protect(UpdateSensors, RequireHX(sensors.NewAttachSensorDialogHandler(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("POST /components/sensors/{id}/attach", protect(UpdateSensors, RequireHX(sensors.NewAttachSensorDialogHandler(ctx, l10n, assetLoader.Load, app))))
@@ -402,7 +414,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 
 	r.Handle("GET /things", protectFunc(ReadThings, things.NewThingsPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("POST /things", protectFunc(CreateThings, things.NewCreateThingPage(ctx, l10n, assetLoader.Load, app)))
-	r.Handle("GET /things/{id}", protectFunc(ReadThings, things.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /things/{id}", protectEditModeFunc(ReadThings, UpdateThings, things.NewThingDetailsPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("POST /things/{id}", protectFunc(UpdateThings, things.NewSaveThingDetailsPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("POST /things/{id}/delete", protectFunc(DeleteThings, things.NewDeleteThingDetailsPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/things/new", protect(CreateThings, RequireHX(things.NewThingComponentHandler(ctx, l10n, assetLoader.Load, app))))

@@ -2,6 +2,7 @@ package sensors
 
 import (
 	"fmt"
+  	"net/url"
 
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
@@ -150,7 +151,7 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel, deviceProfiles []string,
 				}
 			}
 			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
-				@AddUnknownSensorDialog(l10n, sensor, deviceProfiles, organisations)
+				@AddUnknownSensorAction(l10n, sensor)
 			}
 		}
 	} else {
@@ -215,23 +216,30 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel, deviceProfiles []string,
 	}
 }
 
+templ AddUnknownSensorAction(l10n Localizer, sensor SensorViewModel) {
+	{{ requestURL := fmt.Sprintf("/components/sensors/create?sensorID=%s&name=%s", url.QueryEscape(sensor.DevEUI), url.QueryEscape(sensor.Name)) }}
+	@button.Button(button.Props{
+			Variant: button.VariantDefault,
+			Size:    button.SizeSm,
+			Class:   "rounded-xl px-3",
+			Attributes: templ.Attributes{
+					"hx-get":    requestURL,
+					"hx-target": "#create-sensor-modal-container",
+					"hx-swap":   "innerHTML",
+			},
+	}) {
+			@icon.Plus(icon.Props{Class: "size-4"})
+			Lägg till
+	}
+}
+
 templ AddUnknownSensorDialog(l10n Localizer, sensor SensorViewModel, deviceProfiles []string, organisations []string) {
 	{{ tenantFieldID := fmt.Sprintf("add-sensor-%s-tenant", sensor.DevEUI) }}
 	{{ sensorTypeFieldID := fmt.Sprintf("add-sensor-%s-type", sensor.DevEUI) }}
 	{{ dialogID := fmt.Sprintf("add-sensor-%s-dialog", sensor.DevEUI) }}
 	{{ formID := fmt.Sprintf("add-sensor-%s-form", sensor.DevEUI) }}
-	@dialog.Dialog(dialog.Props{ID: dialogID}) {
-		@dialog.Trigger() {
-			@button.Button(button.Props{
-				Variant: button.VariantDefault,
-				Size:    button.SizeSm,
-				Class:   "rounded-xl px-3",
-			}) {
-				@icon.Plus(icon.Props{Class: "size-4"})
-				Lägg till
-			}
-		}
-		@dialog.Content(dialog.ContentProps{
+	  @dialog.Dialog(dialog.Props{ID: dialogID, Open: true}) {
+        @dialog.Content(dialog.ContentProps{
 			Class:           "max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
 			HideCloseButton: true,
 		}) {
