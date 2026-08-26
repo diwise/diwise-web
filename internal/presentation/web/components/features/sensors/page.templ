@@ -15,6 +15,7 @@ templ SensorsPage(l10n Localizer, viewModel SensorsPageViewModel) {
 		<section class="flex flex-col gap-6">
 			@Filters(l10n, viewModel)
 			@SensorsDataList(l10n, viewModel)
+			<div id="create-sensor-modal-container"></div>
 		</section>
 	</div>
 }
