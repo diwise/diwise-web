@@ -472,6 +472,10 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	background-clip: padding-box;
 	}
 
+.leaflet-control-attribution,
+.leaflet-control-attribution a {
+        color: #333;
+}
 
 /* popup */
 

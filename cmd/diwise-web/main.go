@@ -16,6 +16,7 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/api"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
+	"github.com/diwise/diwise-web/internal/presentation/web/mapconfig"
 	"github.com/diwise/frontend-toolkit/pkg/middleware"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 	"github.com/diwise/service-chassis/pkg/infrastructure/buildinfo"
@@ -67,6 +68,7 @@ func DefaultFlags() FlagMap {
 		contentSecurityPolicy: "strict",
 		policiesFile:          "/opt/diwise/config/authz.rego",
 		authzAccessObject:     "true",
+		basemapApiKey:         "",
 	}
 }
 
@@ -170,6 +172,7 @@ func initialize(ctx context.Context, flags FlagMap, policiesFile io.ReadCloser, 
 				middlewares = append(middlewares,
 					api.VersionReloader(helpers.GetVersion(ctx)),
 					api.Logger(ctx),
+					mapconfig.Middleware(flags[basemapApiKey]),
 				)
 
 				if flags[contentSecurityPolicy] != "off" {
@@ -177,10 +180,12 @@ func initialize(ctx context.Context, flags FlagMap, policiesFile io.ReadCloser, 
 						// default fallback is a strict csp unless one of the other modes are explicitly set
 						middlewares = append(middlewares,
 							csp.NewContentSecurityPolicy(csp.StrictDynamic()),
+							maplibreWorkerCSP,
 						)
 					} else {
 						middlewares = append(middlewares,
 							csp.NewContentSecurityPolicy(csp.ReportOnly(), csp.StrictDynamic()),
+							maplibreWorkerCSP,
 						)
 					}
 				}
@@ -255,6 +260,18 @@ func changeURLPortNumbers(_ context.Context, flags FlagMap, from, to string) Fla
 	return flags
 }
 
+func maplibreWorkerCSP(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		for _, header := range []string{csp.ContentSecurityPolicy, csp.ContentSecurityPolicyReportOnly} {
+			if policy := strings.TrimSpace(w.Header().Get(header)); policy != "" {
+				w.Header().Set(header, policy+" worker-src 'self';")
+			}
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, FlagMap) {
 
 	// Allow environment variables to override certain defaults
@@ -269,6 +286,8 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 
 	defaultAppRoot := fmt.Sprintf("http://localhost:%s", flags[servicePort])
 	flags[appRoot] = envOrDef(ctx, "APP_ROOT", defaultAppRoot)
+
+	flags[basemapApiKey] = envOrDef(ctx, "CARTO_BASEMAP_API_KEY", "Insert CARTO basemap API key")
 
 	if flags[appRoot] == defaultAppRoot {
 		logging.GetFromContext(ctx).Warn("environment variable APP_ROOT not set, using default (" + defaultAppRoot + ")")

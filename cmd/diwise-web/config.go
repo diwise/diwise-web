@@ -36,6 +36,8 @@ const (
 	oauth2SkipVerify
 
 	contentSecurityPolicy
+
+	basemapApiKey
 )
 
 type AppConfig struct {

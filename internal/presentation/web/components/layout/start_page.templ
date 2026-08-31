@@ -60,6 +60,10 @@ templ Head(asset AssetLoaderFunc) {
 		</script>
 		<link href={ asset("/css/diwise.css").Path() } rel="stylesheet"/>
 		<link href={ asset("/css/leaflet.css").Path() } rel="stylesheet"/>
+		
+		<!--maplibre-->
+		<link href={ asset("/css/maplibre-gl.css").Path() } rel="stylesheet"/>
+
 		<script src={ asset("/js/htmx.min.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 		<script src={ asset("/js/htmx-ext-sse.js").Path() } nonce={ csp.Nonce(ctx) }></script>
 		<script src={ asset("/js/leaflet.js").Path() } nonce={ csp.Nonce(ctx) }></script>
@@ -67,6 +71,14 @@ templ Head(asset AssetLoaderFunc) {
 			// Some v2 deferred scripts mutate the global `L`, so pin Leaflet immediately after load.
 			window.__diwiseLeaflet = window.L;
 		</script>
+		
+		<!--maplibre-->
+		<script src={ asset("/js/maplibre-gl-csp.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+		<script nonce={ csp.Nonce(ctx) }>
+				maplibregl.setWorkerUrl({{ asset("/js/maplibre-gl-csp-worker.js").Path() }});
+		</script>
+		<script src={ asset("/js/leaflet-maplibre-gl.js").Path() } nonce={ csp.Nonce(ctx) }></script>
+
 		@ui.TemplUIScripts()
 		@tabs.Script()
 		@shared.ChartBaseScript()
