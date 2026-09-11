@@ -20,6 +20,7 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/admin"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/home"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/sensors"
+	smartcityapi "github.com/diwise/diwise-web/internal/presentation/api/handlers/smartcity"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/things"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	authcomponents "github.com/diwise/diwise-web/internal/presentation/web/components/features/auth"
@@ -421,6 +422,11 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /components/things/{id}/measurements", protect(ReadThings, RequireHX(things.NewThingMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("GET /components/things/search-compatible-sensor-options", protect(UpdateThings, RequireHX(things.NewCompatibleSensorSearchOptionsHandler(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("GET /components/things/list", protect(ReadThings, RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app))))
+
+	r.Handle("GET /smart-city", protectFunc(ReadThings, smartcityapi.NewSmartCityPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/smart-city/new", protect(ReadThings, RequireHX(smartcityapi.NewCreateSmartCityObject(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("POST /components/smart-city", protect(CreateThings, RequireHX(smartcityapi.NewCreateSmartCityObjectPost(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/smart-city/{id}", protect(ReadThings, RequireHX(smartcityapi.NewSmartCityObjectPanel(ctx, l10n, assetLoader.Load, app))))
 
 	r.Handle("GET /admin", protect(Admin, admin.NewAdminPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /admin/export", protectFunc(Admin, func(w http.ResponseWriter, r *http.Request) {

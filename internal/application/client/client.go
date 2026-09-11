@@ -66,10 +66,11 @@ type Client struct {
 	adminURL             string
 	measurementURL       string
 	alarmsURL            string
+	contextBrokerURL     string
 	httpClient           http.Client
 }
 
-func NewClient(devmgmt, things, admin, alarms, measurement string) *Client {
+func NewClient(devmgmt, things, admin, alarms, measurement, contextBroker string) *Client {
 	return &Client{
 		deviceManagementURL:  devmgmt,
 		sensorsManagementURL: strings.Replace(devmgmt, "/device", "/sensor", 1),
@@ -77,6 +78,7 @@ func NewClient(devmgmt, things, admin, alarms, measurement string) *Client {
 		adminURL:             admin,
 		alarmsURL:            alarms,
 		measurementURL:       measurement,
+		contextBrokerURL:     contextBroker,
 		httpClient: http.Client{
 			Transport: otelhttp.NewTransport(&http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}),
 			Timeout:   10 * time.Second,
@@ -90,6 +92,89 @@ func (c *Client) ThingManagementURL() string   { return c.thingManagementURL }
 func (c *Client) AdminURL() string             { return c.adminURL }
 func (c *Client) MeasurementURL() string       { return c.measurementURL }
 func (c *Client) AlarmsURL() string            { return c.alarmsURL }
+func (c *Client) ContextBrokerURL() string     { return c.contextBrokerURL }
+
+// GetRaw skickar en GET och returnerar svarskroppen oförändrad. Används för
+// NGSI-LD-API:er som svarar med en rå JSON-array i stället för data-envelope.
+func (c *Client) GetRaw(ctx context.Context, rawURL string, params url.Values, accept string) ([]byte, error) {
+	log := logging.GetFromContext(ctx).With(slog.String("url", rawURL))
+
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse url: %s", err.Error())
+	}
+	u.RawQuery = params.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http request: %s", err.Error())
+	}
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	if accept == "" {
+		accept = "application/json"
+	}
+	req.Header.Add("Accept", accept)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		log.Error("could not send get request", "error", err)
+		return nil, fmt.Errorf("failed to send get request: %s", err.Error())
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %s", err.Error())
+	}
+
+	switch {
+	case resp.StatusCode == http.StatusUnauthorized:
+		return nil, errUnauthorized(ctx)
+	case resp.StatusCode == http.StatusForbidden:
+		return nil, errForbidden(ctx)
+	case resp.StatusCode == http.StatusNotFound:
+		return nil, fmt.Errorf("request failed: %w", ErrNotFound)
+	case resp.StatusCode >= http.StatusBadRequest:
+		log.Error("request failed with status code", "statusCode", resp.StatusCode, "responseBody", string(body))
+		return nil, fmt.Errorf("request failed: %d", resp.StatusCode)
+	}
+
+	return body, nil
+}
+
+// PostJSONLD skickar en POST med application/ld+json.
+func (c *Client) PostJSONLD(ctx context.Context, rawURL string, body []byte) error {
+	log := logging.GetFromContext(ctx).With(slog.String("url", rawURL))
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, rawURL, bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("failed to create http request: %w", err)
+	}
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	req.Header.Add("Content-Type", "application/ld+json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		log.Error("could not send post request", "error", err)
+		return fmt.Errorf("failed to send post request: %s", err.Error())
+	}
+	defer resp.Body.Close()
+	respBody, _ := io.ReadAll(resp.Body)
+
+	switch {
+	case resp.StatusCode == http.StatusUnauthorized:
+		return errUnauthorized(ctx)
+	case resp.StatusCode == http.StatusForbidden:
+		return errForbidden(ctx)
+	case resp.StatusCode == http.StatusConflict:
+		return fmt.Errorf("request failed: %w", ErrConflict)
+	case resp.StatusCode >= http.StatusBadRequest:
+		log.Error("request failed with status code", "statusCode", resp.StatusCode, "responseBody", string(respBody))
+		return fmt.Errorf("request failed: %d", resp.StatusCode)
+	}
+
+	return nil
+}
 
 func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Values) (*ApiResponse, error) {
 	if strings.ContainsAny(path, "/") {

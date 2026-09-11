@@ -15,6 +15,7 @@ import (
 	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
+	"github.com/diwise/diwise-web/internal/application/smartcity"
 	"github.com/diwise/diwise-web/internal/application/things"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
@@ -31,11 +32,12 @@ type App struct {
 	devices      *devices.Service
 	measurements *measurements.Service
 	things       *things.Service
+	smartcity    *smartcity.Service
 }
 
-func New(ctx context.Context, devmgmt, thingsURL, adminURL, alarmsURL, measurementURL string) (*App, error) {
+func New(ctx context.Context, devmgmt, thingsURL, adminURL, alarmsURL, measurementURL, contextBrokerURL string) (*App, error) {
 	_ = ctx
-	client := client.NewClient(devmgmt, thingsURL, adminURL, alarmsURL, measurementURL)
+	client := client.NewClient(devmgmt, thingsURL, adminURL, alarmsURL, measurementURL, contextBrokerURL)
 	return &App{
 		client:       client,
 		admin:        admin.NewService(client),
@@ -43,6 +45,7 @@ func New(ctx context.Context, devmgmt, thingsURL, adminURL, alarmsURL, measureme
 		devices:      devices.NewService(client),
 		measurements: measurements.NewService(client),
 		things:       things.NewService(client),
+		smartcity:    smartcity.NewService(client),
 	}, nil
 }
 
@@ -155,6 +158,22 @@ func (a *App) GetValidSensors(ctx context.Context, urns []string, search string)
 
 func (a *App) ConnectSensor(ctx context.Context, thingID string, refDevices []string) error {
 	return a.things.ConnectSensor(ctx, thingID, refDevices)
+}
+
+func (a *App) GetSmartCityObjects(ctx context.Context, types []string) ([]smartcity.Object, error) {
+	return a.smartcity.List(ctx, types)
+}
+
+func (a *App) GetSmartCityObject(ctx context.Context, id string) (smartcity.Object, error) {
+	return a.smartcity.Get(ctx, id)
+}
+
+func (a *App) CreateSmartCityObject(ctx context.Context, object smartcity.Object) error {
+	return a.smartcity.Create(ctx, object)
+}
+
+func (a *App) SmartCityTypes() []string {
+	return a.smartcity.KnownTypes()
 }
 
 func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {

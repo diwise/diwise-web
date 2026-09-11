@@ -1,0 +1,28 @@
+package smartcity
+
+import (
+	"strings"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+)
+
+func SmartCityMap(model PageViewModel) templ.Component {
+	return shared.Map("large", false, false, shared.NewMapData(62.3908, 17.3069), toFeatureCollection(model.mapFeatures()))
+}
+
+func toFeatureCollection(objects []ObjectViewModel) shared.FeatureCollection {
+	features := make([]shared.Feature, 0, len(objects))
+
+	for _, object := range objects {
+		feature := shared.NewFeature(shared.NewPoint(object.Latitude, object.Longitude))
+		feature.AddProperty("id", object.ID)
+		feature.AddProperty("type", strings.ToLower(object.Type))
+		feature.AddProperty("name", object.Name)
+		feature.AddProperty("latitude", object.Latitude)
+		feature.AddProperty("longitude", object.Longitude)
+		feature.AddProperty("url", objectURL(object.ID))
+		features = append(features, feature)
+	}
+
+	return shared.NewFeatureCollection(features)
+}

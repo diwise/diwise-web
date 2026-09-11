@@ -160,7 +160,7 @@ func initialize(ctx context.Context, flags FlagMap, policiesFile io.ReadCloser, 
 				}
 
 				svcCfg.app, err = application.New(ctx,
-					flags[devMgmtURL], flags[thingsURL], flags[adminURL], flags[alarmsURL], flags[measurementsURL],
+					flags[devMgmtURL], flags[thingsURL], flags[adminURL], flags[alarmsURL], flags[measurementsURL], flags[contextBrokerURL],
 				)
 				if err != nil {
 					return err
@@ -252,7 +252,7 @@ func initialize(ctx context.Context, flags FlagMap, policiesFile io.ReadCloser, 
 }
 
 func changeURLPortNumbers(_ context.Context, flags FlagMap, from, to string) FlagMap {
-	for _, flag := range []FlagType{appRoot, adminURL, alarmsURL, devMgmtURL, measurementsURL, thingsURL} {
+	for _, flag := range []FlagType{appRoot, adminURL, alarmsURL, devMgmtURL, measurementsURL, thingsURL, contextBrokerURL} {
 		flags[flag] = strings.Replace(flags[flag], ":"+from, ":"+to, 1)
 	}
 	return flags
@@ -304,11 +304,13 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 		flags[devMgmtURL] = env.GetVariableOrDie(ctx, "DEV_MGMT_URL", "device management URL")
 		flags[thingsURL] = env.GetVariableOrDie(ctx, "THINGS_URL", "things URL")
 		flags[measurementsURL] = env.GetVariableOrDie(ctx, "MEASUREMENTS_URL", "measurements URL")
+		flags[contextBrokerURL] = env.GetVariableOrDie(ctx, "CONTEXT_BROKER_URL", "context broker URL")
 	} else {
 		appRoot := flags[appRoot]
 		flags[devMgmtURL] = appRoot + api.DevModePrefix + "/devices"
 		flags[thingsURL] = appRoot + api.DevModePrefix + "/things"
 		flags[measurementsURL] = appRoot + api.DevModePrefix + "/measurements"
+		flags[contextBrokerURL] = appRoot + api.DevModePrefix
 	}
 
 	flags[adminURL] = strings.Replace(flags[devMgmtURL], "devices", "admin", 1)

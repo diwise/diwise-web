@@ -1,0 +1,56 @@
+package smartcity
+
+import . "github.com/diwise/frontend-toolkit"
+
+templ CreateObjectModal(l10n Localizer, model PageViewModel) {
+	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+		<div class="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-xl">
+			<div class="flex items-center justify-between gap-4">
+				<h2 class="font-heading text-xl font-bold">{ l10n.Get("addobject") }</h2>
+				<button
+					type="button"
+					class="rounded-lg px-3 py-1 text-sm hover:bg-muted"
+					hx-on:click="document.getElementById('create-object-modal').innerHTML=''"
+				>
+					{ l10n.Get("cancel") }
+				</button>
+			</div>
+			<form
+				class="mt-6 flex flex-col gap-4"
+				hx-post="/components/smart-city"
+				hx-target="#smart-city-content"
+				hx-swap="innerHTML"
+			>
+				<label class="flex flex-col gap-1 text-sm">
+					<span class="font-bold">{ l10n.Get("type") }</span>
+					<select name="type" class="rounded-lg border border-border bg-background px-3 py-2" required>
+						for _, option := range model.Types {
+							<option value={ option.Value }>{ option.Label }</option>
+						}
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span class="font-bold">{ l10n.Get("id") }</span>
+					<input name="id" type="text" required class="rounded-lg border border-border bg-background px-3 py-2"/>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span class="font-bold">{ l10n.Get("name") }</span>
+					<input name="name" type="text" class="rounded-lg border border-border bg-background px-3 py-2"/>
+				</label>
+				<div class="flex gap-4">
+					<label class="flex flex-1 flex-col gap-1 text-sm">
+						<span class="font-bold">{ l10n.Get("latitude") }</span>
+						<input name="latitude" type="number" step="any" class="rounded-lg border border-border bg-background px-3 py-2"/>
+					</label>
+					<label class="flex flex-1 flex-col gap-1 text-sm">
+						<span class="font-bold">{ l10n.Get("longitude") }</span>
+						<input name="longitude" type="number" step="any" class="rounded-lg border border-border bg-background px-3 py-2"/>
+					</label>
+				</div>
+				<button type="submit" class="rounded-xl bg-primary px-4 py-2 font-bold text-primary-foreground hover:bg-primary/90">
+					{ l10n.Get("save") }
+				</button>
+			</form>
+		</div>
+	</div>
+}

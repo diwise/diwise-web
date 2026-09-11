@@ -154,6 +154,7 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 				@NavItem(l10n.Get("home"), "/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
 				@NavItem(l10n.Get("sensors"), "/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
 				@NavItem(l10n.Get("things"), "/things", isCurrent(ctx, "things"), icon.Shapes(icon.Props{Size: 18}))
+				@NavItem(l10n.Get("smartcity"), "/smart-city", isCurrent(ctx, "smartcity"), icon.Map(icon.Props{Size: 18}))
 			</nav>
 			<div class="mt-auto flex flex-col gap-3">
 				@NavItem(l10n.Get("logout"), "/logout", false, icon.LogOut(icon.Props{Size: 18}))
@@ -171,6 +172,7 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 						@IconNav("/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
 						@IconNav("/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
 						@IconNav("/things", isCurrent(ctx, "things"), icon.Shapes(icon.Props{Size: 18}))
+						@IconNav("/smart-city", isCurrent(ctx, "smartcity"), icon.Map(icon.Props{Size: 18}))
 					</div>
 					<div class="ml-auto flex items-center gap-1">
 						@IconNav("/logout", false, icon.LogOut(icon.Props{Size: 18}))

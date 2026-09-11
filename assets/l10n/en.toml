@@ -690,3 +690,12 @@ other = "Choose a file"
 
 [upload]
 other = "Upload"
+
+[smartcity]
+other = "Smart city"
+
+[addobject]
+other = "Add object"
+
+[selectobject]
+other = "Select an object on the map"

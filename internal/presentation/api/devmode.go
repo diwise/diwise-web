@@ -40,8 +40,13 @@ func InstallDevmodeHandlers(ctx context.Context, mux *http.ServeMux) *http.Serve
 	devmux.HandleFunc("GET /measurements/{id}", devmode.NewMeasurementByIDHandler(ctx))
 	devmux.HandleFunc("GET /things", devmode.NewThingsHandler(ctx))
 	devmux.HandleFunc("GET /things/{id}", devmode.NewThingsHandler(ctx))
+	devmux.HandleFunc("GET /ngsi-ld/v1/entities", devmode.NewSmartCityListHandler(ctx))
+	devmux.HandleFunc("GET /ngsi-ld/v1/entities/{id}", devmode.NewSmartCityEntityHandler(ctx))
+	devmux.HandleFunc("POST /ngsi-ld/v1/entities", devmode.NewSmartCityCreateHandler(ctx))
 
-	mux.Handle("GET "+DevModePrefix+"/", http.StripPrefix(DevModePrefix, devmux))
+	stripped := http.StripPrefix(DevModePrefix, devmux)
+	mux.Handle("GET "+DevModePrefix+"/", stripped)
+	mux.Handle("POST "+DevModePrefix+"/", stripped)
 
 	return mux
 }

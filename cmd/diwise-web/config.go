@@ -27,6 +27,7 @@ const (
 	devMgmtURL
 	thingsURL
 	measurementsURL
+	contextBrokerURL
 
 	grafanaURL
 
