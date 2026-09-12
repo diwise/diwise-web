@@ -2,7 +2,6 @@ package smartcity
 
 import (
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
-	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
 
 	. "github.com/diwise/frontend-toolkit"
@@ -10,34 +9,11 @@ import (
 
 templ SmartCityPage(l10n Localizer, model PageViewModel) {
 	<div class="flex flex-col gap-10">
-		<section class="flex w-full flex-wrap items-center justify-between gap-4">
+		<section class="flex w-full items-center justify-between gap-4">
 			@shared.SectionHeading(l10n.Get("smartcity"), icon.Map(icon.Props{Size: 28, Class: "text-foreground"}))
-			@button.Button(button.Props{
-				Variant: button.VariantDefault,
-				Class:   "w-fit shrink-0 rounded-xl px-4 whitespace-nowrap",
-				Attributes: templ.Attributes{
-					"hx-get":    "/components/smart-city/new",
-					"hx-target": "#create-object-modal",
-					"hx-swap":   "innerHTML",
-				},
-			}) {
-				{ l10n.Get("addobject") }
-			}
 		</section>
-		<div id="smart-city-content">
-			@SmartCityContent(l10n, model)
-		</div>
-	</div>
-}
-
-templ SmartCityContent(l10n Localizer, model PageViewModel) {
-	<div id="create-object-modal"></div>
-	<div class="flex flex-col gap-6 lg:flex-row">
-		<div class="min-w-0 flex-1">
+		<section class="flex flex-col gap-6">
 			@SmartCityMap(model)
-		</div>
-		<aside id="smart-city-panel" class="w-full shrink-0 lg:w-96">
-			@ObjectPanel(l10n, model.Selected)
-		</aside>
+		</section>
 	</div>
 }

@@ -1,25 +1,10 @@
 package shared
 
 import (
-	"context"
 	"fmt"
 	"github.com/diwise/diwise-web/internal/presentation/web/mapconfig"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 )
-
-type markerLinkTargetKey struct{}
-
-// WithMarkerLinkTarget gör att klick på en markör laddar featurens url in i
-// angivet element (htmx) i stället för att visa en popup. Används av vyer där
-// detaljer visas i en sidopanel.
-func WithMarkerLinkTarget(ctx context.Context, target string) context.Context {
-	return context.WithValue(ctx, markerLinkTargetKey{}, target)
-}
-
-func markerLinkTarget(ctx context.Context) string {
-	s, _ := ctx.Value(markerLinkTargetKey{}).(string)
-	return s
-}
 
 type mapData struct {
 	Latitude    float64
@@ -97,7 +82,6 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 		data-features={ templ.JSONString(featureCollection) }
 		data-show-popup={ fmt.Sprintf("%t", showPopup) }
 		data-edit-mode={ fmt.Sprintf("%t", editmode) }
-		data-marker-link-target={ markerLinkTarget(ctx) }
 		data-basemap-api-key={ mapconfig.APIKey(ctx) }
 		if mapsize == "small" {
 			class="w-full z-0 h-[30vh]"
@@ -450,15 +434,6 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                         return marker;
                                     },
                                     onEachFeature: function(feature, layer) {
-                                        const markerLinkTarget = m.getAttribute('data-marker-link-target');
-                                        if (markerLinkTarget && feature.properties.url) {
-                                            layer.on('click', function() {
-                                                if (window.htmx) {
-                                                    window.htmx.ajax('GET', feature.properties.url, { target: markerLinkTarget, swap: 'innerHTML' });
-                                                }
-                                            });
-                                        }
-
                                         if (showPopup) {
                                             var cv = mapData.CurrentView;
                                             var popupContent = null;

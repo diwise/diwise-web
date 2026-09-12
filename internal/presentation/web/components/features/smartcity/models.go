@@ -1,37 +1,50 @@
 package smartcity
 
-import "net/url"
-
 type ObjectViewModel struct {
 	ID          string
 	Type        string
 	Name        string
+	Tenant      string
 	Latitude    float64
 	Longitude   float64
 	HasLocation bool
 }
 
-type TypeOption struct {
-	Value string
-	Label string
-}
-
 type PageViewModel struct {
-	Objects  []ObjectViewModel
-	Types    []TypeOption
-	Selected *ObjectViewModel
+	Objects     []ObjectViewModel
+	Icons       map[string]string
+	DefaultIcon string
 }
 
-func (m PageViewModel) mapFeatures() []ObjectViewModel {
-	withLocation := make([]ObjectViewModel, 0, len(m.Objects))
+type mapData struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Zoom      int     `json:"zoom"`
+}
+
+type mapFeature struct {
+	ID        string  `json:"id"`
+	Type      string  `json:"type"`
+	Name      string  `json:"name"`
+	Tenant    string  `json:"tenant"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
+func (m PageViewModel) features() []mapFeature {
+	features := make([]mapFeature, 0, len(m.Objects))
 	for _, object := range m.Objects {
-		if object.HasLocation {
-			withLocation = append(withLocation, object)
+		if !object.HasLocation {
+			continue
 		}
+		features = append(features, mapFeature{
+			ID:        object.ID,
+			Type:      object.Type,
+			Name:      object.Name,
+			Tenant:    object.Tenant,
+			Latitude:  object.Latitude,
+			Longitude: object.Longitude,
+		})
 	}
-	return withLocation
-}
-
-func objectURL(id string) string {
-	return "/components/smart-city/" + url.PathEscape(id)
+	return features
 }

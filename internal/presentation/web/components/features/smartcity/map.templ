@@ -1,28 +1,79 @@
 package smartcity
 
 import (
-	"strings"
-
-	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/mapconfig"
+	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
 )
 
-func SmartCityMap(model PageViewModel) templ.Component {
-	return shared.Map("large", false, false, shared.NewMapData(62.3908, 17.3069), toFeatureCollection(model.mapFeatures()))
-}
+templ SmartCityMap(model PageViewModel) {
+	<div
+		id="smart-city-map"
+		class="z-0 h-[70vh] w-full rounded-2xl"
+		data-map={ templ.JSONString(mapData{Latitude: 62.3908, Longitude: 17.3069, Zoom: 11}) }
+		data-features={ templ.JSONString(model.features()) }
+		data-icons={ templ.JSONString(model.Icons) }
+		data-default-icon={ model.DefaultIcon }
+		data-basemap-api-key={ mapconfig.APIKey(ctx) }
+	></div>
+	<script nonce={ csp.Nonce(ctx) }>
+		(() => {
+			const Leaflet = window.__diwiseLeaflet || window.L;
+			if (!Leaflet || typeof Leaflet.map !== 'function' || typeof Leaflet.tileLayer !== 'function') {
+				return;
+			}
 
-func toFeatureCollection(objects []ObjectViewModel) shared.FeatureCollection {
-	features := make([]shared.Feature, 0, len(objects))
+			const el = document.getElementById('smart-city-map');
+			if (!el || el.dataset.initialized === 'true') {
+				return;
+			}
+			el.dataset.initialized = 'true';
 
-	for _, object := range objects {
-		feature := shared.NewFeature(shared.NewPoint(object.Latitude, object.Longitude))
-		feature.AddProperty("id", object.ID)
-		feature.AddProperty("type", strings.ToLower(object.Type))
-		feature.AddProperty("name", object.Name)
-		feature.AddProperty("latitude", object.Latitude)
-		feature.AddProperty("longitude", object.Longitude)
-		feature.AddProperty("url", objectURL(object.ID))
-		features = append(features, feature)
-	}
+			const mapData = JSON.parse(el.dataset.map);
+			const features = JSON.parse(el.dataset.features);
+			const icons = JSON.parse(el.dataset.icons);
+			const defaultIcon = el.dataset.defaultIcon;
+			const basemapKeyQuery = `?key=${encodeURIComponent(el.dataset.basemapApiKey)}`;
 
-	return shared.NewFeatureCollection(features)
+			const lightLayer = Leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png' + basemapKeyQuery, { maxZoom: 18 });
+			const darkLayer = Leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' + basemapKeyQuery, { maxZoom: 18 });
+
+			const map = Leaflet.map(el).setView([mapData.latitude, mapData.longitude], mapData.zoom);
+			Leaflet.control.scale({ maxWidth: 200, metric: true, imperial: false }).addTo(map);
+
+			const isDarkMode = () => localStorage.theme === 'dark'
+				|| (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+			const applyTheme = () => {
+				if (isDarkMode()) {
+					if (map.hasLayer(lightLayer)) { map.removeLayer(lightLayer); }
+					darkLayer.addTo(map);
+				} else {
+					if (map.hasLayer(darkLayer)) { map.removeLayer(darkLayer); }
+					lightLayer.addTo(map);
+				}
+			};
+
+			applyTheme();
+			window.addEventListener('diwise:themechange', applyTheme);
+
+			const bounds = Leaflet.latLngBounds();
+			features.forEach((feature) => {
+				const iconUrl = icons[(feature.type || '').toLowerCase()] || defaultIcon;
+				const marker = Leaflet.marker([feature.latitude, feature.longitude], {
+					icon: Leaflet.icon({ iconUrl: iconUrl, iconSize: [32, 32], iconAnchor: [16, 32], popupAnchor: [0, -32] }),
+					title: feature.name || feature.id,
+				}).addTo(map);
+
+				if (feature.name) {
+					marker.bindTooltip(feature.name);
+				}
+
+				bounds.extend(marker.getLatLng());
+			});
+
+			if (bounds.isValid()) {
+				map.fitBounds(bounds, { maxZoom: 15, padding: [30, 30] });
+			}
+		})();
+	</script>
 }

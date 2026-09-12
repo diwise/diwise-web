@@ -160,20 +160,8 @@ func (a *App) ConnectSensor(ctx context.Context, thingID string, refDevices []st
 	return a.things.ConnectSensor(ctx, thingID, refDevices)
 }
 
-func (a *App) GetSmartCityObjects(ctx context.Context, types []string) ([]smartcity.Object, error) {
-	return a.smartcity.List(ctx, types)
-}
-
-func (a *App) GetSmartCityObject(ctx context.Context, id string) (smartcity.Object, error) {
-	return a.smartcity.Get(ctx, id)
-}
-
-func (a *App) CreateSmartCityObject(ctx context.Context, object smartcity.Object) error {
-	return a.smartcity.Create(ctx, object)
-}
-
-func (a *App) SmartCityTypes() []string {
-	return a.smartcity.KnownTypes()
+func (a *App) GetSmartCityObjects(ctx context.Context) ([]smartcity.Object, error) {
+	return a.smartcity.List(ctx, a.GetTenants(ctx))
 }
 
 func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {

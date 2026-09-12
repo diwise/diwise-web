@@ -25,6 +25,8 @@ github.com/dgraph-io/ristretto/v2 v2.2.0 h1:bkY3XzJcXoMuELV8F+vS8kzNgicwQFAaGINA
 github.com/dgraph-io/ristretto/v2 v2.2.0/go.mod h1:RZrm63UmcBAaYWC1DotLYBmTvgkrs0+XhBd7Npn7/zI=
 github.com/dgryski/trifles v0.0.0-20230903005119-f50d829f2e54 h1:SG7nF6SRlWhcT7cNTs5R6Hk4V2lcmLz2NsG2VnInyNo=
 github.com/dgryski/trifles v0.0.0-20230903005119-f50d829f2e54/go.mod h1:if7Fbed8SFyPtHLHbg49SI7NAdJiC5WIA09pe59rfAA=
+github.com/diwise/context-broker v0.0.0-20260224082514-5dacca8690cd h1:R2IRBgNkf8yiZsyKOA+JfhIWLc4LvICIhAKo9vrLlvw=
+github.com/diwise/context-broker v0.0.0-20260224082514-5dacca8690cd/go.mod h1:0/MN5S4S/yveil6GEnYKDPxgGFv+WROebBCLPfaOJaE=
 github.com/diwise/frontend-toolkit v0.0.0-20260415092357-e1a516b37b14 h1:ARI0D1lwxAMSve2/7SD2M0FEprNBtLFDYJZeaXAmluM=
 github.com/diwise/frontend-toolkit v0.0.0-20260415092357-e1a516b37b14/go.mod h1:7GJBGUvxgzcBH/OoKRnBQFXWgEzmL5Kpdprp6VB2WDo=
 github.com/diwise/service-chassis v0.0.0-20260602135046-9f4adf349775 h1:PXqidIv0Jpt0gnOJ3KlRDfYgeuRlsoWioeWiG9P06sk=

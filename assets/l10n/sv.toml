@@ -698,9 +698,3 @@ other = "Ladda upp"
 
 [smartcity]
 other = "Smart stad"
-
-[addobject]
-other = "Lägg till objekt"
-
-[selectobject]
-other = "Välj ett objekt på kartan"

@@ -5,6 +5,7 @@ go 1.27
 require (
 	github.com/Oudwins/tailwind-merge-go v0.2.3
 	github.com/a-h/templ v0.3.1020
+	github.com/diwise/context-broker v0.0.0-20260224082514-5dacca8690cd
 	github.com/diwise/frontend-toolkit v0.0.0-20260415092357-e1a516b37b14
 	github.com/diwise/service-chassis v0.0.0-20260602135046-9f4adf349775
 	github.com/google/uuid v1.6.0

@@ -2,21 +2,19 @@ package smartcity
 
 import "context"
 
-// Object är en "påtaglig" NGSI-LD-entitet (byggnad, strand, POI, livboj …) i
-// context-broker, till skillnad från observationer.
+// Object är en NGSI-LD-entitet som visas som en markör i stadsöversikten.
 type Object struct {
 	ID          string
 	Type        string
 	Name        string
+	Tenant      string
 	Latitude    float64
 	Longitude   float64
 	HasLocation bool
 }
 
-// Management läser och skapar påtagliga objekt via context-broker.
+// Management läser entiteter från context-broker för de tenants användaren har
+// åtkomst till.
 type Management interface {
-	List(ctx context.Context, types []string) ([]Object, error)
-	Get(ctx context.Context, id string) (Object, error)
-	Create(ctx context.Context, object Object) error
-	KnownTypes() []string
+	List(ctx context.Context, tenants []string) ([]Object, error)
 }

@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	cbclient "github.com/diwise/context-broker/pkg/ngsild/client"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -94,26 +95,94 @@ func (c *Client) MeasurementURL() string       { return c.measurementURL }
 func (c *Client) AlarmsURL() string            { return c.alarmsURL }
 func (c *Client) ContextBrokerURL() string     { return c.contextBrokerURL }
 
-// GetRaw skickar en GET och returnerar svarskroppen oförändrad. Används för
-// NGSI-LD-API:er som svarar med en rå JSON-array i stället för data-envelope.
-func (c *Client) GetRaw(ctx context.Context, rawURL string, params url.Values, accept string) ([]byte, error) {
-	log := logging.GetFromContext(ctx).With(slog.String("url", rawURL))
+// ContextBrokerClientForTenant skapar en context-broker-klient för en tenant.
+// Klienten använder den inloggade användarens token.
+func (c *Client) ContextBrokerClientForTenant(ctx context.Context, tenant string) cbclient.ContextBrokerClient {
+	return cbclient.NewContextBrokerClient(c.contextBrokerURL,
+		cbclient.Tenant(tenant),
+		cbclient.RequestHeader("Authorization", []string{"Bearer " + auth.Token(ctx)}),
+	)
+}
 
-	u, err := url.Parse(rawURL)
+// ContextBrokerTypes hämtar de entitetstyper som finns för en tenant via
+// /ngsi-ld/types.
+func (c *Client) ContextBrokerTypes(ctx context.Context, tenant string) ([]string, error) {
+	body, err := c.contextBrokerGet(ctx, tenant, "/ngsi-ld/types")
 	if err != nil {
-		return nil, fmt.Errorf("could not parse url: %s", err.Error())
+		return nil, err
 	}
-	u.RawQuery = params.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	var types []string
+	if err := json.Unmarshal(body, &types); err == nil {
+		return types, nil
+	}
+
+	var wrapped []struct {
+		Type string `json:"type"`
+		ID   string `json:"id"`
+	}
+	if err := json.Unmarshal(body, &wrapped); err != nil {
+		return nil, fmt.Errorf("failed to decode context broker types: %w", err)
+	}
+
+	types = make([]string, 0, len(wrapped))
+	for _, t := range wrapped {
+		switch {
+		case t.Type != "":
+			types = append(types, t.Type)
+		case t.ID != "":
+			types = append(types, t.ID)
+		}
+	}
+
+	return types, nil
+}
+
+// ContextBrokerEntities hämtar alla entiteter av angivna typer för en tenant.
+func (c *Client) ContextBrokerEntities(ctx context.Context, tenant string, types []string) ([]map[string]any, error) {
+	query := "?limit=1000"
+	if len(types) > 0 {
+		query += "&type=" + url.QueryEscape(strings.Join(types, ","))
+	}
+
+	result, err := c.ContextBrokerClientForTenant(ctx, tenant).QueryEntities(ctx, nil, nil, query, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create http request: %s", err.Error())
+		return nil, err
+	}
+
+	entities := make([]map[string]any, 0, result.Count)
+	for entity := range result.Found {
+		if entity == nil {
+			break
+		}
+
+		b, err := json.Marshal(entity)
+		if err != nil {
+			continue
+		}
+
+		var decoded map[string]any
+		if err := json.Unmarshal(b, &decoded); err != nil {
+			continue
+		}
+
+		entities = append(entities, decoded)
+	}
+
+	return entities, nil
+}
+
+func (c *Client) contextBrokerGet(ctx context.Context, tenant, path string) ([]byte, error) {
+	log := logging.GetFromContext(ctx).With(slog.String("path", path), slog.String("tenant", tenant))
+
+	u := strings.TrimSuffix(c.contextBrokerURL, "/") + path
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http request: %w", err)
 	}
 	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
-	if accept == "" {
-		accept = "application/json"
-	}
-	req.Header.Add("Accept", accept)
+	req.Header.Add("NGSILD-Tenant", tenant)
+	req.Header.Add("Accept", "application/json")
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -140,40 +209,6 @@ func (c *Client) GetRaw(ctx context.Context, rawURL string, params url.Values, a
 	}
 
 	return body, nil
-}
-
-// PostJSONLD skickar en POST med application/ld+json.
-func (c *Client) PostJSONLD(ctx context.Context, rawURL string, body []byte) error {
-	log := logging.GetFromContext(ctx).With(slog.String("url", rawURL))
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, rawURL, bytes.NewReader(body))
-	if err != nil {
-		return fmt.Errorf("failed to create http request: %w", err)
-	}
-	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
-	req.Header.Add("Content-Type", "application/ld+json")
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		log.Error("could not send post request", "error", err)
-		return fmt.Errorf("failed to send post request: %s", err.Error())
-	}
-	defer resp.Body.Close()
-	respBody, _ := io.ReadAll(resp.Body)
-
-	switch {
-	case resp.StatusCode == http.StatusUnauthorized:
-		return errUnauthorized(ctx)
-	case resp.StatusCode == http.StatusForbidden:
-		return errForbidden(ctx)
-	case resp.StatusCode == http.StatusConflict:
-		return fmt.Errorf("request failed: %w", ErrConflict)
-	case resp.StatusCode >= http.StatusBadRequest:
-		log.Error("request failed with status code", "statusCode", resp.StatusCode, "responseBody", string(respBody))
-		return fmt.Errorf("request failed: %d", resp.StatusCode)
-	}
-
-	return nil
 }
 
 func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Values) (*ApiResponse, error) {

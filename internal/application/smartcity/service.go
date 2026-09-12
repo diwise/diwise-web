@@ -2,36 +2,16 @@ package smartcity
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/diwise/diwise-web/internal/application/client"
+	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 	"go.opentelemetry.io/otel"
 )
 
 var tracer = otel.Tracer("diwise-web/app/smartcity")
-
-// KnownTypes är de smart-data-model-typer som representerar något "man kan ta
-// på" och som vyn Smart stad hanterar. Observationer (…Observed/…Record) ingår
-// inte. Listan är avsiktligt enkel att bygga ut.
-var KnownTypes = []string{
-	"Building",
-	"Beach",
-	"PointOfInterest",
-	"Lifebuoy",
-	"Room",
-	"WasteContainer",
-	"SewagePumpingStation",
-	"GreenspaceRecord",
-	"Device",
-}
-
-// DefaultContextURL används när en ny entitet skapas, så att context-brokern kan
-// expandera typ och attribut.
-const DefaultContextURL = "https://raw.githubusercontent.com/diwise/context-broker/refs/heads/main/assets/jsonldcontexts/default-context.jsonld"
 
 type Service struct {
 	client *client.Client
@@ -41,91 +21,60 @@ func NewService(client *client.Client) *Service {
 	return &Service{client: client}
 }
 
-func (s *Service) KnownTypes() []string { return append([]string(nil), KnownTypes...) }
-
-func (s *Service) List(ctx context.Context, types []string) ([]Object, error) {
+// List hämtar entiteter för samtliga tenants. Eftersom en användare kan ha
+// åtkomst till flera tenants görs ett anrop per tenant. Prestanda är inte
+// prioriterat här.
+func (s *Service) List(ctx context.Context, tenants []string) ([]Object, error) {
 	var err error
 	ctx, span := tracer.Start(ctx, "list-smart-city-objects")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
-	if len(types) == 0 {
-		types = KnownTypes
-	}
+	log := logging.GetFromContext(ctx)
 
-	params := url.Values{}
-	params.Set("type", strings.Join(types, ","))
-	params.Set("limit", "1000")
+	objects := make([]Object, 0)
 
-	base := strings.TrimSuffix(s.client.ContextBrokerURL(), "/")
-	body, err := s.client.GetRaw(ctx, base+"/ngsi-ld/v1/entities", params, "application/ld+json")
-	if err != nil {
-		return nil, err
-	}
+	for _, tenant := range tenants {
+		types, err := s.client.ContextBrokerTypes(ctx, tenant)
+		if err != nil {
+			log.Warn("could not fetch entity types for tenant", "tenant", tenant, "err", err.Error())
+			continue
+		}
 
-	var raw []map[string]any
-	if err = json.Unmarshal(body, &raw); err != nil {
-		return nil, fmt.Errorf("failed to decode context broker entities: %w", err)
-	}
+		types = tangibleTypes(types)
+		if len(types) == 0 {
+			continue
+		}
 
-	objects := make([]Object, 0, len(raw))
-	for _, entity := range raw {
-		objects = append(objects, toObject(entity))
+		entities, err := s.client.ContextBrokerEntities(ctx, tenant, types)
+		if err != nil {
+			log.Warn("could not fetch entities for tenant", "tenant", tenant, "err", err.Error())
+			continue
+		}
+
+		for _, entity := range entities {
+			object := toObject(entity)
+			if object.ID == "" {
+				continue
+			}
+			object.Tenant = tenant
+			objects = append(objects, object)
+		}
 	}
 
 	return objects, nil
 }
 
-func (s *Service) Get(ctx context.Context, id string) (Object, error) {
-	var err error
-	ctx, span := tracer.Start(ctx, "get-smart-city-object")
-	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
-
-	base := strings.TrimSuffix(s.client.ContextBrokerURL(), "/")
-	body, err := s.client.GetRaw(ctx, base+"/ngsi-ld/v1/entities/"+url.PathEscape(id), url.Values{}, "application/ld+json")
-	if err != nil {
-		return Object{}, err
-	}
-
-	var entity map[string]any
-	if err = json.Unmarshal(body, &entity); err != nil {
-		return Object{}, fmt.Errorf("failed to decode context broker entity: %w", err)
-	}
-
-	return toObject(entity), nil
-}
-
-func (s *Service) Create(ctx context.Context, object Object) error {
-	var err error
-	ctx, span := tracer.Start(ctx, "create-smart-city-object")
-	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
-
-	entity := map[string]any{
-		"id":       object.ID,
-		"type":     object.Type,
-		"@context": DefaultContextURL,
-	}
-
-	if object.Name != "" {
-		entity["name"] = map[string]any{"type": "Property", "value": object.Name}
-	}
-
-	if object.HasLocation {
-		entity["location"] = map[string]any{
-			"type": "GeoProperty",
-			"value": map[string]any{
-				"type":        "Point",
-				"coordinates": []float64{object.Longitude, object.Latitude},
-			},
+// tangibleTypes filtrerar bort observationer (…Observed) så att översikten
+// visar sådant "man kan ta på".
+func tangibleTypes(types []string) []string {
+	result := make([]string, 0, len(types))
+	for _, t := range types {
+		if strings.Contains(strings.ToLower(t), "observed") {
+			continue
 		}
+		result = append(result, t)
 	}
-
-	body, err := json.Marshal(entity)
-	if err != nil {
-		return err
-	}
-
-	base := strings.TrimSuffix(s.client.ContextBrokerURL(), "/")
-	return s.client.PostJSONLD(ctx, base+"/ngsi-ld/v1/entities", body)
+	return result
 }
 
 func toObject(entity map[string]any) Object {
