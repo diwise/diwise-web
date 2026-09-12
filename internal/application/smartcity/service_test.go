@@ -19,8 +19,8 @@ func TestListFetchesTypesPerTenantAndFiltersObservations(t *testing.T) {
 		is.Equal(r.Header.Get("NGSILD-Tenant"), "default")
 
 		switch r.URL.Path {
-		case "/ngsi-ld/types":
-			_, _ = w.Write([]byte(`["Building","Beach","WeatherObserved"]`))
+		case "/ngsi-ld/v1/types":
+			_, _ = w.Write([]byte(`{"typeList":{"type":"Property","value":["Building","Beach","WeatherObserved"]}}`))
 		case "/ngsi-ld/v1/entities":
 			entityTypeQuery = r.URL.Query().Get("type")
 			_, _ = w.Write([]byte(`[

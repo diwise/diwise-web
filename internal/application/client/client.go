@@ -95,23 +95,42 @@ func (c *Client) MeasurementURL() string       { return c.measurementURL }
 func (c *Client) AlarmsURL() string            { return c.alarmsURL }
 func (c *Client) ContextBrokerURL() string     { return c.contextBrokerURL }
 
+const (
+	defaultContextURL = "https://raw.githubusercontent.com/diwise/context-broker/refs/heads/main/assets/jsonldcontexts/default-context.jsonld"
+	linkContextHeader = "<" + defaultContextURL + `>; rel="http://www.w3.org/ns/json-ld#context"`
+)
+
 // ContextBrokerClientForTenant skapar en context-broker-klient för en tenant.
-// Klienten använder den inloggade användarens token.
+// Klienten använder den inloggade användarens token och skickar med
+// JSON-LD-contexten så att korta entitetstyper expanderas i frågor.
 func (c *Client) ContextBrokerClientForTenant(ctx context.Context, tenant string) cbclient.ContextBrokerClient {
 	return cbclient.NewContextBrokerClient(c.contextBrokerURL,
 		cbclient.Tenant(tenant),
 		cbclient.RequestHeader("Authorization", []string{"Bearer " + auth.Token(ctx)}),
+		cbclient.RequestHeader("Link", []string{linkContextHeader}),
+		cbclient.RequestHeader("Accept", []string{"application/ld+json"}),
 	)
 }
 
 // ContextBrokerTypes hämtar de entitetstyper som finns för en tenant via
-// /ngsi-ld/types.
+// /ngsi-ld/v1/types.
 func (c *Client) ContextBrokerTypes(ctx context.Context, tenant string) ([]string, error) {
-	body, err := c.contextBrokerGet(ctx, tenant, "/ngsi-ld/types")
+	body, err := c.contextBrokerGet(ctx, tenant, "/ngsi-ld/v1/types")
 	if err != nil {
 		return nil, err
 	}
 
+	// Vanligaste formen: {"typeList":{"type":"Property","value":["…"]}}
+	var entityTypeList struct {
+		TypeList struct {
+			Value []string `json:"value"`
+		} `json:"typeList"`
+	}
+	if err := json.Unmarshal(body, &entityTypeList); err == nil && len(entityTypeList.TypeList.Value) > 0 {
+		return entityTypeList.TypeList.Value, nil
+	}
+
+	// Enklare varianter: ["…"] eller [{"type":"…"}]
 	var types []string
 	if err := json.Unmarshal(body, &types); err == nil {
 		return types, nil
