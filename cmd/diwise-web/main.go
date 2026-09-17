@@ -160,7 +160,7 @@ func initialize(ctx context.Context, flags FlagMap, policiesFile io.ReadCloser, 
 				}
 
 				svcCfg.app, err = application.New(ctx,
-					flags[devMgmtURL], flags[thingsURL], flags[adminURL], flags[alarmsURL], flags[measurementsURL],
+					flags[devMgmtURL], flags[thingsURL], flags[thingsV2URL], flags[adminURL], flags[alarmsURL], flags[measurementsURL],
 				)
 				if err != nil {
 					return err
@@ -252,7 +252,7 @@ func initialize(ctx context.Context, flags FlagMap, policiesFile io.ReadCloser, 
 }
 
 func changeURLPortNumbers(_ context.Context, flags FlagMap, from, to string) FlagMap {
-	for _, flag := range []FlagType{appRoot, adminURL, alarmsURL, devMgmtURL, measurementsURL, thingsURL} {
+	for _, flag := range []FlagType{appRoot, adminURL, alarmsURL, devMgmtURL, measurementsURL, thingsURL, thingsV2URL} {
 		flags[flag] = strings.Replace(flags[flag], ":"+from, ":"+to, 1)
 	}
 	return flags
@@ -303,6 +303,8 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 
 		flags[devMgmtURL] = env.GetVariableOrDie(ctx, "DEV_MGMT_URL", "device management URL")
 		flags[thingsURL] = env.GetVariableOrDie(ctx, "THINGS_URL", "things URL")
+		// Frivillig tills Saker-sidorna landar (Etapp 2): tom sträng = v2-klient utan bas-URL.
+		flags[thingsV2URL] = env.GetVariableOrDefault(ctx, "THINGS_V2_URL", "")
 		flags[measurementsURL] = env.GetVariableOrDie(ctx, "MEASUREMENTS_URL", "measurements URL")
 	} else {
 		appRoot := flags[appRoot]

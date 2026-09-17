@@ -158,6 +158,64 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 	return &impl, nil
 }
 
+// GetRaw performs a GET against a non-envelope JSON API (iot-things-v2
+// returns bare arrays with totals in headers, not {meta, data}).
+// The body is returned raw with the response headers.
+func (c *Client) GetRaw(ctx context.Context, baseURL, path string, params url.Values) ([]byte, http.Header, error) {
+	if strings.ContainsAny(path, "/") {
+		path = strings.TrimPrefix(path, "/")
+		path = strings.TrimSuffix(path, "/")
+	}
+
+	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("path", path))
+	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, path), "/"))
+	if err != nil {
+		log.Error("could not parse url", "error", err)
+		return nil, nil, fmt.Errorf("could not parse url: %s", err.Error())
+	}
+
+	u.RawQuery = params.Encode()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		log.Error("could not create http request", "error", err)
+		return nil, nil, fmt.Errorf("failed to create http request: %s", err.Error())
+	}
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	req.Header.Add("Accept", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		log.Error("could not send get request", "error", err)
+		return nil, nil, fmt.Errorf("failed to send get request: %s", err.Error())
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Error("could not read response body", "error", err)
+		return nil, nil, fmt.Errorf("failed to read response body: %s", err.Error())
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		log.Error("request failed with unauthorized status")
+		return nil, nil, errUnauthorized(ctx)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		return nil, nil, errForbidden(ctx)
+	}
+	if resp.StatusCode == http.StatusNotFound {
+		log.Error("request failed with not found status")
+		return nil, nil, fmt.Errorf("request failed: %w", ErrNotFound)
+	}
+	if resp.StatusCode >= http.StatusBadRequest {
+		log.Error("request failed with status code", "statusCode", resp.StatusCode, "responseBody", string(body))
+		return nil, nil, fmt.Errorf("request failed: %d", resp.StatusCode)
+	}
+
+	return body, resp.Header, nil
+}
+
 func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) error {
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("id", id))
 

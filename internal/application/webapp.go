@@ -16,6 +16,7 @@ import (
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
 	"github.com/diwise/diwise-web/internal/application/things"
+	"github.com/diwise/diwise-web/internal/application/thingsv2"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
@@ -31,9 +32,10 @@ type App struct {
 	devices      *devices.Service
 	measurements *measurements.Service
 	things       *things.Service
+	thingsv2     *thingsv2.Service
 }
 
-func New(ctx context.Context, devmgmt, thingsURL, adminURL, alarmsURL, measurementURL string) (*App, error) {
+func New(ctx context.Context, devmgmt, thingsURL, thingsV2URL, adminURL, alarmsURL, measurementURL string) (*App, error) {
 	_ = ctx
 	client := client.NewClient(devmgmt, thingsURL, adminURL, alarmsURL, measurementURL)
 	return &App{
@@ -43,6 +45,7 @@ func New(ctx context.Context, devmgmt, thingsURL, adminURL, alarmsURL, measureme
 		devices:      devices.NewService(client),
 		measurements: measurements.NewService(client),
 		things:       things.NewService(client),
+		thingsv2:     thingsv2.NewService(client, thingsV2URL),
 	}, nil
 }
 
@@ -143,6 +146,10 @@ func (a *App) DeleteThing(ctx context.Context, thingID string) error {
 
 func (a *App) GetTags(ctx context.Context) ([]string, error) {
 	return a.things.GetTags(ctx)
+}
+
+func (a *App) ThingsV2() *thingsv2.Service {
+	return a.thingsv2
 }
 
 func (a *App) GetTypes(ctx context.Context) ([]string, error) {

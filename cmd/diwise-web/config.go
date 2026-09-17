@@ -26,6 +26,7 @@ const (
 	alarmsURL
 	devMgmtURL
 	thingsURL
+	thingsV2URL
 	measurementsURL
 
 	grafanaURL
