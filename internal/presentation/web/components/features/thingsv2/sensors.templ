@@ -44,19 +44,19 @@ templ ThingV2SensorsDialog(l10n Localizer, viewModel ThingV2SensorsViewModel) {
 								</div>
 								<div class="flex flex-col gap-2">
 									@input.Input(input.Props{
-										ID:          "thing-v2-sensor-search-" + binding.Input,
+										ID:          "thing-v2-sensor-search-" + sensorInputDomID(binding.Input),
 										Name:        "query",
 										Type:        input.TypeSearch,
 										Placeholder: l10n.Get("search"),
 										Class:       "h-10 rounded-xl bg-background",
 										Attributes: templ.Attributes{
 											"hx-get":     "/components/things-v2/" + viewModel.ThingID + "/sensors/search?tenant=" + viewModel.Tenant + "&revision=" + sprintRevision(viewModel.Revision) + "&input=" + binding.Input,
-											"hx-target":  "#thing-v2-sensor-results-" + binding.Input,
+											"hx-target":  "#thing-v2-sensor-results-" + sensorInputDomID(binding.Input),
 											"hx-swap":    "innerHTML",
 											"hx-trigger": "keyup changed delay:300ms, search",
 										},
 									})
-									<div id={ "thing-v2-sensor-results-" + binding.Input } class="flex min-w-0 flex-col gap-2"></div>
+									<div id={ "thing-v2-sensor-results-" + sensorInputDomID(binding.Input) } class="flex min-w-0 flex-col gap-2"></div>
 								</div>
 								if binding.DeviceID != "" {
 									<form
