@@ -451,6 +451,9 @@ other = "Sand storage"
 [save]
 other = "Save"
 
+[saveconflict]
+other = "Someone else changed the thing. Reload the page and try again."
+
 [search]
 other = "Search"
 

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/table"
 	. "github.com/diwise/frontend-toolkit"
@@ -38,6 +39,20 @@ templ ThingV2DetailsPage(l10n Localizer, model ThingV2DetailsViewModel) {
 					<div class="w-full shrink-0 rounded-xl bg-muted/40 p-4 tabular-nums lg:w-64">
 						@ThingV2StatusCell(l10n, model.Thing)
 					</div>
+				}
+				@button.Button(button.Props{
+					Href:    fmt.Sprintf("/things-v2/%s?mode=edit", model.Thing.ID),
+					Variant: button.VariantOutline,
+					Class:   "shrink-0 rounded-xl px-4",
+					Attributes: templ.Attributes{
+						"hx-get":         fmt.Sprintf("/things-v2/%s?mode=edit", model.Thing.ID),
+						"hx-target":      "#app-shell",
+						"hx-swap":        "outerHTML",
+						"hx-replace-url": "true",
+					},
+				}) {
+					@icon.Pen(icon.Props{Class: "size-4"})
+					{ l10n.Get("edit") }
 				}
 			</div>
 		</div>

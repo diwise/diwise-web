@@ -451,6 +451,9 @@ other = "Sandficka"
 [save]
 other = "Spara"
 
+[saveconflict]
+other = "Saken har ändrats av någon annan. Ladda om sidan och försök igen."
+
 [search]
 other = "Sök"
 

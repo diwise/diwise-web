@@ -119,3 +119,21 @@ type ThingV2CreateViewModel struct {
 	Longitude       string
 	ErrorMessage    string
 }
+
+// ThingV2EditViewModel är redigera-sidan för /things-v2/{id}?mode=edit.
+// Mall + mallversion är låsta (visas, skickas aldrig): mallbyte kräver
+// ta bort + skapa ny.
+type ThingV2EditViewModel struct {
+	ThingID         string
+	Tenant          string
+	Revision        int64
+	TemplateDisplay string
+	Variants        []featuresthings.TypeOption
+	Variant         string
+	Params          []ParamFieldViewModel
+	Name            string
+	Description     string
+	Latitude        string
+	Longitude       string
+	ErrorMessage    string
+}

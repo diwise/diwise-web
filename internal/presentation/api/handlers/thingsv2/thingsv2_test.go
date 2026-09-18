@@ -114,8 +114,44 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 			},
 			Primary: &appthingsv2.PropertyValue{PropertyID: "fillRate", DisplayName: "Fyllnadsgrad", Value: ptr(42.0), Unit: "%", Quality: "ok"},
 		}
+		if r.Method == http.MethodPut {
+			if r.Header.Get("If-Match") == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			var spec appthingsv2.ObjectSpec
+			if err := json.NewDecoder(r.Body).Decode(&spec); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			if spec.TemplateID != "wastebin" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			thing.Name = spec.Name
+			thing.Revision = 3
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(thing)
+	})
+	mux.HandleFunc("/things/{id}/config", func(w http.ResponseWriter, r *http.Request) {
+		if r.PathValue("id") != "bin-1" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		config := appthingsv2.EffectiveConfig{
+			ThingID: "bin-1", Name: "Tunna", Category: "container",
+			TemplateID: "wastebin", TemplateVersion: "v1",
+			Location: &appthingsv2.Location{Type: "Point", Coordinates: json.RawMessage(`[17.3,62.39]`)},
+			Metadata: map[string]string{"subType": "WasteContainer"},
+			Bindings: []appthingsv2.Binding{
+				{DeviceID: "milesight:79", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
+			},
+			ParamValues:  map[string]float64{"sensorToBottom": 0.94},
+			ParamSources: map[string]string{"sensorToBottom": "thing"},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(config)
 	})
 	mux.HandleFunc("/things/{id}/bindings", func(w http.ResponseWriter, r *http.Request) {
 		response := map[string][]appthingsv2.Binding{"bindings": {

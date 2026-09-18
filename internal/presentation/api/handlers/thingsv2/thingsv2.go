@@ -261,6 +261,21 @@ func NewThingsV2DetailsPage(ctx context.Context, l10n LocaleBundle, assets Asset
 			return
 		}
 
+		if r.URL.Query().Get("mode") == "edit" {
+			model, err := composeEditModel(ctx, r, app, id, nil, "")
+			if err != nil {
+				http.Error(w, "could not fetch thing", http.StatusInternalServerError)
+				return
+			}
+			editContent := featuresthingsv2.ThingV2EditPage(localizer, model)
+			editPage := templ.Component(v2layout.StartPage(version, localizer, assets, editContent))
+			if helpers.IsHxRequest(r) {
+				editPage = v2layout.AppShell(localizer, assets, editContent)
+			}
+			helpers.WriteComponentResponse(ctx, w, r, editPage, 32*1024, 0)
+			return
+		}
+
 		// Kopplingar är inte kritiska för sidan: äldre servrar saknar
 		// endpointen, då visas sektionen som tom i stället för 500.
 		bindings, err := app.ThingsV2().GetBindings(ctx, tenant, id)
