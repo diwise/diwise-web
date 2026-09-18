@@ -54,6 +54,10 @@ func TestThingsV2ParentSearchExcludesSelf(t *testing.T) {
 	// själv ska inte erbjudas som förälder.
 	is.True(strings.Contains(body, "Område"))
 	is.True(!strings.Contains(body, "Tunna"))
+	// Välj är ett formulär med submit (fungerar även utan htmx-metoder).
+	is.True(strings.Contains(body, "<form"))
+	is.True(strings.Contains(body, `name="parentId"`))
+	is.True(strings.Contains(body, `type="submit"`))
 }
 
 func TestThingsV2ParentSearchEmptyQueryRendersNothing(t *testing.T) {
@@ -83,7 +87,7 @@ func TestThingsV2SetParentRedirectsToDetails(t *testing.T) {
 
 	handler := NewThingsV2SetParent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
-	req := httptest.NewRequest(http.MethodPut, "/components/things-v2/bin-1/parent?tenant=t1", strings.NewReader("parentId=gh-1&revision=2"))
+	req := httptest.NewRequest(http.MethodPost, "/components/things-v2/bin-1/parent?tenant=t1", strings.NewReader("parentId=gh-1&revision=2"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
@@ -103,7 +107,7 @@ func TestThingsV2SetParentRejectsSelf(t *testing.T) {
 
 	handler := NewThingsV2SetParent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
-	req := httptest.NewRequest(http.MethodPut, "/components/things-v2/bin-1/parent?tenant=t1", strings.NewReader("parentId=bin-1&revision=2"))
+	req := httptest.NewRequest(http.MethodPost, "/components/things-v2/bin-1/parent?tenant=t1", strings.NewReader("parentId=bin-1&revision=2"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
@@ -122,7 +126,8 @@ func TestThingsV2UnlinkParentRedirectsToDetails(t *testing.T) {
 
 	handler := NewThingsV2UnlinkParent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
-	req := httptest.NewRequest(http.MethodDelete, "/components/things-v2/bin-1/parent?tenant=t1&revision=2", nil)
+	req := httptest.NewRequest(http.MethodPost, "/components/things-v2/bin-1/parent/remove?tenant=t1", strings.NewReader("revision=2"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()

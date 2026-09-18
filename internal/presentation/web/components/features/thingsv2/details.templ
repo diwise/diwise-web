@@ -195,17 +195,22 @@ templ ThingV2RelatedThingsSection(l10n Localizer, model ThingV2DetailsViewModel)
 						>
 							{ displayThingV2Name(*model.Parent) }
 						</a>
-						@button.Button(button.Props{
-							Variant: button.VariantOutline,
-							Class:   "shrink-0 rounded-xl px-3 py-1 text-sm",
-							Attributes: templ.Attributes{
-								"hx-delete": fmt.Sprintf("/components/things-v2/%s/parent?tenant=%s&revision=%s", model.Thing.ID, model.Thing.Tenant, sprintRevision(model.Revision)),
-								"hx-target": "#thing-v2-dialog-container",
-								"hx-swap":   "innerHTML",
-							},
-						}) {
-							{ l10n.Get("unlinkparent") }
-						}
+						<form
+							action={ fmt.Sprintf("/components/things-v2/%s/parent/remove?tenant=%s", model.Thing.ID, model.Thing.Tenant) }
+							method="post"
+							hx-post={ fmt.Sprintf("/components/things-v2/%s/parent/remove?tenant=%s", model.Thing.ID, model.Thing.Tenant) }
+							hx-target="#thing-v2-dialog-container"
+							hx-swap="innerHTML"
+						>
+							<input type="hidden" name="revision" value={ sprintRevision(model.Revision) }/>
+							@button.Button(button.Props{
+								Type:    button.TypeSubmit,
+								Variant: button.VariantOutline,
+								Class:   "shrink-0 rounded-xl px-3 py-1 text-sm",
+							}) {
+								{ l10n.Get("unlinkparent") }
+							}
+						</form>
 					} else {
 						<span class="italic text-muted-foreground">{ l10n.Get("missing") }</span>
 					}

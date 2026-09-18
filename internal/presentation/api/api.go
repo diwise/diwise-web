@@ -435,8 +435,8 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("POST /components/things-v2/{id}/delete", protect(DeleteThings, RequireHX(thingsv2.NewThingsV2DeletePage(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("GET /components/things-v2/{id}/parent-dialog", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2ParentDialog(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("GET /components/things-v2/{id}/parents", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2ParentSearch(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("PUT /components/things-v2/{id}/parent", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2SetParent(ctx, l10n, assetLoader.Load, app))))
-	r.Handle("DELETE /components/things-v2/{id}/parent", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2UnlinkParent(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("POST /components/things-v2/{id}/parent", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2SetParent(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("POST /components/things-v2/{id}/parent/remove", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2UnlinkParent(ctx, l10n, assetLoader.Load, app))))
 
 	r.Handle("GET /admin", protect(Admin, admin.NewAdminPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /admin/export", protectFunc(Admin, func(w http.ResponseWriter, r *http.Request) {

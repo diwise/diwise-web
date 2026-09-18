@@ -167,7 +167,11 @@ func NewThingsV2UnlinkParent(_ context.Context, l10n LocaleBundle, _ AssetLoader
 			return
 		}
 
-		revision, _ := strconv.ParseInt(r.URL.Query().Get("revision"), 10, 64)
+		if err := r.ParseForm(); err != nil {
+			http.Error(w, "could not parse form data", http.StatusBadRequest)
+			return
+		}
+		revision, _ := strconv.ParseInt(r.Form.Get("revision"), 10, 64)
 		if revision < 1 {
 			http.Error(w, "revision is required", http.StatusBadRequest)
 			return

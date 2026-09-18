@@ -84,24 +84,28 @@ templ ThingV2ParentResults(l10n Localizer, viewModel ThingV2ParentResultsViewMod
 		<span class="italic text-muted-foreground">{ l10n.Get("missing") }</span>
 	} else {
 		for _, candidate := range viewModel.Results {
-			<div class="flex min-w-0 items-center gap-3 rounded-xl border border-border px-4 py-3">
+			<form
+				action={ "/components/things-v2/" + viewModel.ThingID + "/parent?tenant=" + viewModel.Tenant }
+				method="post"
+				class="flex min-w-0 items-center gap-3 rounded-xl border border-border px-4 py-3"
+				hx-post={ "/components/things-v2/" + viewModel.ThingID + "/parent?tenant=" + viewModel.Tenant }
+				hx-target="#thing-v2-dialog-container"
+				hx-swap="innerHTML"
+			>
+				<input type="hidden" name="parentId" value={ candidate.ID }/>
+				<input type="hidden" name="revision" value={ sprintRevision(viewModel.Revision) }/>
 				<div class="min-w-0 flex-1">
 					<div class="break-words font-medium">{ candidate.Name }</div>
 					<div class="text-sm text-muted-foreground">{ candidate.Category }</div>
 				</div>
 				@button.Button(button.Props{
+					Type:    button.TypeSubmit,
 					Variant: button.VariantDefault,
 					Class:   "shrink-0 rounded-xl px-4",
-					Attributes: templ.Attributes{
-						"hx-put":    "/components/things-v2/" + viewModel.ThingID + "/parent?tenant=" + viewModel.Tenant,
-						"hx-target": "#thing-v2-dialog-container",
-						"hx-swap":   "innerHTML",
-						"hx-vals":   `{"parentId": "` + candidate.ID + `", "revision": "` + sprintRevision(viewModel.Revision) + `"}`,
-					},
 				}) {
 					{ l10n.Get("choose") }
 				}
-			</div>
+			</form>
 		}
 	}
 }
