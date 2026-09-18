@@ -43,6 +43,8 @@ func thingsV2ToMapFeature(l10n Localizer, things []ThingV2ViewModel) shared.Feat
 		if thing.HasPrimaryValue {
 			feature.AddProperty("hasprimary", true)
 			feature.AddProperty("primaryvalue", formatPrimaryValue(thing))
+			feature.AddProperty("primaryunit", thing.PrimaryUnit)
+			feature.AddProperty("primarynumeric", thing.PrimaryValue)
 		} else {
 			feature.AddProperty("hasprimary", false)
 		}

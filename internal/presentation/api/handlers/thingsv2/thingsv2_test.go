@@ -97,7 +97,9 @@ func TestThingsV2DataListRendersPrimaryAndTenant(t *testing.T) {
 	is.Equal(http.StatusOK, rec.Code)
 	body := rec.Body.String()
 	is.True(strings.Contains(body, "Tunna"))
-	is.True(strings.Contains(body, "42 %"))
+	is.True(strings.Contains(body, "42%"))
+	is.True(strings.Contains(body, `role="progressbar"`))
+	is.True(!strings.Contains(body, "Fyllnadsgrad"))
 	is.True(strings.Contains(body, "t1"))
 	is.True(strings.Contains(body, `id="tableOrMapV2"`))
 }

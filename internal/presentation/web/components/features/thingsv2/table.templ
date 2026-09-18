@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/progress"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/table"
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -89,9 +90,18 @@ templ ThingV2Row(l10n Localizer, thing ThingV2ViewModel) {
 }
 
 // ThingV2StatusCell visar sakens huvuddata generiskt (ingen typswitch):
-// mallens primaryProperty upplöst mot aktuella värden.
+// mallens primaryProperty upplöst mot aktuella värden. Procentvärden
+// får en progressbar som i things v1, utan rubrik.
 templ ThingV2StatusCell(l10n Localizer, thing ThingV2ViewModel) {
-	if thing.HasPrimaryValue {
+	if thing.HasPrimaryValue && thing.PrimaryUnit == "%" {
+		@progress.Progress(progress.Props{
+			Value:     clampPercent(thing.PrimaryValue),
+			Max:       100,
+			ShowValue: true,
+			Variant:   progressVariant(percentTone(thing.PrimaryValue)),
+			Class:     "min-w-[180px]",
+		})
+	} else if thing.HasPrimaryValue {
 		<span>
 			if strings.TrimSpace(thing.PrimaryLabel) != "" {
 				{ thing.PrimaryLabel }: 
@@ -100,6 +110,40 @@ templ ThingV2StatusCell(l10n Localizer, thing ThingV2ViewModel) {
 		</span>
 	} else {
 		<span class="text-muted-foreground">{ l10n.Get("nodata") }</span>
+	}
+}
+
+func clampPercent(value float64) int {
+	if value < 0 {
+		return 0
+	}
+	if value > 100 {
+		return 100
+	}
+	return int(value)
+}
+
+func percentTone(value float64) string {
+	switch {
+	case value >= 50:
+		return "critical"
+	case value <= 30:
+		return "good"
+	default:
+		return "warning"
+	}
+}
+
+func progressVariant(tone string) progress.Variant {
+	switch tone {
+	case "critical":
+		return progress.VariantDanger
+	case "warning":
+		return progress.VariantWarning
+	case "good":
+		return progress.VariantSuccess
+	default:
+		return progress.VariantDefault
 	}
 }
 

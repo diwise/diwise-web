@@ -707,16 +707,39 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                     moreinformation +
                                                                 outro;
                                             } else if (cv === "thing-v2") {
-                                                const primarydata = feature.properties.hasprimary
-                                                ? '<div class="">' + feature.properties.primaryvalue + '</div>'
-                                                : '<div class="">' + feature.properties.text_missingdata + '</div>';
+                                                var primarydata;
+                                                if (feature.properties.hasprimary && feature.properties.primaryunit === '%') {
+                                                    var pct = Math.min(100, Math.max(0, Number(feature.properties.primarynumeric) || 0));
+                                                    var colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
+                                                    if (pct >= 50) {
+                                                        colourClass = "bg-red-600 dark:bg-err-prim-surf";
+                                                    } else if (pct >= 30) {
+                                                        colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                                    }
+                                                    primarydata = '<div class="flex w-full items-center gap-2 text-sm">' +
+                                                        '<div class="w-[75%] bg-background-200 dark:bg-primary-surface-white rounded-lg">' +
+                                                            '<div class="' + colourClass + ' rounded-lg" style="width: ' + pct + '%; height: 6px;"></div>' +
+                                                        '</div>' +
+                                                        '<div class="text-sm text-right w-auto">' + pct + '%</div>' +
+                                                    '</div>';
+                                                } else if (feature.properties.hasprimary) {
+                                                    primarydata = '<div class="">' + feature.properties.primaryvalue + '</div>';
+                                                } else {
+                                                    primarydata = '<div class="">' + feature.properties.text_missingdata + '</div>';
+                                                }
+                                                var primaryblock;
+                                                if (feature.properties.hasprimary && feature.properties.primaryunit === '%') {
+                                                    primaryblock = '<div class="flex flex-col items-start justify-center gap-2 self-stretch">' + primarydata + '</div>';
+                                                } else {
+                                                    primaryblock = '<div class="flex items-center gap-2">' +
+                                                        '<div class="font-bold">' + feature.properties.text_primary + '</div>' +
+                                                        primarydata +
+                                                    '</div>';
+                                                }
                                                 popupContent = intro +
                                                                     '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
                                                                         name +
-                                                                        '<div class="flex items-center gap-2">' +
-                                                                            '<div class="font-bold">' + feature.properties.text_primary + '</div>' +
-                                                                            primarydata +
-                                                                        '</div>' +
+                                                                        primaryblock +
                                                                         '<div class="flex items-center gap-2">' +
                                                                             '<div class="font-bold">' + feature.properties.text_category + '</div>' +
                                                                             '<div class="">' + feature.properties.category + '</div>' +
