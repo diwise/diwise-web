@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/matryer/is"
@@ -68,6 +69,17 @@ func stubV2(t *testing.T) *httptest.Server {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(Thing{ThingID: r.PathValue("id"), Tenant: "t1"})
+	})
+	mux.HandleFunc("/things/{id}/history", func(w http.ResponseWriter, r *http.Request) {
+		points := []HistoryPoint{
+			{PropertyID: "fillRate", ObservedAt: time.Date(2026, 9, 18, 10, 0, 0, 0, time.UTC), Value: ptr(42.0), Quality: "ok"},
+			{PropertyID: "fillRate", ObservedAt: time.Date(2026, 9, 18, 11, 0, 0, 0, time.UTC), Quality: "uncertain"},
+		}
+		if r.URL.Query().Get("property") == "missing" {
+			points = []HistoryPoint{}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(points)
 	})
 	mux.HandleFunc("/catalog/templates", func(w http.ResponseWriter, r *http.Request) {
 		specs := []TemplateSpec{
@@ -180,4 +192,32 @@ func TestLocationPoint(t *testing.T) {
 	var nilLoc *Location
 	_, _, ok = nilLoc.Point()
 	is.True(!ok)
+}
+
+func TestGetHistoryParsesPointsOldestFirst(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	from := time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC)
+	to := time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC)
+
+	points, err := svc.GetHistory(context.Background(), "t1", "bin-1", "fillRate", from, to, 100)
+	is.NoErr(err)
+	is.Equal(2, len(points))
+	is.Equal("fillRate", points[0].PropertyID)
+	is.True(points[0].Value != nil)
+	is.Equal(42.0, *points[0].Value)
+	is.True(points[1].Value == nil)
+	is.True(points[0].ObservedAt.Before(points[1].ObservedAt))
+}
+
+func TestGetHistoryEmptyForUnknownProperty(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	points, err := svc.GetHistory(context.Background(), "t1", "bin-1", "missing", time.Time{}, time.Time{}, 0)
+	is.NoErr(err)
+	is.Equal(0, len(points))
 }

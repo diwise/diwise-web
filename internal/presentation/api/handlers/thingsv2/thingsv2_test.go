@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/diwise/diwise-web/internal/application/client"
 	appthingsv2 "github.com/diwise/diwise-web/internal/application/thingsv2"
@@ -91,6 +92,14 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(thing)
+	})
+	mux.HandleFunc("/things/{id}/history", func(w http.ResponseWriter, r *http.Request) {
+		points := []appthingsv2.HistoryPoint{
+			{PropertyID: "fillRate", ObservedAt: time.Date(2026, 9, 18, 10, 0, 0, 0, time.UTC), Value: ptr(42.0), Quality: "ok"},
+			{PropertyID: "fillRate", ObservedAt: time.Date(2026, 9, 18, 11, 0, 0, 0, time.UTC), Quality: "uncertain"},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(points)
 	})
 
 	srv := httptest.NewServer(mux)
@@ -297,4 +306,68 @@ func TestToDetailsViewModelSortsValuesAndMetadata(t *testing.T) {
 	is.Equal(2, len(model.Metadata))
 	is.Equal("a", model.Metadata[0].Key)
 	is.Equal(int64(2), model.Revision)
+}
+
+func TestThingsV2HistoryComponentRendersChart(t *testing.T) {
+	is := is.New(t)
+
+	svc, done := stubThingsV2(t)
+	defer done()
+
+	handler := NewThingsV2HistoryComponent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
+
+	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/bin-1/history?tenant=t1&property=fillRate&span=today", nil)
+	req.Header.Set("HX-Request", "true")
+	req.SetPathValue("id", "bin-1")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusOK, rec.Code)
+	body := rec.Body.String()
+	is.True(strings.Contains(body, "Fyllnadsgrad"))
+	is.True(strings.Contains(body, "2026-09-18 10:00"))
+	is.True(strings.Contains(body, "<canvas"))
+}
+
+func TestThingsV2HistoryComponentRequiresProperty(t *testing.T) {
+	is := is.New(t)
+
+	svc, done := stubThingsV2(t)
+	defer done()
+
+	handler := NewThingsV2HistoryComponent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
+
+	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/bin-1/history?tenant=t1", nil)
+	req.Header.Set("HX-Request", "true")
+	req.SetPathValue("id", "bin-1")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusBadRequest, rec.Code)
+}
+
+func TestHistorySpanRangeDefaultsToToday(t *testing.T) {
+	is := is.New(t)
+
+	now := time.Date(2026, 9, 18, 14, 30, 0, 0, time.UTC)
+
+	from, to := historySpanRange("today", now)
+	is.Equal(time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC), from)
+	is.Equal(now, to)
+
+	from, to = historySpanRange("bogus", now)
+	is.Equal(time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC), from)
+	is.Equal(now, to)
+
+	from, to = historySpanRange("24h", now)
+	is.Equal(now.Add(-24*time.Hour), from)
+	is.Equal(now, to)
+
+	from, _ = historySpanRange("7d", now)
+	is.Equal(now.Add(-7*24*time.Hour), from)
+
+	from, _ = historySpanRange("30d", now)
+	is.Equal(now.Add(-30*24*time.Hour), from)
 }

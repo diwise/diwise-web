@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application/client"
@@ -19,6 +20,7 @@ import (
 	featuresthings "github.com/diwise/diwise-web/internal/presentation/web/components/features/things"
 	featuresthingsv2 "github.com/diwise/diwise-web/internal/presentation/web/components/features/thingsv2"
 	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
 
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -323,5 +325,228 @@ func toDetailsViewModel(thing appthingsv2.Thing) featuresthingsv2.ThingV2Details
 		return model.Metadata[i].Key < model.Metadata[j].Key
 	})
 
+	model.Tenant = thing.Tenant
+	for _, value := range model.Values {
+		label := value.Label
+		if strings.TrimSpace(label) == "" {
+			label = value.PropertyID
+		}
+		model.HistoryProperties = append(model.HistoryProperties, featuresthings.TypeOption{
+			Value: value.PropertyID,
+			Label: label,
+		})
+	}
+	if thing.Primary != nil && strings.TrimSpace(thing.Primary.PropertyID) != "" {
+		model.DefaultHistoryProperty = thing.Primary.PropertyID
+	} else if len(model.Values) > 0 {
+		model.DefaultHistoryProperty = model.Values[0].PropertyID
+	}
+
 	return model
+}
+
+func NewThingsV2HistoryComponent(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app thingsV2App) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := helpers.Decorate(
+			r.Context(),
+			v2layout.CurrentComponent, "things-v2",
+		)
+
+		id := r.PathValue("id")
+		if id == "" {
+			http.Error(w, "no id found in url", http.StatusBadRequest)
+			return
+		}
+
+		tenant, err := resolveDetailsTenant(r)
+		if err != nil {
+			http.Error(w, "tenant is required", http.StatusBadRequest)
+			return
+		}
+
+		property := strings.TrimSpace(r.URL.Query().Get("property"))
+		if property == "" {
+			http.Error(w, "property is required", http.StatusBadRequest)
+			return
+		}
+
+		thing, err := app.ThingsV2().GetThing(ctx, tenant, id)
+		if err != nil {
+			if errors.Is(err, client.ErrNotFound) {
+				http.Error(w, "thing not found", http.StatusNotFound)
+				return
+			}
+			http.Error(w, "could not fetch thing", http.StatusInternalServerError)
+			return
+		}
+
+		span := strings.TrimSpace(r.URL.Query().Get("span"))
+		from, to := historySpanRange(span, time.Now().UTC())
+
+		points, err := app.ThingsV2().GetHistory(ctx, tenant, id, property, from, to, 1000)
+		if err != nil {
+			http.Error(w, "could not fetch history", http.StatusInternalServerError)
+			return
+		}
+
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		model := toHistoryViewModel(r, localizer, thing, property, span, points)
+		helpers.WriteComponentResponse(ctx, w, r, featuresthingsv2.ThingV2HistoryContent(localizer, model), 24*1024, 0)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+// historySpanRange mappar ett tidsspann till [from, to]: "today" är
+// dygnets början (UTC) till nu och är förvalet på detaljsidan.
+func historySpanRange(span string, now time.Time) (time.Time, time.Time) {
+	switch span {
+	case "24h":
+		return now.Add(-24 * time.Hour), now
+	case "7d":
+		return now.Add(-7 * 24 * time.Hour), now
+	case "30d":
+		return now.Add(-30 * 24 * time.Hour), now
+	default:
+		startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+		return startOfDay, now
+	}
+}
+
+func toHistoryViewModel(r *http.Request, localizer Localizer, thing appthingsv2.Thing, property, span string, points []appthingsv2.HistoryPoint) featuresthingsv2.ThingV2HistoryViewModel {
+	label := property
+	unit := ""
+	if current, ok := thing.Values[property]; ok {
+		if strings.TrimSpace(current.DisplayName) != "" {
+			label = current.DisplayName
+		}
+		unit = current.Unit
+	}
+
+	isDark := helpers.IsDarkMode(r)
+	color := "#1F1F25"
+	if isDark {
+		color = "#FFFFFF"
+	}
+
+	model := featuresthingsv2.ThingV2HistoryViewModel{
+		ThingID:       thing.ThingID,
+		PropertyID:    property,
+		PropertyLabel: label,
+		Unit:          unit,
+		Span:          span,
+		Chart:         historyChartConfig(isDark, color, label, points),
+		Points:        len(points),
+	}
+
+	for _, point := range points {
+		if point.Value != nil {
+			model.HasData = true
+			break
+		}
+	}
+
+	return model
+}
+
+func historyChartConfig(isDark bool, color, label string, points []appthingsv2.HistoryPoint) shared.AdvancedChartConfig {
+	labels := make([]string, 0, len(points))
+	data := make([]any, 0, len(points))
+	for _, point := range points {
+		labels = append(labels, point.ObservedAt.Format("2006-01-02 15:04"))
+		if point.Value != nil {
+			data = append(data, *point.Value)
+		} else {
+			data = append(data, nil)
+		}
+	}
+
+	foreground := "#1F1F25"
+	muted := "#444450"
+	border := "#1F1F25"
+	grid := "#E2E2E8"
+	background := "#FFFFFF"
+	if isDark {
+		foreground = "#FFFFFF"
+		muted = "#FFFFFF"
+		border = "#FFFFFF"
+		grid = "#FFFFFF4D"
+		background = "#101012"
+	}
+	beginAtZero := false
+
+	return shared.AdvancedChartConfig{
+		Type: "line",
+		Data: shared.AdvancedChartData{
+			Labels: labels,
+			Datasets: []shared.AdvancedChartDataset{
+				{
+					Label:                label,
+					Data:                 data,
+					BorderColor:          color,
+					BackgroundColor:      color,
+					PointBackgroundColor: color,
+					PointBorderColor:     color,
+					BorderWidth:          2,
+					PointRadius:          1,
+					PointHoverRadius:     6,
+					Fill:                 false,
+					Tension:              0.2,
+				},
+			},
+		},
+		Options: shared.AdvancedChartOptions{
+			Responsive:          true,
+			MaintainAspectRatio: false,
+			Animation:           false,
+			Interaction: &shared.Interaction{
+				Intersect: false,
+				Axis:      "xy",
+				Mode:      "index",
+			},
+			Plugins: &shared.Plugins{
+				Legend: &shared.PluginLegend{
+					Display: true,
+					Labels: &shared.PluginLegendLabels{
+						Color: foreground,
+					},
+				},
+				Tooltip: &shared.PluginTooltip{
+					BackgroundColor: background,
+					BodyColor:       muted,
+					TitleColor:      foreground,
+					BorderColor:     border,
+					BorderWidth:     1,
+				},
+			},
+			Scales: map[string]shared.AxisScale{
+				"x": {
+					Type:         "time",
+					Distribution: "linear",
+					Ticks: &shared.AxisTicks{
+						Color:         muted,
+						MaxTicksLimit: 8,
+					},
+					Grid: &shared.AxisGrid{
+						Display: new(false),
+					},
+				},
+				"y": {
+					Offset:      new(true),
+					BeginAtZero: &beginAtZero,
+					Ticks: &shared.AxisTicks{
+						Color: muted,
+					},
+					Grid: &shared.AxisGrid{
+						Display: new(true),
+						Color:   grid,
+					},
+					Border: &shared.AxisBorder{
+						Display: true,
+						Color:   border,
+					},
+				},
+			},
+		},
+	}
 }

@@ -190,6 +190,15 @@ other = "Present"
 [lastseen]
 other = "Last seen"
 
+[last24h]
+other = "Last 24 hours"
+
+[last7d]
+other = "Last 7 days"
+
+[last30d]
+other = "Last 30 days"
+
 [latitude]
 other = "Latitude"
 
@@ -531,6 +540,9 @@ other = "things out of"
 
 [time]
 other = "Time"
+
+[today]
+other = "Today"
 
 [timeinterval]
 other = "Time interval"

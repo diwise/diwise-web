@@ -67,11 +67,14 @@ type MetadataItem struct {
 
 // ThingV2DetailsViewModel är detaljsidan för /things-v2/{id}.
 type ThingV2DetailsViewModel struct {
-	Thing           ThingV2ViewModel
-	Values          []ThingV2ValueViewModel
-	Metadata        []MetadataItem
-	TemplateVersion string
-	VariantID       string
-	VariantVersion  string
-	Revision        int64
+	Thing                  ThingV2ViewModel
+	Values                 []ThingV2ValueViewModel
+	Metadata               []MetadataItem
+	TemplateVersion        string
+	VariantID              string
+	VariantVersion         string
+	Revision               int64
+	Tenant                 string
+	HistoryProperties      []featuresthings.TypeOption
+	DefaultHistoryProperty string
 }

@@ -89,3 +89,11 @@ type Result struct {
 	Things []Thing
 	Total  int
 }
+
+// HistoryPoint is one observed property value (oldest first).
+type HistoryPoint struct {
+	PropertyID string    `json:"propertyId"`
+	ObservedAt time.Time `json:"observedAt"`
+	Value      *float64  `json:"value,omitempty"`
+	Quality    string    `json:"quality,omitempty"`
+}

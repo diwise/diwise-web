@@ -1,0 +1,150 @@
+package thingsv2
+
+import (
+	"fmt"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/selectbox"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+// ThingV2HistoryViewModel är ett historikdiagram för en egenskap.
+type ThingV2HistoryViewModel struct {
+	ThingID       string
+	PropertyID    string
+	PropertyLabel string
+	Unit          string
+	Span          string
+	Chart         shared.AdvancedChartConfig
+	Points        int
+	HasData       bool
+}
+
+templ ThingV2HistorySection(l10n Localizer, model ThingV2DetailsViewModel) {
+	{{ contentURL := fmt.Sprintf("/components/things-v2/%s/history?tenant=%s&property=%s&span=today", model.Thing.ID, model.Tenant, model.DefaultHistoryProperty) }}
+	@shared.DetailSectionCard(
+		l10n.Get("statistics"),
+		icon.Icon("chart-column")(icon.Props{Size: 24, Class: "text-foreground"}),
+	) {
+		<div class="flex flex-col gap-6 py-6 px-8">
+			if len(model.HistoryProperties) == 0 {
+				<div class="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+					{ l10n.Get("missingdata") }
+				</div>
+			} else {
+				<form
+					id="thing-v2-history-form"
+					class="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center"
+					hx-get={ fmt.Sprintf("/components/things-v2/%s/history", model.Thing.ID) }
+					hx-target="#thingV2HistoryContent"
+					hx-trigger="change"
+				>
+					<input type="hidden" name="tenant" value={ model.Tenant }/>
+					<div class="flex flex-col gap-2 lg:w-52 lg:shrink-0">
+						@selectbox.SelectBox(selectbox.Props{ID: "history-v2-property"}) {
+							@selectbox.Trigger(selectbox.TriggerProps{
+								Name:              "property",
+								SelectedCountText: l10n.Get("selecteditemcount"),
+								Class:             shared.FilterTriggerClass(),
+							}) {
+								@selectbox.Value(selectbox.ValueProps{
+									Placeholder: l10n.Get("primary"),
+									Class:       shared.FilterTriggerValueClass(true),
+								})
+							}
+							@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
+								@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+									for _, option := range model.HistoryProperties {
+										@selectbox.Item(selectbox.ItemProps{
+											Value:    option.Value,
+											Selected: option.Value == model.DefaultHistoryProperty,
+											Class:    shared.FilterDropdownItemClass(option.Value == model.DefaultHistoryProperty),
+										}) {
+											{ option.Label }
+										}
+									}
+								}
+							}
+						}
+					</div>
+					<div class="flex flex-col gap-2 lg:w-52 lg:shrink-0">
+						@selectbox.SelectBox(selectbox.Props{ID: "history-v2-span"}) {
+							@selectbox.Trigger(selectbox.TriggerProps{
+								Name:              "span",
+								SelectedCountText: l10n.Get("selecteditemcount"),
+								Class:             shared.FilterTriggerClass(),
+							}) {
+								@selectbox.Value(selectbox.ValueProps{
+									Placeholder: l10n.Get("timeinterval"),
+									Class:       shared.FilterTriggerValueClass(true),
+								})
+							}
+							@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
+								@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+									@historySpanItem(l10n, "today", true)
+									@historySpanItem(l10n, "24h", false)
+									@historySpanItem(l10n, "7d", false)
+									@historySpanItem(l10n, "30d", false)
+								}
+							}
+						}
+					</div>
+				</form>
+				<div
+					id="thingV2HistoryContent"
+					hx-get={ contentURL }
+					hx-trigger="load, diwise:themechange from:window"
+					hx-vals="js:{theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'}"
+				>
+					<div class="flex flex-col gap-4">
+						<div class="h-[420px] w-full rounded-2xl border border-border/70 bg-muted/40"></div>
+					</div>
+				</div>
+			}
+		</div>
+	}
+}
+
+templ historySpanItem(l10n Localizer, span string, selected bool) {
+	@selectbox.Item(selectbox.ItemProps{
+		Value:    span,
+		Selected: selected,
+		Class:    shared.FilterDropdownItemClass(selected),
+	}) {
+		{ l10n.Get(historySpanKey(span)) }
+	}
+}
+
+func historySpanKey(span string) string {
+	switch span {
+	case "24h":
+		return "last24h"
+	case "7d":
+		return "last7d"
+	case "30d":
+		return "last30d"
+	default:
+		return "today"
+	}
+}
+
+templ ThingV2HistoryContent(l10n Localizer, model ThingV2HistoryViewModel) {
+	<div class="flex flex-col gap-4">
+		if !model.HasData {
+			<div class="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
+				{ l10n.Get("missingdata") }
+			</div>
+		} else {
+			<div class="text-sm font-medium text-foreground">
+				{ model.PropertyLabel }
+				if model.Unit != "" {
+					<span class="text-muted-foreground"> ({ model.Unit })</span>
+				}
+			</div>
+			<div class="h-[420px] w-full">
+				@shared.AdvancedChart(shared.AdvancedChartProps{Config: model.Chart, Class: "h-full w-full"})
+			</div>
+		}
+	</div>
+}

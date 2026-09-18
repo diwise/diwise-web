@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
@@ -155,4 +156,42 @@ func (s *Service) ListTemplates(ctx context.Context, tenant, category string) ([
 	}
 
 	return specs, nil
+}
+
+// GetHistory reads property history (oldest first) in [from, to].
+// Empty property means all properties; empty from/to means unbounded.
+func (s *Service) GetHistory(ctx context.Context, tenant, id, property string, from, to time.Time, limit int) ([]HistoryPoint, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-history-v2")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	params := url.Values{}
+	params.Add("tenant", tenant)
+	if property != "" {
+		params.Add("property", property)
+	}
+	if !from.IsZero() {
+		params.Add("from", from.UTC().Format(time.RFC3339))
+	}
+	if !to.IsZero() {
+		params.Add("to", to.UTC().Format(time.RFC3339))
+	}
+	if limit > 0 {
+		params.Add("limit", strconv.Itoa(limit))
+	}
+
+	body, _, err := s.client.GetRaw(ctx, s.baseURL, "things/"+id+"/history", params)
+	if err != nil {
+		return nil, err
+	}
+
+	var points []HistoryPoint
+	if err = json.Unmarshal(body, &points); err != nil {
+		return nil, fmt.Errorf("failed to decode history: %w", err)
+	}
+	if points == nil {
+		points = []HistoryPoint{}
+	}
+
+	return points, nil
 }

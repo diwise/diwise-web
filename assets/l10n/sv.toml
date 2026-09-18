@@ -190,6 +190,15 @@ other = "På plats"
 [lastseen]
 other = "Senast sedd"
 
+[last24h]
+other = "Senaste dygnet"
+
+[last7d]
+other = "Senaste 7 dygnen"
+
+[last30d]
+other = "Senaste 30 dagarna"
+
 [level]
 other = "Nivå"
 
@@ -531,6 +540,9 @@ other = "saker av"
 
 [time]
 other = "Tid"
+
+[today]
+other = "Idag"
 
 [timeinterval]
 other = "Tidsintervall"
