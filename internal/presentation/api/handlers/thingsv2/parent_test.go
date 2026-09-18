@@ -137,3 +137,64 @@ func TestThingsV2UnlinkParentRedirectsToDetails(t *testing.T) {
 	is.Equal(http.StatusOK, rec.Code)
 	is.Equal("/things-v2/bin-1?tenant=t1", rec.Header().Get("HX-Redirect"))
 }
+
+func TestThingsV2DetailsHidesParentButtonWithoutSlot(t *testing.T) {
+	is := is.New(t)
+
+	svc, done := stubThingsV2(t)
+	defer done()
+
+	// bin-1 är wastebin utan partOf-slot: ingen byt-knapp ska renderas.
+	handler := NewThingsV2DetailsPage(context.Background(), testLocaleBundle(), testAssets(), &testThingsV2App{svc: svc})
+
+	req := httptest.NewRequest(http.MethodGet, "/things-v2/bin-1?tenant=t1", nil)
+	req.Header.Set("HX-Request", "true")
+	req.SetPathValue("id", "bin-1")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusOK, rec.Code)
+	is.True(!strings.Contains(rec.Body.String(), "parent-dialog"))
+}
+
+func TestThingsV2ParentSearchFiltersAllowedTemplates(t *testing.T) {
+	is := is.New(t)
+
+	svc, done := stubThingsV2(t)
+	defer done()
+
+	handler := NewThingsV2ParentSearch(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
+
+	// tank-1 har partOf → [greenhouse]: bara växthuset ska hittas,
+	// trots att stubblistan även har tunna och område.
+	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/tank-1/parents?tenant=t1&query=a&revision=1", nil)
+	req.Header.Set("HX-Request", "true")
+	req.SetPathValue("id", "tank-1")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusOK, rec.Code)
+	body := rec.Body.String()
+	is.True(strings.Contains(body, "Växthus"))
+	is.True(!strings.Contains(body, "Tunna"))
+	is.True(!strings.Contains(body, "Område"))
+}
+
+func TestPartOfSlotReportsMissingSlot(t *testing.T) {
+	is := is.New(t)
+
+	svc, done := stubThingsV2(t)
+	defer done()
+	app := &testThingsV2App{svc: svc}
+
+	_, ok, err := partOfSlot(context.Background(), app, "t1", "bin-1")
+	is.NoErr(err)
+	is.True(!ok)
+
+	allowed, ok, err := partOfSlot(context.Background(), app, "t1", "tank-1")
+	is.NoErr(err)
+	is.True(ok)
+	is.Equal([]string{"greenhouse"}, allowed)
+}

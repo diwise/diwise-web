@@ -83,25 +83,45 @@ func NewThingsV2ParentSearch(_ context.Context, l10n LocaleBundle, _ AssetLoader
 			Revision: revision,
 		}
 		if query != "" {
-			result, err := app.ThingsV2().ListThings(ctx, tenant, appthingsv2.Filter{Name: query, Limit: 20})
+			allowed, ok, err := partOfSlot(ctx, app, tenant, id)
 			if err != nil {
-				http.Error(w, "could not search things", http.StatusInternalServerError)
+				http.Error(w, "could not fetch template", http.StatusInternalServerError)
 				return
 			}
-			for _, thing := range result.Things {
-				// Saken kan aldrig bli sin egen förälder.
-				if thing.ThingID == id {
-					continue
+			templates := []string{""}
+			if ok && len(allowed) > 0 {
+				templates = allowed
+			}
+			seen := map[string]bool{id: true}
+			for _, template := range templates {
+				if len(model.Results) >= 20 {
+					break
 				}
-				name := thing.Name
-				if name == "" {
-					name = thing.ThingID
+				// Tom mall = alla mallar (slot utan begränsning).
+				result, err := app.ThingsV2().ListThings(ctx, tenant, appthingsv2.Filter{Name: query, Template: template, Limit: 20})
+				if err != nil {
+					http.Error(w, "could not search things", http.StatusInternalServerError)
+					return
 				}
-				model.Results = append(model.Results, featuresthingsv2.ParentCandidate{
-					ID:       thing.ThingID,
-					Name:     name,
-					Category: thing.Category,
-				})
+				for _, thing := range result.Things {
+					// Saken kan aldrig bli sin egen förälder.
+					if seen[thing.ThingID] {
+						continue
+					}
+					seen[thing.ThingID] = true
+					name := thing.Name
+					if name == "" {
+						name = thing.ThingID
+					}
+					model.Results = append(model.Results, featuresthingsv2.ParentCandidate{
+						ID:       thing.ThingID,
+						Name:     name,
+						Category: thing.Category,
+					})
+					if len(model.Results) >= 20 {
+						break
+					}
+				}
 			}
 		}
 
@@ -213,4 +233,28 @@ func renderParentDialogError(ctx context.Context, w http.ResponseWriter, r *http
 		ErrorMessage: message,
 	})
 	helpers.WriteComponentResponse(ctx, w, r, component, 8*1024, 0)
+}
+
+// partOfSlot returns the thing's partOf slot from its template: allowed
+// target templates (empty means any template) and whether the template
+// offers the slot at all. Things without the slot cannot have a parent.
+func partOfSlot(ctx context.Context, app thingsV2App, tenant, id string) (allowed []string, ok bool, err error) {
+	config, err := app.ThingsV2().GetConfig(ctx, tenant, id)
+	if err != nil {
+		return nil, false, err
+	}
+	templates, err := app.ThingsV2().ListTemplates(ctx, "", "")
+	if err != nil {
+		return nil, false, err
+	}
+	spec, found := findTemplateSpec(templates, config.TemplateID, config.TemplateVersion)
+	if !found {
+		return nil, false, nil
+	}
+	for _, slot := range spec.Template.Relations {
+		if slot.Name == "partOf" {
+			return slot.AllowedTargets, true, nil
+		}
+	}
+	return nil, false, nil
 }

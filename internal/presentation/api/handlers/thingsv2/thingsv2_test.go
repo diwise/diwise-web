@@ -66,9 +66,22 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 				Category: "area", TemplateID: "area", TemplateVersion: "v1",
 				Location: &appthingsv2.Location{Type: "Polygon", Coordinates: json.RawMessage(`[[[17.3,62.39],[17.4,62.39],[17.4,62.4],[17.3,62.39]]]`)},
 			},
+			{
+				ThingID: "gh-1", Tenant: "t1", Name: "Växthus",
+				Category: "greenhouse", TemplateID: "greenhouse", TemplateVersion: "v1",
+			},
 		}
 		if r.URL.Query().Get("name") == "nomatch" {
 			things = nil
+		}
+		if template := r.URL.Query().Get("template"); template != "" {
+			filtered := things[:0]
+			for _, thing := range things {
+				if thing.TemplateID == template {
+					filtered = append(filtered, thing)
+				}
+			}
+			things = filtered
 		}
 		if things == nil {
 			things = []appthingsv2.Thing{}
@@ -87,6 +100,9 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 					"sensorToBottom": {Unit: "m", Description: "Avstånd sensor till botten", Min: ptr(0), Max: ptr(5)},
 				}},
 			{Template: appthingsv2.Template{ID: "room", Version: "v1", Category: "room", DisplayName: "Rum"}},
+			{Template: appthingsv2.Template{ID: "tank", Version: "v1", Category: "tank", DisplayName: "Tank",
+				Relations: []appthingsv2.RelationSpec{{Name: "partOf", AllowedTargets: []string{"greenhouse"}, Max: 1}}}},
+			{Template: appthingsv2.Template{ID: "greenhouse", Version: "v1", Category: "greenhouse", DisplayName: "Växthus"}},
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(specs)
@@ -144,23 +160,30 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 		_ = json.NewEncoder(w).Encode(thing)
 	})
 	mux.HandleFunc("/things/{id}/config", func(w http.ResponseWriter, r *http.Request) {
-		if r.PathValue("id") != "bin-1" {
+		var config appthingsv2.EffectiveConfig
+		switch r.PathValue("id") {
+		case "tank-1":
+			config = appthingsv2.EffectiveConfig{
+				ThingID: "tank-1", TemplateID: "tank", TemplateVersion: "v1",
+			}
+		case "bin-1":
+			config = appthingsv2.EffectiveConfig{
+				ThingID: "bin-1", Name: "Tunna", Category: "container",
+				TemplateID: "wastebin", TemplateVersion: "v1",
+				Location: &appthingsv2.Location{Type: "Point", Coordinates: json.RawMessage(`[17.3,62.39]`)},
+				Metadata: map[string]string{"subType": "WasteContainer"},
+				Bindings: []appthingsv2.Binding{
+					{DeviceID: "milesight:79", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
+				},
+				ParamValues:  map[string]float64{"sensorToBottom": 0.94},
+				ParamSources: map[string]string{"sensorToBottom": "thing"},
+				Relations: []appthingsv2.RelationRef{
+					{Name: "partOf", TargetThingID: "gh-1", TargetTemplateID: "greenhouse"},
+				},
+			}
+		default:
 			w.WriteHeader(http.StatusNotFound)
 			return
-		}
-		config := appthingsv2.EffectiveConfig{
-			ThingID: "bin-1", Name: "Tunna", Category: "container",
-			TemplateID: "wastebin", TemplateVersion: "v1",
-			Location: &appthingsv2.Location{Type: "Point", Coordinates: json.RawMessage(`[17.3,62.39]`)},
-			Metadata: map[string]string{"subType": "WasteContainer"},
-			Bindings: []appthingsv2.Binding{
-				{DeviceID: "milesight:79", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
-			},
-			ParamValues:  map[string]float64{"sensorToBottom": 0.94},
-			ParamSources: map[string]string{"sensorToBottom": "thing"},
-			Relations: []appthingsv2.RelationRef{
-				{Name: "partOf", TargetThingID: "gh-1", TargetTemplateID: "greenhouse"},
-			},
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(config)

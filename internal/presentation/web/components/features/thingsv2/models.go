@@ -82,6 +82,7 @@ type ThingV2DetailsViewModel struct {
 	ConnectedSensors       []ConnectedSensorViewModel
 	RelatedThings          []ThingV2ViewModel
 	Parent                 *ThingV2ViewModel
+	CanChangeParent        bool
 	TemplateVersion        string
 	VariantID              string
 	VariantVersion         string

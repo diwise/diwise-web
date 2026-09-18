@@ -215,16 +215,18 @@ templ ThingV2RelatedThingsSection(l10n Localizer, model ThingV2DetailsViewModel)
 						<span class="italic text-muted-foreground">{ l10n.Get("missing") }</span>
 					}
 				</div>
-				@button.Button(button.Props{
-					Variant: button.VariantOutline,
-					Class:   "w-fit shrink-0 rounded-xl px-4",
-					Attributes: templ.Attributes{
-						"hx-get":    fmt.Sprintf("/components/things-v2/%s/parent-dialog?tenant=%s", model.Thing.ID, model.Thing.Tenant),
-						"hx-target": "#thing-v2-dialog-container",
-						"hx-swap":   "innerHTML",
-					},
-				}) {
-					{ l10n.Get("changeparent") }
+				if model.CanChangeParent {
+					@button.Button(button.Props{
+						Variant: button.VariantOutline,
+						Class:   "w-fit shrink-0 rounded-xl px-4",
+						Attributes: templ.Attributes{
+							"hx-get":    fmt.Sprintf("/components/things-v2/%s/parent-dialog?tenant=%s", model.Thing.ID, model.Thing.Tenant),
+							"hx-target": "#thing-v2-dialog-container",
+							"hx-swap":   "innerHTML",
+						},
+					}) {
+						{ l10n.Get("changeparent") }
+					}
 				}
 			</div>
 			if len(model.RelatedThings) == 0 && model.Parent == nil {

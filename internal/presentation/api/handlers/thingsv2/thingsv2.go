@@ -307,7 +307,12 @@ func NewThingsV2DetailsPage(ctx context.Context, l10n LocaleBundle, assets Asset
 			}
 		}
 
-		content := featuresthingsv2.ThingV2DetailsPage(localizer, toDetailsViewModel(thing, bindings, children, parent))
+		model := toDetailsViewModel(thing, bindings, children, parent)
+		if _, ok, _ := partOfSlot(ctx, app, tenant, id); ok {
+			model.CanChangeParent = true
+		}
+
+		content := featuresthingsv2.ThingV2DetailsPage(localizer, model)
 		page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 		if helpers.IsHxRequest(r) {
 			page = v2layout.AppShell(localizer, assets, content)

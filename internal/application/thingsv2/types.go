@@ -57,14 +57,24 @@ type Thing struct {
 
 // Template is a published template version (GUI: dropdowns + form building).
 type Template struct {
-	ID              string   `json:"id"`
-	Version         string   `json:"version"`
-	Category        string   `json:"category,omitempty"`
-	DisplayName     string   `json:"displayName,omitempty"`
-	Description     string   `json:"description,omitempty"`
-	PrimaryProperty string   `json:"primaryProperty,omitempty"`
-	Required        []string `json:"required,omitempty"`
-	Optional        []string `json:"optional,omitempty"`
+	ID              string         `json:"id"`
+	Version         string         `json:"version"`
+	Category        string         `json:"category,omitempty"`
+	DisplayName     string         `json:"displayName,omitempty"`
+	Description     string         `json:"description,omitempty"`
+	PrimaryProperty string         `json:"primaryProperty,omitempty"`
+	Required        []string       `json:"required,omitempty"`
+	Optional        []string       `json:"optional,omitempty"`
+	Relations       []RelationSpec `json:"relations,omitempty"`
+}
+
+// RelationSpec declares a relation slot: name, allowed target templates
+// (empty = any), and min/max targets.
+type RelationSpec struct {
+	Name           string   `json:"name"`
+	AllowedTargets []string `json:"allowedTargets,omitempty"`
+	Min            int      `json:"min,omitempty"`
+	Max            int      `json:"max,omitempty"`
 }
 
 // TemplateSpec wraps a template with parameters and recipes.
