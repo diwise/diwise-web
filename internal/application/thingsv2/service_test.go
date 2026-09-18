@@ -41,7 +41,15 @@ func stubV2(t *testing.T) *httptest.Server {
 					}},
 			},
 		}
-		things := all[tenant]
+		var things []Thing
+		if tenant != "" {
+			things = all[tenant]
+		} else {
+			// Servern fanar ut: slår ihop sorterat över alla tenants.
+			for _, ts := range []string{"t1", "t2"} {
+				things = append(things, all[ts]...)
+			}
+		}
 		if things == nil {
 			things = []Thing{}
 		}
@@ -106,43 +114,26 @@ func TestListThingsAcrossTenantsMergesSorted(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	res, err := svc.ListThingsAcrossTenants(context.Background(), []string{"t2", "t1"}, Filter{})
+	res, err := svc.ListThingsAcrossTenants(context.Background(), Filter{})
 	is.NoErr(err)
 	is.Equal(2, len(res.Things))
 	is.Equal("bin-1", res.Things[0].ThingID)
 	is.Equal("room-1", res.Things[1].ThingID)
-	is.Equal(14, res.Total)
-}
-
-func TestListThingsAcrossTenantsSkipsFailing(t *testing.T) {
-	is := is.New(t)
-	svc, done := testService(t)
-	defer done()
-
-	res, err := svc.ListThingsAcrossTenants(context.Background(), []string{"t1", "nope"}, Filter{})
-	is.NoErr(err)
-	is.Equal(1, len(res.Things))
+	is.Equal("t2", res.Things[1].Tenant)
 	is.Equal(7, res.Total)
 }
 
-func TestListThingsAcrossTenantsAllFail(t *testing.T) {
+func TestListThingsAcrossTenantsFails(t *testing.T) {
 	is := is.New(t)
-	svc, done := testService(t)
-	defer done()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer srv.Close()
+	c := &client.Client{}
+	svc := NewService(c, srv.URL)
 
-	_, err := svc.ListThingsAcrossTenants(context.Background(), []string{"nope"}, Filter{})
+	_, err := svc.ListThingsAcrossTenants(context.Background(), Filter{})
 	is.True(err != nil)
-}
-
-func TestListThingsAcrossTenantsEmpty(t *testing.T) {
-	is := is.New(t)
-	svc, done := testService(t)
-	defer done()
-
-	res, err := svc.ListThingsAcrossTenants(context.Background(), nil, Filter{})
-	is.NoErr(err)
-	is.Equal(0, len(res.Things))
-	is.Equal(0, res.Total)
 }
 
 func TestGetThingNotFound(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
-	"sort"
 	"strconv"
 
 	"github.com/diwise/diwise-web/internal/application/client"
@@ -65,8 +65,31 @@ func (s *Service) ListThings(ctx context.Context, tenant string, f Filter) (Resu
 		return Result{}, err
 	}
 
+	return decodeList(body, header)
+}
+
+// ListThingsAcrossTenants lists across all tenants the token grants access
+// to: the server fans out (iot-things-v2 reads ?tenant= as a mere filter),
+// so this is a single call without tenant selector. Results arrive merged
+// and sorted with the pre-paging total.
+func (s *Service) ListThingsAcrossTenants(ctx context.Context, f Filter) (Result, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "list-things-v2-across-tenants")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	body, header, err := s.client.GetRaw(ctx, s.baseURL, "", s.params("", f))
+	if err != nil {
+		return Result{}, err
+	}
+
+	return decodeList(body, header)
+}
+
+// decodeList parses a list body with the pre-paging total from the header
+// (falling back to page size when absent or invalid).
+func decodeList(body []byte, header http.Header) (Result, error) {
 	var things []Thing
-	if err = json.Unmarshal(body, &things); err != nil {
+	if err := json.Unmarshal(body, &things); err != nil {
 		return Result{}, fmt.Errorf("failed to decode things: %w", err)
 	}
 	if things == nil {
@@ -81,35 +104,6 @@ func (s *Service) ListThings(ctx context.Context, tenant string, f Filter) (Resu
 	}
 
 	return Result{Things: things, Total: total}, nil
-}
-
-// ListThingsAcrossTenants fans out over the caller's tenants (iot-things-v2
-// never merges tenants server-side) and merges sorted by thing ID.
-// Failing tenants are skipped so one bad tenant never blanks the page;
-// if every tenant fails the combined error is returned. No tenants means
-// an empty result, not an error.
-func (s *Service) ListThingsAcrossTenants(ctx context.Context, tenants []string, f Filter) (Result, error) {
-	var err error
-	ctx, span := tracer.Start(ctx, "list-things-v2-across-tenants")
-	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
-
-	merged := []Thing{}
-	total := 0
-	var errs []error
-	for _, tenant := range tenants {
-		res, err := s.ListThings(ctx, tenant, f)
-		if err != nil {
-			errs = append(errs, fmt.Errorf("tenant %s: %w", tenant, err))
-			continue
-		}
-		merged = append(merged, res.Things...)
-		total += res.Total
-	}
-	if len(tenants) > 0 && len(errs) == len(tenants) {
-		return Result{}, fmt.Errorf("all %d tenants failed: %v", len(tenants), errs)
-	}
-	sort.Slice(merged, func(i, j int) bool { return merged[i].ThingID < merged[j].ThingID })
-	return Result{Things: merged, Total: total}, nil
 }
 
 // GetThing reads one thing with current values.
