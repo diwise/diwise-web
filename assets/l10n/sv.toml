@@ -340,6 +340,9 @@ other = "Online"
 [previous]
 other = "Föregående"
 
+[primary]
+other = "Huvudvärde"
+
 [next]
 other = "Nästa"
 
@@ -499,11 +502,17 @@ other = "Taggar"
 [temperature]
 other = "Temperatur"
 
+[template]
+other = "Mall"
+
 [thingtype]
 other = "Typ av sak"
 
 [things]
 other = "Saker"
+
+[thingsv2]
+other = "Saker v2"
 
 [thingsof]
 other = "saker av"

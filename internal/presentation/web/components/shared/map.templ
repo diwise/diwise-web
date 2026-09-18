@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/diwise/diwise-web/internal/presentation/web/mapconfig"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
@@ -51,9 +52,22 @@ func NewFeature(point Point) Feature {
 	}
 }
 
+// NewPolygonFeature bär en icke-punktgeometri (Polygon/MultiPolygon):
+// råa GeoJSON-koordinater serialiseras oförändrade till kartan.
+func NewPolygonFeature(geometryType string, coordinates json.RawMessage) Feature {
+	return Feature{
+		Type: "Feature",
+		Geometry: map[string]any{
+			"type":        geometryType,
+			"coordinates": coordinates,
+		},
+		Properties: make(map[string]any),
+	}
+}
+
 type Feature struct {
 	Type       string         `json:"type"`
-	Geometry   Point          `json:"geometry"`
+	Geometry   any            `json:"geometry"`
 	Properties map[string]any `json:"properties"`
 }
 
@@ -434,6 +448,9 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                         return marker;
                                     },
                                     onEachFeature: function(feature, layer) {
+                                        if (layer.getBounds && typeof layer.getBounds === 'function') {
+                                            try { bounds.extend(layer.getBounds()); } catch (e) {}
+                                        }
                                         if (showPopup) {
                                             var cv = mapData.CurrentView;
                                             var popupContent = null;
@@ -686,6 +703,25 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                         '</div>' +
                                                                         location +
                                                                         tagList +
+                                                                    '</div>' +
+                                                                    moreinformation +
+                                                                outro;
+                                            } else if (cv === "thing-v2") {
+                                                const primarydata = feature.properties.hasprimary
+                                                ? '<div class="">' + feature.properties.primaryvalue + '</div>'
+                                                : '<div class="">' + feature.properties.text_missingdata + '</div>';
+                                                popupContent = intro +
+                                                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                        name +
+                                                                        '<div class="flex items-center gap-2">' +
+                                                                            '<div class="font-bold">' + feature.properties.text_primary + '</div>' +
+                                                                            primarydata +
+                                                                        '</div>' +
+                                                                        '<div class="flex items-center gap-2">' +
+                                                                            '<div class="font-bold">' + feature.properties.text_category + '</div>' +
+                                                                            '<div class="">' + feature.properties.category + '</div>' +
+                                                                        '</div>' +
+                                                                        location +
                                                                     '</div>' +
                                                                     moreinformation +
                                                                 outro;

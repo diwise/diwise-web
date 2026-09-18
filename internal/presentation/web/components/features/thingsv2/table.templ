@@ -1,0 +1,111 @@
+package thingsv2
+
+import (
+	"fmt"
+	"strings"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/table"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ ThingsV2TableSection(l10n Localizer, viewModel ThingsV2PageViewModel) {
+	{{ rightFooter := templ.Component(templ.NopComponent) }}
+	if viewModel.Paging.PageLast > 1 {
+		{{ rightFooter = shared.PagingControl(l10n, shared.PagingControlProps{
+			PageIndex: viewModel.Paging.PageIndex,
+			PageLast:  viewModel.Paging.PageLast,
+			PageSize:  viewModel.Paging.PageSize,
+			Query:     viewModel.Paging.Query,
+			TargetURL: viewModel.Paging.TargetURL,
+			TargetID:  viewModel.Paging.TargetID,
+		}) }}
+	}
+	@shared.DataTableSection(
+		shared.DataTableHeader(
+			shared.DataTableSummary(fmt.Sprintf("%s %d %s %d", l10n.Get("show"), len(viewModel.Things), l10n.Get("thingsof"), viewModel.Paging.TotalCount)),
+			nil,
+		),
+		shared.TableFooter(
+			shared.PageSizeControl(shared.PageSizeControlProps{
+				FormID:    "things-v2-page-size-form",
+				Label:     l10n.Get("rowsPerPage"),
+				TargetURL: viewModel.Paging.TargetURL,
+				TargetID:  viewModel.Paging.TargetID,
+				Include:   "#things-v2-filters-form",
+				PageSize:  viewModel.Paging.PageSize,
+				Options:   []int{5, 10, 15, 50, 100},
+			}),
+			rightFooter,
+		),
+	) {
+		@table.Table(table.Props{Class: "min-w-[860px]"}) {
+			@table.Header() {
+				@table.Row() {
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("category") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("primary") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("organisation") } }
+				}
+			}
+			@table.Body() {
+				if len(viewModel.Things) == 0 {
+					@table.Row() {
+						@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "4"}}) {
+							{ l10n.Get("missing") }
+						}
+					}
+				} else {
+					for _, thing := range viewModel.Things {
+						@ThingV2Row(l10n, thing)
+					}
+				}
+			}
+		}
+	}
+}
+
+templ ThingV2Row(l10n Localizer, thing ThingV2ViewModel) {
+	@table.Row(table.RowProps{}) {
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			<span class="font-bold text-foreground">
+				if strings.TrimSpace(thing.Name) != "" {
+					{ thing.Name }
+				} else {
+					{ thing.ID }
+				}
+			</span>
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			{ thing.Category }
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			@ThingV2StatusCell(l10n, thing)
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			{ thing.Tenant }
+		}
+	}
+}
+
+// ThingV2StatusCell visar sakens huvuddata generiskt (ingen typswitch):
+// mallens primaryProperty upplöst mot aktuella värden.
+templ ThingV2StatusCell(l10n Localizer, thing ThingV2ViewModel) {
+	if thing.HasPrimaryValue {
+		<span>
+			if strings.TrimSpace(thing.PrimaryLabel) != "" {
+				{ thing.PrimaryLabel }: 
+			}
+			{ formatPrimaryValue(thing) }
+		</span>
+	} else {
+		<span class="text-muted-foreground">{ l10n.Get("nodata") }</span>
+	}
+}
+
+func formatPrimaryValue(thing ThingV2ViewModel) string {
+	if thing.PrimaryUnit != "" {
+		return fmt.Sprintf("%g %s", thing.PrimaryValue, thing.PrimaryUnit)
+	}
+	return fmt.Sprintf("%g", thing.PrimaryValue)
+}

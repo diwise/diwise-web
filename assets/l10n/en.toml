@@ -340,6 +340,9 @@ other = "Online"
 [previous]
 other = "Previous"
 
+[primary]
+other = "Primary value"
+
 [next]
 other = "Next"
 
@@ -499,11 +502,17 @@ other = "Tags"
 [temperature]
 other = "Temperature"
 
+[template]
+other = "Template"
+
 [thingtype]
 other = "Type of thing"
 
 [things]
 other = "Things"
+
+[thingsv2]
+other = "Things v2"
 
 [thingsof]
 other = "things out of"

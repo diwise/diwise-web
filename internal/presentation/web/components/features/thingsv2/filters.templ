@@ -1,0 +1,181 @@
+package thingsv2
+
+import (
+	"fmt"
+	"slices"
+	"strings"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	featuresthings "github.com/diwise/diwise-web/internal/presentation/web/components/features/things"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/input"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/selectbox"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ Filters(l10n Localizer, viewModel ThingsV2PageViewModel) {
+	@shared.ListFiltersCard(
+		shared.TableOrMapToggle(l10n, shared.TableOrMapToggleProps{
+			BaseID:        "things-v2-view-mode",
+			FormID:        "things-v2-filters-form",
+			HiddenInputID: "mapview-v2",
+			MapView:       viewModel.MapView,
+			TableLabel:    l10n.Get("table"),
+			MapLabel:      l10n.Get("map"),
+		}),
+	) {
+		<form
+			id="things-v2-filters-form"
+			class="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center"
+			hx-get="/components/things-v2/list"
+			hx-target="#tableOrMapV2"
+			hx-swap="outerHTML"
+			hx-trigger="change"
+		>
+			<input type="hidden" name="limit" value={ fmt.Sprintf("%d", viewModel.Paging.PageSize) }/>
+			<input type="hidden" id="mapview-v2" name="mapview" value={ boolString(viewModel.MapView) }/>
+			<div class="flex flex-col gap-2 lg:w-44 lg:shrink-0">
+				@selectbox.SelectBox(selectbox.Props{ID: "category-v2-filter"}) {
+					@selectbox.Trigger(selectbox.TriggerProps{
+						Name:              "category",
+						SelectedCountText: l10n.Get("selecteditemcount"),
+						Class:             shared.FilterTriggerClass(),
+					}) {
+						@selectbox.Value(selectbox.ValueProps{
+							Placeholder: l10n.Get("category"),
+							Class:       shared.FilterTriggerValueClass(len(viewModel.Filters.SelectedCategories) > 0),
+						})
+					}
+					@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
+						@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+							for _, option := range viewModel.CategoryOptions {
+								@selectbox.Item(selectbox.ItemProps{
+									Value:    option.Value,
+									Selected: contains(viewModel.Filters.SelectedCategories, option.Value),
+									Class:    shared.FilterDropdownItemClass(contains(viewModel.Filters.SelectedCategories, option.Value)),
+								}) {
+									{ option.Label }
+								}
+							}
+						}
+					}
+				}
+			</div>
+			<div class="flex flex-col gap-2 lg:w-44 lg:shrink-0">
+				@selectbox.SelectBox(selectbox.Props{ID: "template-v2-filter"}) {
+					@selectbox.Trigger(selectbox.TriggerProps{
+						Name:              "template",
+						SelectedCountText: l10n.Get("selecteditemcount"),
+						Class:             shared.FilterTriggerClass(),
+					}) {
+						@selectbox.Value(selectbox.ValueProps{
+							Placeholder: l10n.Get("template"),
+							Class:       shared.FilterTriggerValueClass(len(viewModel.Filters.SelectedTemplates) > 0),
+						})
+					}
+					@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
+						@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+							for _, option := range viewModel.TemplateOptions {
+								@selectbox.Item(selectbox.ItemProps{
+									Value:    option.Value,
+									Selected: contains(viewModel.Filters.SelectedTemplates, option.Value),
+									Class:    shared.FilterDropdownItemClass(contains(viewModel.Filters.SelectedTemplates, option.Value)),
+								}) {
+									{ option.Label }
+								}
+							}
+						}
+					}
+				}
+			</div>
+			<div class="flex flex-col gap-2 lg:w-52 lg:shrink-0">
+				@input.Input(input.Props{
+					ID:          "name-v2-filter",
+					Name:        "name",
+					Type:        input.TypeText,
+					Placeholder: l10n.Get("name"),
+					Value:       viewModel.Filters.Name,
+				})
+			</div>
+		</form>
+	}
+	<div class="mt-4">
+		@shared.SelectedFiltersSummary(shared.SelectedFiltersSummaryProps{
+			ID:                   "selected-filters-summary-v2",
+			FormID:               "things-v2-filters-form",
+			PageSizeFormID:       "things-v2-page-size-form",
+			TargetID:             "#tableOrMapV2",
+			ClearAllPagePath:     "/things-v2",
+			ClearAllHXPath:       "/components/things-v2/list",
+			ClearAllPageURL:      clearAllThingsV2PageHref(viewModel.Paging.PageSize, viewModel.MapView),
+			ClearAllHXURL:        clearAllThingsV2HXHref(viewModel.Paging.PageSize, viewModel.MapView),
+			SelectedFiltersLabel: l10n.Get("selectedfilters"),
+			NoFiltersLabel:       l10n.Get("nofilterselected"),
+			ClearAllLabel:        l10n.Get("clearall"),
+			TrackedFields:        []string{"category", "template", "name"},
+			PreserveFields:       []string{"limit", "mapview"},
+			Entries:              thingV2SelectedFilterEntries(viewModel),
+		})
+	</div>
+}
+
+func boolString(value bool) string {
+	if value {
+		return "true"
+	}
+	return "false"
+}
+
+func contains(values []string, expected string) bool {
+	return slices.Contains(values, expected)
+}
+
+func thingV2SelectedFilterEntries(viewModel ThingsV2PageViewModel) []shared.SelectedFilterEntry {
+	entries := make([]shared.SelectedFilterEntry, 0, len(viewModel.Filters.SelectedCategories)+len(viewModel.Filters.SelectedTemplates)+1)
+	for _, selected := range viewModel.Filters.SelectedCategories {
+		selected = strings.TrimSpace(selected)
+		if selected == "" {
+			continue
+		}
+		entries = append(entries, shared.SelectedFilterEntry{
+			Name:  "category",
+			Value: selected,
+			Text:  selected,
+		})
+	}
+	for _, selected := range viewModel.Filters.SelectedTemplates {
+		selected = strings.TrimSpace(selected)
+		if selected == "" {
+			continue
+		}
+		entries = append(entries, shared.SelectedFilterEntry{
+			Name:  "template",
+			Value: selected,
+			Text:  thingV2TemplateLabel(viewModel.TemplateOptions, selected),
+		})
+	}
+	if name := strings.TrimSpace(viewModel.Filters.Name); name != "" {
+		entries = append(entries, shared.SelectedFilterEntry{
+			Name:  "name",
+			Value: name,
+			Text:  name,
+		})
+	}
+	return entries
+}
+
+func thingV2TemplateLabel(options []featuresthings.TypeOption, value string) string {
+	for _, option := range options {
+		if option.Value == value && strings.TrimSpace(option.Label) != "" {
+			return option.Label
+		}
+	}
+	return value
+}
+
+func clearAllThingsV2PageHref(pageSize int, mapView bool) string {
+	return "/things-v2?limit=" + fmt.Sprintf("%d", pageSize) + "&mapview=" + boolString(mapView)
+}
+
+func clearAllThingsV2HXHref(pageSize int, mapView bool) string {
+	return "/components/things-v2/list?limit=" + fmt.Sprintf("%d", pageSize) + "&mapview=" + boolString(mapView)
+}

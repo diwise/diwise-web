@@ -1,0 +1,33 @@
+package thingsv2
+
+import (
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ ThingsV2Page(l10n Localizer, viewModel ThingsV2PageViewModel) {
+	<div class="flex flex-col gap-10">
+		<section class="flex flex-col gap-6">
+			<div class="flex flex-col gap-4">
+				<div class="min-w-0 w-full">
+					@shared.SectionHeading(l10n.Get("thingsv2"), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+				</div>
+			</div>
+		</section>
+		<section class="flex flex-col gap-6">
+			@Filters(l10n, viewModel)
+			@ThingsV2DataList(l10n, viewModel)
+		</section>
+	</div>
+}
+
+templ ThingsV2DataList(l10n Localizer, viewModel ThingsV2PageViewModel) {
+	<div id="tableOrMapV2" class="w-full">
+		if viewModel.MapView {
+			@ThingsV2Map(l10n, viewModel)
+		} else {
+			@ThingsV2TableSection(l10n, viewModel)
+		}
+	</div>
+}
