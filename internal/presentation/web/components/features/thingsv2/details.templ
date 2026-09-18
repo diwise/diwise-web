@@ -43,6 +43,7 @@ templ ThingV2DetailsPage(l10n Localizer, model ThingV2DetailsViewModel) {
 		</div>
 		@ThingV2HistorySection(l10n, model)
 		@ThingV2DetailsSensorsSection(l10n, model)
+		@ThingV2RelatedThingsSection(l10n, model)
 		@ThingV2DetailsValuesSection(l10n, model)
 		<div class="grid min-w-0 grid-cols-1 items-start gap-6 xl:grid-cols-2">
 			<div class="flex min-w-0 flex-col gap-6">
@@ -140,6 +141,35 @@ templ ThingV2DetailsSensorsSection(l10n Localizer, model ThingV2DetailsViewModel
 							{ sensor.Input } ← { sensor.Object }/{ sensor.Resource }
 						</span>
 					</div>
+				}
+			}
+		</div>
+	}
+}
+
+templ ThingV2RelatedThingsSection(l10n Localizer, model ThingV2DetailsViewModel) {
+	@shared.DetailSectionCard(
+		l10n.Get("related"),
+		icon.Icon("network")(icon.Props{Size: 24, Class: "text-foreground"}),
+	) {
+		<div class="min-w-0 overflow-x-auto p-4 text-foreground sm:p-6">
+			if len(model.RelatedThings) == 0 {
+				<span class="italic text-muted-foreground">{ l10n.Get("norelations") }</span>
+			} else {
+				@table.Table(table.Props{Class: "min-w-[640px]"}) {
+					@table.Header() {
+						@table.Row() {
+							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
+							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("category") } }
+							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("primary") } }
+							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("organisation") } }
+						}
+					}
+					@table.Body() {
+						for _, related := range model.RelatedThings {
+							@ThingV2Row(l10n, related)
+						}
+					}
 				}
 			}
 		</div>

@@ -80,6 +80,7 @@ type ThingV2DetailsViewModel struct {
 	Values                 []ThingV2ValueViewModel
 	Metadata               []MetadataItem
 	ConnectedSensors       []ConnectedSensorViewModel
+	RelatedThings          []ThingV2ViewModel
 	TemplateVersion        string
 	VariantID              string
 	VariantVersion         string

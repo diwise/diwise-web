@@ -256,3 +256,26 @@ func TestGetBindingsNotFound(t *testing.T) {
 	is.True(err != nil)
 	is.True(errors.Is(err, client.ErrNotFound))
 }
+
+func TestGetOverviewParsesThingAndChildren(t *testing.T) {
+	is := is.New(t)
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/things/{id}/overview", func(w http.ResponseWriter, r *http.Request) {
+		overview := Overview{
+			Thing:    Thing{ThingID: "bin-1", Tenant: "t1", Name: "Tunna"},
+			Children: []Thing{{ThingID: "room-1", Tenant: "t1", Name: "Rum"}},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(overview)
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	svc := NewService(&client.Client{}, srv.URL)
+
+	overview, err := svc.GetOverview(context.Background(), "t1", "bin-1")
+	is.NoErr(err)
+	is.Equal("Tunna", overview.Thing.Name)
+	is.Equal(1, len(overview.Children))
+	is.Equal("room-1", overview.Children[0].ThingID)
+}

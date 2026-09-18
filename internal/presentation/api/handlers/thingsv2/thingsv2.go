@@ -268,7 +268,13 @@ func NewThingsV2DetailsPage(ctx context.Context, l10n LocaleBundle, assets Asset
 			bindings = nil
 		}
 
-		content := featuresthingsv2.ThingV2DetailsPage(localizer, toDetailsViewModel(thing, bindings))
+		// Detsamma gäller relaterade saker (barn via overview).
+		var children []appthingsv2.Thing
+		if overview, err := app.ThingsV2().GetOverview(ctx, tenant, id); err == nil {
+			children = overview.Children
+		}
+
+		content := featuresthingsv2.ThingV2DetailsPage(localizer, toDetailsViewModel(thing, bindings, children))
 		page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 		if helpers.IsHxRequest(r) {
 			page = v2layout.AppShell(localizer, assets, content)
@@ -296,7 +302,7 @@ func resolveDetailsTenant(r *http.Request) (string, error) {
 	return "", errors.New("ambiguous tenant")
 }
 
-func toDetailsViewModel(thing appthingsv2.Thing, bindings []appthingsv2.Binding) featuresthingsv2.ThingV2DetailsViewModel {
+func toDetailsViewModel(thing appthingsv2.Thing, bindings []appthingsv2.Binding, children []appthingsv2.Thing) featuresthingsv2.ThingV2DetailsViewModel {
 	model := featuresthingsv2.ThingV2DetailsViewModel{
 		Thing:           toViewModel(thing),
 		Values:          make([]featuresthingsv2.ThingV2ValueViewModel, 0, len(thing.Values)),
@@ -321,6 +327,14 @@ func toDetailsViewModel(thing appthingsv2.Thing, bindings []appthingsv2.Binding)
 		}
 		return model.ConnectedSensors[i].Input < model.ConnectedSensors[j].Input
 	})
+
+	for _, child := range children {
+		// Visa aldrig saken själv som relaterad (skydd mot cykler).
+		if child.ThingID == thing.ThingID {
+			continue
+		}
+		model.RelatedThings = append(model.RelatedThings, toViewModel(child))
+	}
 
 	for id, value := range thing.Values {
 		item := featuresthingsv2.ThingV2ValueViewModel{

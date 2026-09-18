@@ -313,6 +313,9 @@ other = "-"
 [nofilterselected]
 other = "Inga filter valda"
 
+[norelations]
+other = "Inga kopplade saker"
+
 [notloggedin]
 other = "Du behöver logga in"
 
@@ -369,6 +372,9 @@ other = "Revision"
 
 [recentalarms]
 other = "Senaste larmen och statusforandringarna fran sensorer"
+
+[related]
+other = "Relaterade saker"
 
 [oops]
 other = "Oops..."

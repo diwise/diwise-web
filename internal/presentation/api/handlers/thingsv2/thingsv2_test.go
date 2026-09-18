@@ -100,6 +100,16 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(response)
 	})
+	mux.HandleFunc("/things/{id}/overview", func(w http.ResponseWriter, r *http.Request) {
+		overview := appthingsv2.Overview{
+			Thing: appthingsv2.Thing{ThingID: "bin-1", Tenant: "t1", Name: "Tunna"},
+			Children: []appthingsv2.Thing{
+				{ThingID: "room-1", Tenant: "t1", Name: "Rum", Category: "room"},
+			},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(overview)
+	})
 	mux.HandleFunc("/things/{id}/history", func(w http.ResponseWriter, r *http.Request) {
 		points := []appthingsv2.HistoryPoint{
 			{PropertyID: "fillRate", ObservedAt: time.Date(2026, 9, 18, 10, 0, 0, 0, time.UTC), Value: ptr(42.0), Quality: "ok"},
@@ -256,6 +266,7 @@ func TestThingsV2DetailsPageRendersValuesAndMetadata(t *testing.T) {
 	is.True(strings.Contains(body, `role="progressbar"`))
 	is.True(strings.Contains(body, "milesight:79"))
 	is.True(strings.Contains(body, "/sensors/milesight:79"))
+	is.True(strings.Contains(body, "/things-v2/room-1"))
 }
 
 func TestThingsV2DetailsPageReturns404ForUnknownThing(t *testing.T) {
@@ -308,6 +319,9 @@ func TestToDetailsViewModelSortsValuesAndMetadata(t *testing.T) {
 	}, []appthingsv2.Binding{
 		{DeviceID: "milesight:79", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
 		{DeviceID: "milesight:12", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
+	}, []appthingsv2.Thing{
+		{ThingID: "room-1", Tenant: "t1", Name: "Rum", Category: "room"},
+		{ThingID: "bin-1"},
 	})
 
 	is.Equal(2, len(model.Values))
@@ -321,6 +335,8 @@ func TestToDetailsViewModelSortsValuesAndMetadata(t *testing.T) {
 	is.Equal(2, len(model.ConnectedSensors))
 	is.Equal("milesight:12", model.ConnectedSensors[0].DeviceID)
 	is.Equal("distance", model.ConnectedSensors[0].Input)
+	is.Equal(1, len(model.RelatedThings))
+	is.Equal("room-1", model.RelatedThings[0].ID)
 }
 
 func TestThingsV2HistoryComponentRendersChart(t *testing.T) {

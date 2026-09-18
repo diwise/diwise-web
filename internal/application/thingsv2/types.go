@@ -107,3 +107,9 @@ type Binding struct {
 	Resource string `json:"resource"`
 	Input    string `json:"input"`
 }
+
+// Overview is a thing with its direct children (current values).
+type Overview struct {
+	Thing    Thing   `json:"thing"`
+	Children []Thing `json:"children,omitempty"`
+}

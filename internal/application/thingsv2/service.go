@@ -223,3 +223,28 @@ func (s *Service) GetBindings(ctx context.Context, tenant, id string) ([]Binding
 
 	return response.Bindings, nil
 }
+
+// GetOverview reads a thing with its direct children (current values).
+func (s *Service) GetOverview(ctx context.Context, tenant, id string) (Overview, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-overview-v2")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	params := url.Values{}
+	params.Add("tenant", tenant)
+
+	body, _, err := s.client.GetRaw(ctx, s.baseURL, "things/"+id+"/overview", params)
+	if err != nil {
+		return Overview{}, err
+	}
+
+	var overview Overview
+	if err = json.Unmarshal(body, &overview); err != nil {
+		return Overview{}, fmt.Errorf("failed to decode overview: %w", err)
+	}
+	if overview.Children == nil {
+		overview.Children = []Thing{}
+	}
+
+	return overview, nil
+}

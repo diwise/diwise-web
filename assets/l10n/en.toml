@@ -313,6 +313,9 @@ other = "-"
 [nofilterselected]
 other = "No filter selected"
 
+[norelations]
+other = "No related things"
+
 [notloggedin]
 other = "Please log in"
 
@@ -369,6 +372,9 @@ other = "Revision"
 
 [recentalarms]
 other = "Recent alarms and status changes from sensors"
+
+[related]
+other = "Related things"
 
 [oops]
 other = "Oops..."
