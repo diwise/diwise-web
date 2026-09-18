@@ -93,7 +93,7 @@ templ ThingV2ParentResults(l10n Localizer, viewModel ThingV2ParentResultsViewMod
 					Variant: button.VariantDefault,
 					Class:   "shrink-0 rounded-xl px-4",
 					Attributes: templ.Attributes{
-						"hx-post":   "/components/things-v2/" + viewModel.ThingID + "/parent?tenant=" + viewModel.Tenant,
+						"hx-put":    "/components/things-v2/" + viewModel.ThingID + "/parent?tenant=" + viewModel.Tenant,
 						"hx-target": "#thing-v2-dialog-container",
 						"hx-swap":   "innerHTML",
 						"hx-vals":   `{"parentId": "` + candidate.ID + `", "revision": "` + sprintRevision(viewModel.Revision) + `"}`,

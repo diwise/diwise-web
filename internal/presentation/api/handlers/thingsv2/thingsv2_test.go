@@ -165,6 +165,29 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(config)
 	})
+	mux.HandleFunc("/things/{id}/move", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("If-Match") == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		var body struct {
+			ParentID string `json:"parentId"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.ParentID == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(appthingsv2.Thing{ThingID: r.PathValue("id"), Tenant: "t1", Revision: 3})
+	})
+	mux.HandleFunc("/things/{id}/parent", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("If-Match") == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(appthingsv2.Thing{ThingID: r.PathValue("id"), Tenant: "t1", Revision: 4})
+	})
 	mux.HandleFunc("/things/{id}/bindings", func(w http.ResponseWriter, r *http.Request) {
 		response := map[string][]appthingsv2.Binding{"bindings": {
 			{DeviceID: "milesight:79", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
