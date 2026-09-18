@@ -105,6 +105,7 @@ type ParamFieldViewModel struct {
 }
 
 // ThingV2CreateViewModel är skapa-sidan för /things-v2/new.
+// Sak-ID:t genereras serversidan (UUID) och matas aldrig in i formuläret.
 type ThingV2CreateViewModel struct {
 	Tenants         []string
 	Tenant          string
@@ -114,7 +115,6 @@ type ThingV2CreateViewModel struct {
 	Variants        []featuresthings.TypeOption
 	Variant         string
 	Params          []ParamFieldViewModel
-	ThingID         string
 	Name            string
 	Description     string
 	Latitude        string

@@ -16,6 +16,7 @@ import (
 	featuresthings "github.com/diwise/diwise-web/internal/presentation/web/components/features/things"
 	featuresthingsv2 "github.com/diwise/diwise-web/internal/presentation/web/components/features/thingsv2"
 	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
+	"github.com/google/uuid"
 
 	. "github.com/diwise/frontend-toolkit"
 )
@@ -214,7 +215,6 @@ func composeCreateModel(ctx context.Context, r *http.Request, app thingsV2App, t
 
 	model.Params = paramFieldsForVariant(spec, variantParams, nil, submitted)
 
-	model.ThingID = submittedValue(submitted, "thingId")
 	model.Name = submittedValue(submitted, "name")
 	model.Description = submittedValue(submitted, "description")
 	model.Latitude = submittedValue(submitted, "latitude")
@@ -250,10 +250,8 @@ func buildCreateSpec(ctx context.Context, app thingsV2App, r *http.Request) (app
 		return appthingsv2.ObjectSpec{}, "", "unknown template"
 	}
 
-	thingID := strings.TrimSpace(r.Form.Get("thingId"))
-	if thingID == "" || strings.Contains(thingID, "/") {
-		return appthingsv2.ObjectSpec{}, "", "thingId is required (no slashes)"
-	}
+	// Sak-ID:t genereras alltid serversidan; ett inskickat thingId ignoreras.
+	thingID := uuid.NewString()
 	name := strings.TrimSpace(r.Form.Get("name"))
 	if name == "" {
 		return appthingsv2.ObjectSpec{}, "", "name is required"

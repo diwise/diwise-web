@@ -117,16 +117,6 @@ templ ThingV2CreatePage(l10n Localizer, viewModel ThingV2CreateViewModel) {
 				@shared.DetailSectionCard(viewModel.TemplateDisplay, icon.Shapes(icon.Props{Size: 24, Class: "text-foreground"})) {
 					<div class="flex min-w-0 flex-col gap-4 p-4 sm:p-6">
 						<div class="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
-							@shared.FormField(l10n.Get("thingid"), "new-thingid") {
-							@input.Input(input.Props{
-								ID:          "new-thingid",
-								Name:        "thingId",
-								Type:        input.TypeText,
-								Value:       viewModel.ThingID,
-								Placeholder: "tunna-1",
-								Class:       "h-10 rounded-xl bg-background",
-							})
-						}
 						@shared.FormField(l10n.Get("name"), "new-name") {
 							@input.Input(input.Props{
 								ID:    "new-name",

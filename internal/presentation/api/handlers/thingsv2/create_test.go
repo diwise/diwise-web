@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/matryer/is"
 )
 
@@ -47,7 +48,6 @@ func TestThingsV2NewPageShowsFormForTemplate(t *testing.T) {
 
 	is.Equal(http.StatusOK, rec.Code)
 	body := rec.Body.String()
-	is.True(strings.Contains(body, `name="thingId"`))
 	is.True(strings.Contains(body, `name="param.sensorToBottom"`))
 	is.True(strings.Contains(body, "160L"))
 }
@@ -63,7 +63,6 @@ func TestThingsV2CreatePageCreatesAndRedirects(t *testing.T) {
 	form := url.Values{
 		"tenant":               {"t1"},
 		"template":             {"wastebin/v1"},
-		"thingId":              {"bin-9"},
 		"name":                 {"Tunna 9"},
 		"latitude":             {"62.39"},
 		"longitude":            {"17.3"},
@@ -77,7 +76,13 @@ func TestThingsV2CreatePageCreatesAndRedirects(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 
 	is.Equal(http.StatusOK, rec.Code)
-	is.Equal("/things-v2/bin-9?tenant=t1", rec.Header().Get("HX-Redirect"))
+	redirect := rec.Header().Get("HX-Redirect")
+	id, ok := strings.CutPrefix(redirect, "/things-v2/")
+	is.True(ok)
+	id, ok = strings.CutSuffix(id, "?tenant=t1")
+	is.True(ok)
+	_, err := uuid.Parse(id)
+	is.NoErr(err)
 }
 
 func TestThingsV2CreatePageRejectsMissingName(t *testing.T) {
@@ -91,7 +96,6 @@ func TestThingsV2CreatePageRejectsMissingName(t *testing.T) {
 	form := url.Values{
 		"tenant":    {"t1"},
 		"template":  {"wastebin/v1"},
-		"thingId":   {"bin-9"},
 		"latitude":  {"62.39"},
 		"longitude": {"17.3"},
 	}
@@ -105,7 +109,6 @@ func TestThingsV2CreatePageRejectsMissingName(t *testing.T) {
 	is.Equal(http.StatusOK, rec.Code)
 	body := rec.Body.String()
 	is.True(strings.Contains(body, "name is required"))
-	is.True(strings.Contains(body, "bin-9"))
 }
 
 func TestSplitTemplateRef(t *testing.T) {
@@ -132,7 +135,6 @@ func TestBuildCreateSpecIncludesRequiredProperties(t *testing.T) {
 	form := url.Values{
 		"tenant":    {"t1"},
 		"template":  {"wastebin/v1"},
-		"thingId":   {"bin-9"},
 		"name":      {"Tunna 9"},
 		"latitude":  {"62.39"},
 		"longitude": {"17.3"},
@@ -146,6 +148,9 @@ func TestBuildCreateSpecIncludesRequiredProperties(t *testing.T) {
 	spec, tenant, fail := buildCreateSpec(context.Background(), app, req)
 	is.Equal("", fail)
 	is.Equal("t1", tenant)
+	// Sak-ID:t genereras serversidan som UUID.
+	_, err := uuid.Parse(spec.ThingID)
+	is.NoErr(err)
 	// Servern kräver mallens obligatoriska egenskaper i specen.
 	for _, id := range []string{"distance", "level", "fillRate"} {
 		_, ok := spec.Properties[id]
