@@ -336,6 +336,7 @@ func buildCreateSpec(ctx context.Context, app thingsV2App, r *http.Request) (app
 		TemplateVersion: templateVersion,
 		VariantID:       variantID,
 		VariantVersion:  variantVersion,
+		Properties:      requiredProperties(specTemplate),
 		ParamOverrides:  overrides,
 	}
 	if description := strings.TrimSpace(r.Form.Get("description")); description != "" {
@@ -363,4 +364,14 @@ func parseLongitude(raw string) (float64, error) {
 
 func pointCoordinates(longitude, latitude float64) json.RawMessage {
 	return json.RawMessage(fmt.Sprintf("[%g,%g]", longitude, latitude))
+}
+
+// requiredProperties tar med mallens obligatoriska egenskaper som tomma
+// definitioner (servern prefillar presentationsfält från mallen).
+func requiredProperties(spec appthingsv2.TemplateSpec) map[string]appthingsv2.Property {
+	properties := make(map[string]appthingsv2.Property, len(spec.Template.Required))
+	for _, id := range spec.Template.Required {
+		properties[id] = appthingsv2.Property{}
+	}
+	return properties
 }

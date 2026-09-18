@@ -79,7 +79,8 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 	})
 	mux.HandleFunc("/catalog/templates", func(w http.ResponseWriter, r *http.Request) {
 		specs := []appthingsv2.TemplateSpec{
-			{Template: appthingsv2.Template{ID: "wastebin", Version: "v1", Category: "container", DisplayName: "Avfallskärl"},
+			{Template: appthingsv2.Template{ID: "wastebin", Version: "v1", Category: "container", DisplayName: "Avfallskärl",
+				Required: []string{"distance", "level", "fillRate"}},
 				ParamDefaults: map[string]float64{"sensorToBottom": 1.5},
 				Overridable:   []string{"sensorToBottom"},
 				ParamInfo: map[string]appthingsv2.ParamDef{

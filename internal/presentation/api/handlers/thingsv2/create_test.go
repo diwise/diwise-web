@@ -121,3 +121,34 @@ func TestSplitTemplateRef(t *testing.T) {
 		is.True(!ok)
 	}
 }
+
+func TestBuildCreateSpecIncludesRequiredProperties(t *testing.T) {
+	is := is.New(t)
+
+	svc, done := stubThingsV2(t)
+	defer done()
+	app := &testThingsV2App{svc: svc}
+
+	form := url.Values{
+		"tenant":    {"t1"},
+		"template":  {"wastebin/v1"},
+		"thingId":   {"bin-9"},
+		"name":      {"Tunna 9"},
+		"latitude":  {"62.39"},
+		"longitude": {"17.3"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/things-v2/new", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if err := req.ParseForm(); err != nil {
+		t.Fatal(err)
+	}
+
+	spec, tenant, fail := buildCreateSpec(context.Background(), app, req)
+	is.Equal("", fail)
+	is.Equal("t1", tenant)
+	// Servern kräver mallens obligatoriska egenskaper i specen.
+	for _, id := range []string{"distance", "level", "fillRate"} {
+		_, ok := spec.Properties[id]
+		is.True(ok)
+	}
+}
