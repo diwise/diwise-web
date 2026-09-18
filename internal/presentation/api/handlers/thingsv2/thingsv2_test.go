@@ -100,6 +100,14 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 		_ = json.NewEncoder(w).Encode(specs)
 	})
 	mux.HandleFunc("/things/{id}", func(w http.ResponseWriter, r *http.Request) {
+		if r.PathValue("id") == "gh-1" && r.Method == http.MethodGet {
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(appthingsv2.Thing{
+				ThingID: "gh-1", Tenant: "t1", Name: "Växthus",
+				Category: "greenhouse", TemplateID: "greenhouse", TemplateVersion: "v1", Revision: 1,
+			})
+			return
+		}
 		if r.PathValue("id") != "bin-1" {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -150,6 +158,9 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 			},
 			ParamValues:  map[string]float64{"sensorToBottom": 0.94},
 			ParamSources: map[string]string{"sensorToBottom": "thing"},
+			Relations: []appthingsv2.RelationRef{
+				{Name: "partOf", TargetThingID: "gh-1", TargetTemplateID: "greenhouse"},
+			},
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(config)
@@ -328,6 +339,7 @@ func TestThingsV2DetailsPageRendersValuesAndMetadata(t *testing.T) {
 	is.True(strings.Contains(body, "milesight:79"))
 	is.True(strings.Contains(body, "/sensors/milesight:79"))
 	is.True(strings.Contains(body, "/things-v2/room-1"))
+	is.True(strings.Contains(body, "/things-v2/gh-1"))
 }
 
 func TestThingsV2DetailsPageReturns404ForUnknownThing(t *testing.T) {
@@ -383,7 +395,7 @@ func TestToDetailsViewModelSortsValuesAndMetadata(t *testing.T) {
 	}, []appthingsv2.Thing{
 		{ThingID: "room-1", Tenant: "t1", Name: "Rum", Category: "room"},
 		{ThingID: "bin-1"},
-	})
+	}, &appthingsv2.Thing{ThingID: "gh-1", Tenant: "t1", Name: "Växthus"})
 
 	is.Equal(2, len(model.Values))
 	is.Equal("distance", model.Values[0].PropertyID)
@@ -398,6 +410,9 @@ func TestToDetailsViewModelSortsValuesAndMetadata(t *testing.T) {
 	is.Equal("distance", model.ConnectedSensors[0].Input)
 	is.Equal(1, len(model.RelatedThings))
 	is.Equal("room-1", model.RelatedThings[0].ID)
+	is.True(model.Parent != nil)
+	is.Equal("gh-1", model.Parent.ID)
+	is.Equal("Växthus", model.Parent.Name)
 }
 
 func TestThingsV2HistoryComponentRendersChart(t *testing.T) {

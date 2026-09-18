@@ -289,7 +289,25 @@ func NewThingsV2DetailsPage(ctx context.Context, l10n LocaleBundle, assets Asset
 			children = overview.Children
 		}
 
-		content := featuresthingsv2.ThingV2DetailsPage(localizer, toDetailsViewModel(thing, bindings, children))
+		// Förälder via partOf i lagrad config; visas med ID om uppslag misslyckas.
+		var parent *appthingsv2.Thing
+		if config, err := app.ThingsV2().GetConfig(ctx, tenant, id); err == nil {
+			for _, relation := range config.Relations {
+				if relation.Name != "partOf" || relation.TargetThingID == "" {
+					continue
+				}
+				target := relation.TargetThingID
+				if parentThing, err := app.ThingsV2().GetThing(ctx, tenant, target); err == nil {
+					thingCopy := parentThing
+					parent = &thingCopy
+				} else {
+					parent = &appthingsv2.Thing{ThingID: target, Tenant: tenant}
+				}
+				break
+			}
+		}
+
+		content := featuresthingsv2.ThingV2DetailsPage(localizer, toDetailsViewModel(thing, bindings, children, parent))
 		page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 		if helpers.IsHxRequest(r) {
 			page = v2layout.AppShell(localizer, assets, content)
@@ -317,7 +335,7 @@ func resolveDetailsTenant(r *http.Request) (string, error) {
 	return "", errors.New("ambiguous tenant")
 }
 
-func toDetailsViewModel(thing appthingsv2.Thing, bindings []appthingsv2.Binding, children []appthingsv2.Thing) featuresthingsv2.ThingV2DetailsViewModel {
+func toDetailsViewModel(thing appthingsv2.Thing, bindings []appthingsv2.Binding, children []appthingsv2.Thing, parent *appthingsv2.Thing) featuresthingsv2.ThingV2DetailsViewModel {
 	model := featuresthingsv2.ThingV2DetailsViewModel{
 		Thing:           toViewModel(thing),
 		Values:          make([]featuresthingsv2.ThingV2ValueViewModel, 0, len(thing.Values)),
@@ -349,6 +367,11 @@ func toDetailsViewModel(thing appthingsv2.Thing, bindings []appthingsv2.Binding,
 			continue
 		}
 		model.RelatedThings = append(model.RelatedThings, toViewModel(child))
+	}
+
+	if parent != nil && parent.ThingID != "" && parent.ThingID != thing.ThingID {
+		parentViewModel := toViewModel(*parent)
+		model.Parent = &parentViewModel
 	}
 
 	for id, value := range thing.Values {

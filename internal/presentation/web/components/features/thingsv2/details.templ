@@ -180,11 +180,54 @@ templ ThingV2RelatedThingsSection(l10n Localizer, model ThingV2DetailsViewModel)
 		l10n.Get("related"),
 		icon.Icon("network")(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="min-w-0 overflow-x-auto p-4 text-foreground sm:p-6">
-			if len(model.RelatedThings) == 0 {
+		<div class="flex min-w-0 flex-col gap-4 p-4 text-foreground sm:p-6">
+			<div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+				<div class="flex min-w-0 items-center gap-2">
+					<span class="shrink-0 text-sm font-medium">{ l10n.Get("parent") }:</span>
+					if model.Parent != nil {
+						<a
+							href={ string(templ.SafeURL("/things-v2/" + model.Parent.ID)) }
+							hx-get={ string(templ.SafeURL("/things-v2/" + model.Parent.ID)) }
+							hx-target="#app-shell"
+							hx-swap="outerHTML"
+							hx-replace-url="true"
+							class="truncate font-medium underline underline-offset-4"
+						>
+							{ displayThingV2Name(*model.Parent) }
+						</a>
+						@button.Button(button.Props{
+							Variant: button.VariantOutline,
+							Class:   "shrink-0 rounded-xl px-3 py-1 text-sm",
+							Attributes: templ.Attributes{
+								"hx-post":   fmt.Sprintf("/components/things-v2/%s/parent?tenant=%s", model.Thing.ID, model.Thing.Tenant),
+								"hx-target": "#app-shell",
+								"hx-swap":   "outerHTML",
+								"hx-vals":   `{"revision": "` + sprintRevision(model.Revision) + `"}`,
+							},
+						}) {
+							{ l10n.Get("unlinkparent") }
+						}
+					} else {
+						<span class="italic text-muted-foreground">{ l10n.Get("missing") }</span>
+					}
+				</div>
+				@button.Button(button.Props{
+					Variant: button.VariantOutline,
+					Class:   "w-fit shrink-0 rounded-xl px-4",
+					Attributes: templ.Attributes{
+						"hx-get":    fmt.Sprintf("/components/things-v2/%s/parent-dialog?tenant=%s", model.Thing.ID, model.Thing.Tenant),
+						"hx-target": "#thing-v2-dialog-container",
+						"hx-swap":   "innerHTML",
+					},
+				}) {
+					{ l10n.Get("changeparent") }
+				}
+			</div>
+			if len(model.RelatedThings) == 0 && model.Parent == nil {
 				<span class="italic text-muted-foreground">{ l10n.Get("norelations") }</span>
-			} else {
-				@table.Table(table.Props{Class: "min-w-[640px]"}) {
+			} else if len(model.RelatedThings) > 0 {
+				<div class="min-w-0 overflow-x-auto">
+					@table.Table(table.Props{Class: "min-w-[640px]"}) {
 					@table.Header() {
 						@table.Row() {
 							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
@@ -199,12 +242,14 @@ templ ThingV2RelatedThingsSection(l10n Localizer, model ThingV2DetailsViewModel)
 						}
 					}
 				}
+				</div>
 			}
 		</div>
 	}
 }
 
-templ ThingV2DetailsMetadataSection(l10n Localizer, model ThingV2DetailsViewModel) {	@shared.DetailSectionCard(
+templ ThingV2DetailsMetadataSection(l10n Localizer, model ThingV2DetailsViewModel) {
+	@shared.DetailSectionCard(
 		l10n.Get("metadata"),
 		icon.Tags(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {

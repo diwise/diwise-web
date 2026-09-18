@@ -82,6 +82,9 @@ other = "New"
 [category]
 other = "Category"
 
+[changeparent]
+other = "Change parent"
+
 [choose]
 other = "Choose"
 
@@ -729,6 +732,12 @@ other = "Combined sewer overflow"
 
 [passage]
 other = "Passage"
+
+[parent]
+other = "Parent"
+
+[unlinkparent]
+other = "Remove link"
 
 [sewagepumpingstation]
 other = "Sewage pumping station"

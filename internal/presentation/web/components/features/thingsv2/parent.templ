@@ -1,0 +1,107 @@
+package thingsv2
+
+import (
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/dialog"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/input"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+// ThingV2ParentViewModel är byt-förälder-dialogen för /things-v2/{id}.
+type ThingV2ParentViewModel struct {
+	ThingID      string
+	Tenant       string
+	Revision     int64
+	Name         string
+	ErrorMessage string
+}
+
+// ParentCandidate är ett sökbart föräldraalternativ.
+type ParentCandidate struct {
+	ID       string
+	Name     string
+	Category string
+}
+
+// ThingV2ParentResultsViewModel är sökresultatet i förälderdialogen.
+type ThingV2ParentResultsViewModel struct {
+	ThingID  string
+	Tenant   string
+	Revision int64
+	Results  []ParentCandidate
+}
+
+templ ThingV2ParentDialog(l10n Localizer, viewModel ThingV2ParentViewModel) {
+	@dialog.Dialog(dialog.Props{ID: "thing-v2-parent-dialog", Open: true}) {
+		@dialog.Content(dialog.ContentProps{
+			Class:           "max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
+			HideCloseButton: true,
+		}) {
+			<div class="flex flex-col">
+				<div class="border-b border-border/60 px-6 py-5">
+					<h2 class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("changeparent") }: { viewModel.Name }</h2>
+				</div>
+				<div class="grid gap-4 px-6 py-6">
+					if viewModel.ErrorMessage != "" {
+						<div class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+							{ viewModel.ErrorMessage }
+						</div>
+					}
+					@input.Input(input.Props{
+						ID:          "thing-v2-parent-search",
+						Name:        "query",
+						Type:        input.TypeSearch,
+						Placeholder: l10n.Get("search"),
+						Class:       "h-10 rounded-xl bg-background",
+						Attributes: templ.Attributes{
+							"hx-get":     "/components/things-v2/" + viewModel.ThingID + "/parents?tenant=" + viewModel.Tenant + "&revision=" + sprintRevision(viewModel.Revision),
+							"hx-target":  "#thing-v2-parent-results",
+							"hx-swap":    "innerHTML",
+							"hx-trigger": "keyup changed delay:300ms, search",
+						},
+					})
+					<div id="thing-v2-parent-results" class="flex min-w-0 flex-col gap-2"></div>
+				</div>
+				<div class="flex items-center justify-end gap-3 border-t border-border/60 px-6 py-5">
+					@dialog.Close(dialog.CloseProps{For: "thing-v2-parent-dialog"}) {
+						@button.Button(button.Props{
+							Variant: button.VariantOutline,
+							Class:   "rounded-xl px-4",
+						}) {
+							@icon.X(icon.Props{Class: "size-4"})
+							{ l10n.Get("cancel") }
+						}
+					}
+				</div>
+			</div>
+		}
+	}
+}
+
+templ ThingV2ParentResults(l10n Localizer, viewModel ThingV2ParentResultsViewModel) {
+	if len(viewModel.Results) == 0 {
+		<span class="italic text-muted-foreground">{ l10n.Get("missing") }</span>
+	} else {
+		for _, candidate := range viewModel.Results {
+			<div class="flex min-w-0 items-center gap-3 rounded-xl border border-border px-4 py-3">
+				<div class="min-w-0 flex-1">
+					<div class="break-words font-medium">{ candidate.Name }</div>
+					<div class="text-sm text-muted-foreground">{ candidate.Category }</div>
+				</div>
+				@button.Button(button.Props{
+					Variant: button.VariantDefault,
+					Class:   "shrink-0 rounded-xl px-4",
+					Attributes: templ.Attributes{
+						"hx-post":   "/components/things-v2/" + viewModel.ThingID + "/parent?tenant=" + viewModel.Tenant,
+						"hx-target": "#thing-v2-dialog-container",
+						"hx-swap":   "innerHTML",
+						"hx-vals":   `{"parentId": "` + candidate.ID + `", "revision": "` + sprintRevision(viewModel.Revision) + `"}`,
+					},
+				}) {
+					{ l10n.Get("choose") }
+				}
+			</div>
+		}
+	}
+}

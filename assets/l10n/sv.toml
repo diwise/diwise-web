@@ -82,6 +82,9 @@ other = "Ny"
 [category]
 other = "Kategori"
 
+[changeparent]
+other = "Byt förälder"
+
 [choose]
 other = "Välj"
 
@@ -734,6 +737,12 @@ other = "Bräddavlopp"
 
 [passage]
 other = "Passage"
+
+[parent]
+other = "Förälder"
+
+[unlinkparent]
+other = "Ta bort koppling"
 
 [sewagepumpingstation]
 other = "Pumpstation"

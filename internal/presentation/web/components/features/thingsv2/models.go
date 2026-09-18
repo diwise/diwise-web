@@ -81,6 +81,7 @@ type ThingV2DetailsViewModel struct {
 	Metadata               []MetadataItem
 	ConnectedSensors       []ConnectedSensorViewModel
 	RelatedThings          []ThingV2ViewModel
+	Parent                 *ThingV2ViewModel
 	TemplateVersion        string
 	VariantID              string
 	VariantVersion         string
