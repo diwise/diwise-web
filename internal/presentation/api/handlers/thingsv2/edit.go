@@ -167,8 +167,8 @@ func composeEditModel(ctx context.Context, r *http.Request, app thingsV2App, id 
 		}
 	}
 	model.Description = description
-	model.Latitude = firstNonEmpty(submittedValue(submitted, "latitude"), formatEditCoordinate(config.Location, true))
-	model.Longitude = firstNonEmpty(submittedValue(submitted, "longitude"), formatEditCoordinate(config.Location, false))
+	model.Latitude = submittedOrStored(submitted, "latitude", formatEditCoordinate(config.Location, true))
+	model.Longitude = submittedOrStored(submitted, "longitude", formatEditCoordinate(config.Location, false))
 
 	if raw := submittedValue(submitted, "revision"); raw != "" {
 		if revision, err := strconv.ParseInt(raw, 10, 64); err == nil {
@@ -204,13 +204,9 @@ func buildEditSpec(ctx context.Context, app thingsV2App, r *http.Request, id str
 	if name == "" {
 		return appthingsv2.ObjectSpec{}, "", 0, "name is required"
 	}
-	latitude, err := parseLatitude(r.Form.Get("latitude"))
-	if err != nil {
-		return appthingsv2.ObjectSpec{}, "", 0, err.Error()
-	}
-	longitude, err := parseLongitude(r.Form.Get("longitude"))
-	if err != nil {
-		return appthingsv2.ObjectSpec{}, "", 0, err.Error()
+	location, locFail := parseOptionalLocation(r.Form.Get("latitude"), r.Form.Get("longitude"))
+	if locFail != "" {
+		return appthingsv2.ObjectSpec{}, "", 0, locFail
 	}
 
 	templates, err := app.ThingsV2().ListTemplates(ctx, "", "")
@@ -280,7 +276,7 @@ func buildEditSpec(ctx context.Context, app thingsV2App, r *http.Request, id str
 		ThingID:         id,
 		Name:            name,
 		Category:        config.Category,
-		Location:        &appthingsv2.Location{Type: "Point", Coordinates: pointCoordinates(longitude, latitude)},
+		Location:        location,
 		Metadata:        metadata,
 		TemplateID:      config.TemplateID,
 		TemplateVersion: config.TemplateVersion,

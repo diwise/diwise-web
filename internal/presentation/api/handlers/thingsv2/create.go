@@ -230,6 +230,35 @@ func submittedValue(submitted map[string][]string, key string) string {
 	return submitted[key][0]
 }
 
+// submittedOrStored föredrar inskickat värde när nyckeln finns (även tomt),
+// annars lagrat värde. Används för fält som får tömmas (t.ex. koordinater).
+func submittedOrStored(submitted map[string][]string, key, stored string) string {
+	if submitted == nil {
+		return stored
+	}
+	if values, ok := submitted[key]; ok && len(values) > 0 {
+		return values[0]
+	}
+	return stored
+}
+
+// parseOptionalLocation bygger plats eller nil när båda fälten är tomma.
+// Servern avgör mot mallens allowNoLocation; halvfyllt ger fältspecifikt fel.
+func parseOptionalLocation(latitudeRaw, longitudeRaw string) (*appthingsv2.Location, string) {
+	if strings.TrimSpace(latitudeRaw) == "" && strings.TrimSpace(longitudeRaw) == "" {
+		return nil, ""
+	}
+	latitude, err := parseLatitude(latitudeRaw)
+	if err != nil {
+		return nil, err.Error()
+	}
+	longitude, err := parseLongitude(longitudeRaw)
+	if err != nil {
+		return nil, err.Error()
+	}
+	return &appthingsv2.Location{Type: "Point", Coordinates: pointCoordinates(longitude, latitude)}, ""
+}
+
 func buildCreateSpec(ctx context.Context, app thingsV2App, r *http.Request) (appthingsv2.ObjectSpec, string, string) {
 	tenants := tokenTenants(r)
 	tenant, ok := resolveCreateTenant(r, tenants, r.Form.Get("tenant"))
@@ -256,13 +285,9 @@ func buildCreateSpec(ctx context.Context, app thingsV2App, r *http.Request) (app
 	if name == "" {
 		return appthingsv2.ObjectSpec{}, "", "name is required"
 	}
-	latitude, err := parseLatitude(r.Form.Get("latitude"))
-	if err != nil {
-		return appthingsv2.ObjectSpec{}, "", err.Error()
-	}
-	longitude, err := parseLongitude(r.Form.Get("longitude"))
-	if err != nil {
-		return appthingsv2.ObjectSpec{}, "", err.Error()
+	location, locFail := parseOptionalLocation(r.Form.Get("latitude"), r.Form.Get("longitude"))
+	if locFail != "" {
+		return appthingsv2.ObjectSpec{}, "", locFail
 	}
 
 	variantID, variantVersion := "", ""
@@ -313,7 +338,7 @@ func buildCreateSpec(ctx context.Context, app thingsV2App, r *http.Request) (app
 	spec := appthingsv2.ObjectSpec{
 		ThingID:         thingID,
 		Name:            name,
-		Location:        &appthingsv2.Location{Type: "Point", Coordinates: pointCoordinates(longitude, latitude)},
+		Location:        location,
 		TemplateID:      templateID,
 		TemplateVersion: templateVersion,
 		VariantID:       variantID,

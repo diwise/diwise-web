@@ -90,6 +90,48 @@ func TestThingsV2SavePageRejectsMissingName(t *testing.T) {
 	is.True(strings.Contains(rec.Body.String(), "name is required"))
 }
 
+func TestBuildEditSpecClearsLocationWhenEmpty(t *testing.T) {
+	is := is.New(t)
+
+	svc, done := stubThingsV2(t)
+	defer done()
+	app := &testThingsV2App{svc: svc}
+
+	form := url.Values{
+		"tenant":   {"t1"},
+		"revision": {"2"},
+		"name":     {"Tunna"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/things-v2/bin-1", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if err := req.ParseForm(); err != nil {
+		t.Fatal(err)
+	}
+
+	spec, _, _, fail := buildEditSpec(context.Background(), app, req, "bin-1")
+	is.Equal("", fail)
+	is.True(spec.Location == nil)
+}
+
+func TestComposeEditModelKeepsClearedCoordinates(t *testing.T) {
+	is := is.New(t)
+
+	svc, done := stubThingsV2(t)
+	defer done()
+	app := &testThingsV2App{svc: svc}
+
+	submitted := url.Values{
+		"tenant":    {"t1"},
+		"latitude":  {""},
+		"longitude": {""},
+	}
+	req := httptest.NewRequest(http.MethodGet, "/things-v2/bin-1?tenant=t1&mode=edit", nil)
+	model, err := composeEditModel(context.Background(), req, app, "bin-1", submitted, "name is required")
+	is.NoErr(err)
+	is.Equal("", model.Latitude)
+	is.Equal("", model.Longitude)
+}
+
 func TestThingsV2SavePageIgnoresSmuggledTemplate(t *testing.T) {
 	is := is.New(t)
 

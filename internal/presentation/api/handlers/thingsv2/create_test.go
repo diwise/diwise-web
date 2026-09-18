@@ -111,6 +111,53 @@ func TestThingsV2CreatePageRejectsMissingName(t *testing.T) {
 	is.True(strings.Contains(body, "name is required"))
 }
 
+func TestBuildCreateSpecAllowsMissingLocation(t *testing.T) {
+	is := is.New(t)
+
+	svc, done := stubThingsV2(t)
+	defer done()
+	app := &testThingsV2App{svc: svc}
+
+	form := url.Values{
+		"tenant":   {"t1"},
+		"template": {"wastebin/v1"},
+		"name":     {"Tunna utan plats"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/things-v2/new", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if err := req.ParseForm(); err != nil {
+		t.Fatal(err)
+	}
+
+	// Tom plats ger nil; servern avgör mot mallens allowNoLocation.
+	spec, _, fail := buildCreateSpec(context.Background(), app, req)
+	is.Equal("", fail)
+	is.True(spec.Location == nil)
+}
+
+func TestBuildCreateSpecRejectsHalfFilledLocation(t *testing.T) {
+	is := is.New(t)
+
+	svc, done := stubThingsV2(t)
+	defer done()
+	app := &testThingsV2App{svc: svc}
+
+	form := url.Values{
+		"tenant":   {"t1"},
+		"template": {"wastebin/v1"},
+		"name":     {"Tunna"},
+		"latitude": {"62.39"},
+	}
+	req := httptest.NewRequest(http.MethodPost, "/things-v2/new", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	if err := req.ParseForm(); err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, fail := buildCreateSpec(context.Background(), app, req)
+	is.True(strings.Contains(fail, "longitude"))
+}
+
 func TestSplitTemplateRef(t *testing.T) {
 	is := is.New(t)
 
