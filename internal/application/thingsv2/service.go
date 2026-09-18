@@ -416,3 +416,32 @@ func (s *Service) UnlinkParent(ctx context.Context, tenant, id string, revision 
 
 	return thing, nil
 }
+
+// SwapBindings replaces a thing's sensor bindings atomically (revision is
+// the config CAS stake; conflicts surface as client.ErrConflict).
+func (s *Service) SwapBindings(ctx context.Context, tenant, id string, bindings []Binding, revision int64) (Thing, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "swap-bindings-v2")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	params := url.Values{}
+	params.Add("tenant", tenant)
+
+	raw, err := json.Marshal(map[string][]Binding{"bindings": bindings})
+	if err != nil {
+		return Thing{}, fmt.Errorf("failed to encode bindings: %w", err)
+	}
+
+	body, _, err := s.client.WriteRaw(ctx, http.MethodPut, s.baseURL, "things/"+id+"/bindings", params,
+		map[string]string{"If-Match": fmt.Sprintf(`"rev-%d"`, revision)}, raw)
+	if err != nil {
+		return Thing{}, err
+	}
+
+	var thing Thing
+	if err = json.Unmarshal(body, &thing); err != nil {
+		return Thing{}, fmt.Errorf("failed to decode thing: %w", err)
+	}
+
+	return thing, nil
+}

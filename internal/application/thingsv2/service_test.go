@@ -119,6 +119,22 @@ func stubV2(t *testing.T) *httptest.Server {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
+		if r.Method == http.MethodPut {
+			if r.Header.Get("If-Match") == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			var body struct {
+				Bindings []Binding `json:"bindings"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(Thing{ThingID: r.PathValue("id"), Tenant: "t1", Revision: 3})
+			return
+		}
 		response := map[string][]Binding{"bindings": {
 			{DeviceID: "milesight:79", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
 		}}
@@ -471,4 +487,27 @@ func TestUnlinkParentDeletesParent(t *testing.T) {
 	is.NoErr(err)
 	is.Equal("tank-1", thing.ThingID)
 	is.Equal(int64(4), thing.Revision)
+}
+
+func TestSwapBindingsPutsBindingsWithRevision(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	thing, err := svc.SwapBindings(context.Background(), "t1", "bin-1", []Binding{
+		{DeviceID: "milesight:80", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
+	}, 2)
+	is.NoErr(err)
+	is.Equal("bin-1", thing.ThingID)
+	is.Equal(int64(3), thing.Revision)
+}
+
+func TestSwapBindingsNotFound(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	_, err := svc.SwapBindings(context.Background(), "t1", "missing", nil, 1)
+	is.True(err != nil)
+	is.True(errors.Is(err, client.ErrNotFound))
 }
