@@ -144,6 +144,33 @@ func stubV2(t *testing.T) *httptest.Server {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(overview)
 	})
+	mux.HandleFunc("/things/{id}/move", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("If-Match") == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		var body struct {
+			ParentID string `json:"parentId"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.ParentID == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if body.ParentID == "missing" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(Thing{ThingID: r.PathValue("id"), Tenant: "t1", Revision: 3})
+	})
+	mux.HandleFunc("/things/{id}/parent", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("If-Match") == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(Thing{ThingID: r.PathValue("id"), Tenant: "t1", Revision: 4})
+	})
 	mux.HandleFunc("/catalog/variants", func(w http.ResponseWriter, r *http.Request) {
 		specs := []VariantSpec{
 			{Variant: Variant{ID: "160L", Version: "v1", TemplateID: "wastebin", TemplateVersion: "v1"}},
@@ -412,4 +439,36 @@ func TestListVariants(t *testing.T) {
 	is.Equal(1, len(specs))
 	is.Equal("160L", specs[0].Variant.ID)
 	is.Equal("wastebin", specs[0].Variant.TemplateID)
+}
+
+func TestMoveParentPutsParentWithRevision(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	thing, err := svc.MoveParent(context.Background(), "t1", "tank-1", "gh-1", 2)
+	is.NoErr(err)
+	is.Equal("tank-1", thing.ThingID)
+	is.Equal(int64(3), thing.Revision)
+}
+
+func TestMoveParentNotFound(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	_, err := svc.MoveParent(context.Background(), "t1", "tank-1", "missing", 2)
+	is.True(err != nil)
+	is.True(errors.Is(err, client.ErrNotFound))
+}
+
+func TestUnlinkParentDeletesParent(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	thing, err := svc.UnlinkParent(context.Background(), "t1", "tank-1", 3)
+	is.NoErr(err)
+	is.Equal("tank-1", thing.ThingID)
+	is.Equal(int64(4), thing.Revision)
 }

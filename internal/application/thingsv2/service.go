@@ -364,3 +364,55 @@ func (s *Service) DeleteThing(ctx context.Context, tenant, id string) error {
 	_, _, err = s.client.WriteRaw(ctx, http.MethodDelete, s.baseURL, "things/"+id, params, nil, nil)
 	return err
 }
+
+// MoveParent switches a thing's partOf parent atomically (revision is the
+// config CAS stake; conflicts surface as client.ErrConflict).
+func (s *Service) MoveParent(ctx context.Context, tenant, id, parentID string, revision int64) (Thing, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "move-parent-v2")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	params := url.Values{}
+	params.Add("tenant", tenant)
+
+	raw, err := json.Marshal(map[string]string{"parentId": parentID})
+	if err != nil {
+		return Thing{}, fmt.Errorf("failed to encode parent: %w", err)
+	}
+
+	body, _, err := s.client.WriteRaw(ctx, http.MethodPut, s.baseURL, "things/"+id+"/move", params,
+		map[string]string{"If-Match": fmt.Sprintf(`"rev-%d"`, revision)}, raw)
+	if err != nil {
+		return Thing{}, err
+	}
+
+	var thing Thing
+	if err = json.Unmarshal(body, &thing); err != nil {
+		return Thing{}, fmt.Errorf("failed to decode thing: %w", err)
+	}
+
+	return thing, nil
+}
+
+// UnlinkParent detaches a thing's partOf parent without deleting the thing.
+func (s *Service) UnlinkParent(ctx context.Context, tenant, id string, revision int64) (Thing, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "unlink-parent-v2")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	params := url.Values{}
+	params.Add("tenant", tenant)
+
+	body, _, err := s.client.WriteRaw(ctx, http.MethodDelete, s.baseURL, "things/"+id+"/parent", params,
+		map[string]string{"If-Match": fmt.Sprintf(`"rev-%d"`, revision)}, nil)
+	if err != nil {
+		return Thing{}, err
+	}
+
+	var thing Thing
+	if err = json.Unmarshal(body, &thing); err != nil {
+		return Thing{}, fmt.Errorf("failed to decode thing: %w", err)
+	}
+
+	return thing, nil
+}
