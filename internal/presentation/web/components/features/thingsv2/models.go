@@ -128,6 +128,7 @@ type ThingV2EditViewModel struct {
 	Tenant          string
 	Revision        int64
 	TemplateDisplay string
+	TemplateRef     string
 	Variants        []featuresthings.TypeOption
 	Variant         string
 	Params          []ParamFieldViewModel

@@ -1,0 +1,65 @@
+package thingsv2
+
+import (
+	"fmt"
+	"strconv"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/input"
+)
+
+// ThingV2ParamFieldsBlock är parameterfälten med stabilt ID för omladdning
+// vid variantbyte (outerHTML mot #v2-param-fields).
+templ ThingV2ParamFieldsBlock(params []ParamFieldViewModel, idPrefix string) {
+	<div id="v2-param-fields" class="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
+		@ThingV2ParamFields(params, idPrefix)
+	</div>
+}
+
+templ ThingV2ParamFields(params []ParamFieldViewModel, idPrefix string) {
+	for _, param := range params {
+		<div class="flex flex-col gap-2">
+			@shared.FormField(paramFieldLabel(param), idPrefix+"-param-"+param.Name) {
+				@input.Input(input.Props{
+					ID:    idPrefix + "-param-" + param.Name,
+					Name:  "param." + param.Name,
+					Type:  input.TypeNumber,
+					Value: paramFieldValue(param),
+					Class: "h-10 rounded-xl bg-background",
+					Attributes: paramFieldAttributes(param),
+				})
+			}
+			if param.Label != "" && param.Label != param.Name {
+				<p class="text-sm text-muted-foreground">{ param.Label }</p>
+			}
+		</div>
+	}
+}
+
+func paramFieldLabel(param ParamFieldViewModel) string {
+	if param.Unit != "" {
+		return fmt.Sprintf("%s (%s)", param.Name, param.Unit)
+	}
+	return param.Name
+}
+
+func paramFieldValue(param ParamFieldViewModel) string {
+	if param.Value != "" {
+		return param.Value
+	}
+	if param.HasDefault {
+		return strconv.FormatFloat(param.Default, 'f', -1, 64)
+	}
+	return ""
+}
+
+func paramFieldAttributes(param ParamFieldViewModel) templ.Attributes {
+	attrs := templ.Attributes{"step": "any"}
+	if param.Min != nil {
+		attrs["min"] = strconv.FormatFloat(*param.Min, 'f', -1, 64)
+	}
+	if param.Max != nil {
+		attrs["max"] = strconv.FormatFloat(*param.Max, 'f', -1, 64)
+	}
+	return attrs
+}

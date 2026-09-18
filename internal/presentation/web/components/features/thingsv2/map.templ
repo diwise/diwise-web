@@ -32,6 +32,18 @@ func ThingsV2DetailsMap(l10n Localizer, thing ThingV2ViewModel) templ.Component 
 	return shared.Map("medium", false, false, mapData, thingsV2ToMapFeature(l10n, []ThingV2ViewModel{thing}))
 }
 
+// ThingsV2EditMap visar en flyttbar markör för formulär: befintlig plats
+// markeras (0,0 = ingen markör, klick sätter ny). Delade kartans editmode
+// skriver tillbaka till #latitude/#longitude vid drag och klick.
+func ThingsV2EditMap(latitude, longitude float64) templ.Component {
+	mapData := shared.NewMapData(latitude, longitude)
+	features := make([]shared.Feature, 0, 1)
+	if latitude != 0 || longitude != 0 {
+		features = append(features, shared.NewFeature(shared.NewPoint(latitude, longitude)))
+	}
+	return shared.Map("medium", false, true, mapData, shared.NewFeatureCollection(features))
+}
+
 func thingsV2ToMapFeature(l10n Localizer, things []ThingV2ViewModel) shared.FeatureCollection {
 	features := make([]shared.Feature, 0, len(things))
 

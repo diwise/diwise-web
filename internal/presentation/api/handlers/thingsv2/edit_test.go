@@ -32,6 +32,8 @@ func TestThingsV2EditModeRendersLockedTemplate(t *testing.T) {
 	is.True(strings.Contains(body, "Avfallskärl v1"))
 	is.True(strings.Contains(body, "0.94"))
 	is.True(strings.Contains(body, `name="revision" value="2"`))
+	// Befintlig plats ska synas som flyttbar markör i kartan.
+	is.True(strings.Contains(body, "[17.3,62.39]"))
 }
 
 func TestThingsV2SavePageUpdatesAndRedirects(t *testing.T) {

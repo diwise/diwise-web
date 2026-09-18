@@ -1,7 +1,6 @@
 package thingsv2
 
 import (
-	"fmt"
 	"strconv"
 
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
@@ -116,8 +115,9 @@ templ ThingV2CreatePage(l10n Localizer, viewModel ThingV2CreateViewModel) {
 				<input type="hidden" name="tenant" value={ viewModel.Tenant }/>
 				<input type="hidden" name="template" value={ viewModel.Template }/>
 				@shared.DetailSectionCard(viewModel.TemplateDisplay, icon.Shapes(icon.Props{Size: 24, Class: "text-foreground"})) {
-					<div class="grid min-w-0 grid-cols-1 gap-4 p-4 sm:p-6 md:grid-cols-2">
-						@shared.FormField(l10n.Get("thingid"), "new-thingid") {
+					<div class="flex min-w-0 flex-col gap-4 p-4 sm:p-6">
+						<div class="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
+							@shared.FormField(l10n.Get("thingid"), "new-thingid") {
 							@input.Input(input.Props{
 								ID:          "new-thingid",
 								Name:        "thingId",
@@ -148,7 +148,13 @@ templ ThingV2CreatePage(l10n Localizer, viewModel ThingV2CreateViewModel) {
 							}
 						</div>
 						if len(viewModel.Variants) > 0 {
-							<div class="flex flex-col gap-2 md:col-span-2 lg:w-64 lg:shrink-0">
+							<div
+								class="flex flex-col gap-2 md:col-span-2 lg:w-64 lg:shrink-0"
+								hx-get="/components/things-v2/params?prefix=new"
+								hx-target="#v2-param-fields"
+								hx-swap="outerHTML"
+								hx-trigger="change"
+							>
 								<label for="new-variant-trigger" class="text-sm font-medium text-foreground">{ l10n.Get("variant") }</label>
 								@selectbox.SelectBox(selectbox.Props{ID: "new-variant"}) {
 									@selectbox.Trigger(selectbox.TriggerProps{
@@ -178,23 +184,8 @@ templ ThingV2CreatePage(l10n Localizer, viewModel ThingV2CreateViewModel) {
 								}
 							</div>
 						}
-						for _, param := range viewModel.Params {
-							<div class="flex flex-col gap-2">
-								@shared.FormField(paramFieldLabel(param), "new-param-"+param.Name) {
-									@input.Input(input.Props{
-										ID:    "new-param-" + param.Name,
-										Name:  "param." + param.Name,
-										Type:  input.TypeNumber,
-										Value: paramFieldValue(param),
-										Class: "h-10 rounded-xl bg-background",
-										Attributes: paramFieldAttributes(param),
-									})
-								}
-								if param.Label != "" && param.Label != param.Name {
-									<p class="text-sm text-muted-foreground">{ param.Label }</p>
-								}
-							</div>
-						}
+						</div>
+						@ThingV2ParamFieldsBlock(viewModel.Params, "new")
 					</div>
 				}
 				@shared.DetailSectionCard(
@@ -233,7 +224,7 @@ templ ThingV2CreatePage(l10n Localizer, viewModel ThingV2CreateViewModel) {
 							}
 						</div>
 						<div class="w-full overflow-hidden rounded-xl border border-border">
-							@shared.Map("medium", false, true, shared.NewMapData(parseCoordinate(viewModel.Latitude), parseCoordinate(viewModel.Longitude)))
+							@ThingsV2EditMap(parseCoordinate(viewModel.Latitude), parseCoordinate(viewModel.Longitude))
 						</div>
 					</div>
 				}
@@ -262,34 +253,6 @@ templ ThingV2CreatePage(l10n Localizer, viewModel ThingV2CreateViewModel) {
 			</form>
 		}
 	</div>
-}
-
-func paramFieldLabel(param ParamFieldViewModel) string {
-	if param.Unit != "" {
-		return fmt.Sprintf("%s (%s)", param.Name, param.Unit)
-	}
-	return param.Name
-}
-
-func paramFieldValue(param ParamFieldViewModel) string {
-	if param.Value != "" {
-		return param.Value
-	}
-	if param.HasDefault {
-		return strconv.FormatFloat(param.Default, 'f', -1, 64)
-	}
-	return ""
-}
-
-func paramFieldAttributes(param ParamFieldViewModel) templ.Attributes {
-	attrs := templ.Attributes{"step": "any"}
-	if param.Min != nil {
-		attrs["min"] = strconv.FormatFloat(*param.Min, 'f', -1, 64)
-	}
-	if param.Max != nil {
-		attrs["max"] = strconv.FormatFloat(*param.Max, 'f', -1, 64)
-	}
-	return attrs
 }
 
 func parseCoordinate(value string) float64 {

@@ -94,7 +94,7 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 	mux.HandleFunc("/catalog/variants", func(w http.ResponseWriter, r *http.Request) {
 		specs := []appthingsv2.VariantSpec{
 			{Variant: appthingsv2.Variant{ID: "160L", Version: "v1", TemplateID: "wastebin", TemplateVersion: "v1",
-				ParamValues: map[string]float64{"usableHeight": 0.79}}},
+				ParamValues: map[string]float64{"usableHeight": 0.79, "sensorToBottom": 0.9}}},
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(specs)

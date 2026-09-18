@@ -121,6 +121,7 @@ func composeEditModel(ctx context.Context, r *http.Request, app thingsV2App, id 
 	} else {
 		model.TemplateDisplay = fmt.Sprintf("%s %s", config.TemplateID, config.TemplateVersion)
 	}
+	model.TemplateRef = config.TemplateID + "/" + config.TemplateVersion
 
 	variants, err := app.ThingsV2().ListVariants(ctx, tenant)
 	if err != nil {
@@ -150,28 +151,13 @@ func composeEditModel(ctx context.Context, r *http.Request, app thingsV2App, id 
 		}
 	}
 
-	for _, name := range spec.Overridable {
-		field := featuresthingsv2.ParamFieldViewModel{Name: name, Value: submittedValue(submitted, "param."+name)}
-		if info, ok := spec.ParamInfo[name]; ok {
-			field.Label = info.Description
-			field.Unit = info.Unit
-			field.Min = info.Min
-			field.Max = info.Max
+	stored := map[string]float64{}
+	for name, value := range config.ParamValues {
+		if config.ParamSources[name] == "thing" {
+			stored[name] = value
 		}
-		if field.Value == "" {
-			if value, ok := config.ParamValues[name]; ok && config.ParamSources[name] == "thing" {
-				field.Value = strconv.FormatFloat(value, 'f', -1, 64)
-			}
-		}
-		if value, ok := variantParams[name]; ok {
-			field.Default = value
-			field.HasDefault = true
-		} else if value, ok := spec.ParamDefaults[name]; ok {
-			field.Default = value
-			field.HasDefault = true
-		}
-		model.Params = append(model.Params, field)
 	}
+	model.Params = paramFieldsForVariant(spec, variantParams, stored, submitted)
 
 	model.Name = firstNonEmpty(submittedValue(submitted, "name"), config.Name)
 	description := config.Metadata["description"]

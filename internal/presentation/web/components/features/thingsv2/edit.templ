@@ -45,11 +45,12 @@ templ ThingV2EditPage(l10n Localizer, viewModel ThingV2EditViewModel) {
 				l10n.Get("details"),
 				icon.Info(icon.Props{Size: 24, Class: "text-foreground"}),
 			) {
-				<div class="grid min-w-0 grid-cols-1 gap-4 p-4 sm:p-6 md:grid-cols-2">
-					<div class="flex flex-col gap-2 md:col-span-2">
-						<span class="text-sm font-medium text-foreground">{ l10n.Get("template") }</span>
-						<span class="text-sm text-muted-foreground">{ viewModel.TemplateDisplay }</span>
-					</div>
+				<div class="flex min-w-0 flex-col gap-4 p-4 sm:p-6">
+					<div class="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
+						<div class="flex flex-col gap-2 md:col-span-2">
+							<span class="text-sm font-medium text-foreground">{ l10n.Get("template") }</span>
+							<span class="text-sm text-muted-foreground">{ viewModel.TemplateDisplay }</span>
+						</div>
 					@shared.FormField(l10n.Get("name"), "edit-name") {
 						@input.Input(input.Props{
 							ID:    "edit-name",
@@ -69,7 +70,13 @@ templ ThingV2EditPage(l10n Localizer, viewModel ThingV2EditViewModel) {
 						})
 					}
 					if len(viewModel.Variants) > 0 {
-						<div class="flex flex-col gap-2 md:col-span-2 lg:w-64 lg:shrink-0">
+						<div
+							class="flex flex-col gap-2 md:col-span-2 lg:w-64 lg:shrink-0"
+							hx-get={ "/components/things-v2/params?template=" + viewModel.TemplateRef + "&prefix=edit" }
+							hx-target="#v2-param-fields"
+							hx-swap="outerHTML"
+							hx-trigger="change"
+						>
 							<label for="edit-variant-trigger" class="text-sm font-medium text-foreground">{ l10n.Get("variant") }</label>
 							@selectbox.SelectBox(selectbox.Props{ID: "edit-variant"}) {
 								@selectbox.Trigger(selectbox.TriggerProps{
@@ -99,23 +106,8 @@ templ ThingV2EditPage(l10n Localizer, viewModel ThingV2EditViewModel) {
 							}
 						</div>
 					}
-					for _, param := range viewModel.Params {
-						<div class="flex flex-col gap-2">
-							@shared.FormField(paramFieldLabel(param), "edit-param-"+param.Name) {
-								@input.Input(input.Props{
-									ID:    "edit-param-" + param.Name,
-									Name:  "param." + param.Name,
-									Type:  input.TypeNumber,
-									Value: paramFieldValue(param),
-									Class: "h-10 rounded-xl bg-background",
-									Attributes: paramFieldAttributes(param),
-								})
-							}
-							if param.Label != "" && param.Label != param.Name {
-								<p class="text-sm text-muted-foreground">{ param.Label }</p>
-							}
-						</div>
-					}
+					</div>
+					@ThingV2ParamFieldsBlock(viewModel.Params, "edit")
 				</div>
 			}
 			@shared.DetailSectionCard(
@@ -154,7 +146,7 @@ templ ThingV2EditPage(l10n Localizer, viewModel ThingV2EditViewModel) {
 						}
 					</div>
 					<div class="w-full overflow-hidden rounded-xl border border-border">
-						@shared.Map("medium", false, true, shared.NewMapData(parseCoordinate(viewModel.Latitude), parseCoordinate(viewModel.Longitude)))
+						@ThingsV2EditMap(parseCoordinate(viewModel.Latitude), parseCoordinate(viewModel.Longitude))
 					</div>
 				</div>
 			}

@@ -212,23 +212,7 @@ func composeCreateModel(ctx context.Context, r *http.Request, app thingsV2App, t
 		}
 	}
 
-	for _, name := range spec.Overridable {
-		field := featuresthingsv2.ParamFieldViewModel{Name: name, Value: submittedValue(submitted, "param."+name)}
-		if info, ok := spec.ParamInfo[name]; ok {
-			field.Label = info.Description
-			field.Unit = info.Unit
-			field.Min = info.Min
-			field.Max = info.Max
-		}
-		if value, ok := variantParams[name]; ok {
-			field.Default = value
-			field.HasDefault = true
-		} else if value, ok := spec.ParamDefaults[name]; ok {
-			field.Default = value
-			field.HasDefault = true
-		}
-		model.Params = append(model.Params, field)
-	}
+	model.Params = paramFieldsForVariant(spec, variantParams, nil, submitted)
 
 	model.ThingID = submittedValue(submitted, "thingId")
 	model.Name = submittedValue(submitted, "name")
