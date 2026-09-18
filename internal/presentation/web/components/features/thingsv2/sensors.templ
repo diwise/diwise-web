@@ -1,0 +1,127 @@
+package thingsv2
+
+import (
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/dialog"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/input"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ ThingV2SensorsDialog(l10n Localizer, viewModel ThingV2SensorsViewModel) {
+	@dialog.Dialog(dialog.Props{ID: "thing-v2-sensors-dialog", Open: true}) {
+		@dialog.Content(dialog.ContentProps{
+			Class:           "max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
+			HideCloseButton: true,
+		}) {
+			<div class="flex flex-col">
+				<div class="border-b border-border/60 px-6 py-5">
+					<h2 class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("managesensors") }: { viewModel.Name }</h2>
+				</div>
+				<div class="grid gap-4 px-6 py-6">
+					if viewModel.ErrorMessage != "" {
+						<div class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+							{ viewModel.ErrorMessage }
+						</div>
+					}
+					if len(viewModel.Bindings) == 0 {
+						<span class="italic text-muted-foreground">{ l10n.Get("missing") }</span>
+					} else {
+						for _, binding := range viewModel.Bindings {
+							<div class="flex min-w-0 flex-col gap-3 rounded-xl border border-border px-4 py-3">
+								<div class="flex min-w-0 flex-col gap-1">
+									<span class="font-medium">{ binding.Label }</span>
+									if binding.DeviceID != "" {
+										<span class="break-all text-sm text-muted-foreground">
+											{ binding.DeviceName } · { binding.Object }/{ binding.Resource }
+										</span>
+									} else {
+										<span class="italic text-sm text-muted-foreground">{ l10n.Get("missing") }</span>
+									}
+								</div>
+								<div class="flex flex-col gap-2">
+									@input.Input(input.Props{
+										ID:          "thing-v2-sensor-search-" + binding.Input,
+										Name:        "query",
+										Type:        input.TypeSearch,
+										Placeholder: l10n.Get("search"),
+										Class:       "h-10 rounded-xl bg-background",
+										Attributes: templ.Attributes{
+											"hx-get":     "/components/things-v2/" + viewModel.ThingID + "/sensors/search?tenant=" + viewModel.Tenant + "&revision=" + sprintRevision(viewModel.Revision) + "&input=" + binding.Input,
+											"hx-target":  "#thing-v2-sensor-results-" + binding.Input,
+											"hx-swap":    "innerHTML",
+											"hx-trigger": "keyup changed delay:300ms, search",
+										},
+									})
+									<div id={ "thing-v2-sensor-results-" + binding.Input } class="flex min-w-0 flex-col gap-2"></div>
+								</div>
+								if binding.DeviceID != "" {
+									<form
+										action={ "/components/things-v2/" + viewModel.ThingID + "/sensors/unbind?tenant=" + viewModel.Tenant }
+										method="post"
+										hx-post={ "/components/things-v2/" + viewModel.ThingID + "/sensors/unbind?tenant=" + viewModel.Tenant }
+										hx-target="#thing-v2-dialog-container"
+										hx-swap="innerHTML"
+									>
+										<input type="hidden" name="input" value={ binding.Input }/>
+										<input type="hidden" name="revision" value={ sprintRevision(viewModel.Revision) }/>
+										@button.Button(button.Props{
+											Type:    button.TypeSubmit,
+											Variant: button.VariantOutline,
+											Class:   "w-fit shrink-0 rounded-xl px-4",
+										}) {
+											{ l10n.Get("unbind") }
+										}
+									</form>
+								}
+							</div>
+						}
+					}
+				</div>
+				<div class="flex items-center justify-end gap-3 border-t border-border/60 px-6 py-5">
+					@dialog.Close(dialog.CloseProps{For: "thing-v2-sensors-dialog"}) {
+						@button.Button(button.Props{
+							Variant: button.VariantOutline,
+							Class:   "rounded-xl px-4",
+						}) {
+							@icon.X(icon.Props{Class: "size-4"})
+							{ l10n.Get("cancel") }
+						}
+					}
+				</div>
+			</div>
+		}
+	}
+}
+
+templ ThingV2SensorResults(l10n Localizer, viewModel ThingV2SensorResultsViewModel) {
+	if len(viewModel.Results) == 0 {
+		<span class="italic text-muted-foreground">{ l10n.Get("missing") }</span>
+	} else {
+		for _, candidate := range viewModel.Results {
+			<form
+				action={ "/components/things-v2/" + viewModel.ThingID + "/sensors?tenant=" + viewModel.Tenant }
+				method="post"
+				class="flex min-w-0 items-center gap-3 rounded-xl border border-border px-4 py-3"
+				hx-post={ "/components/things-v2/" + viewModel.ThingID + "/sensors?tenant=" + viewModel.Tenant }
+				hx-target="#thing-v2-dialog-container"
+				hx-swap="innerHTML"
+			>
+				<input type="hidden" name="input" value={ viewModel.Input }/>
+				<input type="hidden" name="deviceId" value={ candidate.DeviceID }/>
+				<input type="hidden" name="revision" value={ sprintRevision(viewModel.Revision) }/>
+				<div class="min-w-0 flex-1">
+					<div class="break-words font-medium">{ candidate.Name }</div>
+					<div class="break-all text-sm text-muted-foreground">{ candidate.DeviceID }</div>
+				</div>
+				@button.Button(button.Props{
+					Type:    button.TypeSubmit,
+					Variant: button.VariantDefault,
+					Class:   "shrink-0 rounded-xl px-4",
+				}) {
+					{ l10n.Get("choose") }
+				}
+			</form>
+		}
+	}
+}

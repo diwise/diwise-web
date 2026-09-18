@@ -82,6 +82,9 @@ other = "Ny"
 [category]
 other = "Kategori"
 
+[change]
+other = "Byt"
+
 [changeparent]
 other = "Byt förälder"
 
@@ -288,6 +291,9 @@ other = "Mätvärde"
 
 [measurementvalues]
 other = "Mätvärden"
+
+[managesensors]
+other = "Hantera sensorer"
 
 [metadata]
 other = "Metadata"
@@ -585,6 +591,9 @@ other = "Ja"
 
 [type]
 other = "Typ"
+
+[unbind]
+other = "Koppla loss"
 
 [unknown]
 other = "Okänd"

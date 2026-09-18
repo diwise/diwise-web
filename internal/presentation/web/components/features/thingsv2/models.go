@@ -148,3 +148,40 @@ type ThingV2DeleteViewModel struct {
 	Name         string
 	ErrorMessage string
 }
+
+// SensorBindingViewModel är en bindningsbar ingång med nuvarande koppling
+// (tom DeviceID = okopplad). En koppling per ingång.
+type SensorBindingViewModel struct {
+	Input      string
+	Label      string
+	Object     string
+	Resource   string
+	DeviceID   string
+	DeviceName string
+}
+
+// ThingV2SensorsViewModel är hantera-sensorer-dialogen för en sak.
+type ThingV2SensorsViewModel struct {
+	ThingID      string
+	Tenant       string
+	Revision     int64
+	Name         string
+	Bindings     []SensorBindingViewModel
+	ErrorMessage string
+}
+
+// SensorCandidateViewModel är en valbar enhet i sensorsökningen.
+type SensorCandidateViewModel struct {
+	DeviceID string
+	Name     string
+	Decoder  string
+}
+
+// ThingV2SensorResultsViewModel är sensorsökresultatet i dialogen.
+type ThingV2SensorResultsViewModel struct {
+	ThingID  string
+	Tenant   string
+	Revision int64
+	Input    string
+	Results  []SensorCandidateViewModel
+}

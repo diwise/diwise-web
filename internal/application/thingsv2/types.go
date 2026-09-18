@@ -57,15 +57,28 @@ type Thing struct {
 
 // Template is a published template version (GUI: dropdowns + form building).
 type Template struct {
-	ID              string         `json:"id"`
-	Version         string         `json:"version"`
-	Category        string         `json:"category,omitempty"`
-	DisplayName     string         `json:"displayName,omitempty"`
-	Description     string         `json:"description,omitempty"`
-	PrimaryProperty string         `json:"primaryProperty,omitempty"`
-	Required        []string       `json:"required,omitempty"`
-	Optional        []string       `json:"optional,omitempty"`
-	Relations       []RelationSpec `json:"relations,omitempty"`
+	ID              string                 `json:"id"`
+	Version         string                 `json:"version"`
+	Category        string                 `json:"category,omitempty"`
+	DisplayName     string                 `json:"displayName,omitempty"`
+	Description     string                 `json:"description,omitempty"`
+	PrimaryProperty string                 `json:"primaryProperty,omitempty"`
+	Required        []string               `json:"required,omitempty"`
+	Optional        []string               `json:"optional,omitempty"`
+	Relations       []RelationSpec         `json:"relations,omitempty"`
+	PropertyDefs    map[string]PropertyDef `json:"propertyDefs,omitempty"`
+}
+
+// PropertyDef describes a property: display name and compatible signals.
+type PropertyDef struct {
+	DisplayName string       `json:"displayName,omitempty"`
+	Signals     []SignalHint `json:"signals,omitempty"`
+}
+
+// SignalHint is a compatible sensor signal (object URN + resource).
+type SignalHint struct {
+	Object   string `json:"object"`
+	Resource string `json:"resource"`
 }
 
 // RelationSpec declares a relation slot: name, allowed target templates
