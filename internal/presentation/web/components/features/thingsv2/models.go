@@ -137,3 +137,11 @@ type ThingV2EditViewModel struct {
 	Longitude       string
 	ErrorMessage    string
 }
+
+// ThingV2DeleteViewModel är raderingsdialogen för /things-v2/{id}.
+type ThingV2DeleteViewModel struct {
+	ThingID      string
+	Tenant       string
+	Name         string
+	ErrorMessage string
+}

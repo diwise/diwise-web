@@ -121,6 +121,9 @@ other = "grader"
 [delete]
 other = "Radera"
 
+[deleteblocked]
+other = "Saken har aktiva underobjekt och kan inte tas bort."
+
 [deletethingconfirm]
 other = "Vill du radera"
 

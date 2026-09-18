@@ -121,6 +121,9 @@ other = "degrees"
 [delete]
 other = "Delete"
 
+[deleteblocked]
+other = "The thing has active children and cannot be deleted."
+
 [deletethingconfirm]
 other = "Do you want to delete"
 

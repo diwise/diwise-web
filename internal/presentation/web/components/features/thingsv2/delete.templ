@@ -1,0 +1,59 @@
+package thingsv2
+
+import (
+	"fmt"
+
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/dialog"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ ThingV2DeleteDialog(l10n Localizer, viewModel ThingV2DeleteViewModel) {
+	@dialog.Dialog(dialog.Props{ID: "thing-v2-delete-dialog", Open: true}) {
+		@dialog.Content(dialog.ContentProps{
+			Class:           "max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
+			HideCloseButton: true,
+		}) {
+			<form
+				action={ fmt.Sprintf("/components/things-v2/%s/delete?tenant=%s", viewModel.ThingID, viewModel.Tenant) }
+				method="post"
+				class="flex flex-col"
+				hx-post={ fmt.Sprintf("/components/things-v2/%s/delete?tenant=%s", viewModel.ThingID, viewModel.Tenant) }
+				hx-target="#thing-v2-dialog-container"
+				hx-swap="innerHTML"
+			>
+				<div class="border-b border-border/60 px-6 py-5">
+					<h2 class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("delete") } { viewModel.Name }</h2>
+				</div>
+				<div class="grid gap-3 px-6 py-6 text-sm text-foreground">
+					if viewModel.ErrorMessage != "" {
+						<div class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+							{ viewModel.ErrorMessage }
+						</div>
+					}
+					<div>{ l10n.Get("deletethingconfirm") } { viewModel.Name } { l10n.Get("deletethinginformation") }</div>
+				</div>
+				<div class="flex items-center justify-end gap-3 border-t border-border/60 px-6 py-5">
+					@dialog.Close(dialog.CloseProps{For: "thing-v2-delete-dialog"}) {
+						@button.Button(button.Props{
+							Variant: button.VariantOutline,
+							Class:   "rounded-xl px-4",
+						}) {
+							@icon.X(icon.Props{Class: "size-4"})
+							{ l10n.Get("cancel") }
+						}
+					}
+					@button.Button(button.Props{
+						Type:    button.TypeSubmit,
+						Variant: button.VariantDestructive,
+						Class:   "rounded-xl px-4",
+					}) {
+						@icon.Trash2(icon.Props{Class: "size-4"})
+						{ l10n.Get("delete") }
+					}
+				</div>
+			</form>
+		}
+	}
+}
