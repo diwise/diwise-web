@@ -14,6 +14,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application/client"
+	"github.com/diwise/diwise-web/internal/application/devices"
+	appthings "github.com/diwise/diwise-web/internal/application/things"
 	appthingsv2 "github.com/diwise/diwise-web/internal/application/thingsv2"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
@@ -27,6 +29,8 @@ import (
 
 type thingsV2App interface {
 	ThingsV2() *appthingsv2.Service
+	GetValidSensors(ctx context.Context, urns []string, search string) ([]appthings.SensorIdentifier, error)
+	GetDevice(ctx context.Context, id string) (devices.Device, error)
 }
 
 func NewThingsV2Page(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingsV2App) http.HandlerFunc {

@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/diwise/diwise-web/internal/application/client"
+	"github.com/diwise/diwise-web/internal/application/devices"
+	appthings "github.com/diwise/diwise-web/internal/application/things"
 	appthingsv2 "github.com/diwise/diwise-web/internal/application/thingsv2"
 	frontendtoolkit "github.com/diwise/frontend-toolkit"
 	ftkmock "github.com/diwise/frontend-toolkit/mock"
@@ -22,6 +24,17 @@ type testThingsV2App struct {
 }
 
 func (a *testThingsV2App) ThingsV2() *appthingsv2.Service { return a.svc }
+
+func (a *testThingsV2App) GetValidSensors(_ context.Context, _ []string, _ string) ([]appthings.SensorIdentifier, error) {
+	return []appthings.SensorIdentifier{
+		{DeviceID: "milesight:80", Name: "Tunnsensor 80"},
+		{DeviceID: "milesight:79", Name: "Tunnsensor 79"},
+	}, nil
+}
+
+func (a *testThingsV2App) GetDevice(_ context.Context, id string) (devices.Device, error) {
+	return devices.Device{DeviceID: id, Name: "Namn " + id}, nil
+}
 
 func testLocaleBundle() *ftkmock.LocaleBundleMock {
 	return &ftkmock.LocaleBundleMock{
@@ -93,7 +106,11 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 	mux.HandleFunc("/catalog/templates", func(w http.ResponseWriter, r *http.Request) {
 		specs := []appthingsv2.TemplateSpec{
 			{Template: appthingsv2.Template{ID: "wastebin", Version: "v1", Category: "container", DisplayName: "Avfallskärl",
-				Required: []string{"distance", "level", "fillRate"}},
+				Required: []string{"distance", "level", "fillRate"},
+				PropertyDefs: map[string]appthingsv2.PropertyDef{
+					"distance": {DisplayName: "Avstånd", Signals: []appthingsv2.SignalHint{{Object: "urn:oma:lwm2m:ext:3330", Resource: "5700"}}},
+					"level":    {DisplayName: "Nivå"},
+				}},
 				ParamDefaults: map[string]float64{"sensorToBottom": 1.5},
 				Overridable:   []string{"sensorToBottom"},
 				ParamInfo: map[string]appthingsv2.ParamDef{
@@ -212,6 +229,22 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 		_ = json.NewEncoder(w).Encode(appthingsv2.Thing{ThingID: r.PathValue("id"), Tenant: "t1", Revision: 4})
 	})
 	mux.HandleFunc("/things/{id}/bindings", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPut {
+			if r.Header.Get("If-Match") == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			var body struct {
+				Bindings []appthingsv2.Binding `json:"bindings"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(appthingsv2.Thing{ThingID: r.PathValue("id"), Tenant: "t1", Revision: 3})
+			return
+		}
 		response := map[string][]appthingsv2.Binding{"bindings": {
 			{DeviceID: "milesight:79", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
 		}}
