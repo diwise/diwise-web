@@ -60,7 +60,7 @@ func (s *Service) ListThings(ctx context.Context, tenant string, f Filter) (Resu
 	ctx, span := tracer.Start(ctx, "list-things-v2")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
-	body, header, err := s.client.GetRaw(ctx, s.baseURL, "", s.params(tenant, f))
+	body, header, err := s.client.GetRaw(ctx, s.baseURL, "things", s.params(tenant, f))
 	if err != nil {
 		return Result{}, err
 	}
@@ -77,7 +77,7 @@ func (s *Service) ListThingsAcrossTenants(ctx context.Context, f Filter) (Result
 	ctx, span := tracer.Start(ctx, "list-things-v2-across-tenants")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
-	body, header, err := s.client.GetRaw(ctx, s.baseURL, "", s.params("", f))
+	body, header, err := s.client.GetRaw(ctx, s.baseURL, "things", s.params("", f))
 	if err != nil {
 		return Result{}, err
 	}

@@ -37,7 +37,11 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 	t.Helper()
 
 	mux := http.NewServeMux()
+	// Speglar riktiga servern: listan ligger på /things, roten ger 404.
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+	mux.HandleFunc("/things", func(w http.ResponseWriter, r *http.Request) {
 		things := []appthingsv2.Thing{
 			{
 				ThingID: "bin-1", Tenant: "t1", Name: "Tunna",

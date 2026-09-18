@@ -17,7 +17,11 @@ func stubV2(t *testing.T) *httptest.Server {
 	mux := http.NewServeMux()
 	// Bas-URL:en innehåller /api/v1-prefixet i drift; stubben svarar på
 	// samma relativa paths som klienten anropar ("", "{id}", "catalog/...").
+	// Speglar riktiga servern: listan ligger på /things, roten ger 404.
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+	mux.HandleFunc("/things", func(w http.ResponseWriter, r *http.Request) {
 		tenant := r.URL.Query().Get("tenant")
 		if tenant == "nope" {
 			w.WriteHeader(http.StatusUnauthorized)
