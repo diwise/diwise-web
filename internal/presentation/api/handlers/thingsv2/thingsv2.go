@@ -261,7 +261,14 @@ func NewThingsV2DetailsPage(ctx context.Context, l10n LocaleBundle, assets Asset
 			return
 		}
 
-		content := featuresthingsv2.ThingV2DetailsPage(localizer, toDetailsViewModel(thing))
+		// Kopplingar är inte kritiska för sidan: äldre servrar saknar
+		// endpointen, då visas sektionen som tom i stället för 500.
+		bindings, err := app.ThingsV2().GetBindings(ctx, tenant, id)
+		if err != nil {
+			bindings = nil
+		}
+
+		content := featuresthingsv2.ThingV2DetailsPage(localizer, toDetailsViewModel(thing, bindings))
 		page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 		if helpers.IsHxRequest(r) {
 			page = v2layout.AppShell(localizer, assets, content)
@@ -289,7 +296,7 @@ func resolveDetailsTenant(r *http.Request) (string, error) {
 	return "", errors.New("ambiguous tenant")
 }
 
-func toDetailsViewModel(thing appthingsv2.Thing) featuresthingsv2.ThingV2DetailsViewModel {
+func toDetailsViewModel(thing appthingsv2.Thing, bindings []appthingsv2.Binding) featuresthingsv2.ThingV2DetailsViewModel {
 	model := featuresthingsv2.ThingV2DetailsViewModel{
 		Thing:           toViewModel(thing),
 		Values:          make([]featuresthingsv2.ThingV2ValueViewModel, 0, len(thing.Values)),
@@ -299,6 +306,21 @@ func toDetailsViewModel(thing appthingsv2.Thing) featuresthingsv2.ThingV2Details
 		VariantVersion:  thing.VariantVersion,
 		Revision:        thing.Revision,
 	}
+
+	for _, binding := range bindings {
+		model.ConnectedSensors = append(model.ConnectedSensors, featuresthingsv2.ConnectedSensorViewModel{
+			DeviceID: binding.DeviceID,
+			Input:    binding.Input,
+			Object:   binding.Object,
+			Resource: binding.Resource,
+		})
+	}
+	sort.Slice(model.ConnectedSensors, func(i, j int) bool {
+		if model.ConnectedSensors[i].DeviceID != model.ConnectedSensors[j].DeviceID {
+			return model.ConnectedSensors[i].DeviceID < model.ConnectedSensors[j].DeviceID
+		}
+		return model.ConnectedSensors[i].Input < model.ConnectedSensors[j].Input
+	})
 
 	for id, value := range thing.Values {
 		item := featuresthingsv2.ThingV2ValueViewModel{

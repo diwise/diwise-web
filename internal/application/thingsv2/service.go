@@ -195,3 +195,31 @@ func (s *Service) GetHistory(ctx context.Context, tenant, id, property string, f
 
 	return points, nil
 }
+
+// GetBindings reads a thing's sensor bindings (device signals feeding
+// its calculation inputs).
+func (s *Service) GetBindings(ctx context.Context, tenant, id string) ([]Binding, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-bindings-v2")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	params := url.Values{}
+	params.Add("tenant", tenant)
+
+	body, _, err := s.client.GetRaw(ctx, s.baseURL, "things/"+id+"/bindings", params)
+	if err != nil {
+		return nil, err
+	}
+
+	var response struct {
+		Bindings []Binding `json:"bindings"`
+	}
+	if err = json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to decode bindings: %w", err)
+	}
+	if response.Bindings == nil {
+		response.Bindings = []Binding{}
+	}
+
+	return response.Bindings, nil
+}

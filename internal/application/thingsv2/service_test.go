@@ -81,6 +81,17 @@ func stubV2(t *testing.T) *httptest.Server {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(points)
 	})
+	mux.HandleFunc("/things/{id}/bindings", func(w http.ResponseWriter, r *http.Request) {
+		if r.PathValue("id") == "missing" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		response := map[string][]Binding{"bindings": {
+			{DeviceID: "milesight:79", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
+		}}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(response)
+	})
 	mux.HandleFunc("/catalog/templates", func(w http.ResponseWriter, r *http.Request) {
 		specs := []TemplateSpec{
 			{Template: Template{ID: "wastebin", Version: "v1", Category: "container", DisplayName: "Soptunna"}},
@@ -220,4 +231,28 @@ func TestGetHistoryEmptyForUnknownProperty(t *testing.T) {
 	points, err := svc.GetHistory(context.Background(), "t1", "bin-1", "missing", time.Time{}, time.Time{}, 0)
 	is.NoErr(err)
 	is.Equal(0, len(points))
+}
+
+func TestGetBindingsParsesDeviceSignals(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	bindings, err := svc.GetBindings(context.Background(), "t1", "bin-1")
+	is.NoErr(err)
+	is.Equal(1, len(bindings))
+	is.Equal("milesight:79", bindings[0].DeviceID)
+	is.Equal("distance", bindings[0].Input)
+	is.Equal("urn:oma:lwm2m:ext:3330", bindings[0].Object)
+	is.Equal("5700", bindings[0].Resource)
+}
+
+func TestGetBindingsNotFound(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	_, err := svc.GetBindings(context.Background(), "t1", "missing")
+	is.True(err != nil)
+	is.True(errors.Is(err, client.ErrNotFound))
 }

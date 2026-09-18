@@ -65,11 +65,21 @@ type MetadataItem struct {
 	Value string
 }
 
+// ConnectedSensorViewModel är en sensorkoppling: enhetssignal till
+// beräkningsingång, sorterad på enhet sedan ingång.
+type ConnectedSensorViewModel struct {
+	DeviceID string
+	Input    string
+	Object   string
+	Resource string
+}
+
 // ThingV2DetailsViewModel är detaljsidan för /things-v2/{id}.
 type ThingV2DetailsViewModel struct {
 	Thing                  ThingV2ViewModel
 	Values                 []ThingV2ValueViewModel
 	Metadata               []MetadataItem
+	ConnectedSensors       []ConnectedSensorViewModel
 	TemplateVersion        string
 	VariantID              string
 	VariantVersion         string

@@ -93,6 +93,13 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(thing)
 	})
+	mux.HandleFunc("/things/{id}/bindings", func(w http.ResponseWriter, r *http.Request) {
+		response := map[string][]appthingsv2.Binding{"bindings": {
+			{DeviceID: "milesight:79", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
+		}}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(response)
+	})
 	mux.HandleFunc("/things/{id}/history", func(w http.ResponseWriter, r *http.Request) {
 		points := []appthingsv2.HistoryPoint{
 			{PropertyID: "fillRate", ObservedAt: time.Date(2026, 9, 18, 10, 0, 0, 0, time.UTC), Value: ptr(42.0), Quality: "ok"},
@@ -247,6 +254,8 @@ func TestThingsV2DetailsPageRendersValuesAndMetadata(t *testing.T) {
 	is.True(strings.Contains(body, "42 %"))
 	is.True(strings.Contains(body, "WasteContainer"))
 	is.True(strings.Contains(body, `role="progressbar"`))
+	is.True(strings.Contains(body, "milesight:79"))
+	is.True(strings.Contains(body, "/sensors/milesight:79"))
 }
 
 func TestThingsV2DetailsPageReturns404ForUnknownThing(t *testing.T) {
@@ -296,6 +305,9 @@ func TestToDetailsViewModelSortsValuesAndMetadata(t *testing.T) {
 			"distance": {PropertyID: "distance"},
 		},
 		Metadata: map[string]string{"b": "2", "a": "1"},
+	}, []appthingsv2.Binding{
+		{DeviceID: "milesight:79", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
+		{DeviceID: "milesight:12", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
 	})
 
 	is.Equal(2, len(model.Values))
@@ -306,6 +318,9 @@ func TestToDetailsViewModelSortsValuesAndMetadata(t *testing.T) {
 	is.Equal(2, len(model.Metadata))
 	is.Equal("a", model.Metadata[0].Key)
 	is.Equal(int64(2), model.Revision)
+	is.Equal(2, len(model.ConnectedSensors))
+	is.Equal("milesight:12", model.ConnectedSensors[0].DeviceID)
+	is.Equal("distance", model.ConnectedSensors[0].Input)
 }
 
 func TestThingsV2HistoryComponentRendersChart(t *testing.T) {

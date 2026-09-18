@@ -27,7 +27,7 @@ templ ThingV2HistorySection(l10n Localizer, model ThingV2DetailsViewModel) {
 		l10n.Get("statistics"),
 		icon.Icon("chart-column")(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="flex flex-col gap-6 py-6 px-8">
+		<div class="flex min-w-0 flex-col gap-5 p-4 sm:p-6">
 			if len(model.HistoryProperties) == 0 {
 				<div class="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
 					{ l10n.Get("missingdata") }
@@ -35,15 +35,17 @@ templ ThingV2HistorySection(l10n Localizer, model ThingV2DetailsViewModel) {
 			} else {
 				<form
 					id="thing-v2-history-form"
-					class="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center"
+					class="flex flex-col gap-4 rounded-xl border border-border bg-muted/30 p-4 sm:flex-row sm:flex-wrap sm:items-end"
 					hx-get={ fmt.Sprintf("/components/things-v2/%s/history", model.Thing.ID) }
 					hx-target="#thingV2HistoryContent"
 					hx-trigger="change"
 				>
 					<input type="hidden" name="tenant" value={ model.Tenant }/>
 					<div class="flex flex-col gap-2 lg:w-52 lg:shrink-0">
+						<label for="history-v2-property-trigger" class="text-sm font-medium text-foreground">{ l10n.Get("measurementtype") }</label>
 						@selectbox.SelectBox(selectbox.Props{ID: "history-v2-property"}) {
 							@selectbox.Trigger(selectbox.TriggerProps{
+								ID:                "history-v2-property-trigger",
 								Name:              "property",
 								SelectedCountText: l10n.Get("selecteditemcount"),
 								Class:             shared.FilterTriggerClass(),
@@ -69,8 +71,10 @@ templ ThingV2HistorySection(l10n Localizer, model ThingV2DetailsViewModel) {
 						}
 					</div>
 					<div class="flex flex-col gap-2 lg:w-52 lg:shrink-0">
+						<label for="history-v2-span-trigger" class="text-sm font-medium text-foreground">{ l10n.Get("timeinterval") }</label>
 						@selectbox.SelectBox(selectbox.Props{ID: "history-v2-span"}) {
 							@selectbox.Trigger(selectbox.TriggerProps{
+								ID:                "history-v2-span-trigger",
 								Name:              "span",
 								SelectedCountText: l10n.Get("selecteditemcount"),
 								Class:             shared.FilterTriggerClass(),
@@ -93,6 +97,7 @@ templ ThingV2HistorySection(l10n Localizer, model ThingV2DetailsViewModel) {
 				</form>
 				<div
 					id="thingV2HistoryContent"
+					class="min-w-0"
 					hx-get={ contentURL }
 					hx-trigger="load, diwise:themechange from:window"
 					hx-vals="js:{theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'}"
@@ -130,7 +135,7 @@ func historySpanKey(span string) string {
 }
 
 templ ThingV2HistoryContent(l10n Localizer, model ThingV2HistoryViewModel) {
-	<div class="flex flex-col gap-4">
+	<div class="flex min-w-0 flex-col gap-4">
 		if !model.HasData {
 			<div class="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
 				{ l10n.Get("missingdata") }
@@ -142,7 +147,7 @@ templ ThingV2HistoryContent(l10n Localizer, model ThingV2HistoryViewModel) {
 					<span class="text-muted-foreground"> ({ model.Unit })</span>
 				}
 			</div>
-			<div class="h-[420px] w-full">
+			<div class="h-[300px] w-full min-w-0 sm:h-[420px]">
 				@shared.AdvancedChart(shared.AdvancedChartProps{Config: model.Chart, Class: "h-full w-full"})
 			</div>
 		}

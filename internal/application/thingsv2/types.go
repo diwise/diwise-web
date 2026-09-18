@@ -97,3 +97,13 @@ type HistoryPoint struct {
 	Value      *float64  `json:"value,omitempty"`
 	Quality    string    `json:"quality,omitempty"`
 }
+
+// Binding connects a device signal (device, object, resource) to a
+// named calculation input. Empty channel matches all channels.
+type Binding struct {
+	DeviceID string `json:"deviceID"`
+	Channel  string `json:"channel,omitempty"`
+	Object   string `json:"object"`
+	Resource string `json:"resource"`
+	Input    string `json:"input"`
+}
