@@ -23,6 +23,17 @@ func stubV2(t *testing.T) *httptest.Server {
 		w.WriteHeader(http.StatusNotFound)
 	})
 	mux.HandleFunc("/things", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			var spec ObjectSpec
+			if err := json.NewDecoder(r.Body).Decode(&spec); err != nil || spec.ThingID == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+			_ = json.NewEncoder(w).Encode(Thing{ThingID: spec.ThingID, Tenant: "t1", Name: spec.Name, Revision: 1})
+			return
+		}
 		tenant := r.URL.Query().Get("tenant")
 		if tenant == "nope" {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -67,6 +78,28 @@ func stubV2(t *testing.T) *httptest.Server {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
+		switch r.Method {
+		case http.MethodPut:
+			if r.Header.Get("If-Match") == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			var spec ObjectSpec
+			if err := json.NewDecoder(r.Body).Decode(&spec); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(Thing{ThingID: r.PathValue("id"), Tenant: "t1", Name: spec.Name, Revision: 3})
+			return
+		case http.MethodDelete:
+			if r.PathValue("id") == "parent-1" {
+				w.WriteHeader(http.StatusConflict)
+				return
+			}
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(Thing{ThingID: r.PathValue("id"), Tenant: "t1"})
 	})
@@ -91,6 +124,32 @@ func stubV2(t *testing.T) *httptest.Server {
 		}}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(response)
+	})
+	mux.HandleFunc("/things/{id}/config", func(w http.ResponseWriter, r *http.Request) {
+		if r.PathValue("id") == "missing" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		config := EffectiveConfig{
+			ThingID: "bin-1", Name: "Tunna", TemplateID: "wastebin", TemplateVersion: "v1",
+			Bindings:     []Binding{{DeviceID: "milesight:79", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"}},
+			ParamValues:  map[string]float64{"sensorToBottom": 0.94},
+			ParamSources: map[string]string{"sensorToBottom": "thing"},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(config)
+	})
+	mux.HandleFunc("/things/{id}/overview", func(w http.ResponseWriter, r *http.Request) {
+		overview := Overview{Thing: Thing{ThingID: r.PathValue("id"), Tenant: "t1"}}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(overview)
+	})
+	mux.HandleFunc("/catalog/variants", func(w http.ResponseWriter, r *http.Request) {
+		specs := []VariantSpec{
+			{Variant: Variant{ID: "160L", Version: "v1", TemplateID: "wastebin", TemplateVersion: "v1"}},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(specs)
 	})
 	mux.HandleFunc("/catalog/templates", func(w http.ResponseWriter, r *http.Request) {
 		specs := []TemplateSpec{
@@ -278,4 +337,79 @@ func TestGetOverviewParsesThingAndChildren(t *testing.T) {
 	is.Equal("Tunna", overview.Thing.Name)
 	is.Equal(1, len(overview.Children))
 	is.Equal("room-1", overview.Children[0].ThingID)
+}
+
+func TestCreateThingPostsSpec(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	thing, err := svc.CreateThing(context.Background(), "t1", ObjectSpec{
+		ThingID: "bin-9", Name: "Tunna 9",
+		Location:        &Location{Type: "Point", Coordinates: json.RawMessage(`[17.3,62.39]`)},
+		TemplateID:      "wastebin",
+		TemplateVersion: "v1",
+	})
+	is.NoErr(err)
+	is.Equal("bin-9", thing.ThingID)
+	is.Equal("Tunna 9", thing.Name)
+	is.Equal(int64(1), thing.Revision)
+}
+
+func TestUpdateThingPutsSpecWithRevision(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	thing, err := svc.UpdateThing(context.Background(), "t1", "bin-1", ObjectSpec{
+		ThingID: "bin-1", Name: "Tunna ny",
+		Location:        &Location{Type: "Point", Coordinates: json.RawMessage(`[17.3,62.39]`)},
+		TemplateID:      "wastebin",
+		TemplateVersion: "v1",
+	}, 2)
+	is.NoErr(err)
+	is.Equal("Tunna ny", thing.Name)
+	is.Equal(int64(3), thing.Revision)
+}
+
+func TestDeleteThing(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	is.NoErr(svc.DeleteThing(context.Background(), "t1", "bin-1"))
+
+	err := svc.DeleteThing(context.Background(), "t1", "parent-1")
+	is.True(err != nil)
+	is.True(errors.Is(err, client.ErrConflict))
+}
+
+func TestGetConfigParsesEffectiveConfig(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	config, err := svc.GetConfig(context.Background(), "t1", "bin-1")
+	is.NoErr(err)
+	is.Equal("wastebin", config.TemplateID)
+	is.Equal(1, len(config.Bindings))
+	is.Equal("milesight:79", config.Bindings[0].DeviceID)
+	is.Equal(0.94, config.ParamValues["sensorToBottom"])
+	is.Equal("thing", config.ParamSources["sensorToBottom"])
+
+	_, err = svc.GetConfig(context.Background(), "t1", "missing")
+	is.True(err != nil)
+	is.True(errors.Is(err, client.ErrNotFound))
+}
+
+func TestListVariants(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	specs, err := svc.ListVariants(context.Background(), "t1")
+	is.NoErr(err)
+	is.Equal(1, len(specs))
+	is.Equal("160L", specs[0].Variant.ID)
+	is.Equal("wastebin", specs[0].Variant.TemplateID)
 }

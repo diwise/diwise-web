@@ -248,3 +248,119 @@ func (s *Service) GetOverview(ctx context.Context, tenant, id string) (Overview,
 
 	return overview, nil
 }
+
+// ListVariants lists published variant versions.
+func (s *Service) ListVariants(ctx context.Context, tenant string) ([]VariantSpec, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "list-variants-v2")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	params := url.Values{}
+	params.Add("tenant", tenant)
+
+	body, _, err := s.client.GetRaw(ctx, s.baseURL, "catalog/variants", params)
+	if err != nil {
+		return nil, err
+	}
+
+	var specs []VariantSpec
+	if err = json.Unmarshal(body, &specs); err != nil {
+		return nil, fmt.Errorf("failed to decode variants: %w", err)
+	}
+	if specs == nil {
+		specs = []VariantSpec{}
+	}
+
+	return specs, nil
+}
+
+// GetConfig reads a thing's stored effective config (edit round-trip base).
+func (s *Service) GetConfig(ctx context.Context, tenant, id string) (EffectiveConfig, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "get-config-v2")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	params := url.Values{}
+	params.Add("tenant", tenant)
+
+	body, _, err := s.client.GetRaw(ctx, s.baseURL, "things/"+id+"/config", params)
+	if err != nil {
+		return EffectiveConfig{}, err
+	}
+
+	var config EffectiveConfig
+	if err = json.Unmarshal(body, &config); err != nil {
+		return EffectiveConfig{}, fmt.Errorf("failed to decode config: %w", err)
+	}
+
+	return config, nil
+}
+
+// CreateThing creates a thing from an object spec.
+func (s *Service) CreateThing(ctx context.Context, tenant string, spec ObjectSpec) (Thing, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "create-thing-v2")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	params := url.Values{}
+	params.Add("tenant", tenant)
+
+	raw, err := json.Marshal(spec)
+	if err != nil {
+		return Thing{}, fmt.Errorf("failed to encode thing: %w", err)
+	}
+
+	body, _, err := s.client.WriteRaw(ctx, http.MethodPost, s.baseURL, "things", params, nil, raw)
+	if err != nil {
+		return Thing{}, err
+	}
+
+	var thing Thing
+	if err = json.Unmarshal(body, &thing); err != nil {
+		return Thing{}, fmt.Errorf("failed to decode thing: %w", err)
+	}
+
+	return thing, nil
+}
+
+// UpdateThing replaces a thing from an object spec (revision is the
+// config CAS stake; conflicts surface as client.ErrConflict).
+func (s *Service) UpdateThing(ctx context.Context, tenant, id string, spec ObjectSpec, revision int64) (Thing, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "update-thing-v2")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	params := url.Values{}
+	params.Add("tenant", tenant)
+
+	raw, err := json.Marshal(spec)
+	if err != nil {
+		return Thing{}, fmt.Errorf("failed to encode thing: %w", err)
+	}
+
+	body, _, err := s.client.WriteRaw(ctx, http.MethodPut, s.baseURL, "things/"+id, params,
+		map[string]string{"If-Match": fmt.Sprintf(`"rev-%d"`, revision)}, raw)
+	if err != nil {
+		return Thing{}, err
+	}
+
+	var thing Thing
+	if err = json.Unmarshal(body, &thing); err != nil {
+		return Thing{}, fmt.Errorf("failed to decode thing: %w", err)
+	}
+
+	return thing, nil
+}
+
+// DeleteThing deletes a thing (blocked with active children: ErrConflict).
+func (s *Service) DeleteThing(ctx context.Context, tenant, id string) error {
+	var err error
+	ctx, span := tracer.Start(ctx, "delete-thing-v2")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	params := url.Values{}
+	params.Add("tenant", tenant)
+
+	_, _, err = s.client.WriteRaw(ctx, http.MethodDelete, s.baseURL, "things/"+id, params, nil, nil)
+	return err
+}

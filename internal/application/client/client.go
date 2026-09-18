@@ -216,6 +216,77 @@ func (c *Client) GetRaw(ctx context.Context, baseURL, path string, params url.Va
 	return body, resp.Header, nil
 }
 
+// WriteRaw sends POST/PUT/DELETE with query params and extra headers
+// (e.g. If-Match), returning response body and header. 404/409 map to
+// ErrNotFound/ErrConflict like the other helpers.
+func (c *Client) WriteRaw(ctx context.Context, method, baseURL, path string, params url.Values, headers map[string]string, body []byte) ([]byte, http.Header, error) {
+	if strings.ContainsAny(path, "/") {
+		path = strings.TrimPrefix(path, "/")
+		path = strings.TrimSuffix(path, "/")
+	}
+
+	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("path", path))
+	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, path), "/"))
+	if err != nil {
+		log.Error("could not parse url", "error", err)
+		return nil, nil, fmt.Errorf("could not parse url: %s", err.Error())
+	}
+
+	u.RawQuery = params.Encode()
+	var reader *bytes.Reader
+	if body != nil {
+		reader = bytes.NewReader(body)
+	} else {
+		reader = bytes.NewReader(nil)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), reader)
+	if err != nil {
+		log.Error("could not create http request", "error", err)
+		return nil, nil, fmt.Errorf("failed to create http request: %w", err)
+	}
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	req.Header.Add("Content-Type", "application/json")
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		log.Error("could not send write request", "error", err)
+		return nil, nil, fmt.Errorf("failed to send write request: %s", err.Error())
+	}
+	defer resp.Body.Close()
+
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Error("could not read response body", "error", err)
+		return nil, nil, fmt.Errorf("failed to read response body: %s", err.Error())
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		log.Error("request failed with unauthorized status")
+		return nil, nil, errUnauthorized(ctx)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		return nil, nil, errForbidden(ctx)
+	}
+	if resp.StatusCode == http.StatusNotFound {
+		log.Error("request failed with not found status")
+		return nil, nil, fmt.Errorf("request failed: %w", ErrNotFound)
+	}
+	if resp.StatusCode == http.StatusConflict {
+		log.Error("request failed with conflict status")
+		return nil, nil, fmt.Errorf("request failed: %w", ErrConflict)
+	}
+	if resp.StatusCode >= http.StatusBadRequest {
+		log.Error("request failed with status code", "statusCode", resp.StatusCode, "responseBody", string(responseBody))
+		return nil, nil, fmt.Errorf("request failed: %d", resp.StatusCode)
+	}
+
+	return responseBody, resp.Header, nil
+}
+
 func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) error {
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("id", id))
 

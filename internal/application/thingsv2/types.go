@@ -69,7 +69,32 @@ type Template struct {
 
 // TemplateSpec wraps a template with parameters and recipes.
 type TemplateSpec struct {
-	Template Template `json:"template"`
+	Template      Template            `json:"template"`
+	ParamDefaults map[string]float64  `json:"paramDefaults,omitempty"`
+	Overridable   []string            `json:"overridable,omitempty"`
+	ParamInfo     map[string]ParamDef `json:"paramInfo,omitempty"`
+}
+
+// ParamDef documents a parameter (unit, description, range).
+type ParamDef struct {
+	Unit        string   `json:"unit,omitempty"`
+	Description string   `json:"description,omitempty"`
+	Min         *float64 `json:"min,omitempty"`
+	Max         *float64 `json:"max,omitempty"`
+}
+
+// Variant is a published variant version locked to a template version.
+type Variant struct {
+	ID              string             `json:"id"`
+	Version         string             `json:"version"`
+	TemplateID      string             `json:"templateId"`
+	TemplateVersion string             `json:"templateVersion"`
+	ParamValues     map[string]float64 `json:"paramValues,omitempty"`
+}
+
+// VariantSpec wraps a variant.
+type VariantSpec struct {
+	Variant Variant `json:"variant"`
 }
 
 // Filter selects things: exact matches plus case-insensitive name substring.
@@ -112,4 +137,59 @@ type Binding struct {
 type Overview struct {
 	Thing    Thing   `json:"thing"`
 	Children []Thing `json:"children,omitempty"`
+}
+
+// Property is a thing-level property definition (presentation fields).
+type Property struct {
+	ID          string `json:"id,omitempty"`
+	DisplayName string `json:"displayName,omitempty"`
+	DataType    string `json:"dataType,omitempty"`
+	Quantity    string `json:"quantity,omitempty"`
+	Unit        string `json:"unit,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
+// RelationRef points at another thing (partOf and friends).
+type RelationRef struct {
+	Name             string `json:"name"`
+	TargetThingID    string `json:"targetThingId"`
+	TargetTemplateID string `json:"targetTemplateId,omitempty"`
+}
+
+// ObjectSpec creates or replaces a thing. Template identity is fixed
+// after creation: changing template means delete + recreate.
+type ObjectSpec struct {
+	ThingID         string              `json:"thingId"`
+	Name            string              `json:"name"`
+	Category        string              `json:"category,omitempty"`
+	Location        *Location           `json:"location"`
+	Metadata        map[string]string   `json:"metadata,omitempty"`
+	TemplateID      string              `json:"templateId"`
+	TemplateVersion string              `json:"templateVersion"`
+	VariantID       string              `json:"variantId,omitempty"`
+	VariantVersion  string              `json:"variantVersion,omitempty"`
+	Properties      map[string]Property `json:"properties,omitempty"`
+	Bindings        []Binding           `json:"bindings,omitempty"`
+	ParamOverrides  map[string]float64  `json:"paramOverrides,omitempty"`
+	Relations       []RelationRef       `json:"relations,omitempty"`
+}
+
+// EffectiveConfig is the stored materialized configuration: version
+// references plus resolved values, origins and relations.
+type EffectiveConfig struct {
+	ThingID         string              `json:"thingId,omitempty"`
+	Name            string              `json:"name,omitempty"`
+	Category        string              `json:"category,omitempty"`
+	Location        *Location           `json:"location,omitempty"`
+	Metadata        map[string]string   `json:"metadata,omitempty"`
+	TemplateID      string              `json:"templateId"`
+	TemplateVersion string              `json:"templateVersion"`
+	VariantID       string              `json:"variantId,omitempty"`
+	VariantVersion  string              `json:"variantVersion,omitempty"`
+	Properties      map[string]Property `json:"properties,omitempty"`
+	Bindings        []Binding           `json:"bindings,omitempty"`
+	ParamValues     map[string]float64  `json:"paramValues,omitempty"`
+	ParamSources    map[string]string   `json:"paramSources,omitempty"`
+	PrimaryProperty string              `json:"primaryProperty,omitempty"`
+	Relations       []RelationRef       `json:"relations,omitempty"`
 }
