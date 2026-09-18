@@ -2,6 +2,7 @@ package thingsv2
 
 import (
 	"strconv"
+	"strings"
 
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
@@ -183,7 +184,38 @@ templ ThingV2CreatePage(l10n Localizer, viewModel ThingV2CreateViewModel) {
 					icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
 				) {
 					<div class="flex min-w-0 flex-col gap-4 p-4 sm:p-6">
-						<div class="grid gap-4 md:grid-cols-2">
+						<div class="flex flex-col gap-2">
+							<span class="text-sm font-medium text-foreground">{ l10n.Get("geometry") }</span>
+							<div class="flex flex-wrap gap-x-5 gap-y-2">
+								for _, kind := range viewModel.GeometryKinds {
+									<label class="inline-flex items-center gap-2 text-sm text-foreground">
+										<input
+											type="radio"
+											name="geometryMode"
+											value={ strings.ToLower(kind) }
+											checked?={ strings.EqualFold(viewModel.GeometryMode, kind) }
+										/>
+										if strings.EqualFold(kind, "Polygon") {
+											{ l10n.Get("geometrypolygon") }
+										} else {
+											{ l10n.Get("geometrypoint") }
+										}
+									</label>
+								}
+								if viewModel.AllowNoLocation {
+									<label class="inline-flex items-center gap-2 text-sm text-foreground">
+										<input
+											type="radio"
+											name="geometryMode"
+											value="none"
+											checked?={ viewModel.GeometryMode == "none" }
+										/>
+										{ l10n.Get("geometrynone") }
+									</label>
+								}
+							</div>
+						</div>
+						<div id="location-point-fields" class="grid gap-4 md:grid-cols-2" hidden?={ viewModel.GeometryMode != "point" }>
 							@shared.FormField(l10n.Get("latitude"), "latitude") {
 								@input.Input(input.Props{
 									ID:    "latitude",
@@ -213,8 +245,34 @@ templ ThingV2CreatePage(l10n Localizer, viewModel ThingV2CreateViewModel) {
 								})
 							}
 						</div>
+						<div id="location-polygon-tools" class="flex min-w-0 flex-col gap-2" hidden?={ viewModel.GeometryMode != "polygon" }>
+							<span class="text-sm text-muted-foreground">{ l10n.Get("geometrydrawhint") }</span>
+							<input type="hidden" id="geometry" name="geometry" value={ viewModel.GeometryJSON }/>
+							<div class="flex gap-3">
+								@button.Button(button.Props{
+									Type:    button.TypeButton,
+									Variant: button.VariantOutline,
+									Class:   "rounded-xl px-4",
+									Attributes: templ.Attributes{
+										"id": "geometry-undo",
+									},
+								}) {
+									{ l10n.Get("geometryundo") }
+								}
+								@button.Button(button.Props{
+									Type:    button.TypeButton,
+									Variant: button.VariantOutline,
+									Class:   "rounded-xl px-4",
+									Attributes: templ.Attributes{
+										"id": "geometry-clear",
+									},
+								}) {
+									{ l10n.Get("geometryclear") }
+								}
+							</div>
+						</div>
 						<div class="w-full overflow-hidden rounded-xl border border-border">
-							@ThingsV2EditMap(parseCoordinate(viewModel.Latitude), parseCoordinate(viewModel.Longitude))
+							@ThingsV2EditMap(parseCoordinate(viewModel.Latitude), parseCoordinate(viewModel.Longitude), viewModel.GeometryMode)
 						</div>
 					</div>
 				}

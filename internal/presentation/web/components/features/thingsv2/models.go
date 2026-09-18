@@ -119,7 +119,15 @@ type ThingV2CreateViewModel struct {
 	Description     string
 	Latitude        string
 	Longitude       string
-	ErrorMessage    string
+	// GeometryMode är vald geometri: "point", "polygon" eller "none".
+	GeometryMode string
+	// GeometryKinds är mallens tillåtna GeoJSON-typer ("Point"/"Polygon").
+	GeometryKinds []string
+	// AllowNoLocation visar om mallen tillåter saknad plats.
+	AllowNoLocation bool
+	// GeometryJSON är ritad polygon (rings-JSON) för dolt fält + karta.
+	GeometryJSON string
+	ErrorMessage string
 }
 
 // ThingV2EditViewModel är redigera-sidan för /things-v2/{id}?mode=edit.
@@ -138,7 +146,15 @@ type ThingV2EditViewModel struct {
 	Description     string
 	Latitude        string
 	Longitude       string
-	ErrorMessage    string
+	// GeometryMode är vald geometri: "point", "polygon" eller "none".
+	GeometryMode string
+	// GeometryKinds är mallens tillåtna GeoJSON-typer ("Point"/"Polygon").
+	GeometryKinds []string
+	// AllowNoLocation visar om mallen tillåter saknad plats.
+	AllowNoLocation bool
+	// GeometryJSON är ritad polygon (rings-JSON) för dolt fält + karta.
+	GeometryJSON string
+	ErrorMessage string
 }
 
 // ThingV2DeleteViewModel är raderingsdialogen för /things-v2/{id}.

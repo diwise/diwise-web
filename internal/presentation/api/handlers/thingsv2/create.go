@@ -219,6 +219,10 @@ func composeCreateModel(ctx context.Context, r *http.Request, app thingsV2App, t
 	model.Description = submittedValue(submitted, "description")
 	model.Latitude = submittedValue(submitted, "latitude")
 	model.Longitude = submittedValue(submitted, "longitude")
+	model.GeometryKinds = effectiveGeometryKinds(spec.Template.AllowedGeometries)
+	model.GeometryMode = resolveGeometryMode(submitted, nil, spec.Template.AllowedGeometries, spec.Template.AllowNoLocation)
+	model.GeometryJSON = resolveGeometryJSON(submitted, nil)
+	model.AllowNoLocation = spec.Template.AllowNoLocation
 
 	return model, nil
 }
@@ -240,6 +244,100 @@ func submittedOrStored(submitted map[string][]string, key, stored string) string
 		return values[0]
 	}
 	return stored
+}
+
+// effectiveGeometryKinds normaliserar mallens lista (tom = punkt + polygon).
+func effectiveGeometryKinds(kinds []string) []string {
+	if len(kinds) == 0 {
+		return []string{"Point", "Polygon"}
+	}
+	return kinds
+}
+
+// geometryKindAllowed speglar serverns default: tom lista = punkt + polygon.
+func geometryKindAllowed(kinds []string, kind string) bool {
+	if len(kinds) == 0 {
+		return strings.EqualFold(kind, "Point") || strings.EqualFold(kind, "Polygon")
+	}
+	for _, k := range kinds {
+		if strings.EqualFold(k, kind) {
+			return true
+		}
+	}
+	return false
+}
+
+// resolveGeometryMode väljer geometriläge: inskickat giltigt val vinner,
+// annars lagrad plats, annars ingen plats (om tillåtet) eller första tillåtna.
+func resolveGeometryMode(submitted map[string][]string, stored *appthingsv2.Location, kinds []string, allowNone bool) string {
+	switch strings.TrimSpace(submittedValue(submitted, "geometryMode")) {
+	case "polygon":
+		if geometryKindAllowed(kinds, "Polygon") {
+			return "polygon"
+		}
+	case "none":
+		if allowNone {
+			return "none"
+		}
+	case "point":
+		if geometryKindAllowed(kinds, "Point") {
+			return "point"
+		}
+	}
+	if stored != nil && geometryKindAllowed(kinds, stored.Type) {
+		if strings.EqualFold(stored.Type, "Polygon") {
+			return "polygon"
+		}
+		return "point"
+	}
+	if stored == nil && allowNone {
+		return "none"
+	}
+	if geometryKindAllowed(kinds, "Point") {
+		return "point"
+	}
+	if geometryKindAllowed(kinds, "Polygon") {
+		return "polygon"
+	}
+	return "point"
+}
+
+// resolveGeometryJSON ekar inskickad polygon, annars lagrad polygon.
+func resolveGeometryJSON(submitted map[string][]string, stored *appthingsv2.Location) string {
+	if raw := strings.TrimSpace(submittedValue(submitted, "geometry")); raw != "" {
+		return raw
+	}
+	if stored != nil && strings.EqualFold(stored.Type, "Polygon") && len(stored.Coordinates) > 0 {
+		return string(stored.Coordinates)
+	}
+	return ""
+}
+
+// parseLocationInput bygger plats från formuläret: polygon (geometryMode
+// polygon + geometry-JSON), ingen plats (geometryMode none) eller punkt
+// (lat/long, tomt ger nil). Servern avgör mot mallens regler.
+func parseLocationInput(r *http.Request) (*appthingsv2.Location, string) {
+	switch strings.TrimSpace(r.Form.Get("geometryMode")) {
+	case "polygon":
+		return parsePolygonGeometry(r.Form.Get("geometry"))
+	case "none":
+		return nil, ""
+	default:
+		return parseOptionalLocation(r.Form.Get("latitude"), r.Form.Get("longitude"))
+	}
+}
+
+// parsePolygonGeometry validerar ritad polygon ytligt (servern validerar strikt).
+func parsePolygonGeometry(raw string) (*appthingsv2.Location, string) {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return nil, "polygon needs at least 3 points"
+	}
+	var rings [][][]float64
+	if err := json.Unmarshal([]byte(trimmed), &rings); err != nil || len(rings) == 0 {
+		return nil, "invalid polygon geometry"
+	}
+	return &appthingsv2.Location{Type: "Polygon", Coordinates: json.RawMessage(trimmed)}, ""
 }
 
 // parseOptionalLocation bygger plats eller nil när båda fälten är tomma.
@@ -285,7 +383,7 @@ func buildCreateSpec(ctx context.Context, app thingsV2App, r *http.Request) (app
 	if name == "" {
 		return appthingsv2.ObjectSpec{}, "", "name is required"
 	}
-	location, locFail := parseOptionalLocation(r.Form.Get("latitude"), r.Form.Get("longitude"))
+	location, locFail := parseLocationInput(r)
 	if locFail != "" {
 		return appthingsv2.ObjectSpec{}, "", locFail
 	}

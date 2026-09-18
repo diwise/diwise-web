@@ -175,6 +175,27 @@ other = "Funktioner"
 [graph]
 other = "Graf"
 
+[geometry]
+other = "Geometri"
+
+[geometryclear]
+other = "Rensa"
+
+[geometrydrawhint]
+other = "Klicka i kartan för att lägga till hörn. Minst tre hörn krävs."
+
+[geometrynone]
+other = "Ingen plats"
+
+[geometrypoint]
+other = "Punkt"
+
+[geometrypolygon]
+other = "Polygon"
+
+[geometryundo]
+other = "Ångra hörn"
+
 [home]
 other = "Hem"
 

@@ -175,6 +175,27 @@ other = "Functions"
 [graph]
 other = "Graph"
 
+[geometry]
+other = "Geometry"
+
+[geometryclear]
+other = "Clear"
+
+[geometrydrawhint]
+other = "Click the map to add corners. At least three corners are required."
+
+[geometrynone]
+other = "No location"
+
+[geometrypoint]
+other = "Point"
+
+[geometrypolygon]
+other = "Polygon"
+
+[geometryundo]
+other = "Undo corner"
+
 [home]
 other = "Home"
 

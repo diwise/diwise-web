@@ -57,14 +57,19 @@ type Thing struct {
 
 // Template is a published template version (GUI: dropdowns + form building).
 type Template struct {
-	ID              string                 `json:"id"`
-	Version         string                 `json:"version"`
-	Category        string                 `json:"category,omitempty"`
-	DisplayName     string                 `json:"displayName,omitempty"`
-	Description     string                 `json:"description,omitempty"`
-	PrimaryProperty string                 `json:"primaryProperty,omitempty"`
-	Required        []string               `json:"required,omitempty"`
-	Optional        []string               `json:"optional,omitempty"`
+	ID              string   `json:"id"`
+	Version         string   `json:"version"`
+	Category        string   `json:"category,omitempty"`
+	DisplayName     string   `json:"displayName,omitempty"`
+	Description     string   `json:"description,omitempty"`
+	PrimaryProperty string   `json:"primaryProperty,omitempty"`
+	Required        []string `json:"required,omitempty"`
+	Optional        []string `json:"optional,omitempty"`
+	// AllowedGeometries styr vilka GeoJSON-typer platsen får ha.
+	// Tomt = punkt + polygon (serverns default).
+	AllowedGeometries []string `json:"allowedGeometries,omitempty"`
+	// AllowNoLocation tillåter saker utan plats.
+	AllowNoLocation bool                   `json:"allowNoLocation,omitempty"`
 	Relations       []RelationSpec         `json:"relations,omitempty"`
 	PropertyDefs    map[string]PropertyDef `json:"propertyDefs,omitempty"`
 }

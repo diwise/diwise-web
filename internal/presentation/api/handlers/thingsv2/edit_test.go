@@ -132,6 +132,20 @@ func TestComposeEditModelKeepsClearedCoordinates(t *testing.T) {
 	is.Equal("", model.Longitude)
 }
 
+func TestComposeEditModelResolvesPointMode(t *testing.T) {
+	is := is.New(t)
+
+	svc, done := stubThingsV2(t)
+	defer done()
+	app := &testThingsV2App{svc: svc}
+
+	req := httptest.NewRequest(http.MethodGet, "/things-v2/bin-1?tenant=t1&mode=edit", nil)
+	model, err := composeEditModel(context.Background(), req, app, "bin-1", nil, "")
+	is.NoErr(err)
+	is.Equal("point", model.GeometryMode)
+	is.Equal("", model.GeometryJSON)
+}
+
 func TestThingsV2SavePageIgnoresSmuggledTemplate(t *testing.T) {
 	is := is.New(t)
 

@@ -35,13 +35,17 @@ func ThingsV2DetailsMap(l10n Localizer, thing ThingV2ViewModel) templ.Component 
 // ThingsV2EditMap visar en flyttbar markör för formulär: befintlig plats
 // markeras (0,0 = ingen markör, klick sätter ny). Delade kartans editmode
 // skriver tillbaka till #latitude/#longitude vid drag och klick.
-func ThingsV2EditMap(latitude, longitude float64) templ.Component {
-	mapData := shared.NewMapData(latitude, longitude)
-	features := make([]shared.Feature, 0, 1)
+// geometryMode (point/polygon/none) exponeras via data-geometry-mode för
+// polygonritning; ritad polygon läses från dolda #geometry-fältet.
+templ ThingsV2EditMap(latitude, longitude float64, geometryMode string) {
+	{{ mapData := shared.NewMapData(latitude, longitude) }}
+	{{ features := make([]shared.Feature, 0, 1) }}
 	if latitude != 0 || longitude != 0 {
-		features = append(features, shared.NewFeature(shared.NewPoint(latitude, longitude)))
+		{{ features = append(features, shared.NewFeature(shared.NewPoint(latitude, longitude))) }}
 	}
-	return shared.Map("medium", false, true, mapData, shared.NewFeatureCollection(features))
+	<div data-geometry-mode={ geometryMode }>
+		@shared.Map("medium", false, true, mapData, shared.NewFeatureCollection(features))
+	</div>
 }
 
 func thingsV2ToMapFeature(l10n Localizer, things []ThingV2ViewModel) shared.FeatureCollection {

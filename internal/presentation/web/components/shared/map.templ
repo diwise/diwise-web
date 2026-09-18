@@ -152,7 +152,118 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             
             map.on('click', onMapClick);
 
+            // Polygonritning för sakformulär (things-v2): aktiv endast när
+            // formuläret har geometrival (input[name="geometryMode"]).
+            // Klick lägger till hörn, dolt #geometry-fält bär stängd ring
+            // som [[[lon,lat],...]], tomt vid färre än tre hörn.
+            const geometryRadios = document.querySelectorAll('input[name="geometryMode"]');
+            const drawActive = editMode && geometryRadios.length > 0;
+            const geometryField = drawActive ? document.getElementById('geometry') : null;
+            const geometryHolder = m.closest('[data-geometry-mode]');
+            let drawMode = geometryHolder ? (geometryHolder.getAttribute('data-geometry-mode') || 'point') : 'point';
+            let drawVertices = [];
+            const drawLayer = drawActive ? Leaflet.layerGroup().addTo(map) : null;
+
+            function round6(n) { return Math.round(n * 1e6) / 1e6; }
+
+            function readGeometryField() {
+                if (!geometryField || !geometryField.value) { return null; }
+                try {
+                    const rings = JSON.parse(geometryField.value);
+                    if (!Array.isArray(rings) || rings.length === 0 || !Array.isArray(rings[0])) { return null; }
+                    const pts = rings[0].filter(p => Array.isArray(p) && p.length >= 2 && isFinite(p[0]) && isFinite(p[1]));
+                    if (pts.length < 3) { return null; }
+                    return pts;
+                } catch (e) { return null; }
+            }
+
+            function writeGeometryField() {
+                if (!geometryField) { return; }
+                if (drawVertices.length < 3) { geometryField.value = ''; }
+                else {
+                    const ring = drawVertices.map(v => [round6(v.lng), round6(v.lat)]);
+                    ring.push(ring[0].slice());
+                    geometryField.value = JSON.stringify([ring]);
+                }
+                redrawDrawLayer(false);
+            }
+
+            function redrawDrawLayer(fit) {
+                if (!drawActive) { return; }
+                drawLayer.clearLayers();
+                drawVertices.forEach(v => {
+                    Leaflet.circleMarker(v, { radius: 5, interactive: false }).addTo(drawLayer);
+                });
+                if (drawVertices.length >= 3) {
+                    const poly = Leaflet.polygon(drawVertices);
+                    poly.addTo(drawLayer);
+                    if (fit) { try { map.fitBounds(poly.getBounds()); } catch (e) {} }
+                }
+                syncDrawVisibility();
+            }
+
+            function syncDrawVisibility() {
+                if (!drawActive) { return; }
+                if (drawMode === 'polygon') {
+                    if (!map.hasLayer(drawLayer)) { drawLayer.addTo(map); }
+                    map.doubleClickZoom.disable();
+                } else {
+                    if (map.hasLayer(drawLayer)) { map.removeLayer(drawLayer); }
+                    map.doubleClickZoom.enable();
+                }
+                if (newMarker) {
+                    if (drawMode === 'point') {
+                        if (!map.hasLayer(newMarker)) { newMarker.addTo(map); }
+                    } else if (map.hasLayer(newMarker)) {
+                        map.removeLayer(newMarker);
+                    }
+                }
+                const pointFields = document.getElementById('location-point-fields');
+                if (pointFields) { pointFields.hidden = drawMode !== 'point'; }
+                const polygonTools = document.getElementById('location-polygon-tools');
+                if (polygonTools) { polygonTools.hidden = drawMode !== 'polygon'; }
+            }
+
+            function setDrawMode(mode) {
+                drawMode = mode;
+                if (geometryHolder) { geometryHolder.setAttribute('data-geometry-mode', mode); }
+                syncDrawVisibility();
+            }
+
+            if (drawActive) {
+                const initial = readGeometryField();
+                if (initial) {
+                    // Släng avslutningsdubletten (ringen lagras stängd).
+                    const first = initial[0], last = initial[initial.length - 1];
+                    const closed = initial.length > 1 && first[0] === last[0] && first[1] === last[1];
+                    const open = closed ? initial.slice(0, -1) : initial;
+                    drawVertices = open.map(p => Leaflet.latLng(p[1], p[0]));
+                    redrawDrawLayer(true);
+                }
+                syncDrawVisibility();
+                geometryRadios.forEach(r => {
+                    r.addEventListener('change', function() {
+                        if (r.checked) { setDrawMode(r.value); }
+                    });
+                });
+                const undoBtn = document.getElementById('geometry-undo');
+                if (undoBtn) { undoBtn.addEventListener('click', function() { drawVertices.pop(); writeGeometryField(); }); }
+                const clearBtn = document.getElementById('geometry-clear');
+                if (clearBtn) { clearBtn.addEventListener('click', function() { drawVertices = []; writeGeometryField(); }); }
+            }
+
             function onMapClick(e) {
+                if (drawActive) {
+                    if (drawMode === 'polygon') {
+                        // Ignorera oavsiktliga dubbelklick (samma hörn två gånger).
+                        const prev = drawVertices[drawVertices.length - 1];
+                        if (!prev || Math.abs(prev.lat - e.latlng.lat) > 1e-7 || Math.abs(prev.lng - e.latlng.lng) > 1e-7) {
+                            drawVertices.push(e.latlng);
+                            writeGeometryField();
+                        }
+                    }
+                    return;
+                }
                 if (editMode) {
                     let latitude = document.getElementById('latitude');
                     let longitude = document.getElementById('longitude');  

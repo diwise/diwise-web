@@ -169,6 +169,10 @@ func composeEditModel(ctx context.Context, r *http.Request, app thingsV2App, id 
 	model.Description = description
 	model.Latitude = submittedOrStored(submitted, "latitude", formatEditCoordinate(config.Location, true))
 	model.Longitude = submittedOrStored(submitted, "longitude", formatEditCoordinate(config.Location, false))
+	model.GeometryKinds = effectiveGeometryKinds(spec.Template.AllowedGeometries)
+	model.GeometryMode = resolveGeometryMode(submitted, config.Location, spec.Template.AllowedGeometries, spec.Template.AllowNoLocation)
+	model.GeometryJSON = resolveGeometryJSON(submitted, config.Location)
+	model.AllowNoLocation = spec.Template.AllowNoLocation
 
 	if raw := submittedValue(submitted, "revision"); raw != "" {
 		if revision, err := strconv.ParseInt(raw, 10, 64); err == nil {
@@ -204,7 +208,7 @@ func buildEditSpec(ctx context.Context, app thingsV2App, r *http.Request, id str
 	if name == "" {
 		return appthingsv2.ObjectSpec{}, "", 0, "name is required"
 	}
-	location, locFail := parseOptionalLocation(r.Form.Get("latitude"), r.Form.Get("longitude"))
+	location, locFail := parseLocationInput(r)
 	if locFail != "" {
 		return appthingsv2.ObjectSpec{}, "", 0, locFail
 	}
