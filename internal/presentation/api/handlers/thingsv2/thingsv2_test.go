@@ -43,6 +43,17 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 		w.WriteHeader(http.StatusNotFound)
 	})
 	mux.HandleFunc("/things", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			var spec appthingsv2.ObjectSpec
+			if err := json.NewDecoder(r.Body).Decode(&spec); err != nil || spec.ThingID == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+			_ = json.NewEncoder(w).Encode(appthingsv2.Thing{ThingID: spec.ThingID, Tenant: "t1", Name: spec.Name, Revision: 1})
+			return
+		}
 		things := []appthingsv2.Thing{
 			{
 				ThingID: "bin-1", Tenant: "t1", Name: "Tunna",
@@ -68,8 +79,21 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 	})
 	mux.HandleFunc("/catalog/templates", func(w http.ResponseWriter, r *http.Request) {
 		specs := []appthingsv2.TemplateSpec{
-			{Template: appthingsv2.Template{ID: "wastebin", Version: "v1", Category: "container", DisplayName: "Avfallskärl"}},
+			{Template: appthingsv2.Template{ID: "wastebin", Version: "v1", Category: "container", DisplayName: "Avfallskärl"},
+				ParamDefaults: map[string]float64{"sensorToBottom": 1.5},
+				Overridable:   []string{"sensorToBottom"},
+				ParamInfo: map[string]appthingsv2.ParamDef{
+					"sensorToBottom": {Unit: "m", Description: "Avstånd sensor till botten", Min: ptr(0), Max: ptr(5)},
+				}},
 			{Template: appthingsv2.Template{ID: "room", Version: "v1", Category: "room", DisplayName: "Rum"}},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(specs)
+	})
+	mux.HandleFunc("/catalog/variants", func(w http.ResponseWriter, r *http.Request) {
+		specs := []appthingsv2.VariantSpec{
+			{Variant: appthingsv2.Variant{ID: "160L", Version: "v1", TemplateID: "wastebin", TemplateVersion: "v1",
+				ParamValues: map[string]float64{"usableHeight": 0.79}}},
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(specs)

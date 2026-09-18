@@ -89,3 +89,33 @@ type ThingV2DetailsViewModel struct {
 	HistoryProperties      []featuresthings.TypeOption
 	DefaultHistoryProperty string
 }
+
+// ParamFieldViewModel är ett överstyrbart parameterfält i skapa/redigera.
+type ParamFieldViewModel struct {
+	Name       string
+	Label      string
+	Unit       string
+	Min        *float64
+	Max        *float64
+	Default    float64
+	HasDefault bool
+	Value      string
+}
+
+// ThingV2CreateViewModel är skapa-sidan för /things-v2/new.
+type ThingV2CreateViewModel struct {
+	Tenants         []string
+	Tenant          string
+	Templates       []featuresthings.TypeOption
+	Template        string
+	TemplateDisplay string
+	Variants        []featuresthings.TypeOption
+	Variant         string
+	Params          []ParamFieldViewModel
+	ThingID         string
+	Name            string
+	Description     string
+	Latitude        string
+	Longitude       string
+	ErrorMessage    string
+}

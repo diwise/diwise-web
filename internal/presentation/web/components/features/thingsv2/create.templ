@@ -1,0 +1,301 @@
+package thingsv2
+
+import (
+	"fmt"
+	"strconv"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/input"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/selectbox"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ ThingV2CreatePage(l10n Localizer, viewModel ThingV2CreateViewModel) {
+	<div id="thing-v2-new" class="mx-auto flex w-full min-w-0 max-w-screen-2xl flex-col gap-6 md:gap-8">
+		<div class="flex flex-col gap-4">
+			<a
+				href="/things-v2"
+				hx-get="/things-v2"
+				hx-target="#app-shell"
+				hx-swap="outerHTML"
+				hx-replace-url="true"
+				class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+			>
+				<span aria-hidden="true">←</span>
+				<span>{ l10n.Get("thingsv2") }</span>
+			</a>
+			<h1 class="text-2xl font-bold font-heading tracking-tight text-foreground sm:text-3xl">{ l10n.Get("new") } { l10n.Get("thingsv2") }</h1>
+		</div>
+		if viewModel.ErrorMessage != "" {
+			<div class="rounded-2xl border border-red-600/40 bg-red-600/10 px-4 py-3 text-sm text-foreground" role="alert">
+				{ viewModel.ErrorMessage }
+			</div>
+		}
+		<form
+			id="thing-v2-new-picker"
+			class="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end"
+			hx-get="/things-v2/new"
+			hx-target="#app-shell"
+			hx-swap="outerHTML"
+			hx-replace-url="true"
+			hx-trigger="change"
+		>
+			if len(viewModel.Tenants) > 1 {
+				<div class="flex flex-col gap-2 sm:w-52 sm:shrink-0">
+					<label for="new-tenant-trigger" class="text-sm font-medium text-foreground">{ l10n.Get("tenant") }</label>
+					@selectbox.SelectBox(selectbox.Props{ID: "new-tenant"}) {
+						@selectbox.Trigger(selectbox.TriggerProps{
+							ID:                "new-tenant-trigger",
+							Name:              "tenant",
+							SelectedCountText: l10n.Get("selecteditemcount"),
+							Class:             shared.FilterTriggerClass(),
+						}) {
+							@selectbox.Value(selectbox.ValueProps{
+								Placeholder: l10n.Get("tenant"),
+								Class:       shared.FilterTriggerValueClass(viewModel.Tenant != ""),
+							})
+						}
+						@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
+							@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+								for _, tenant := range viewModel.Tenants {
+									@selectbox.Item(selectbox.ItemProps{
+										Value:    tenant,
+										Selected: tenant == viewModel.Tenant,
+										Class:    shared.FilterDropdownItemClass(tenant == viewModel.Tenant),
+									}) {
+										{ tenant }
+									}
+								}
+							}
+						}
+					}
+				</div>
+			} else {
+				<input type="hidden" name="tenant" value={ viewModel.Tenant }/>
+			}
+			<div class="flex flex-col gap-2 sm:w-64 sm:shrink-0">
+				<label for="new-template-trigger" class="text-sm font-medium text-foreground">{ l10n.Get("template") }</label>
+				@selectbox.SelectBox(selectbox.Props{ID: "new-template"}) {
+					@selectbox.Trigger(selectbox.TriggerProps{
+						ID:                "new-template-trigger",
+						Name:              "template",
+						SelectedCountText: l10n.Get("selecteditemcount"),
+						Class:             shared.FilterTriggerClass(),
+					}) {
+						@selectbox.Value(selectbox.ValueProps{
+							Placeholder: l10n.Get("template"),
+							Class:       shared.FilterTriggerValueClass(viewModel.Template != ""),
+						})
+					}
+					@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass()}) {
+						@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+							for _, option := range viewModel.Templates {
+								@selectbox.Item(selectbox.ItemProps{
+									Value:    option.Value,
+									Selected: option.Value == viewModel.Template,
+									Class:    shared.FilterDropdownItemClass(option.Value == viewModel.Template),
+								}) {
+									{ option.Label }
+								}
+							}
+						}
+					}
+				}
+			</div>
+		</form>
+		if viewModel.Template != "" {
+			<form
+				id="thing-v2-new-form"
+				class="flex min-w-0 flex-col gap-6"
+				hx-post="/things-v2/new"
+				hx-target="#app-shell"
+				hx-swap="outerHTML"
+			>
+				<input type="hidden" name="tenant" value={ viewModel.Tenant }/>
+				<input type="hidden" name="template" value={ viewModel.Template }/>
+				@shared.DetailSectionCard(viewModel.TemplateDisplay, icon.Shapes(icon.Props{Size: 24, Class: "text-foreground"})) {
+					<div class="grid min-w-0 grid-cols-1 gap-4 p-4 sm:p-6 md:grid-cols-2">
+						@shared.FormField(l10n.Get("thingid"), "new-thingid") {
+							@input.Input(input.Props{
+								ID:          "new-thingid",
+								Name:        "thingId",
+								Type:        input.TypeText,
+								Value:       viewModel.ThingID,
+								Placeholder: "tunna-1",
+								Class:       "h-10 rounded-xl bg-background",
+							})
+						}
+						@shared.FormField(l10n.Get("name"), "new-name") {
+							@input.Input(input.Props{
+								ID:    "new-name",
+								Name:  "name",
+								Type:  input.TypeText,
+								Value: viewModel.Name,
+								Class: "h-10 rounded-xl bg-background",
+							})
+						}
+						<div class="md:col-span-2">
+							@shared.FormField(l10n.Get("description"), "new-description") {
+								@input.Input(input.Props{
+									ID:    "new-description",
+									Name:  "description",
+									Type:  input.TypeText,
+									Value: viewModel.Description,
+									Class: "h-10 rounded-xl bg-background",
+								})
+							}
+						</div>
+						if len(viewModel.Variants) > 0 {
+							<div class="flex flex-col gap-2 md:col-span-2 lg:w-64 lg:shrink-0">
+								<label for="new-variant-trigger" class="text-sm font-medium text-foreground">{ l10n.Get("variant") }</label>
+								@selectbox.SelectBox(selectbox.Props{ID: "new-variant"}) {
+									@selectbox.Trigger(selectbox.TriggerProps{
+										ID:                "new-variant-trigger",
+										Name:              "variant",
+										SelectedCountText: l10n.Get("selecteditemcount"),
+										Class:             shared.FilterTriggerClass(),
+									}) {
+										@selectbox.Value(selectbox.ValueProps{
+											Placeholder: l10n.Get("variant"),
+											Class:       shared.FilterTriggerValueClass(viewModel.Variant != ""),
+										})
+									}
+									@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
+										@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+											for _, option := range viewModel.Variants {
+												@selectbox.Item(selectbox.ItemProps{
+													Value:    option.Value,
+													Selected: option.Value == viewModel.Variant,
+													Class:    shared.FilterDropdownItemClass(option.Value == viewModel.Variant),
+												}) {
+													{ option.Label }
+												}
+											}
+										}
+									}
+								}
+							</div>
+						}
+						for _, param := range viewModel.Params {
+							<div class="flex flex-col gap-2">
+								@shared.FormField(paramFieldLabel(param), "new-param-"+param.Name) {
+									@input.Input(input.Props{
+										ID:    "new-param-" + param.Name,
+										Name:  "param." + param.Name,
+										Type:  input.TypeNumber,
+										Value: paramFieldValue(param),
+										Class: "h-10 rounded-xl bg-background",
+										Attributes: paramFieldAttributes(param),
+									})
+								}
+								if param.Label != "" && param.Label != param.Name {
+									<p class="text-sm text-muted-foreground">{ param.Label }</p>
+								}
+							</div>
+						}
+					</div>
+				}
+				@shared.DetailSectionCard(
+					l10n.Get("location"),
+					icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
+				) {
+					<div class="flex min-w-0 flex-col gap-4 p-4 sm:p-6">
+						<div class="grid gap-4 md:grid-cols-2">
+							@shared.FormField(l10n.Get("latitude"), "latitude") {
+								@input.Input(input.Props{
+									ID:    "latitude",
+									Name:  "latitude",
+									Type:  input.TypeNumber,
+									Value: viewModel.Latitude,
+									Class: "h-10 rounded-xl bg-background",
+									Attributes: templ.Attributes{
+										"min":  "-90",
+										"max":  "90",
+										"step": "0.000001",
+									},
+								})
+							}
+							@shared.FormField(l10n.Get("longitude"), "longitude") {
+								@input.Input(input.Props{
+									ID:    "longitude",
+									Name:  "longitude",
+									Type:  input.TypeNumber,
+									Value: viewModel.Longitude,
+									Class: "h-10 rounded-xl bg-background",
+									Attributes: templ.Attributes{
+										"min":  "-180",
+										"max":  "180",
+										"step": "0.000001",
+									},
+								})
+							}
+						</div>
+						<div class="w-full overflow-hidden rounded-xl border border-border">
+							@shared.Map("medium", false, true, shared.NewMapData(parseCoordinate(viewModel.Latitude), parseCoordinate(viewModel.Longitude)))
+						</div>
+					</div>
+				}
+				<div class="flex flex-col gap-3 sm:flex-row">
+					@button.Button(button.Props{
+						Variant: button.VariantDefault,
+						Type:    button.TypeSubmit,
+						Class:   "rounded-xl px-6",
+					}) {
+						{ l10n.Get("create") }
+					}
+					@button.Button(button.Props{
+						Href:    "/things-v2",
+						Variant: button.VariantOutline,
+						Class:   "rounded-xl px-6",
+						Attributes: templ.Attributes{
+							"hx-get":         "/things-v2",
+							"hx-target":      "#app-shell",
+							"hx-swap":        "outerHTML",
+							"hx-replace-url": "true",
+						},
+					}) {
+						{ l10n.Get("cancel") }
+					}
+				</div>
+			</form>
+		}
+	</div>
+}
+
+func paramFieldLabel(param ParamFieldViewModel) string {
+	if param.Unit != "" {
+		return fmt.Sprintf("%s (%s)", param.Name, param.Unit)
+	}
+	return param.Name
+}
+
+func paramFieldValue(param ParamFieldViewModel) string {
+	if param.Value != "" {
+		return param.Value
+	}
+	if param.HasDefault {
+		return strconv.FormatFloat(param.Default, 'f', -1, 64)
+	}
+	return ""
+}
+
+func paramFieldAttributes(param ParamFieldViewModel) templ.Attributes {
+	attrs := templ.Attributes{"step": "any"}
+	if param.Min != nil {
+		attrs["min"] = strconv.FormatFloat(*param.Min, 'f', -1, 64)
+	}
+	if param.Max != nil {
+		attrs["max"] = strconv.FormatFloat(*param.Max, 'f', -1, 64)
+	}
+	return attrs
+}
+
+func parseCoordinate(value string) float64 {
+	parsed, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return 0
+	}
+	return parsed
+}

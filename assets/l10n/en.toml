@@ -73,6 +73,12 @@ other = "Building"
 [cancel]
 other = "Cancel"
 
+[create]
+other = "Create"
+
+[new]
+other = "New"
+
 [category]
 other = "Category"
 
@@ -300,6 +306,12 @@ other = "More information"
 
 [name]
 other = "Name"
+
+[thingid]
+other = "Thing ID"
+
+[tenant]
+other = "Tenant"
 
 [no]
 other = "No"

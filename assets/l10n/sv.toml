@@ -73,6 +73,12 @@ other = "Byggnad"
 [cancel]
 other = "Avbryt"
 
+[create]
+other = "Skapa"
+
+[new]
+other = "Ny"
+
 [category]
 other = "Kategori"
 
@@ -300,6 +306,12 @@ other = "Mer information"
 
 [name]
 other = "Namn"
+
+[thingid]
+other = "Sak-ID"
+
+[tenant]
+other = "Tenant"
 
 [no]
 other = "Nej"

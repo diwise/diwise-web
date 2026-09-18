@@ -2,14 +2,28 @@ package thingsv2
 
 import (
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
 	. "github.com/diwise/frontend-toolkit"
 )
 
 templ ThingsV2Page(l10n Localizer, viewModel ThingsV2PageViewModel) {
 	<div class="mx-auto flex w-full min-w-0 max-w-screen-2xl flex-col gap-6 md:gap-8">
-		<header class="border-b border-border pb-6">
+		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
 			@shared.SectionHeading(l10n.Get("thingsv2"), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+			@button.Button(button.Props{
+				Href:    "/things-v2/new",
+				Variant: button.VariantDefault,
+				Class:   "w-fit shrink-0 rounded-xl px-4 whitespace-nowrap",
+				Attributes: templ.Attributes{
+					"hx-get":         "/things-v2/new",
+					"hx-target":      "#app-shell",
+					"hx-swap":        "outerHTML",
+					"hx-replace-url": "true",
+				},
+			}) {
+				{ l10n.Get("new") }
+			}
 		</header>
 		<section class="flex min-w-0 flex-col gap-6">
 			@Filters(l10n, viewModel)
