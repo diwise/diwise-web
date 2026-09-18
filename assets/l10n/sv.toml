@@ -268,6 +268,9 @@ other = "Mätvärde"
 [measurementvalues]
 other = "Mätvärden"
 
+[metadata]
+other = "Metadata"
+
 [missing]
 other = "Saknas"
 
@@ -319,6 +322,9 @@ other = "Antal sensorer"
 [observationinterval]
 other = "Observationsintervall"
 
+[observed]
+other = "Observerad"
+
 [occupied]
 other = "Upptagen"
 
@@ -343,8 +349,14 @@ other = "Föregående"
 [primary]
 other = "Huvudvärde"
 
+[quality]
+other = "Kvalitet"
+
 [next]
 other = "Nästa"
+
+[revision]
+other = "Revision"
 
 [recentalarms]
 other = "Senaste larmen och statusforandringarna fran sensorer"
@@ -540,6 +552,12 @@ other = "Okänd"
 
 [unknownsensors]
 other = "Okända sensorer"
+
+[values]
+other = "Värden"
+
+[variant]
+other = "Variant"
 
 [water]
 other = "Vatten"

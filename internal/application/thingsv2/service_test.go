@@ -61,7 +61,7 @@ func stubV2(t *testing.T) *httptest.Server {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(things)
 	})
-	mux.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/things/{id}", func(w http.ResponseWriter, r *http.Request) {
 		if r.PathValue("id") == "missing" {
 			w.WriteHeader(http.StatusNotFound)
 			return

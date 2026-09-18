@@ -3,14 +3,18 @@ package thingsv2
 import (
 	"cmp"
 	"context"
+	"errors"
 	"math"
 	"net/http"
 	"slices"
+	"sort"
 	"strconv"
 	"strings"
 
 	"github.com/a-h/templ"
+	"github.com/diwise/diwise-web/internal/application/client"
 	appthingsv2 "github.com/diwise/diwise-web/internal/application/thingsv2"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	featuresthings "github.com/diwise/diwise-web/internal/presentation/web/components/features/things"
 	featuresthingsv2 "github.com/diwise/diwise-web/internal/presentation/web/components/features/thingsv2"
@@ -220,4 +224,104 @@ func toViewModel(thing appthingsv2.Thing) featuresthingsv2.ThingV2ViewModel {
 	}
 
 	return viewModel
+}
+
+func NewThingsV2DetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app thingsV2App) http.HandlerFunc {
+	version := helpers.GetVersion(ctx)
+
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue("id")
+		if id == "" {
+			http.Error(w, "no id found in url", http.StatusBadRequest)
+			return
+		}
+
+		ctx := helpers.Decorate(
+			r.Context(),
+			v2layout.CurrentComponent, "things-v2",
+		)
+
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+
+		tenant, err := resolveDetailsTenant(r)
+		if err != nil {
+			http.Error(w, "tenant is required", http.StatusBadRequest)
+			return
+		}
+
+		thing, err := app.ThingsV2().GetThing(ctx, tenant, id)
+		if err != nil {
+			if errors.Is(err, client.ErrNotFound) {
+				http.Error(w, "thing not found", http.StatusNotFound)
+				return
+			}
+			http.Error(w, "could not fetch thing", http.StatusInternalServerError)
+			return
+		}
+
+		content := featuresthingsv2.ThingV2DetailsPage(localizer, toDetailsViewModel(thing))
+		page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
+		if helpers.IsHxRequest(r) {
+			page = v2layout.AppShell(localizer, assets, content)
+		}
+
+		helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, 0)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+// resolveDetailsTenant väljer tenant för en sakläsning: explicit
+// ?tenant= vinner, annars den enda token-auktoriserade tenanten.
+func resolveDetailsTenant(r *http.Request) (string, error) {
+	if tenant := strings.TrimSpace(r.URL.Query().Get("tenant")); tenant != "" {
+		return tenant, nil
+	}
+
+	// Routen är redan skyddad med things.read; här räcker tokenens tenants.
+	tenants := auth.GetTenantsWithAllowedScopes(r.Context(), auth.AnyScope)
+	if len(tenants) == 1 {
+		return tenants[0], nil
+	}
+
+	return "", errors.New("ambiguous tenant")
+}
+
+func toDetailsViewModel(thing appthingsv2.Thing) featuresthingsv2.ThingV2DetailsViewModel {
+	model := featuresthingsv2.ThingV2DetailsViewModel{
+		Thing:           toViewModel(thing),
+		Values:          make([]featuresthingsv2.ThingV2ValueViewModel, 0, len(thing.Values)),
+		Metadata:        make([]featuresthingsv2.MetadataItem, 0, len(thing.Metadata)),
+		TemplateVersion: thing.TemplateVersion,
+		VariantID:       thing.VariantID,
+		VariantVersion:  thing.VariantVersion,
+		Revision:        thing.Revision,
+	}
+
+	for id, value := range thing.Values {
+		item := featuresthingsv2.ThingV2ValueViewModel{
+			PropertyID: id,
+			Label:      value.DisplayName,
+			Unit:       value.Unit,
+			Quality:    value.Quality,
+			ObservedAt: value.ObservedAt,
+		}
+		if value.Value != nil {
+			item.HasValue = true
+			item.Value = *value.Value
+		}
+		model.Values = append(model.Values, item)
+	}
+	sort.Slice(model.Values, func(i, j int) bool {
+		return model.Values[i].PropertyID < model.Values[j].PropertyID
+	})
+
+	for key, value := range thing.Metadata {
+		model.Metadata = append(model.Metadata, featuresthingsv2.MetadataItem{Key: key, Value: value})
+	}
+	sort.Slice(model.Metadata, func(i, j int) bool {
+		return model.Metadata[i].Key < model.Metadata[j].Key
+	})
+
+	return model
 }

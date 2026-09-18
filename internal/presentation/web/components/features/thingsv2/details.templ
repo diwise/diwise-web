@@ -1,0 +1,201 @@
+package thingsv2
+
+import (
+	"fmt"
+	"strings"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/table"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ ThingV2DetailsPage(l10n Localizer, model ThingV2DetailsViewModel) {
+	<div id="thing-v2-view" class="flex flex-col gap-8">
+		<div class="flex flex-col gap-4">
+			<a
+				href="/things-v2"
+				hx-get="/things-v2"
+				hx-target="#app-shell"
+				hx-swap="outerHTML"
+				hx-replace-url="true"
+				class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+			>
+				<span aria-hidden="true">←</span>
+				<span>{ l10n.Get("thingsv2") }</span>
+			</a>
+			<div class="min-w-0">
+				<h1 class="text-3xl font-bold font-heading text-foreground">{ displayThingV2Name(model.Thing) }</h1>
+				<p class="text-sm text-muted-foreground">{ model.Thing.Category } · { model.Thing.Tenant }</p>
+			</div>
+		</div>
+		@ThingV2DetailsValuesSection(l10n, model)
+		<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
+			<div class="flex flex-1 flex-col gap-8">
+				@ThingV2DetailsPropertiesSection(l10n, model)
+				if len(model.Metadata) > 0 {
+					@ThingV2DetailsMetadataSection(l10n, model)
+				}
+			</div>
+			@shared.ColumnDivider()
+			<div class="flex w-full flex-1 flex-col gap-8">
+				@ThingV2DetailsLocationSection(l10n, model)
+			</div>
+		</div>
+	</div>
+}
+
+templ ThingV2DetailsValuesSection(l10n Localizer, model ThingV2DetailsViewModel) {
+	@shared.DetailSectionCard(
+		l10n.Get("values"),
+		icon.Gauge(icon.Props{Size: 24, Class: "text-foreground"}),
+	) {
+		<div class="flex flex-col gap-4 py-6 px-8 text-foreground">
+			@ThingV2StatusCell(l10n, model.Thing)
+			@table.Table(table.Props{Class: "min-w-[640px]"}) {
+				@table.Header() {
+					@table.Row() {
+						@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
+						@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("primary") } }
+						@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("quality") } }
+						@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("observed") } }
+					}
+				}
+				@table.Body() {
+					if len(model.Values) == 0 {
+						@table.Row() {
+							@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "4"}}) {
+								{ l10n.Get("missing") }
+							}
+						}
+					} else {
+						for _, value := range model.Values {
+							@table.Row() {
+								@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+									{ displayV2ValueLabel(value) }
+								}
+								@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+									{ formatV2Value(value) }
+								}
+								@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+									{ fallbackV2Text(value.Quality) }
+								}
+								@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+									{ formatV2ObservedAt(value) }
+								}
+							}
+						}
+					}
+				}
+			}
+		</div>
+	}
+}
+
+templ ThingV2DetailsPropertiesSection(l10n Localizer, model ThingV2DetailsViewModel) {
+	@shared.DetailSectionCard(
+		l10n.Get("details"),
+		icon.Info(icon.Props{Size: 24, Class: "text-foreground"}),
+	) {
+		<div class="flex flex-col gap-4 py-6 px-8 text-foreground">
+			@shared.DetailList(thingV2DetailItems(l10n, model))
+		</div>
+	}
+}
+
+templ ThingV2DetailsMetadataSection(l10n Localizer, model ThingV2DetailsViewModel) {
+	@shared.DetailSectionCard(
+		l10n.Get("metadata"),
+		icon.Tags(icon.Props{Size: 24, Class: "text-foreground"}),
+	) {
+		<div class="flex flex-col gap-4 py-6 px-8 text-foreground">
+			@shared.DetailList(thingV2MetadataItems(model))
+		</div>
+	}
+}
+
+templ ThingV2DetailsLocationSection(l10n Localizer, model ThingV2DetailsViewModel) {
+	@shared.DetailSectionCard(
+		l10n.Get("location"),
+		icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
+	) {
+		<div class="flex w-full flex-col gap-6 py-6 px-8 text-foreground">
+			if model.Thing.HasLocation {
+				@shared.DetailList([]shared.DetailListItem{
+					{Label: l10n.Get("latitude"), Value: formatCoordinate(model.Thing.Latitude)},
+					{Label: l10n.Get("longitude"), Value: formatCoordinate(model.Thing.Longitude)},
+				})
+			}
+			if model.Thing.HasLocation || model.Thing.HasGeometry {
+				<div class="w-full overflow-hidden rounded-2xl">
+					@ThingsV2DetailsMap(l10n, model.Thing)
+				</div>
+			} else {
+				<div class="italic text-muted-foreground">
+					{ l10n.Get("missing") }
+				</div>
+			}
+		</div>
+	}
+}
+
+func thingV2DetailItems(l10n Localizer, model ThingV2DetailsViewModel) []shared.DetailListItem {
+	items := []shared.DetailListItem{
+		{Label: l10n.Get("template"), Value: model.Thing.TemplateID + " " + model.TemplateVersion},
+		{Label: l10n.Get("category"), Value: fallbackV2Text(model.Thing.Category)},
+		{Label: l10n.Get("organisation"), Value: fallbackV2Text(model.Thing.Tenant)},
+		{Label: l10n.Get("revision"), Value: fmt.Sprintf("%d", model.Revision)},
+	}
+	if strings.TrimSpace(model.VariantID) != "" {
+		version := strings.TrimSpace(model.VariantVersion)
+		value := model.VariantID
+		if version != "" {
+			value += " " + version
+		}
+		items = append(items, shared.DetailListItem{Label: l10n.Get("variant"), Value: value})
+	}
+	return items
+}
+
+func thingV2MetadataItems(model ThingV2DetailsViewModel) []shared.DetailListItem {
+	items := make([]shared.DetailListItem, 0, len(model.Metadata))
+	for _, item := range model.Metadata {
+		items = append(items, shared.DetailListItem{Label: item.Key, Value: fallbackV2Text(item.Value)})
+	}
+	return items
+}
+
+func displayV2ValueLabel(value ThingV2ValueViewModel) string {
+	if strings.TrimSpace(value.Label) != "" {
+		return value.Label
+	}
+	return value.PropertyID
+}
+
+func formatV2Value(value ThingV2ValueViewModel) string {
+	if !value.HasValue {
+		return "-"
+	}
+	if value.Unit != "" {
+		return fmt.Sprintf("%g %s", value.Value, value.Unit)
+	}
+	return fmt.Sprintf("%g", value.Value)
+}
+
+func formatV2ObservedAt(value ThingV2ValueViewModel) string {
+	if value.ObservedAt.IsZero() {
+		return "-"
+	}
+	return value.ObservedAt.Format("2006-01-02 15:04")
+}
+
+func fallbackV2Text(value string) string {
+	if strings.TrimSpace(value) == "" {
+		return "-"
+	}
+	return value
+}
+
+func formatCoordinate(value float64) string {
+	return fmt.Sprintf("%.6f", value)
+}

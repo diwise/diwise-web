@@ -67,7 +67,12 @@ templ ThingsV2TableSection(l10n Localizer, viewModel ThingsV2PageViewModel) {
 }
 
 templ ThingV2Row(l10n Localizer, thing ThingV2ViewModel) {
-	@table.Row(table.RowProps{}) {
+	@shared.ClickableTableRow(shared.ClickableTableRowProps{
+		Href:    fmt.Sprintf("/things-v2/%s", thing.ID),
+		Target:  "#app-shell",
+		Swap:    "outerHTML",
+		Replace: true,
+	}) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			<span class="font-bold text-foreground">
 				if strings.TrimSpace(thing.Name) != "" {

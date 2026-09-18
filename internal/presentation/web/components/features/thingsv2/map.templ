@@ -17,6 +17,21 @@ func ThingsV2Map(l10n Localizer, model ThingsV2PageViewModel) templ.Component {
 	return shared.Map("large", true, false, mapData, thingsV2ToMapFeature(l10n, model.Things))
 }
 
+// ThingsV2DetailsMap visar en sak utan popup: punkt centrerad, polygon
+// via bounds-anpassning från delade kartan.
+func ThingsV2DetailsMap(l10n Localizer, thing ThingV2ViewModel) templ.Component {
+	if !thing.HasLocation && !thing.HasGeometry {
+		return templ.NopComponent
+	}
+
+	mapData := shared.NewMapData(0, 0)
+	if thing.HasLocation {
+		mapData = shared.NewMapData(thing.Latitude, thing.Longitude)
+	}
+	mapData.CurrentView = "thing-v2"
+	return shared.Map("medium", false, false, mapData, thingsV2ToMapFeature(l10n, []ThingV2ViewModel{thing}))
+}
+
 func thingsV2ToMapFeature(l10n Localizer, things []ThingV2ViewModel) shared.FeatureCollection {
 	features := make([]shared.Feature, 0, len(things))
 

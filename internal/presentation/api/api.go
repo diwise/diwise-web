@@ -424,6 +424,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /components/things/list", protect(ReadThings, RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app))))
 
 	r.Handle("GET /things-v2", protectFunc(ReadThings, thingsv2.NewThingsV2Page(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /things-v2/{id}", protectFunc(ReadThings, thingsv2.NewThingsV2DetailsPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/things-v2/list", protect(ReadThings, RequireHX(thingsv2.NewThingsV2DataList(ctx, l10n, assetLoader.Load, app))))
 
 	r.Handle("GET /admin", protect(Admin, admin.NewAdminPage(ctx, l10n, assetLoader.Load, app)))

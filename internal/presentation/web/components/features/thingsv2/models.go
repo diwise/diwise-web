@@ -2,6 +2,7 @@ package thingsv2
 
 import (
 	"encoding/json"
+	"time"
 
 	featuresthings "github.com/diwise/diwise-web/internal/presentation/web/components/features/things"
 )
@@ -44,4 +45,33 @@ type FiltersViewModel struct {
 	SelectedTemplates  []string
 	Name               string
 	PageSize           int
+}
+
+// ThingV2ValueViewModel är ett aktuellt egenskapsvärde, sorterat på
+// PropertyID i vyn. Generiskt: inga typspecifika rader.
+type ThingV2ValueViewModel struct {
+	PropertyID string
+	Label      string
+	HasValue   bool
+	Value      float64
+	Unit       string
+	Quality    string
+	ObservedAt time.Time
+}
+
+// MetadataItem är en metadata-nyckel sorterad på Key.
+type MetadataItem struct {
+	Key   string
+	Value string
+}
+
+// ThingV2DetailsViewModel är detaljsidan för /things-v2/{id}.
+type ThingV2DetailsViewModel struct {
+	Thing           ThingV2ViewModel
+	Values          []ThingV2ValueViewModel
+	Metadata        []MetadataItem
+	TemplateVersion string
+	VariantID       string
+	VariantVersion  string
+	Revision        int64
 }

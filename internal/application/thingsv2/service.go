@@ -115,7 +115,7 @@ func (s *Service) GetThing(ctx context.Context, tenant, id string) (Thing, error
 	params := url.Values{}
 	params.Add("tenant", tenant)
 
-	body, _, err := s.client.GetRaw(ctx, s.baseURL, id, params)
+	body, _, err := s.client.GetRaw(ctx, s.baseURL, "things/"+id, params)
 	if err != nil {
 		return Thing{}, err
 	}
