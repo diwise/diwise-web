@@ -28,12 +28,13 @@ templ PageSizeControl(props PageSizeControlProps) {
 		}
 		hx-trigger="change"
 	>
-		<span class="shrink-0 text-sm font-medium text-muted-foreground">{ props.Label }:</span>
+		<label for={ props.FormID + "-select-trigger" } class="shrink-0 text-sm font-medium text-muted-foreground">{ props.Label }:</label>
 		@selectbox.SelectBox(selectbox.Props{
 			ID:    props.FormID + "-select",
 			Class: "page-size-selectbox",
 		}) {
 			@selectbox.Trigger(selectbox.TriggerProps{
+				ID:    props.FormID + "-select-trigger",
 				Name:  "limit",
 				Class: "h-9 min-w-[108px] justify-between rounded-xl bg-background px-3 text-left text-sm shadow-xs",
 			}) {

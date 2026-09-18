@@ -80,7 +80,7 @@ templ Content(props ...ContentProps) {
 		if p.ID != "" {
 			id={ p.ID }
 		}
-		class="flex flex-row items-center gap-1"
+		class={ utils.TwMerge("flex flex-row items-center gap-1", p.Class) }
 		{ p.Attributes... }
 	>
 		{ children... }
@@ -96,6 +96,7 @@ templ Item(props ...ItemProps) {
 		if p.ID != "" {
 			id={ p.ID }
 		}
+		class={ p.Class }
 		{ p.Attributes... }
 	>
 		{ children... }
@@ -119,13 +120,20 @@ templ Link(props ...LinkProps) {
 			{ children... }
 		}
 	} else {
+		{{ attrs := p.Attributes }}
+		if attrs == nil {
+			{{ attrs = templ.Attributes{} }}
+		}
+		if p.IsActive {
+			{{ attrs["aria-current"] = "page" }}
+		}
 		@button.Button(button.Props{
 			ID:         p.ID,
 			Href:       p.Href,
 			Size:       button.SizeIcon,
 			Variant:    button.Variant(buttonVariant(p.IsActive)),
 			Class:      p.Class,
-			Attributes: p.Attributes,
+			Attributes: attrs,
 		}) {
 			{ children... }
 		}

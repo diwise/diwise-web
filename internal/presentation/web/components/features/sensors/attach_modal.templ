@@ -15,6 +15,7 @@ templ AttachSensorDialog(l10n Localizer, _ AssetLoaderFunc, model AttachSensorDi
 		@dialog.Content(dialog.ContentProps{
 			Class:           "max-w-2xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
 			HideCloseButton: true,
+			TitleID:         "attach-sensor-title",
 		}) {
 			<form
 				id="attach-sensor-dialog-form"
@@ -26,14 +27,14 @@ templ AttachSensorDialog(l10n Localizer, _ AssetLoaderFunc, model AttachSensorDi
 				hx-swap="innerHTML"
 			>
 				<div class="border-b border-border/60 px-6 py-5">
-					<h2 class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("edit") } sensor</h2>
+					<h2 id="attach-sensor-title" class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("edit") } sensor</h2>
 					<div class="mt-1 text-sm text-muted-foreground">
 						Nuvarande: { currentSensorID(model) }
 					</div>
 				</div>
 				<div class="grid gap-6 px-6 py-6">
 					if model.ErrorMessage != "" {
-						<div class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+						<div role="alert" class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
 							{ model.ErrorMessage }
 						</div>
 					}
@@ -87,6 +88,7 @@ templ DetachSensorDialog(l10n Localizer, _ AssetLoaderFunc, model DetachSensorDi
 		@dialog.Content(dialog.ContentProps{
 			Class:           "max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
 			HideCloseButton: true,
+			TitleID:         "detach-sensor-title",
 		}) {
 			<form
 				action={ fmt.Sprintf("/components/sensors/%s/detach", model.DeviceID) }
@@ -97,11 +99,11 @@ templ DetachSensorDialog(l10n Localizer, _ AssetLoaderFunc, model DetachSensorDi
 				hx-swap="innerHTML"
 			>
 				<div class="border-b border-border/60 px-6 py-5">
-					<h2 class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("delete") } sensor</h2>
+					<h2 id="detach-sensor-title" class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("delete") } sensor</h2>
 				</div>
 				<div class="grid gap-3 px-6 py-6 text-sm text-foreground">
 					if model.ErrorMessage != "" {
-						<div class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+						<div role="alert" class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
 							{ model.ErrorMessage }
 						</div>
 					}

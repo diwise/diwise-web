@@ -64,6 +64,9 @@ templ Button(props ...Props) {
 			if p.Target != "" {
 				target={ p.Target }
 			}
+			if p.Target == "_blank" {
+				rel="noopener noreferrer"
+			}
 			class={
 				utils.TwMerge(
 					"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all",

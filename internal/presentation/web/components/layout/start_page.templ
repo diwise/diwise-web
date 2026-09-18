@@ -31,7 +31,9 @@ templ StartPageWithToast(version string, localizer Localizer, asset AssetLoaderF
 		if apiauth.LoggedIn(ctx) {
 			@Body(version, localizer, asset, mainContent, toastContent)
 		} else {
-			@auth.NotLoggedIn(localizer, asset)
+			<body class="min-h-screen bg-background text-foreground">
+				@auth.NotLoggedIn(localizer, asset)
+			</body>
 		}
 	</html>
 }
@@ -86,8 +88,7 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 			@toastContent
 		</div>
 		@AppShell(l10n, asset, mainContent)
-	</body>
-	<script nonce={ csp.Nonce(ctx) }>
+		<script nonce={ csp.Nonce(ctx) }>
 		function applyThemeClass(theme) {
 			const isDark = theme === 'dark';
 			document.documentElement.classList.toggle('dark', isDark);
@@ -141,7 +142,8 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 		});
 
 		onPageLoad()
-	</script>
+		</script>
+	</body>
 }
 
 templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Component) {
@@ -169,21 +171,19 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 						<img src={ asset("/images/diwise-logo-dark.svg").Path() } alt="Diwise" class="hidden h-8 dark:block"/>
 					</div>
 					<div class="flex items-center gap-1">
-						@IconNav("/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
-						@IconNav("/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
-						@IconNav("/things", isCurrent(ctx, "things"), icon.Shapes(icon.Props{Size: 18}))
-						@IconNav("/things-v2", isCurrent(ctx, "things-v2"), icon.Shapes(icon.Props{Size: 18}))
+						@IconNav(l10n.Get("home"), "/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
+						@IconNav(l10n.Get("sensors"), "/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
+						@IconNav(l10n.Get("things"), "/things", isCurrent(ctx, "things"), icon.Shapes(icon.Props{Size: 18}))
+						@IconNav(l10n.Get("thingsv2"), "/things-v2", isCurrent(ctx, "things-v2"), icon.Shapes(icon.Props{Size: 18}))
 					</div>
 					<div class="ml-auto flex items-center gap-1">
-						@IconNav("/logout", false, icon.LogOut(icon.Props{Size: 18}))
+						@IconNav(l10n.Get("logout"), "/logout", false, icon.LogOut(icon.Props{Size: 18}))
 						@ThemeToggleCompact()
 					</div>
 				</div>
 			</header>
-			<main id="main-content" class="flex flex-1 flex-col px-4 py-8 md:px-8 lg:px-12">
-				<div class="flex w-full flex-1 flex-col">
-					@mainContent
-				</div>
+			<main id="main-content" class="flex w-full flex-1 flex-col px-4 py-8 md:px-8 lg:px-12">
+				@mainContent
 			</main>
 		</div>
 	</div>
@@ -194,36 +194,43 @@ templ NavItem(title, href string, selected bool, leading templ.Component) {
 		Href: href,
 		Variant: button.VariantGhost,
 		Class: navItemClass(selected),
-		Attributes: shellNavAttributes(href),
+		Attributes: shellNavAttributes(href, selected),
 	}) {
 		@leading
 		<span>{ title }</span>
 	}
 }
 
-templ IconNav(href string, selected bool, leading templ.Component) {
+templ IconNav(title, href string, selected bool, leading templ.Component) {
 	@button.Button(button.Props{
 		Href: href,
 		Variant: button.VariantGhost,
 		Size: button.SizeIcon,
 		Class: iconNavClass(selected),
-		Attributes: shellNavAttributes(href),
+		Attributes: iconNavAttributes(title, href, selected),
 	}) {
 		@leading
 	}
 }
 
-func shellNavAttributes(href string) templ.Attributes {
-	if !shouldSwapShell(href) {
-		return nil
+func shellNavAttributes(href string, selected bool) templ.Attributes {
+	attrs := templ.Attributes{}
+	if selected {
+		attrs["aria-current"] = "page"
 	}
+	if shouldSwapShell(href) {
+		attrs["hx-get"] = href
+		attrs["hx-target"] = "#app-shell"
+		attrs["hx-swap"] = "outerHTML"
+		attrs["hx-replace-url"] = "true"
+	}
+	return attrs
+}
 
-	return templ.Attributes{
-		"hx-get":         href,
-		"hx-target":      "#app-shell",
-		"hx-swap":        "outerHTML",
-		"hx-replace-url": "true",
-	}
+func iconNavAttributes(title, href string, selected bool) templ.Attributes {
+	attrs := shellNavAttributes(href, selected)
+	attrs["aria-label"] = title
+	return attrs
 }
 
 func shouldSwapShell(href string) bool {

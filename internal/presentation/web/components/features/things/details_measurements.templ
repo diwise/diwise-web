@@ -32,7 +32,10 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 					<input id="thingMeasurement" type="hidden" name="measurement" value={ model.SelectedMeasurement }/>
 					<input id="thingTab" type="hidden" name="tab" value={ model.SelectedMeasurement }/>
 					@tabs.Tabs(tabs.Props{ID: "thingMeasurementTabs", Class: "gap-0"}) {
-						@tabs.List(tabs.ListProps{Class: "h-auto w-full flex-wrap justify-start rounded-none border-b border-border/70 bg-transparent p-0"}) {
+						@tabs.List(tabs.ListProps{
+							Class: "h-auto w-full flex-wrap justify-start rounded-none border-b border-border/70 bg-transparent p-0",
+							Attributes: templ.Attributes{"aria-label": l10n.Get("measurement")},
+						}) {
 							for _, option := range model.MeasurementOptions {
 								@tabs.Trigger(tabs.TriggerProps{
 									Value:    option.Value,
@@ -118,6 +121,7 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 					hx-include="#thing-stats-form"
 					hx-trigger="load, diwise:themechange from:window"
 					hx-vals="js:{theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light'}"
+					hx-swap="outerHTML"
 				>
 					<div class="flex flex-col gap-4">
 						<div class="flex flex-col gap-2">
@@ -163,8 +167,8 @@ templ ThingMeasurementPanel(l10n Localizer, props ThingMeasurementPanelProps) {
 				<table class="min-w-full text-left text-sm">
 					<thead class="border-b border-border/70">
 						<tr>
-							<th class="px-4 py-3">{ l10n.Get("time") }</th>
-							<th class="px-4 py-3">{ l10n.Get("value") }</th>
+							<th scope="col" class="px-4 py-3">{ l10n.Get("time") }</th>
+							<th scope="col" class="px-4 py-3">{ l10n.Get("value") }</th>
 						</tr>
 					</thead>
 					<tbody>

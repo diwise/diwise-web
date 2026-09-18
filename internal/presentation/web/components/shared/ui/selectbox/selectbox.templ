@@ -145,6 +145,8 @@ templ Trigger(props ...TriggerProps) {
 					"data-tui-selectbox-selected-count-text": p.SelectedCountText,
 					"tabindex":                               "0",
 					"aria-invalid":                           utils.If(p.HasError, "true"),
+					"aria-haspopup":                          "listbox",
+					"aria-controls":                          contentID,
 				},
 			),
 		}) {
@@ -163,8 +165,7 @@ templ Trigger(props ...TriggerProps) {
 				<span
 					class="ml-1 hidden cursor-pointer text-muted-foreground hover:text-foreground"
 					data-tui-selectbox-clear-trigger
-					aria-label="Clear selection"
-					role="button"
+					aria-hidden="true"
 				>
 					@icon.CircleX(icon.Props{Size: 14})
 				</span>
@@ -216,7 +217,7 @@ templ Content(props ...ContentProps) {
 		Placement:  popover.PlacementBottomStart,
 		Offset:     4,
 		MatchWidth: true,
-		DisableESC: !p.NoSearch,
+		DisableESC: false,
 		Class: utils.TwMerge(
 			"p-1 select-content z-50 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md",
 			"min-w-[var(--popover-trigger-width)] w-[var(--popover-trigger-width)]",
@@ -243,6 +244,7 @@ templ Content(props ...ContentProps) {
 						Placeholder: utils.IfElse(p.SearchPlaceholder != "", p.SearchPlaceholder, "Search..."),
 						Attributes: templ.Attributes{
 							"data-tui-selectbox-search": "",
+							"aria-label": utils.IfElse(p.SearchPlaceholder != "", p.SearchPlaceholder, "Search"),
 						},
 					})
 				</div>
@@ -310,7 +312,9 @@ templ Item(props ...ItemProps) {
 		data-tui-selectbox-value={ p.Value }
 		data-tui-selectbox-selected={ strconv.FormatBool(p.Selected) }
 		data-tui-selectbox-disabled={ strconv.FormatBool(p.Disabled) }
-		tabindex="0"
+		aria-selected={ strconv.FormatBool(p.Selected) }
+		aria-disabled={ strconv.FormatBool(p.Disabled) }
+		tabindex="-1"
 		{ p.Attributes... }
 	>
 		<span class="truncate select-item-text">
@@ -331,4 +335,19 @@ templ Item(props ...ItemProps) {
 
 templ Script() {
 	<script defer nonce={ templ.GetNonce(ctx) } src={ utils.ScriptURL("/assets/js/selectbox.min.js") }></script>
+	<script nonce={ templ.GetNonce(ctx) }>
+		(() => {
+			const sync = (item) => item.setAttribute('aria-selected', item.dataset.tuiSelectboxSelected === 'true' ? 'true' : 'false');
+			const start = () => {
+				document.querySelectorAll('[data-tui-selectbox-selected]').forEach(sync);
+				new MutationObserver((mutations) => mutations.forEach((mutation) => sync(mutation.target))).observe(document.body, {
+					subtree: true,
+					attributes: true,
+					attributeFilter: ['data-tui-selectbox-selected'],
+				});
+			};
+			if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+			else start();
+		})();
+	</script>
 }

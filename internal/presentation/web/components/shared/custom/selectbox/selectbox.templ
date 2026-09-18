@@ -163,6 +163,8 @@ templ Trigger(props ...TriggerProps) {
 					"data-tui-selectbox-selected-count-text": p.SelectedCountText,
 					"tabindex":                               "0",
 					"aria-invalid":                           utils.If(p.HasError, "true"),
+					"aria-haspopup":                          "listbox",
+					"aria-controls":                          contentID,
 				},
 			),
 		}) {
@@ -181,8 +183,7 @@ templ Trigger(props ...TriggerProps) {
 			<span
 				class="ml-1 hidden cursor-pointer text-muted-foreground hover:text-foreground"
 				data-tui-selectbox-clear-trigger
-				aria-label="Clear selection"
-				role="button"
+				aria-hidden="true"
 			>
 				@icon.CircleX(icon.Props{Size: 14})
 			</span>
@@ -292,6 +293,7 @@ templ Content(props ...ContentProps) {
 						"data-diwise-selectbox-content-id":    contentID,
 						"data-diwise-selectbox-search-target": searchTargetID,
 						"autocomplete":                        "off",
+						"aria-label": utils.IfElse(p.SearchPlaceholder != "", p.SearchPlaceholder, "Search"),
 					},
 				})
 			</div>
@@ -367,7 +369,9 @@ templ Item(props ...ItemProps) {
 		data-tui-selectbox-value={ p.Value }
 		data-tui-selectbox-selected={ strconv.FormatBool(p.Selected) }
 		data-tui-selectbox-disabled={ strconv.FormatBool(p.Disabled) }
-		tabindex="0"
+		aria-selected={ strconv.FormatBool(p.Selected) }
+		aria-disabled={ strconv.FormatBool(p.Disabled) }
+		tabindex="-1"
 		{ p.Attributes... }
 	>
 		<div class="min-w-0 flex-1 pr-6 select-item-text">

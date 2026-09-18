@@ -15,12 +15,11 @@ templ HelpTooltip(text string) {
 	@tooltip.Tooltip() {
 		@tooltip.Trigger(tooltip.TriggerProps{
 			For:   id,
-			Class: "inline-flex items-center text-muted-foreground transition hover:text-foreground",
+			Class: "inline-flex items-center",
 		}) {
-			@icon.Info(icon.Props{
-				Size:  16,
-				Class: "shrink-0",
-			})
+			<button type="button" aria-label={ text } aria-describedby={ id } class="inline-flex items-center text-muted-foreground transition hover:text-foreground">
+				@icon.Info(icon.Props{Size: 16, Class: "shrink-0"})
+			</button>
 		}
 		@tooltip.Content(tooltip.ContentProps{
 			ID:            id,

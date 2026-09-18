@@ -389,8 +389,10 @@ templ RequiredSelectBoxValidationScript(rootID string) {
 				if (trigger) {
 					if (valid) {
 						trigger.removeAttribute('aria-invalid');
+						trigger.removeAttribute('aria-errormessage');
 					} else {
 						trigger.setAttribute('aria-invalid', 'true');
+						if (messageID) trigger.setAttribute('aria-errormessage', messageID);
 					}
 				}
 

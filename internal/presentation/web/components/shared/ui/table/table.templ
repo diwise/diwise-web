@@ -148,6 +148,7 @@ templ Head(props ...HeadProps) {
 		{{ p = props[0] }}
 	}
 	<th
+		scope="col"
 		if p.ID != "" {
 			id={ p.ID }
 		}

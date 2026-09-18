@@ -26,6 +26,9 @@ templ TableOrMapToggle(l10n Localizer, props TableOrMapToggleProps) {
 	}) {
 		@tabs.List(tabs.ListProps{
 			Class: "h-auto rounded-2xl bg-muted/60 p-2 shadow-xs gap-2",
+			Attributes: templ.Attributes{
+				"aria-label": props.TableLabel + " / " + props.MapLabel,
+			},
 		}) {
 			@tabs.Trigger(tabs.TriggerProps{
 				ID:       baseID + "-table",

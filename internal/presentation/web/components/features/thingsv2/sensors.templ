@@ -13,17 +13,18 @@ templ ThingV2SensorsDialog(l10n Localizer, viewModel ThingV2SensorsViewModel) {
 		@dialog.Content(dialog.ContentProps{
 			Class:           "block max-w-xl overflow-y-auto overscroll-contain rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
 			HideCloseButton: true,
+			TitleID:         "thing-v2-sensors-title",
 			Attributes: templ.Attributes{
 				"style": "max-height:85vh;max-height:85dvh;overflow-y:auto;overscroll-behavior-y:contain",
 			},
 		}) {
 			<div>
 				<div class="sticky top-0 z-10 border-b border-border/60 bg-card/95 px-6 py-5">
-					<h2 class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("managesensors") }: { viewModel.Name }</h2>
+					<h2 id="thing-v2-sensors-title" class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("managesensors") }: { viewModel.Name }</h2>
 				</div>
 				<div class="grid min-w-0 gap-4 px-6 py-6">
 					if viewModel.ErrorMessage != "" {
-						<div class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+						<div role="alert" class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
 							{ viewModel.ErrorMessage }
 						</div>
 					}
@@ -43,6 +44,7 @@ templ ThingV2SensorsDialog(l10n Localizer, viewModel ThingV2SensorsViewModel) {
 									}
 								</div>
 								<div class="flex flex-col gap-2">
+									<label for={ "thing-v2-sensor-search-" + sensorInputDomID(binding.Input) } class="sr-only">{ l10n.Get("search") }: { binding.Label }</label>
 									@input.Input(input.Props{
 										ID:          "thing-v2-sensor-search-" + sensorInputDomID(binding.Input),
 										Name:        "query",
@@ -56,7 +58,7 @@ templ ThingV2SensorsDialog(l10n Localizer, viewModel ThingV2SensorsViewModel) {
 											"hx-trigger": "keyup changed delay:300ms, search",
 										},
 									})
-									<div id={ "thing-v2-sensor-results-" + sensorInputDomID(binding.Input) } class="flex min-w-0 flex-col gap-2"></div>
+									<div id={ "thing-v2-sensor-results-" + sensorInputDomID(binding.Input) } class="flex min-w-0 flex-col gap-2" aria-live="polite"></div>
 								</div>
 								if binding.DeviceID != "" {
 									<form

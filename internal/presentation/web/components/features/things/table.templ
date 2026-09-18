@@ -82,20 +82,15 @@ templ ThingsTableSection(l10n Localizer, viewModel ThingsPageViewModel) {
 }
 
 templ ThingRow(l10n Localizer, thing ThingViewModel) {
-	@shared.ClickableTableRow(shared.ClickableTableRowProps{
-		Href:    fmt.Sprintf("/things/%s", thing.ID),
-		Target:  "#app-shell",
-		Swap:    "outerHTML",
-		Replace: true,
-	}) {
+	@shared.TableRow(shared.TableRowProps{}) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
-			<span class="font-bold text-foreground">
+			@shared.TableLink(shared.TableLinkProps{Href: fmt.Sprintf("/things/%s", thing.ID), Target: "#app-shell", Swap: "outerHTML", Replace: true}) {
 				if strings.TrimSpace(thing.Name) != "" {
 					{ thing.Name }
 				} else {
 					{ thing.ID }
 				}
-			</span>
+			}
 		}
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			{ displayThingType(l10n, thing) }

@@ -1,0 +1,81 @@
+package thingsv2
+
+import (
+	"strings"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/input"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+type ThingV2GeometryEditorProps struct {
+	GeometryKinds   []string
+	GeometryMode    string
+	GeometryJSON    string
+	AllowNoLocation bool
+	Latitude        string
+	Longitude       string
+}
+
+templ ThingV2GeometryEditor(l10n Localizer, props ThingV2GeometryEditorProps) {
+	<div class="flex min-w-0 flex-col gap-4 p-4 sm:p-6">
+		<fieldset class="flex flex-col gap-2">
+			<legend class="text-sm font-medium text-foreground">{ l10n.Get("geometry") }</legend>
+			<div class="flex flex-wrap gap-x-5 gap-y-2">
+				for _, kind := range props.GeometryKinds {
+					<label class="inline-flex items-center gap-2 text-sm text-foreground">
+						<input
+							type="radio"
+							name="geometryMode"
+							value={ strings.ToLower(kind) }
+							checked?={ strings.EqualFold(props.GeometryMode, kind) }
+						/>
+						if strings.EqualFold(kind, "Polygon") {
+							{ l10n.Get("geometrypolygon") }
+						} else {
+							{ l10n.Get("geometrypoint") }
+						}
+					</label>
+				}
+				if props.AllowNoLocation {
+					<label class="inline-flex items-center gap-2 text-sm text-foreground">
+						<input type="radio" name="geometryMode" value="none" checked?={ props.GeometryMode == "none" }/>
+						{ l10n.Get("geometrynone") }
+					</label>
+				}
+			</div>
+		</fieldset>
+		<div id="location-point-fields" class="grid gap-4 md:grid-cols-2" hidden?={ props.GeometryMode != "point" }>
+			@shared.FormField(l10n.Get("latitude"), "latitude") {
+				@input.Input(input.Props{
+					ID: "latitude", Name: "latitude", Type: input.TypeNumber, Value: props.Latitude,
+					Class: "h-10 rounded-xl bg-background",
+					Attributes: templ.Attributes{"min": "-90", "max": "90", "step": "0.000001"},
+				})
+			}
+			@shared.FormField(l10n.Get("longitude"), "longitude") {
+				@input.Input(input.Props{
+					ID: "longitude", Name: "longitude", Type: input.TypeNumber, Value: props.Longitude,
+					Class: "h-10 rounded-xl bg-background",
+					Attributes: templ.Attributes{"min": "-180", "max": "180", "step": "0.000001"},
+				})
+			}
+		</div>
+		<div id="location-polygon-tools" class="flex min-w-0 flex-col gap-2" hidden?={ props.GeometryMode != "polygon" }>
+			<span class="text-sm text-muted-foreground">{ l10n.Get("geometrydrawhint") }</span>
+			<input type="hidden" id="geometry" name="geometry" value={ props.GeometryJSON }/>
+			<div class="flex gap-3">
+				@button.Button(button.Props{Type: button.TypeButton, Variant: button.VariantOutline, Class: "rounded-xl px-4", ID: "geometry-undo"}) {
+					{ l10n.Get("geometryundo") }
+				}
+				@button.Button(button.Props{Type: button.TypeButton, Variant: button.VariantOutline, Class: "rounded-xl px-4", ID: "geometry-clear"}) {
+					{ l10n.Get("geometryclear") }
+				}
+			</div>
+		</div>
+		<div class="w-full overflow-hidden rounded-xl border border-border">
+			@ThingsV2EditMap(parseCoordinate(props.Latitude), parseCoordinate(props.Longitude), props.GeometryMode)
+		</div>
+	</div>
+}

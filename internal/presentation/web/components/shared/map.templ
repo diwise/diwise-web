@@ -368,16 +368,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             }
 
             function generateTipIcon(tipColor) {
-                return `<svg width="41" height="8" viewBox="0 0 41 8" fill="none">
-                            <g clip-path="url(#clip0)">
-                                <rect x="6.5" y="-8" width="20" height="20" transform="rotate(-45 6.5 -8)" fill="${tipColor}"/>
-                            </g>
-                            <defs>
-                                <clipPath id="clip0">
-                                    <rect width="40" height="8" fill="white" transform="translate(0.5)"/>
-                                </clipPath>
-                            </defs>
-                        </svg>`;
+                return `<svg aria-hidden="true" width="41" height="8" viewBox="0 0 41 8"><path d="M12.5 0h16l-8 8Z" fill="${tipColor}"/></svg>`;
             }
 
             function getIconByTypeAndTheme(type, subtype, isDarkMode) {
@@ -472,11 +463,39 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                 }
             }
 
+            function escapePopupHTML(value) {
+                return String(value ?? '')
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#39;');
+            }
+
+            function popupProperties(properties) {
+                return Object.fromEntries(Object.entries(properties || {}).map(([key, value]) => {
+                    if (Array.isArray(value)) {
+                        return [key, value.map(item => typeof item === 'string' ? escapePopupHTML(item) : item)];
+                    }
+                    return [key, typeof value === 'string' ? escapePopupHTML(value) : value];
+                }));
+            }
+
+            function safePopupURL(value) {
+                if (typeof value !== 'string' || value === '') { return ''; }
+                try {
+                    const url = new URL(value, window.location.origin);
+                    return url.protocol === 'http:' || url.protocol === 'https:' ? escapePopupHTML(url.href) : '';
+                } catch (e) {
+                    return '';
+                }
+            }
+
             function createSensorPopup(feature, intro, location, moreinformation, outro) {
                 popup = intro +
                         '<div class="flex flex-col items-start gap-2">' +
                             '<span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 ' + (feature.properties.status ? 'bg-primary-green-accent' : 'bg-tertiary-surface') + '">' +
-                                '<span class="text-sm font-bold font-sans leading-none ' + (feature.properties.status ? 'text-primary-green' : 'text-primary-dark"') + '">' +
+                                '<span class="text-sm font-bold font-sans leading-none ' + (feature.properties.status ? 'text-primary-green' : 'text-primary-dark') + '">' +
                                     (feature.properties.status ? feature.properties.text_active : feature.properties.text_inactive) +
                                 '</span>' +
                             '</span>' +
@@ -539,7 +558,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                             html:   '<div class="flex flex-col items-center opacity-100">' +
                                                         '<div class="flex flex-col items-center justify-center opacity-100 p-2 rounded-lg shadow-md gap-2" style="background-color:' + backgroundColor + ';color:' + textColor + ';">' +
                                                             '<div class="flex flex-row items-center gap-2">' +
-                                                                '<img class="opacity-100" style="width:16px;height:16px;display:block;opacity:1;" src="' + iconUrl + '">' + fillingLevelHtml + temperatureHTML + 
+                                                                '<img alt="" class="opacity-100" style="width:16px;height:16px;display:block;opacity:1;" src="' + iconUrl + '">' + fillingLevelHtml + temperatureHTML +
                                                             '</div>' +
                                                         '</div>' +
                                                         '<div class="flex items-center">' + tipIcon + '</div>' +
@@ -563,6 +582,8 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                             try { bounds.extend(layer.getBounds()); } catch (e) {}
                                         }
                                         if (showPopup) {
+                                            const popupURL = safePopupURL(feature.properties.url);
+                                            feature = { ...feature, properties: popupProperties(feature.properties) };
                                             var cv = mapData.CurrentView;
                                             var popupContent = null;
                                             var intro = '<div class="flex flex-col items-start gap-6 py-3 text-base"><div class="flex flex-col items-start self-stretch justify-center gap-6">';
@@ -578,7 +599,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                             }
                                             var name = feature.properties.name ? '<div class="w-[90%] flex items-start gap-2"><div class="font-bold">' + feature.properties.text_name + '</div><div class="break-all">' + feature.properties.name + '</div></div>' : '';
                                             var location = (feature.properties.latitude && feature.properties.longitude) ? '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_position + '</div><div class="break-word">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div>' : '';
-                                            var moreinformation = feature.properties.url ? '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div><a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a>' : '';
+                                            var moreinformation = popupURL ? '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div><a href="' + popupURL + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a>' : '';
                                             var outro = '</div></div>';
 
                                             const featureType = typeof feature.properties.type === 'string' ? feature.properties.type.toLowerCase() : '';

@@ -67,20 +67,15 @@ templ ThingsV2TableSection(l10n Localizer, viewModel ThingsV2PageViewModel) {
 }
 
 templ ThingV2Row(l10n Localizer, thing ThingV2ViewModel) {
-	@shared.ClickableTableRow(shared.ClickableTableRowProps{
-		Href:    fmt.Sprintf("/things-v2/%s", thing.ID),
-		Target:  "#app-shell",
-		Swap:    "outerHTML",
-		Replace: true,
-	}) {
+	@shared.TableRow(shared.TableRowProps{}) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
-			<span class="font-bold text-foreground">
+			@shared.TableLink(shared.TableLinkProps{Href: fmt.Sprintf("/things-v2/%s", thing.ID), Target: "#app-shell", Swap: "outerHTML", Replace: true}) {
 				if strings.TrimSpace(thing.Name) != "" {
 					{ thing.Name }
 				} else {
 					{ thing.ID }
 				}
-			</span>
+			}
 		}
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			{ thing.Category }
@@ -102,6 +97,7 @@ templ ThingV2StatusCell(l10n Localizer, thing ThingV2ViewModel) {
 		@progress.Progress(progress.Props{
 			Value:     clampPercent(thing.PrimaryValue),
 			Max:       100,
+			AriaLabel: l10n.Get("value"),
 			ShowValue: true,
 			Variant:   progressVariant(percentTone(thing.PrimaryValue)),
 			Class:     "min-w-[180px]",

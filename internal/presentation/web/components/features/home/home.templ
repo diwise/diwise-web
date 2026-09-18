@@ -50,7 +50,6 @@ templ Home(l10n Localizer, viewModel HomeViewModel) {
 				</div>
 			</section>
 			<div class="hidden xl:block xl:h-full xl:min-h-[24rem] xl:px-2">
-				@shared.ColumnDivider()
 			</div>
 			<section class="flex h-full flex-col gap-6">
 				@shared.SectionHeading(l10n.Get("measurementperday"), icon.Icon("chart-column")(icon.Props{Size: 32, Class: "shrink-0 text-foreground"}))
@@ -179,16 +178,11 @@ templ AlarmsTableSection(l10n Localizer, viewModel HomeViewModel) {
 }
 
 templ AlarmRow(l10n Localizer, alarm AlarmViewModel) {
-	@shared.ClickableTableRow(shared.ClickableTableRowProps{
-		Href:    fmt.Sprintf("/sensors/%s", alarm.DeviceID),
-		Target:  "#app-shell",
-		Swap:    "outerHTML",
-		Replace: true,
-	}) {
+	@shared.TableRow(shared.TableRowProps{}) {
 		@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
-			<span class="font-bold text-foreground">
+			@shared.TableLink(shared.TableLinkProps{Href: fmt.Sprintf("/sensors/%s", alarm.DeviceID), Target: "#app-shell", Swap: "outerHTML", Replace: true}) {
 				{ alarm.DeviceID }
-			</span>
+			}
 		}
 		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 			<div class="flex flex-wrap gap-2">

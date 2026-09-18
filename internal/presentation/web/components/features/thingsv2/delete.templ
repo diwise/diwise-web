@@ -14,6 +14,7 @@ templ ThingV2DeleteDialog(l10n Localizer, viewModel ThingV2DeleteViewModel) {
 		@dialog.Content(dialog.ContentProps{
 			Class:           "max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
 			HideCloseButton: true,
+			TitleID:         "thing-v2-delete-title",
 		}) {
 			<form
 				action={ fmt.Sprintf("/components/things-v2/%s/delete?tenant=%s", viewModel.ThingID, viewModel.Tenant) }
@@ -24,11 +25,11 @@ templ ThingV2DeleteDialog(l10n Localizer, viewModel ThingV2DeleteViewModel) {
 				hx-swap="innerHTML"
 			>
 				<div class="border-b border-border/60 px-6 py-5">
-					<h2 class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("delete") } { viewModel.Name }</h2>
+					<h2 id="thing-v2-delete-title" class="text-2xl font-bold font-heading text-foreground">{ l10n.Get("delete") } { viewModel.Name }</h2>
 				</div>
 				<div class="grid gap-3 px-6 py-6 text-sm text-foreground">
 					if viewModel.ErrorMessage != "" {
-						<div class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+						<div role="alert" class="rounded-xl border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
 							{ viewModel.ErrorMessage }
 						</div>
 					}

@@ -155,12 +155,7 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel, deviceProfiles []string,
 			}
 		}
 	} else {
-		@shared.ClickableTableRow(shared.ClickableTableRowProps{
-			Href:    fmt.Sprintf("/sensors/%s", sensor.DeviceID),
-			Target:  "#app-shell",
-			Swap:    "outerHTML",
-			Replace: true,
-		}) {
+		@shared.TableRow(shared.TableRowProps{}) {
 			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 				<div class="inline-flex items-center gap-2">
 					<span class={ onlineIndicatorClass(sensor.Online) }></span>
@@ -172,13 +167,13 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel, deviceProfiles []string,
 				</div>
 			}
 			@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
-				<span class="font-bold text-foreground">
+				@shared.TableLink(shared.TableLinkProps{Href: fmt.Sprintf("/sensors/%s", sensor.DeviceID), Target: "#app-shell", Swap: "outerHTML", Replace: true}) {
 					if sensor.Name != "" {
 						{ sensor.Name }
 					} else {
 						{ sensor.DeviceID }
 					}
-				</span>
+				}
 			}
 			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
 				if sensor.Active {
@@ -238,10 +233,12 @@ templ AddUnknownSensorDialog(l10n Localizer, sensor SensorViewModel, deviceProfi
 	{{ sensorTypeFieldID := fmt.Sprintf("add-sensor-%s-type", sensor.DevEUI) }}
 	{{ dialogID := fmt.Sprintf("add-sensor-%s-dialog", sensor.DevEUI) }}
 	{{ formID := fmt.Sprintf("add-sensor-%s-form", sensor.DevEUI) }}
+	{{ titleID := fmt.Sprintf("add-sensor-%s-title", sensor.DevEUI) }}
 	  @dialog.Dialog(dialog.Props{ID: dialogID, Open: true}) {
         @dialog.Content(dialog.ContentProps{
 			Class:           "max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
 			HideCloseButton: true,
+			TitleID:         titleID,
 		}) {
 			<form
 				id={ formID }
@@ -255,7 +252,7 @@ templ AddUnknownSensorDialog(l10n Localizer, sensor SensorViewModel, deviceProfi
 				<input type="hidden" name="sensorID" value={ sensor.DevEUI }/>
 				<input type="hidden" name="name" value={ sensor.Name }/>
 				<div class="border-b border-border/60 px-6 py-5">
-					<h2 class="text-2xl font-bold font-heading text-foreground">Lägg till sensor</h2>
+					<h2 id={ titleID } class="text-2xl font-bold font-heading text-foreground">Lägg till sensor</h2>
 					<div class="mt-1 text-sm text-muted-foreground">{ sensor.DevEUI }</div>
 				</div>
 				<div class="grid gap-6 px-6 py-6">

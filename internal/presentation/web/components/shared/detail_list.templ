@@ -10,28 +10,28 @@ type DetailListItem struct {
 }
 
 templ DetailList(items []DetailListItem) {
-	<div class="w-full">
+	<dl class="w-full">
 		for i, item := range items {
 			<div
 				class={
 					detailListRowClass(i < len(items)-1)
 				}
 			>
-				<div class="text-sm font-medium text-muted-foreground sm:pt-0.5">
+				<dt class="text-sm font-medium text-muted-foreground sm:pt-0.5">
 					{ item.Label }
-				</div>
+				</dt>
 				if item.Content != nil {
-					<div class={ detailListContentClass(item.Missing) }>
+					<dd class={ detailListContentClass(item.Missing) }>
 						@item.Content
-					</div>
+					</dd>
 				} else {
-					<div class={ detailListValueClass(item.Missing) }>
+					<dd class={ detailListValueClass(item.Missing) }>
 						{ detailListValue(item) }
-					</div>
+					</dd>
 				}
 			</div>
 		}
-	</div>
+	</dl>
 }
 
 func detailListRowClass(withBorder bool) string {
