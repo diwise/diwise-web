@@ -182,7 +182,7 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 					</div>
 				</div>
 			</header>
-			<main id="main-content" class="flex w-full flex-1 flex-col px-4 py-8 md:px-8 lg:px-12">
+			<main id="main-content" class="mx-auto flex w-full max-w-screen-2xl flex-1 flex-col px-4 py-6 md:px-8 md:py-8 lg:px-12">
 				@mainContent
 			</main>
 		</div>
@@ -191,9 +191,9 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 
 templ NavItem(title, href string, selected bool, leading templ.Component) {
 	@button.Button(button.Props{
-		Href: href,
-		Variant: button.VariantGhost,
-		Class: navItemClass(selected),
+		Href:       href,
+		Variant:    button.VariantGhost,
+		Class:      navItemClass(selected),
 		Attributes: shellNavAttributes(href, selected),
 	}) {
 		@leading
@@ -203,10 +203,10 @@ templ NavItem(title, href string, selected bool, leading templ.Component) {
 
 templ IconNav(title, href string, selected bool, leading templ.Component) {
 	@button.Button(button.Props{
-		Href: href,
-		Variant: button.VariantGhost,
-		Size: button.SizeIcon,
-		Class: iconNavClass(selected),
+		Href:       href,
+		Variant:    button.VariantGhost,
+		Size:       button.SizeIcon,
+		Class:      iconNavClass(selected),
 		Attributes: iconNavAttributes(title, href, selected),
 	}) {
 		@leading
@@ -246,14 +246,14 @@ func navVariant(selected bool) button.Variant {
 
 func navItemClass(selected bool) string {
 	if selected {
-		return "w-full justify-start rounded-lg bg-primary px-4 py-6 text-base font-bold text-primary-foreground shadow-none hover:bg-primary/90"
+		return "w-full justify-start rounded-xl bg-primary px-4 py-4 text-base font-bold text-primary-foreground shadow-none hover:bg-primary/90"
 	}
-	return "w-full justify-start rounded-xl px-4 py-6 text-base text-foreground shadow-none hover:bg-muted"
+	return "w-full justify-start rounded-xl px-4 py-4 text-base text-foreground shadow-none hover:bg-muted"
 }
 
 func iconNavClass(selected bool) string {
 	if selected {
-		return "rounded-lg bg-primary text-primary-foreground shadow-none hover:bg-primary/90"
+		return "rounded-xl bg-primary text-primary-foreground shadow-none hover:bg-primary/90"
 	}
 	return "rounded-xl text-foreground shadow-none hover:bg-muted"
 }

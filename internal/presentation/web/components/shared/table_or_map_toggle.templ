@@ -34,14 +34,14 @@ templ TableOrMapToggle(l10n Localizer, props TableOrMapToggleProps) {
 				ID:       baseID + "-table",
 				Value:    "false",
 				IsActive: !props.MapView,
-				Class: "h-8 min-w-8 rounded-[10px] px-1.5 text-foreground dark:text-white hover:bg-accent/60 data-[tui-tabs-state=active]:bg-black data-[tui-tabs-state=active]:text-white dark:data-[tui-tabs-state=active]:bg-white dark:data-[tui-tabs-state=active]:text-black dark:data-[tui-tabs-state=active]:border-white",
+				Class:    "h-8 min-w-8 rounded-[10px] px-1.5 text-foreground dark:text-white hover:bg-accent/60 data-[tui-tabs-state=active]:bg-black data-[tui-tabs-state=active]:text-white dark:data-[tui-tabs-state=active]:bg-white dark:data-[tui-tabs-state=active]:text-black dark:data-[tui-tabs-state=active]:border-white",
 				Attributes: templ.Attributes{
-					"aria-label":                    props.TableLabel,
-					"title":                         props.TableLabel,
-					"data-table-or-map-trigger":     "",
-					"data-table-or-map-form":        props.FormID,
+					"aria-label":                     props.TableLabel,
+					"title":                          props.TableLabel,
+					"data-table-or-map-trigger":      "",
+					"data-table-or-map-form":         props.FormID,
 					"data-table-or-map-hidden-input": props.HiddenInputID,
-					"data-table-or-map-value":       "false",
+					"data-table-or-map-value":        "false",
 				},
 			}) {
 				@icon.Table(icon.Props{Size: 16})
@@ -50,14 +50,14 @@ templ TableOrMapToggle(l10n Localizer, props TableOrMapToggleProps) {
 				ID:       baseID + "-map",
 				Value:    "true",
 				IsActive: props.MapView,
-				Class: "h-8 min-w-8 rounded-[10px] px-1.5 text-foreground dark:text-white hover:bg-accent/60 data-[tui-tabs-state=active]:bg-black data-[tui-tabs-state=active]:text-white dark:data-[tui-tabs-state=active]:bg-white dark:data-[tui-tabs-state=active]:text-black dark:data-[tui-tabs-state=active]:border-white",
+				Class:    "h-8 min-w-8 rounded-[10px] px-1.5 text-foreground dark:text-white hover:bg-accent/60 data-[tui-tabs-state=active]:bg-black data-[tui-tabs-state=active]:text-white dark:data-[tui-tabs-state=active]:bg-white dark:data-[tui-tabs-state=active]:text-black dark:data-[tui-tabs-state=active]:border-white",
 				Attributes: templ.Attributes{
-					"aria-label":                    props.MapLabel,
-					"title":                         props.MapLabel,
-					"data-table-or-map-trigger":     "",
-					"data-table-or-map-form":        props.FormID,
+					"aria-label":                     props.MapLabel,
+					"title":                          props.MapLabel,
+					"data-table-or-map-trigger":      "",
+					"data-table-or-map-form":         props.FormID,
 					"data-table-or-map-hidden-input": props.HiddenInputID,
-					"data-table-or-map-value":       "true",
+					"data-table-or-map-value":        "true",
 				},
 			}) {
 				@icon.Map(icon.Props{Size: 16})

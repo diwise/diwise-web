@@ -8,7 +8,7 @@ import (
 )
 
 templ ThingsV2Page(l10n Localizer, viewModel ThingsV2PageViewModel) {
-	<div class="mx-auto flex w-full min-w-0 max-w-screen-2xl flex-col gap-6 md:gap-8">
+	<div class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
 		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
 			@shared.SectionHeading(l10n.Get("thingsv2"), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
 			@button.Button(button.Props{
@@ -35,9 +35,7 @@ templ ThingsV2Page(l10n Localizer, viewModel ThingsV2PageViewModel) {
 templ ThingsV2DataList(l10n Localizer, viewModel ThingsV2PageViewModel) {
 	<div id="tableOrMapV2" class="w-full min-w-0">
 		if viewModel.MapView {
-			<div class="overflow-hidden rounded-2xl border border-border bg-background shadow-sm">
-				@ThingsV2Map(l10n, viewModel)
-			</div>
+			@ThingsV2Map(l10n, viewModel)
 		} else {
 			@ThingsV2TableSection(l10n, viewModel)
 		}

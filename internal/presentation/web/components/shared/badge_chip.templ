@@ -10,7 +10,7 @@ type BadgeChipProps struct {
 templ BadgeChip(props BadgeChipProps) {
 	@badge.Badge(badge.Props{
 		Variant: badge.VariantOutline,
-		Class: badgeChipClasses(props.Class),
+		Class:   badgeChipClasses(props.Class),
 	}) {
 		{ props.Label }
 	}

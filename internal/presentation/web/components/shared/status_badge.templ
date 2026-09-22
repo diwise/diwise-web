@@ -18,7 +18,7 @@ type StatusBadgeProps struct {
 templ StatusBadge(props StatusBadgeProps) {
 	@badge.Badge(badge.Props{
 		Variant: badge.VariantOutline,
-		Class: statusBadgeClasses(props),
+		Class:   statusBadgeClasses(props),
 	}) {
 		{ props.Label }
 	}

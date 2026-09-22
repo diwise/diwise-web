@@ -12,21 +12,12 @@ import (
 )
 
 templ ThingV2EditPage(l10n Localizer, viewModel ThingV2EditViewModel) {
-	<div id="thing-v2-edit" class="mx-auto flex w-full min-w-0 max-w-screen-2xl flex-col gap-6 md:gap-8">
-		<div class="flex flex-col gap-4">
-			<a
-				href={ string(templ.SafeURL("/things-v2/" + viewModel.ThingID)) }
-				hx-get={ string(templ.SafeURL("/things-v2/" + viewModel.ThingID)) }
-				hx-target="#app-shell"
-				hx-swap="outerHTML"
-				hx-replace-url="true"
-				class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-			>
-				<span aria-hidden="true">←</span>
-				<span>{ l10n.Get("cancel") }</span>
-			</a>
-			<h1 class="break-words text-2xl font-bold font-heading tracking-tight text-foreground sm:text-3xl">{ l10n.Get("edit") }: { viewModel.Name }</h1>
-		</div>
+	<div id="thing-v2-edit" class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+		@shared.FormPageHeader(shared.FormPageHeaderProps{
+			BackHref:  "/things-v2/" + viewModel.ThingID,
+			BackLabel: l10n.Get("cancel"),
+			Title:     l10n.Get("edit") + ": " + viewModel.Name,
+		})
 		if viewModel.ErrorMessage != "" {
 			<div class="rounded-2xl border border-red-600/40 bg-red-600/10 px-4 py-3 text-sm text-foreground" role="alert">
 				{ viewModel.ErrorMessage }
@@ -45,67 +36,67 @@ templ ThingV2EditPage(l10n Localizer, viewModel ThingV2EditViewModel) {
 				l10n.Get("details"),
 				icon.Info(icon.Props{Size: 24, Class: "text-foreground"}),
 			) {
-				<div class="flex min-w-0 flex-col gap-4 p-4 sm:p-6">
+				<div class="flex min-w-0 flex-col gap-4">
 					<div class="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
 						<div class="flex flex-col gap-2 md:col-span-2">
 							<span class="text-sm font-medium text-foreground">{ l10n.Get("template") }</span>
 							<span class="text-sm text-muted-foreground">{ viewModel.TemplateDisplay }</span>
 						</div>
-					@shared.FormField(l10n.Get("name"), "edit-name") {
-						@input.Input(input.Props{
-							ID:    "edit-name",
-							Name:  "name",
-							Type:  input.TypeText,
-							Value: viewModel.Name,
-							Class: "h-10 rounded-xl bg-background",
-						})
-					}
-					@shared.FormField(l10n.Get("description"), "edit-description") {
-						@input.Input(input.Props{
-							ID:    "edit-description",
-							Name:  "description",
-							Type:  input.TypeText,
-							Value: viewModel.Description,
-							Class: "h-10 rounded-xl bg-background",
-						})
-					}
-					if len(viewModel.Variants) > 0 {
-						<div
-							class="flex flex-col gap-2 md:col-span-2 lg:w-64 lg:shrink-0"
-							hx-get={ "/components/things-v2/params?template=" + viewModel.TemplateRef + "&prefix=edit" }
-							hx-target="#v2-param-fields"
-							hx-swap="outerHTML"
-							hx-trigger="change"
-						>
-							<label for="edit-variant-trigger" class="text-sm font-medium text-foreground">{ l10n.Get("variant") }</label>
-							@selectbox.SelectBox(selectbox.Props{ID: "edit-variant"}) {
-								@selectbox.Trigger(selectbox.TriggerProps{
-									ID:                "edit-variant-trigger",
-									Name:              "variant",
-									SelectedCountText: l10n.Get("selecteditemcount"),
-									Class:             shared.FilterTriggerClass(),
-								}) {
-									@selectbox.Value(selectbox.ValueProps{
-										Placeholder: l10n.Get("variant"),
-										Class:       shared.FilterTriggerValueClass(viewModel.Variant != ""),
-									})
-								}
-								@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
-									@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
-										for _, option := range viewModel.Variants {
-											@selectbox.Item(selectbox.ItemProps{
-												Value:    option.Value,
-												Selected: option.Value == viewModel.Variant,
-												Class:    shared.FilterDropdownItemClass(option.Value == viewModel.Variant),
-											}) {
-												{ option.Label }
+						@shared.FormField(l10n.Get("name"), "edit-name") {
+							@input.Input(input.Props{
+								ID:    "edit-name",
+								Name:  "name",
+								Type:  input.TypeText,
+								Value: viewModel.Name,
+								Class: "h-10 rounded-xl bg-background",
+							})
+						}
+						@shared.FormField(l10n.Get("description"), "edit-description") {
+							@input.Input(input.Props{
+								ID:    "edit-description",
+								Name:  "description",
+								Type:  input.TypeText,
+								Value: viewModel.Description,
+								Class: "h-10 rounded-xl bg-background",
+							})
+						}
+						if len(viewModel.Variants) > 0 {
+							<div
+								class="flex flex-col gap-2 md:col-span-2 lg:w-64 lg:shrink-0"
+								hx-get={ "/components/things-v2/params?template=" + viewModel.TemplateRef + "&prefix=edit" }
+								hx-target="#v2-param-fields"
+								hx-swap="outerHTML"
+								hx-trigger="change"
+							>
+								<label for="edit-variant-trigger" class="text-sm font-medium text-foreground">{ l10n.Get("variant") }</label>
+								@selectbox.SelectBox(selectbox.Props{ID: "edit-variant"}) {
+									@selectbox.Trigger(selectbox.TriggerProps{
+										ID:                "edit-variant-trigger",
+										Name:              "variant",
+										SelectedCountText: l10n.Get("selecteditemcount"),
+										Class:             shared.FilterTriggerClass(),
+									}) {
+										@selectbox.Value(selectbox.ValueProps{
+											Placeholder: l10n.Get("variant"),
+											Class:       shared.FilterTriggerValueClass(viewModel.Variant != ""),
+										})
+									}
+									@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
+										@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+											for _, option := range viewModel.Variants {
+												@selectbox.Item(selectbox.ItemProps{
+													Value:    option.Value,
+													Selected: option.Value == viewModel.Variant,
+													Class:    shared.FilterDropdownItemClass(option.Value == viewModel.Variant),
+												}) {
+													{ option.Label }
+												}
 											}
 										}
 									}
 								}
-							}
-						</div>
-					}
+							</div>
+						}
 					</div>
 					@ThingV2ParamFieldsBlock(viewModel.Params, "edit")
 				</div>
@@ -124,14 +115,14 @@ templ ThingV2EditPage(l10n Localizer, viewModel ThingV2EditViewModel) {
 				@button.Button(button.Props{
 					Variant: button.VariantDefault,
 					Type:    button.TypeSubmit,
-					Class:   "rounded-xl px-6",
+					Class:   "rounded-xl px-4",
 				}) {
 					{ l10n.Get("save") }
 				}
 				@button.Button(button.Props{
 					Href:    string(templ.SafeURL("/things-v2/" + viewModel.ThingID)),
 					Variant: button.VariantOutline,
-					Class:   "rounded-xl px-6",
+					Class:   "rounded-xl px-4",
 					Attributes: templ.Attributes{
 						"hx-get":         string(templ.SafeURL("/things-v2/" + viewModel.ThingID)),
 						"hx-target":      "#app-shell",

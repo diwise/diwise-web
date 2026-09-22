@@ -21,11 +21,11 @@ templ ThingV2ParamFields(params []ParamFieldViewModel, idPrefix string) {
 		<div class="flex flex-col gap-2">
 			@shared.FormField(paramFieldLabel(param), idPrefix+"-param-"+param.Name) {
 				@input.Input(input.Props{
-					ID:    idPrefix + "-param-" + param.Name,
-					Name:  "param." + param.Name,
-					Type:  input.TypeNumber,
-					Value: paramFieldValue(param),
-					Class: "h-10 rounded-xl bg-background",
+					ID:         idPrefix + "-param-" + param.Name,
+					Name:       "param." + param.Name,
+					Type:       input.TypeNumber,
+					Value:      paramFieldValue(param),
+					Class:      "h-10 rounded-xl bg-background",
 					Attributes: paramFieldAttributes(param),
 				})
 			}

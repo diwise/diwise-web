@@ -1,0 +1,83 @@
+package shared
+
+// PageHeaderProps styr den gemensamma detaljrubriken. Alla slots är valfria
+// utom titeln.
+type PageHeaderProps struct {
+	BackHref  string
+	BackLabel string
+	Title     string
+	// Meta renderas under titeln: statusbadge, kategori, tenant.
+	Meta templ.Component
+	// Primary renderas i en framhävd ruta (t.ex. sakens huvudvärde).
+	Primary templ.Component
+	// Actions renderas till höger: redigera/ta bort med mera.
+	Actions templ.Component
+}
+
+// FormPageHeaderProps styr rubriken för skapa-/redigera-sidor.
+type FormPageHeaderProps struct {
+	BackHref  string
+	BackLabel string
+	Title     string
+	Meta      templ.Component
+}
+
+// PageHeader är den gemensamma rubriken för detaljsidor: baklänk, titel,
+// valfri metarad (status/badges), valfritt framhävt värde och åtgärder.
+// Används av sensors, things och things-v2 så att detaljsidorna ser likadana
+// ut oavsett domän.
+templ PageHeader(props PageHeaderProps) {
+	<div class="flex flex-col gap-4">
+		@PageBackLink(props.BackHref, props.BackLabel)
+		<div class="flex min-w-0 flex-col gap-6 rounded-2xl border border-border bg-background p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between lg:p-6">
+			<div class="flex min-w-0 flex-col gap-3">
+				<h1 class="break-words text-2xl font-bold font-heading tracking-tight text-foreground sm:text-3xl">{ props.Title }</h1>
+				if props.Meta != nil {
+					<div class="flex flex-wrap items-center gap-2 text-sm">
+						@props.Meta
+					</div>
+				}
+			</div>
+			if props.Primary != nil {
+				<div class="w-full shrink-0 rounded-xl bg-muted/40 p-4 tabular-nums lg:w-64">
+					@props.Primary
+				</div>
+			}
+			if props.Actions != nil {
+				<div class="flex flex-wrap items-center gap-3">
+					@props.Actions
+				</div>
+			}
+		</div>
+	</div>
+}
+
+// FormPageHeader är den lättare rubriken för skapa-/redigera-sidor:
+// baklänk, titel och valfri metarad — ingen kortram.
+templ FormPageHeader(props FormPageHeaderProps) {
+	<div class="flex flex-col gap-4">
+		@PageBackLink(props.BackHref, props.BackLabel)
+		<div class="flex flex-col gap-3">
+			<h1 class="break-words text-2xl font-bold font-heading tracking-tight text-foreground sm:text-3xl">{ props.Title }</h1>
+			if props.Meta != nil {
+				<div class="flex flex-wrap items-center gap-2 text-sm">
+					@props.Meta
+				</div>
+			}
+		</div>
+	</div>
+}
+
+templ PageBackLink(href, label string) {
+	<a
+		href={ templ.SafeURL(href) }
+		hx-get={ href }
+		hx-target="#app-shell"
+		hx-swap="outerHTML"
+		hx-replace-url="true"
+		class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+	>
+		<span aria-hidden="true">←</span>
+		<span>{ label }</span>
+	</a>
+}

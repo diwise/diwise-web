@@ -9,9 +9,7 @@ import (
 )
 
 templ HelpTooltip(text string) {
-	{{
-		id := "help-tooltip-" + strings.ReplaceAll(utils.RandomID(), "_", "-")
-	}}
+	{{ id := "help-tooltip-" + strings.ReplaceAll(utils.RandomID(), "_", "-") }}
 	@tooltip.Tooltip() {
 		@tooltip.Trigger(tooltip.TriggerProps{
 			For:   id,

@@ -13,9 +13,7 @@ templ DetailList(items []DetailListItem) {
 	<dl class="w-full">
 		for i, item := range items {
 			<div
-				class={
-					detailListRowClass(i < len(items)-1)
-				}
+				class={ detailListRowClass(i < len(items)-1) }
 			>
 				<dt class="text-sm font-medium text-muted-foreground sm:pt-0.5">
 					{ item.Label }
@@ -34,11 +32,13 @@ templ DetailList(items []DetailListItem) {
 	</dl>
 }
 
+// Raderna håller ingen egen sidopadding: de ligger i kort vars innehåll
+// redan har p-6, så texten linjerar med kortets övriga innehåll.
 func detailListRowClass(withBorder bool) string {
 	if withBorder {
-		return "grid gap-2 px-4 py-3 sm:grid-cols-[minmax(0,180px)_1fr] sm:gap-4 border-b border-border/60"
+		return "grid gap-2 py-3 sm:grid-cols-[minmax(0,180px)_1fr] sm:gap-4 border-b border-border/60"
 	}
-	return "grid gap-2 px-4 py-3 sm:grid-cols-[minmax(0,180px)_1fr] sm:gap-4"
+	return "grid gap-2 py-3 sm:grid-cols-[minmax(0,180px)_1fr] sm:gap-4"
 }
 
 func detailListValueClass(missing bool) string {

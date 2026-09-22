@@ -19,24 +19,24 @@ type SelectBoxFieldOption struct {
 }
 
 type SelectBoxFieldProps struct {
-	FieldID         string
-	Name            string
-	Label           string
-	TooltipText     string
-	Placeholder     string
-	Required        bool
-	RequiredMessage string
-	NoSearch        bool
-	Options         []SelectBoxFieldOption
-	HTMXAttrs       templ.Attributes
-	SearchURL       string
-	SearchQueryName string
-	SearchDelay     string
-	SearchTargetID  string
-	SearchExtraQuery map[string]string
-	RemoteSearch    bool
-	LoadingText     string
-	EmptyText       string
+	FieldID           string
+	Name              string
+	Label             string
+	TooltipText       string
+	Placeholder       string
+	Required          bool
+	RequiredMessage   string
+	NoSearch          bool
+	Options           []SelectBoxFieldOption
+	HTMXAttrs         templ.Attributes
+	SearchURL         string
+	SearchQueryName   string
+	SearchDelay       string
+	SearchTargetID    string
+	SearchExtraQuery  map[string]string
+	RemoteSearch      bool
+	LoadingText       string
+	EmptyText         string
 	SearchPlaceholder string
 }
 
@@ -154,9 +154,9 @@ templ SelectBoxField(props SelectBoxFieldProps) {
 			if props.RemoteSearch {
 				@customselectbox.SelectBox(customselectbox.Props{ID: props.FieldID}) {
 					@customselectbox.Trigger(customselectbox.TriggerProps{
-						ID:    props.FieldID + "-trigger",
-						Name:  props.Name,
-						Class: "h-10 w-full justify-between rounded-xl bg-background px-3 text-left text-sm shadow-xs",
+						ID:         props.FieldID + "-trigger",
+						Name:       props.Name,
+						Class:      "h-10 w-full justify-between rounded-xl bg-background px-3 text-left text-sm shadow-xs",
 						Attributes: hiddenInputAttrs,
 					}) {
 						@customselectbox.Value(customselectbox.ValueProps{
@@ -176,20 +176,20 @@ templ SelectBoxField(props SelectBoxFieldProps) {
 						Class:             "rounded-xl border-border/80 p-0 shadow-lg",
 					}) {
 						@customselectbox.Options(customselectbox.OptionsProps{
-							ID:        searchTargetID + "-group",
+							ID:         searchTargetID + "-group",
 							GroupClass: "p-2",
-							ItemClass: "rounded-xl px-3 py-2 text-sm transition hover:bg-muted data-[tui-selectbox-selected=true]:bg-primary data-[tui-selectbox-selected=true]:text-primary-foreground",
-							EmptyText: props.EmptyText,
-							Options:   toCustomSelectBoxOptions(props.Options),
+							ItemClass:  "rounded-xl px-3 py-2 text-sm transition hover:bg-muted data-[tui-selectbox-selected=true]:bg-primary data-[tui-selectbox-selected=true]:text-primary-foreground",
+							EmptyText:  props.EmptyText,
+							Options:    toCustomSelectBoxOptions(props.Options),
 						})
 					}
 				}
 			} else {
 				@templuiselectbox.SelectBox(templuiselectbox.Props{ID: props.FieldID}) {
 					@templuiselectbox.Trigger(templuiselectbox.TriggerProps{
-						ID:    props.FieldID + "-trigger",
-						Name:  props.Name,
-						Class: "h-10 w-full justify-between rounded-xl bg-background px-3 text-left text-sm shadow-xs",
+						ID:         props.FieldID + "-trigger",
+						Name:       props.Name,
+						Class:      "h-10 w-full justify-between rounded-xl bg-background px-3 text-left text-sm shadow-xs",
 						Attributes: hiddenInputAttrs,
 					}) {
 						@templuiselectbox.Value(templuiselectbox.ValueProps{

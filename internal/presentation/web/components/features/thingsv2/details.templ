@@ -12,68 +12,25 @@ import (
 )
 
 templ ThingV2DetailsPage(l10n Localizer, model ThingV2DetailsViewModel) {
-	<div id="thing-v2-view" class="mx-auto flex w-full min-w-0 max-w-screen-2xl flex-col gap-6 md:gap-8">
-		<div class="flex flex-col gap-4">
-			<a
-				href="/things-v2"
-				hx-get="/things-v2"
-				hx-target="#app-shell"
-				hx-swap="outerHTML"
-				hx-replace-url="true"
-				class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-			>
-				<span aria-hidden="true">←</span>
-				<span>{ l10n.Get("thingsv2") }</span>
-			</a>
-			<div class="flex min-w-0 flex-col gap-6 rounded-2xl border border-border bg-background p-5 shadow-sm sm:p-6 lg:flex-row lg:items-center lg:justify-between">
-				<div class="min-w-0 space-y-3">
-					<h1 class="break-words text-2xl font-bold font-heading tracking-tight text-foreground sm:text-3xl">{ displayThingV2Name(model.Thing) }</h1>
-					<div class="flex flex-wrap items-center gap-2 text-sm">
-						if model.Thing.Category != "" {
-							@shared.BadgeChip(shared.BadgeChipProps{Label: model.Thing.Category})
-						}
-						<span class="break-all text-muted-foreground">{ model.Thing.Tenant }</span>
-					</div>
-				</div>
-				if model.Thing.HasPrimaryValue {
-					<div class="w-full shrink-0 rounded-xl bg-muted/40 p-4 tabular-nums lg:w-64">
-						@ThingV2StatusCell(l10n, model.Thing)
-					</div>
-				}
-				@button.Button(button.Props{
-					Href:    fmt.Sprintf("/things-v2/%s?mode=edit", model.Thing.ID),
-					Variant: button.VariantOutline,
-					Class:   "shrink-0 rounded-xl px-4",
-					Attributes: templ.Attributes{
-						"hx-get":         fmt.Sprintf("/things-v2/%s?mode=edit", model.Thing.ID),
-						"hx-target":      "#app-shell",
-						"hx-swap":        "outerHTML",
-						"hx-replace-url": "true",
-					},
-				}) {
-					@icon.Pen(icon.Props{Class: "size-4"})
-					{ l10n.Get("edit") }
-				}
-				@button.Button(button.Props{
-					Variant: button.VariantDestructive,
-					Class:   "shrink-0 rounded-xl px-4",
-					Attributes: templ.Attributes{
-						"hx-get":    fmt.Sprintf("/components/things-v2/%s/delete?tenant=%s", model.Thing.ID, model.Thing.Tenant),
-						"hx-target": "#thing-v2-dialog-container",
-						"hx-swap":   "innerHTML",
-					},
-				}) {
-					@icon.Trash2(icon.Props{Class: "size-4"})
-					{ l10n.Get("delete") }
-				}
-			</div>
-		</div>
+	{{ var primary templ.Component }}
+	if model.Thing.HasPrimaryValue {
+		{{ primary = thingV2DetailsPrimary(l10n, model) }}
+	}
+	<div id="thing-v2-view" class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+		@shared.PageHeader(shared.PageHeaderProps{
+			BackHref:  "/things-v2",
+			BackLabel: l10n.Get("thingsv2"),
+			Title:     displayThingV2Name(model.Thing),
+			Meta:      thingV2DetailsMeta(model),
+			Primary:   primary,
+			Actions:   thingV2DetailsActions(l10n, model),
+		})
 		<div id="thing-v2-dialog-container"></div>
 		@ThingV2HistorySection(l10n, model)
 		@ThingV2DetailsSensorsSection(l10n, model)
 		@ThingV2RelatedThingsSection(l10n, model)
 		@ThingV2DetailsValuesSection(l10n, model)
-		<div class="grid min-w-0 grid-cols-1 items-start gap-6 xl:grid-cols-2">
+		<div class="grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-2">
 			<div class="flex min-w-0 flex-col gap-6">
 				@ThingV2DetailsPropertiesSection(l10n, model)
 				if len(model.Metadata) > 0 {
@@ -87,49 +44,97 @@ templ ThingV2DetailsPage(l10n Localizer, model ThingV2DetailsViewModel) {
 	</div>
 }
 
+templ thingV2DetailsMeta(model ThingV2DetailsViewModel) {
+	if strings.TrimSpace(model.Thing.Category) != "" {
+		@shared.BadgeChip(shared.BadgeChipProps{Label: model.Thing.Category})
+	}
+	if strings.TrimSpace(model.Thing.Tenant) != "" {
+		<span class="break-all text-muted-foreground">{ model.Thing.Tenant }</span>
+	}
+}
+
+templ thingV2DetailsPrimary(l10n Localizer, model ThingV2DetailsViewModel) {
+	@ThingV2StatusCell(l10n, model.Thing)
+}
+
+templ thingV2DetailsActions(l10n Localizer, model ThingV2DetailsViewModel) {
+	@button.Button(button.Props{
+		Href:    fmt.Sprintf("/things-v2/%s?mode=edit", model.Thing.ID),
+		Variant: button.VariantOutline,
+		Class:   "shrink-0 rounded-xl px-4",
+		Attributes: templ.Attributes{
+			"hx-get":         fmt.Sprintf("/things-v2/%s?mode=edit", model.Thing.ID),
+			"hx-target":      "#app-shell",
+			"hx-swap":        "outerHTML",
+			"hx-replace-url": "true",
+		},
+	}) {
+		@icon.Pen(icon.Props{Class: "size-4"})
+		{ l10n.Get("edit") }
+	}
+	@button.Button(button.Props{
+		Variant: button.VariantDestructive,
+		Class:   "shrink-0 rounded-xl px-4",
+		Attributes: templ.Attributes{
+			"hx-get":    fmt.Sprintf("/components/things-v2/%s/delete?tenant=%s", model.Thing.ID, model.Thing.Tenant),
+			"hx-target": "#thing-v2-dialog-container",
+			"hx-swap":   "innerHTML",
+		},
+	}) {
+		@icon.Trash2(icon.Props{Class: "size-4"})
+		{ l10n.Get("delete") }
+	}
+}
+
 templ ThingV2DetailsValuesSection(l10n Localizer, model ThingV2DetailsViewModel) {
-	@shared.DetailSectionCard(
+	@shared.DetailSectionCardFlush(
 		l10n.Get("values"),
 		icon.Gauge(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="min-w-0 overflow-x-auto px-3 py-4 text-foreground sm:px-6">
-			@table.Table(table.Props{Class: "min-w-[640px]"}) {
-				@table.Header() {
-					@table.Row() {
-						@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
-						@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("measurementvalue") } }
-						@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("quality") } }
-						@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("observed") } }
+		@table.Table(table.Props{Class: "min-w-[640px]"}) {
+			@table.Header() {
+				@table.Row() {
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("name") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("measurementvalue") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("quality") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("observed") }
 					}
 				}
-				@table.Body() {
-					if len(model.Values) == 0 {
-						@table.Row() {
-							@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "4"}}) {
-								{ l10n.Get("missing") }
-							}
+			}
+			@table.Body() {
+				if len(model.Values) == 0 {
+					@table.Row() {
+						@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "4"}}) {
+							{ l10n.Get("missing") }
 						}
-					} else {
-						for _, value := range model.Values {
-							@table.Row() {
-								@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
-									<span class="font-medium">{ displayV2ValueLabel(value) }</span>
-								}
-								@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
-									<span class="whitespace-nowrap font-medium tabular-nums">{ formatV2Value(value) }</span>
-								}
-								@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
-									@shared.BadgeChip(shared.BadgeChipProps{Label: fallbackV2Text(value.Quality)})
-								}
-								@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
-									<span class="whitespace-nowrap text-sm tabular-nums text-muted-foreground">{ formatV2ObservedAt(value) }</span>
-								}
+					}
+				} else {
+					for _, value := range model.Values {
+						@table.Row() {
+							@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+								<span class="font-medium">{ displayV2ValueLabel(value) }</span>
+							}
+							@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+								<span class="whitespace-nowrap font-medium tabular-nums">{ formatV2Value(value) }</span>
+							}
+							@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+								@shared.BadgeChip(shared.BadgeChipProps{Label: fallbackV2Text(value.Quality)})
+							}
+							@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+								<span class="whitespace-nowrap text-sm tabular-nums text-muted-foreground">{ formatV2ObservedAt(value) }</span>
 							}
 						}
 					}
 				}
 			}
-		</div>
+		}
 	}
 }
 
@@ -138,7 +143,7 @@ templ ThingV2DetailsPropertiesSection(l10n Localizer, model ThingV2DetailsViewMo
 		l10n.Get("details"),
 		icon.Info(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="flex min-w-0 flex-col gap-4 break-words p-4 text-foreground sm:p-6">
+		<div class="flex min-w-0 flex-col gap-4 break-words text-foreground">
 			@shared.DetailList(thingV2DetailItems(l10n, model))
 		</div>
 	}
@@ -149,7 +154,7 @@ templ ThingV2DetailsSensorsSection(l10n Localizer, model ThingV2DetailsViewModel
 		l10n.Get("sensors"),
 		icon.Rss(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="flex min-w-0 flex-col gap-3 p-4 text-foreground sm:p-6">
+		<div class="flex min-w-0 flex-col gap-3 text-foreground">
 			<div class="flex justify-end">
 				@button.Button(button.Props{
 					Variant: button.VariantOutline,
@@ -193,7 +198,7 @@ templ ThingV2RelatedThingsSection(l10n Localizer, model ThingV2DetailsViewModel)
 		l10n.Get("related"),
 		icon.Icon("network")(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="flex min-w-0 flex-col gap-4 p-4 text-foreground sm:p-6">
+		<div class="flex min-w-0 flex-col gap-4 text-foreground">
 			<div class="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 				<div class="flex min-w-0 items-center gap-2">
 					<span class="shrink-0 text-sm font-medium">{ l10n.Get("parent") }:</span>
@@ -245,22 +250,32 @@ templ ThingV2RelatedThingsSection(l10n Localizer, model ThingV2DetailsViewModel)
 			if len(model.RelatedThings) == 0 && model.Parent == nil {
 				<span class="italic text-muted-foreground">{ l10n.Get("norelations") }</span>
 			} else if len(model.RelatedThings) > 0 {
-				<div class="min-w-0 overflow-x-auto">
-					@table.Table(table.Props{Class: "min-w-[640px]"}) {
-					@table.Header() {
-						@table.Row() {
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("category") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("primary") } }
-							@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("organisation") } }
+				<div class="min-w-0 overflow-hidden rounded-xl border border-border">
+					<div class="overflow-x-auto">
+						@table.Table(table.Props{Class: "min-w-[640px]"}) {
+							@table.Header() {
+								@table.Row() {
+									@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+										{ l10n.Get("name") }
+									}
+									@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+										{ l10n.Get("category") }
+									}
+									@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+										{ l10n.Get("primary") }
+									}
+									@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+										{ l10n.Get("organisation") }
+									}
+								}
+							}
+							@table.Body() {
+								for _, related := range model.RelatedThings {
+									@ThingV2Row(l10n, related)
+								}
+							}
 						}
-					}
-					@table.Body() {
-						for _, related := range model.RelatedThings {
-							@ThingV2Row(l10n, related)
-						}
-					}
-				}
+					</div>
 				</div>
 			}
 		</div>
@@ -272,7 +287,7 @@ templ ThingV2DetailsMetadataSection(l10n Localizer, model ThingV2DetailsViewMode
 		l10n.Get("metadata"),
 		icon.Tags(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="flex min-w-0 flex-col gap-4 break-words p-4 text-foreground sm:p-6">
+		<div class="flex min-w-0 flex-col gap-4 break-words text-foreground">
 			@shared.DetailList(thingV2MetadataItems(model))
 		</div>
 	}
@@ -283,7 +298,7 @@ templ ThingV2DetailsLocationSection(l10n Localizer, model ThingV2DetailsViewMode
 		l10n.Get("location"),
 		icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="flex w-full min-w-0 flex-col gap-4 p-4 text-foreground sm:p-6">
+		<div class="flex w-full min-w-0 flex-col gap-4 text-foreground">
 			if model.Thing.HasLocation {
 				@shared.DetailList([]shared.DetailListItem{
 					{Label: l10n.Get("latitude"), Value: formatCoordinate(model.Thing.Latitude)},
@@ -291,9 +306,7 @@ templ ThingV2DetailsLocationSection(l10n Localizer, model ThingV2DetailsViewMode
 				})
 			}
 			if model.Thing.HasLocation || model.Thing.HasGeometry {
-				<div class="w-full overflow-hidden rounded-xl border border-border">
-					@ThingsV2DetailsMap(l10n, model.Thing)
-				</div>
+				@ThingsV2DetailsMap(l10n, model.Thing)
 			} else {
 				<div class="italic text-muted-foreground">
 					{ l10n.Get("missing") }

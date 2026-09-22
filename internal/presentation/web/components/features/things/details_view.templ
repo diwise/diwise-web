@@ -11,14 +11,14 @@ import (
 )
 
 templ ThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
-	<div id="thing-view" class="flex flex-col gap-8">
+	<div id="thing-view" class="flex flex-col gap-6 md:gap-8">
 		@ThingDetailsHeader(l10n, model)
 		@ThingDetailsMeasurementsSection(l10n, model)
-		<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
-			<div class="flex flex-1 flex-col gap-8">
+		<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+			<div class="flex min-w-0 flex-col gap-6">
 				@ThingDetailsPropertiesSection(l10n, model)
 			</div>
-			<div class="flex w-full flex-1 flex-col gap-8">
+			<div class="flex min-w-0 flex-col gap-6">
 				@ThingDetailsLocationSection(l10n, model)
 			</div>
 		</div>
@@ -26,38 +26,39 @@ templ ThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
 }
 
 templ ThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
-	<div class="flex flex-col gap-4">
-		<a
-			href="/things"
-			hx-get="/things"
-			hx-target="#app-shell"
-			hx-swap="outerHTML"
-			hx-replace-url="true"
-			class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-		>
-			<span aria-hidden="true">←</span>
-			<span>{ l10n.Get("things") }</span>
-		</a>
-		<div class="flex items-center justify-between gap-4">
-			<div class="min-w-0">
-				<h1 class="text-3xl font-bold font-heading text-foreground">{ thingDisplayName(model.Thing) }</h1>
-			</div>
-			@button.Button(button.Props{
-				Href:    fmt.Sprintf("/things/%s?mode=edit", model.Thing.ID),
-				Variant: button.VariantOutline,
-				Class:   "rounded-xl px-4",
-				Attributes: templ.Attributes{
-					"hx-get":         fmt.Sprintf("/things/%s?mode=edit", model.Thing.ID),
-					"hx-target":      "#app-shell",
-					"hx-swap":        "outerHTML",
-					"hx-replace-url": "true",
-				},
-			}) {
-				@icon.Pen(icon.Props{Class: "size-4"})
-				{ l10n.Get("edit") }
-			}
-		</div>
-	</div>
+	@shared.PageHeader(shared.PageHeaderProps{
+		BackHref:  "/things",
+		BackLabel: l10n.Get("things"),
+		Title:     thingDisplayName(model.Thing),
+		Meta:      thingDetailsMeta(l10n, model),
+		Actions:   thingDetailsActions(l10n, model),
+	})
+}
+
+templ thingDetailsMeta(l10n Localizer, model ThingDetailsPageViewModel) {
+	if strings.TrimSpace(model.Thing.SubType) != "" {
+		@shared.BadgeChip(shared.BadgeChipProps{Label: l10n.Get(model.Thing.SubType)})
+	}
+	if strings.TrimSpace(model.Thing.Tenant) != "" {
+		<span class="text-muted-foreground">{ model.Thing.Tenant }</span>
+	}
+}
+
+templ thingDetailsActions(l10n Localizer, model ThingDetailsPageViewModel) {
+	@button.Button(button.Props{
+		Href:    fmt.Sprintf("/things/%s?mode=edit", model.Thing.ID),
+		Variant: button.VariantOutline,
+		Class:   "rounded-xl px-4",
+		Attributes: templ.Attributes{
+			"hx-get":         fmt.Sprintf("/things/%s?mode=edit", model.Thing.ID),
+			"hx-target":      "#app-shell",
+			"hx-swap":        "outerHTML",
+			"hx-replace-url": "true",
+		},
+	}) {
+		@icon.Pen(icon.Props{Class: "size-4"})
+		{ l10n.Get("edit") }
+	}
 }
 
 templ ThingDetailsPropertiesSection(l10n Localizer, model ThingDetailsPageViewModel) {
@@ -65,7 +66,7 @@ templ ThingDetailsPropertiesSection(l10n Localizer, model ThingDetailsPageViewMo
 		l10n.Get("details"),
 		icon.Info(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="flex flex-col gap-4 py-6 px-8 text-foreground">
+		<div class="flex flex-col gap-4 text-foreground">
 			@shared.DetailList(thingDetailItems(l10n, model))
 		</div>
 	}
@@ -76,15 +77,13 @@ templ ThingDetailsLocationSection(l10n Localizer, model ThingDetailsPageViewMode
 		l10n.Get("location"),
 		icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="flex w-full flex-col gap-6 py-6 px-8 text-foreground">
+		<div class="flex w-full flex-col gap-6 text-foreground">
 			@shared.DetailList([]shared.DetailListItem{
 				{Label: l10n.Get("latitude"), Value: formatCoordinate(model.Thing.Latitude)},
 				{Label: l10n.Get("longitude"), Value: formatCoordinate(model.Thing.Longitude)},
 			})
 			if model.Thing.Latitude != 0 && model.Thing.Longitude != 0 {
-				<div class="w-full overflow-hidden rounded-2xl">
-					@shared.Map("medium", false, false, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
-				</div>
+				@shared.Map("medium", false, false, shared.NewMapData(model.Thing.Latitude, model.Thing.Longitude), thingsToMapFeature(l10n, []ThingViewModel{model.Thing}))
 			} else {
 				<div class="italic text-muted-foreground">
 					{ l10n.Get("missing") }
@@ -169,7 +168,7 @@ func thingTypeSpecificRows(l10n Localizer, thing ThingViewModel) []shared.Detail
 	switch kind {
 	case "wastecontainer":
 		return []shared.DetailListItem{{
-			Label:   l10n.Get("size"),
+			Label: l10n.Get("size"),
 			Content: thingPropertyLines(l10n, []string{
 				thingSizeLine(l10n, thing, "containerheight", "maxd"),
 				thingSizeLine(l10n, thing, "maxfillingheight", "maxl"),
@@ -177,7 +176,7 @@ func thingTypeSpecificRows(l10n Localizer, thing ThingViewModel) []shared.Detail
 		}}
 	case "sandstorage":
 		return []shared.DetailListItem{{
-			Label:   l10n.Get("size"),
+			Label: l10n.Get("size"),
 			Content: thingPropertyLines(l10n, []string{
 				thingSizeLine(l10n, thing, "containerheight", "maxd"),
 				thingSizeLine(l10n, thing, "maxfillingheight", "maxl"),
@@ -186,7 +185,7 @@ func thingTypeSpecificRows(l10n Localizer, thing ThingViewModel) []shared.Detail
 		}}
 	case "container":
 		return []shared.DetailListItem{{
-			Label:   l10n.Get("size"),
+			Label: l10n.Get("size"),
 			Content: thingPropertyLines(l10n, []string{
 				thingSizeLine(l10n, thing, "containerheight", "maxd"),
 				thingSizeLine(l10n, thing, "maxfillingheight", "maxl"),
@@ -194,7 +193,7 @@ func thingTypeSpecificRows(l10n Localizer, thing ThingViewModel) []shared.Detail
 		}}
 	case "combinedseweroverflow", "sewer":
 		return []shared.DetailListItem{{
-			Label:   l10n.Get("measurements"),
+			Label: l10n.Get("measurements"),
 			Content: thingPropertyLines(l10n, []string{
 				thingSizeLine(l10n, thing, "sewerheight", "maxd"),
 				thingSizeLine(l10n, thing, "offsetsetting", "offset"),

@@ -19,7 +19,7 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 		l10n.Get("statistics"),
 		icon.Icon("chart-column")(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="flex flex-col gap-6 py-6 px-8">
+		<div class="flex flex-col gap-6">
 			if len(model.MeasurementOptions) == 0 {
 				<div class="rounded-2xl border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
 					{ l10n.Get("missingdata") }
@@ -33,7 +33,7 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 					<input id="thingTab" type="hidden" name="tab" value={ model.SelectedMeasurement }/>
 					@tabs.Tabs(tabs.Props{ID: "thingMeasurementTabs", Class: "gap-0"}) {
 						@tabs.List(tabs.ListProps{
-							Class: "h-auto w-full flex-wrap justify-start rounded-none border-b border-border/70 bg-transparent p-0",
+							Class:      "h-auto w-full flex-wrap justify-start rounded-none border-b border-border/70 bg-transparent p-0",
 							Attributes: templ.Attributes{"aria-label": l10n.Get("measurement")},
 						}) {
 							for _, option := range model.MeasurementOptions {
@@ -54,7 +54,7 @@ templ ThingDetailsMeasurementsSection(l10n Localizer, model ThingDetailsPageView
 								}
 							}
 						}
-						<div class="py-6">
+						<div class="pt-6">
 							<div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
 								<div class="flex shrink-0 flex-col gap-4 lg:flex-row lg:items-end lg:justify-end lg:ml-auto">
 									<div class="flex flex-col gap-2">

@@ -2,7 +2,7 @@ package sensors
 
 import (
 	"fmt"
-  	"net/url"
+	"net/url"
 
 	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
@@ -24,7 +24,7 @@ templ StatisticsCards(l10n Localizer, stats StatisticsViewModel) {
 
 templ StatisticCard(title string, count int, leading templ.Component) {
 	@card.Card(card.Props{Class: "rounded-2xl border-border/80 bg-card shadow-sm"}) {
-		@card.Content(card.ContentProps{Class: "flex items-center gap-4 p-5"}) {
+		@card.Content(card.ContentProps{Class: "flex items-center gap-4 p-6"}) {
 			<div class="flex size-12 items-center justify-center rounded-2xl bg-muted/60">
 				@leading
 			</div>
@@ -39,14 +39,16 @@ templ StatisticCard(title string, count int, leading templ.Component) {
 templ SensorsTableSection(l10n Localizer, viewModel SensorsPageViewModel) {
 	{{ rightFooter := templ.Component(templ.NopComponent) }}
 	if viewModel.Paging.PageLast > 1 {
-		{{ rightFooter = shared.PagingControl(l10n, shared.PagingControlProps{
-			PageIndex: viewModel.Paging.PageIndex,
-			PageLast:  viewModel.Paging.PageLast,
-			PageSize:  viewModel.Paging.PageSize,
-			Query:     viewModel.Paging.Query,
-			TargetURL: viewModel.Paging.TargetURL,
-			TargetID:  viewModel.Paging.TargetID,
-		}) }}
+		{{
+			rightFooter = shared.PagingControl(l10n, shared.PagingControlProps{
+				PageIndex: viewModel.Paging.PageIndex,
+				PageLast:  viewModel.Paging.PageLast,
+				PageSize:  viewModel.Paging.PageSize,
+				Query:     viewModel.Paging.Query,
+				TargetURL: viewModel.Paging.TargetURL,
+				TargetID:  viewModel.Paging.TargetID,
+			})
+		}}
 	}
 	@shared.DataTableSection(
 		shared.DataTableHeader(
@@ -69,14 +71,30 @@ templ SensorsTableSection(l10n Localizer, viewModel SensorsPageViewModel) {
 		@table.Table(table.Props{Class: "min-w-[860px]"}) {
 			@table.Header() {
 				@table.Row() {
-					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("online") } }
-					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
-					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("status") } }
-					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("type") } }
-					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("deveui") } }
-					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("batterylevel") } }
-					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("lastseen") } }
-					@table.Head(table.HeadProps{Class: "px-6 py-3 text-right"}) { <span class="sr-only">{ l10n.Get("actions") }</span> }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("online") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("name") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("status") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("type") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("deveui") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("batterylevel") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("lastseen") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3 text-right"}) {
+						<span class="sr-only">{ l10n.Get("actions") }</span>
+					}
 				}
 			}
 			@table.Body() {
@@ -97,19 +115,18 @@ templ SensorsTableSection(l10n Localizer, viewModel SensorsPageViewModel) {
 }
 
 templ SensorRow(l10n Localizer, sensor SensorViewModel, deviceProfiles []string, organisations []string) {
-	
 	if sensor.Type == "unknown" {
 		@shared.TableRow(shared.TableRowProps{}) {
 			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
-			<div class="inline-flex items-center gap-2">
-				<span class={ onlineIndicatorClass(sensor.Online) }></span>
-				if sensor.Online {
-					{ l10n.Get("online") }
-				} else {
-					{ l10n.Get("offline") }
-				}
-			</div>
-		}
+				<div class="inline-flex items-center gap-2">
+					<span class={ onlineIndicatorClass(sensor.Online) }></span>
+					if sensor.Online {
+						{ l10n.Get("online") }
+					} else {
+						{ l10n.Get("offline") }
+					}
+				</div>
+			}
 			@table.Cell(table.CellProps{Class: "px-6 py-3 align-top"}) {
 				<span class="font-bold text-foreground">
 					if sensor.Name != "" {
@@ -206,7 +223,7 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel, deviceProfiles []string,
 					{ sensor.LastSeen.Format("2006-01-02, 15:04") }
 				}
 			}
-			@table.Cell(table.CellProps{Class: "px-6 py-3"}) {}
+			@table.Cell(table.CellProps{Class: "px-6 py-3"})
 		}
 	}
 }
@@ -214,17 +231,17 @@ templ SensorRow(l10n Localizer, sensor SensorViewModel, deviceProfiles []string,
 templ AddUnknownSensorAction(l10n Localizer, sensor SensorViewModel) {
 	{{ requestURL := fmt.Sprintf("/components/sensors/create?sensorID=%s&name=%s", url.QueryEscape(sensor.DevEUI), url.QueryEscape(sensor.Name)) }}
 	@button.Button(button.Props{
-			Variant: button.VariantDefault,
-			Size:    button.SizeSm,
-			Class:   "rounded-xl px-3",
-			Attributes: templ.Attributes{
-					"hx-get":    requestURL,
-					"hx-target": "#create-sensor-modal-container",
-					"hx-swap":   "innerHTML",
-			},
+		Variant: button.VariantDefault,
+		Size:    button.SizeSm,
+		Class:   "rounded-xl px-3",
+		Attributes: templ.Attributes{
+			"hx-get":    requestURL,
+			"hx-target": "#create-sensor-modal-container",
+			"hx-swap":   "innerHTML",
+		},
 	}) {
-			@icon.Plus(icon.Props{Class: "size-4"})
-			Lägg till
+		@icon.Plus(icon.Props{Class: "size-4"})
+		{ l10n.Get("add") }
 	}
 }
 
@@ -234,8 +251,8 @@ templ AddUnknownSensorDialog(l10n Localizer, sensor SensorViewModel, deviceProfi
 	{{ dialogID := fmt.Sprintf("add-sensor-%s-dialog", sensor.DevEUI) }}
 	{{ formID := fmt.Sprintf("add-sensor-%s-form", sensor.DevEUI) }}
 	{{ titleID := fmt.Sprintf("add-sensor-%s-title", sensor.DevEUI) }}
-	  @dialog.Dialog(dialog.Props{ID: dialogID, Open: true}) {
-        @dialog.Content(dialog.ContentProps{
+	@dialog.Dialog(dialog.Props{ID: dialogID, Open: true}) {
+		@dialog.Content(dialog.ContentProps{
 			Class:           "max-w-xl gap-0 overflow-hidden rounded-3xl border-border/80 bg-card/95 p-0 shadow-xl",
 			HideCloseButton: true,
 			TitleID:         titleID,

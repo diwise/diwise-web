@@ -150,7 +150,7 @@ templ Trigger(props ...TriggerProps) {
 				},
 			),
 		}) {
-				<input
+			<input
 				type="hidden"
 				if p.Name != "" {
 					name={ p.Name }
@@ -158,22 +158,22 @@ templ Trigger(props ...TriggerProps) {
 				if p.Form != "" {
 					form={ p.Form }
 				}
-					data-tui-selectbox-hidden-input
-					{ p.Attributes... }
-				/>
-				{ children... }
-				<span
-					class="ml-1 hidden cursor-pointer text-muted-foreground hover:text-foreground"
-					data-tui-selectbox-clear-trigger
-					aria-hidden="true"
-				>
-					@icon.CircleX(icon.Props{Size: 14})
-				</span>
-				<span class="pointer-events-none ml-1" data-tui-selectbox-chevron>
-					@icon.ChevronDown(icon.Props{
-						Size:  16,
-						Class: "text-muted-foreground",
-					})
+				data-tui-selectbox-hidden-input
+				{ p.Attributes... }
+			/>
+			{ children... }
+			<span
+				class="ml-1 hidden cursor-pointer text-muted-foreground hover:text-foreground"
+				data-tui-selectbox-clear-trigger
+				aria-hidden="true"
+			>
+				@icon.CircleX(icon.Props{Size: 14})
+			</span>
+			<span class="pointer-events-none ml-1" data-tui-selectbox-chevron>
+				@icon.ChevronDown(icon.Props{
+					Size:  16,
+					Class: "text-muted-foreground",
+				})
 			</span>
 		}
 	}
@@ -244,7 +244,7 @@ templ Content(props ...ContentProps) {
 						Placeholder: utils.IfElse(p.SearchPlaceholder != "", p.SearchPlaceholder, "Search..."),
 						Attributes: templ.Attributes{
 							"data-tui-selectbox-search": "",
-							"aria-label": utils.IfElse(p.SearchPlaceholder != "", p.SearchPlaceholder, "Search"),
+							"aria-label":                utils.IfElse(p.SearchPlaceholder != "", p.SearchPlaceholder, "Search"),
 						},
 					})
 				</div>

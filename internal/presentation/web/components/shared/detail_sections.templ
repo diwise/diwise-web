@@ -1,8 +1,6 @@
 package shared
 
-import (
-	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/card"
-)
+import "github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/card"
 
 templ DetailSectionHeading(title string, leading templ.Component) {
 	<div class="flex items-center gap-3 self-stretch">
@@ -11,15 +9,32 @@ templ DetailSectionHeading(title string, leading templ.Component) {
 	</div>
 }
 
+// DetailSectionCard har kortets padding som enda källa (card.Content p-6).
+// Lägg inte egna px-/py-klasser i children; använd layoutklasser (grid/flex).
 templ DetailSectionCard(title string, leading templ.Component) {
 	<div class="flex flex-col gap-3">
 		if title != "" {
 			@DetailSectionHeading(title, leading)
 		}
-		@card.Card(card.Props{Class: "rounded-3xl border-border/80 bg-card shadow-sm"}) {
+		@card.Card(card.Props{Class: "rounded-2xl border-border/80 bg-card shadow-sm"}) {
 			@card.Content(card.ContentProps{Class: "p-6"}) {
 				{ children... }
 			}
+		}
+	</div>
+}
+
+// DetailSectionCardFlush är för tabellinnehåll: kortet har ingen egen
+// padding, så tabellceller (px-6) linjerar med DetailSectionCards p-6.
+templ DetailSectionCardFlush(title string, leading templ.Component) {
+	<div class="flex flex-col gap-3">
+		if title != "" {
+			@DetailSectionHeading(title, leading)
+		}
+		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-border/80 bg-card shadow-sm"}) {
+			<div class="overflow-x-auto">
+				{ children... }
+			</div>
 		}
 	</div>
 }
@@ -29,7 +44,7 @@ templ EditDetailSectionCard(title string, leading templ.Component) {
 		if title != "" {
 			@DetailSectionHeading(title, leading)
 		}
-		@card.Card(card.Props{Class: "rounded-3xl border-border/80 bg-card shadow-sm"}) {
+		@card.Card(card.Props{Class: "rounded-2xl border-border/80 bg-card shadow-sm"}) {
 			@card.Content(card.ContentProps{Class: "p-6 [&_.diwise-form-field-label]:text-base [&_.diwise-form-field-label]:font-bold"}) {
 				{ children... }
 			}

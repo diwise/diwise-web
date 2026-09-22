@@ -7,7 +7,7 @@ import (
 )
 
 templ SensorsPage(l10n Localizer, viewModel SensorsPageViewModel) {
-	<div class="flex flex-col gap-10">
+	<div class="flex flex-col gap-6 md:gap-8">
 		<section class="flex flex-col gap-6">
 			@shared.SectionHeading(l10n.Get("sensors"), icon.Rss(icon.Props{Size: 28, Class: "text-foreground"}))
 			@StatisticsCards(l10n, viewModel.Statistics)

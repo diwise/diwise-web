@@ -80,12 +80,12 @@ type ItemProps struct {
 }
 
 type Option struct {
-	Value        string
-	Label        string
-	PrimaryLabel string
+	Value          string
+	Label          string
+	PrimaryLabel   string
 	SecondaryLabel string
-	Selected     bool
-	Disabled     bool
+	Selected       bool
+	Disabled       bool
 }
 
 type OptionsProps struct {
@@ -264,9 +264,9 @@ templ Content(props ...ContentProps) {
 		),
 		Attributes: utils.MergeAttributes(
 			templ.Attributes{
-				"role":                               "listbox",
-				"tabindex":                           "-1",
-				"data-diwise-selectbox-remote":       "true",
+				"role":                                "listbox",
+				"tabindex":                            "-1",
+				"data-diwise-selectbox-remote":        "true",
 				"data-diwise-selectbox-search-target": searchTargetID,
 			},
 			p.Attributes,
@@ -293,7 +293,7 @@ templ Content(props ...ContentProps) {
 						"data-diwise-selectbox-content-id":    contentID,
 						"data-diwise-selectbox-search-target": searchTargetID,
 						"autocomplete":                        "off",
-						"aria-label": utils.IfElse(p.SearchPlaceholder != "", p.SearchPlaceholder, "Search"),
+						"aria-label":                          utils.IfElse(p.SearchPlaceholder != "", p.SearchPlaceholder, "Search"),
 					},
 				})
 			</div>

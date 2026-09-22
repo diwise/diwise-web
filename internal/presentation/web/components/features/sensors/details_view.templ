@@ -12,17 +12,17 @@ import (
 )
 
 templ SensorDetailsPage(l10n Localizer, _ AssetLoaderFunc, sensor SensorDetailsPageViewModel) {
-	<div class="flex flex-col gap-8" id="sensor-view">
+	<div class="flex flex-col gap-6 md:gap-8" id="sensor-view">
 		@SensorDetailsHeader(l10n, sensor)
-		<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
-			<div class="flex flex-1 flex-col gap-8">
+		<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+			<div class="flex min-w-0 flex-col gap-6">
 				@SensorDetailsPropertiesSection(l10n, sensor)
 				if len(sensor.Metadata) > 0 {
 					@SensorDetailsMetadataSection(l10n, sensor)
 				}
 				@SensorDetailsMeasurementSection(l10n, sensor)
 			</div>
-			<div class="flex w-full flex-1 flex-col gap-8">
+			<div class="flex min-w-0 flex-col gap-6">
 				@SensorDetailsLocationSection(l10n, sensor)
 				@SensorDetailsStatusSection(l10n, sensor)
 			</div>
@@ -31,46 +31,44 @@ templ SensorDetailsPage(l10n Localizer, _ AssetLoaderFunc, sensor SensorDetailsP
 }
 
 templ SensorDetailsHeader(l10n Localizer, sensor SensorDetailsPageViewModel) {
-	<div class="flex flex-col gap-4">
-		<a
-			href="/sensors"
-			hx-get="/sensors"
-			hx-target="#app-shell"
-			hx-swap="outerHTML"
-			hx-replace-url="true"
-			class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-		>
-			<span aria-hidden="true">←</span>
-			<span>{ l10n.Get("sensors") }</span>
-		</a>
-		<div class="flex items-center justify-between gap-4">
-			if sensor.Name == "" {
-				<div class="flex items-center gap-3">
-					<h1 class="text-3xl font-bold font-heading text-foreground">{ sensor.DeviceID }</h1>
-					@StatusBadge(l10n, sensor.Active)
-				</div>
-			} else {
-				<div class="flex items-center gap-3">
-					<h1 class="text-3xl font-bold font-heading text-foreground">{ sensor.Name }</h1>
-					@StatusBadge(l10n, sensor.Active)
-				</div>
-			}
-			@button.Button(button.Props{
-				Href:    fmt.Sprintf("/sensors/%s?mode=edit", sensor.DeviceID),
-				Variant: button.VariantOutline,
-				Class:   "rounded-xl px-4",
-				Attributes: templ.Attributes{
-					"hx-get":         fmt.Sprintf("/sensors/%s?mode=edit", sensor.DeviceID),
-					"hx-target":      "#app-shell",
-					"hx-swap":        "outerHTML",
-					"hx-replace-url": "true",
-				},
-			}) {
-				@icon.Pen(icon.Props{Class: "size-4"})
-				{ l10n.Get("edit") }
-			}
-		</div>
-	</div>
+	@shared.PageHeader(shared.PageHeaderProps{
+		BackHref:  "/sensors",
+		BackLabel: l10n.Get("sensors"),
+		Title:     sensorDisplayName(sensor),
+		Meta:      sensorDetailsMeta(l10n, sensor),
+		Actions:   sensorDetailsActions(l10n, sensor),
+	})
+}
+
+templ sensorDetailsMeta(l10n Localizer, sensor SensorDetailsPageViewModel) {
+	@StatusBadge(l10n, sensor.Active)
+	if strings.TrimSpace(sensor.Tenant) != "" {
+		<span class="text-muted-foreground">{ sensor.Tenant }</span>
+	}
+}
+
+templ sensorDetailsActions(l10n Localizer, sensor SensorDetailsPageViewModel) {
+	@button.Button(button.Props{
+		Href:    fmt.Sprintf("/sensors/%s?mode=edit", sensor.DeviceID),
+		Variant: button.VariantOutline,
+		Class:   "rounded-xl px-4",
+		Attributes: templ.Attributes{
+			"hx-get":         fmt.Sprintf("/sensors/%s?mode=edit", sensor.DeviceID),
+			"hx-target":      "#app-shell",
+			"hx-swap":        "outerHTML",
+			"hx-replace-url": "true",
+		},
+	}) {
+		@icon.Pen(icon.Props{Class: "size-4"})
+		{ l10n.Get("edit") }
+	}
+}
+
+func sensorDisplayName(sensor SensorDetailsPageViewModel) string {
+	if strings.TrimSpace(sensor.Name) != "" {
+		return sensor.Name
+	}
+	return sensor.DeviceID
 }
 
 templ StatusBadge(l10n Localizer, active bool) {
@@ -86,9 +84,9 @@ func statusBadgeTone(active bool) shared.StatusBadgeTone {
 }
 
 func statusBadgeLabel(l10n Localizer, active bool) string {
-		if active {
-			return l10n.Get("active")
-		}
+	if active {
+		return l10n.Get("active")
+	}
 	return l10n.Get("inactive")
 }
 
@@ -97,16 +95,14 @@ templ SensorDetailsPropertiesSection(l10n Localizer, sensor SensorDetailsPageVie
 		l10n.Get("details"),
 		icon.Rss(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="py-6 px-8">
-			@shared.DetailList([]shared.DetailListItem{
-				{Label: l10n.Get("deveui"), Value: sensor.DevEUI},
-				{Label: l10n.Get("sensortype"), Value: sensor.DeviceProfileName},
-				{Label: l10n.Get("environment"), Value: localizedOrFallback(l10n, sensor.Environment)},
-				{Label: l10n.Get("organisation"), Value: sensor.Tenant},
-				{Label: l10n.Get("description"), Value: sensor.Description, Missing: strings.TrimSpace(sensor.Description) == ""},
-				{Label: l10n.Get("lastseen"), Value: formatTimestamp(sensor.ObservedAt)},
-			})
-		</div>
+		@shared.DetailList([]shared.DetailListItem{
+			{Label: l10n.Get("deveui"), Value: sensor.DevEUI},
+			{Label: l10n.Get("sensortype"), Value: sensor.DeviceProfileName},
+			{Label: l10n.Get("environment"), Value: localizedOrFallback(l10n, sensor.Environment)},
+			{Label: l10n.Get("organisation"), Value: sensor.Tenant},
+			{Label: l10n.Get("description"), Value: sensor.Description, Missing: strings.TrimSpace(sensor.Description) == ""},
+			{Label: l10n.Get("lastseen"), Value: formatTimestamp(sensor.ObservedAt)},
+		})
 	}
 }
 
@@ -115,9 +111,7 @@ templ SensorDetailsMetadataSection(l10n Localizer, sensor SensorDetailsPageViewM
 		l10n.Get("Metadata"),
 		icon.Rss(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="py-6 px-8">
-			@shared.DetailList(metadataItems(sensor.Metadata))
-		</div>
+		@shared.DetailList(metadataItems(sensor.Metadata))
 	}
 }
 
@@ -126,7 +120,7 @@ templ SensorDetailsLocationSection(l10n Localizer, sensor SensorDetailsPageViewM
 		l10n.Get("location"),
 		icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="flex flex-col gap-6 py-6 px-8">
+		<div class="flex flex-col gap-6">
 			@shared.DetailList([]shared.DetailListItem{
 				{Label: l10n.Get("latitude"), Value: formatCoordinate(sensor.Latitude)},
 				{Label: l10n.Get("longitude"), Value: formatCoordinate(sensor.Longitude)},
@@ -147,7 +141,7 @@ templ SensorDetailsStatusSection(l10n Localizer, sensor SensorDetailsPageViewMod
 		l10n.Get("Status"),
 		icon.Rss(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="flex flex-col gap-6 py-6 px-8">
+		<div class="flex flex-col gap-6">
 			@shared.DetailList(statusItems(l10n, sensor.DeviceStatus))
 			<div
 				id="statusChartContainer"

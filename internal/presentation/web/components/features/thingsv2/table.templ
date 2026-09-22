@@ -13,14 +13,16 @@ import (
 templ ThingsV2TableSection(l10n Localizer, viewModel ThingsV2PageViewModel) {
 	{{ rightFooter := templ.Component(templ.NopComponent) }}
 	if viewModel.Paging.PageLast > 1 {
-		{{ rightFooter = shared.PagingControl(l10n, shared.PagingControlProps{
-			PageIndex: viewModel.Paging.PageIndex,
-			PageLast:  viewModel.Paging.PageLast,
-			PageSize:  viewModel.Paging.PageSize,
-			Query:     viewModel.Paging.Query,
-			TargetURL: viewModel.Paging.TargetURL,
-			TargetID:  viewModel.Paging.TargetID,
-		}) }}
+		{{
+			rightFooter = shared.PagingControl(l10n, shared.PagingControlProps{
+				PageIndex: viewModel.Paging.PageIndex,
+				PageLast:  viewModel.Paging.PageLast,
+				PageSize:  viewModel.Paging.PageSize,
+				Query:     viewModel.Paging.Query,
+				TargetURL: viewModel.Paging.TargetURL,
+				TargetID:  viewModel.Paging.TargetID,
+			})
+		}}
 	}
 	@shared.DataTableSection(
 		shared.DataTableHeader(
@@ -43,10 +45,18 @@ templ ThingsV2TableSection(l10n Localizer, viewModel ThingsV2PageViewModel) {
 		@table.Table(table.Props{Class: "min-w-[860px]"}) {
 			@table.Header() {
 				@table.Row() {
-					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("name") } }
-					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("category") } }
-					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("primary") } }
-					@table.Head(table.HeadProps{Class: "px-6 py-3"}) { { l10n.Get("organisation") } }
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("name") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("category") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("primary") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("organisation") }
+					}
 				}
 			}
 			@table.Body() {

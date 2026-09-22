@@ -18,7 +18,7 @@ templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
 	<form
 		action={ fmt.Sprintf("/things/%s", model.Thing.ID) }
 		method="post"
-		class="flex flex-col gap-8"
+		class="flex flex-col gap-6 md:gap-8"
 		hx-post={ fmt.Sprintf("/things/%s", model.Thing.ID) }
 		hx-target="#thing-edit-toast"
 		hx-swap="innerHTML"
@@ -27,11 +27,11 @@ templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
 		<div id="thing-edit-toast">
 			@EditThingToast(model.ToastMessage)
 		</div>
-		<div class="flex flex-col gap-8 lg:flex-row lg:items-start">
-			<div class="flex flex-1 flex-col gap-8">
+		<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+			<div class="flex min-w-0 flex-col gap-6">
 				@EditThingDetailsSection(l10n, model)
 			</div>
-			<div class="flex w-full flex-1 flex-col gap-8">
+			<div class="flex min-w-0 flex-col gap-6">
 				@EditThingLocationSection(l10n, model)
 			</div>
 		</div>
@@ -57,12 +57,12 @@ templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
 				Variant: button.VariantDestructive,
 				Class:   "order-1 mr-auto rounded-xl px-4",
 				Attributes: templ.Attributes{
-					"formaction": fmt.Sprintf("/things/%s/delete", model.Thing.ID),
-					"hx-post":    fmt.Sprintf("/things/%s/delete", model.Thing.ID),
-					"hx-target":  "#app-shell",
-					"hx-swap":    "outerHTML",
+					"formaction":     fmt.Sprintf("/things/%s/delete", model.Thing.ID),
+					"hx-post":        fmt.Sprintf("/things/%s/delete", model.Thing.ID),
+					"hx-target":      "#app-shell",
+					"hx-swap":        "outerHTML",
 					"hx-replace-url": "true",
-					"onclick":    fmt.Sprintf("return confirm('%s %s?')", l10n.Get("deletethingconfirm"), strings.ReplaceAll(thingDisplayName(model.Thing), "'", "\\'")),
+					"onclick":        fmt.Sprintf("return confirm('%s %s?')", l10n.Get("deletethingconfirm"), strings.ReplaceAll(thingDisplayName(model.Thing), "'", "\\'")),
 				},
 			}) {
 				{ l10n.Get("delete") }
@@ -74,40 +74,28 @@ templ EditThingDetailsPage(l10n Localizer, model ThingDetailsPageViewModel) {
 templ EditThingToast(message string) {
 	if strings.TrimSpace(message) != "" {
 		@toast.Toast(toast.Props{
-			Description: message,
-			Variant:     toast.VariantError,
-			Dismissible: true,
-			Icon:        true,
+			Description:   message,
+			Variant:       toast.VariantError,
+			Dismissible:   true,
+			Icon:          true,
 			ShowIndicator: true,
-			Position: "bottom-right",
+			Position:      "bottom-right",
 		})
 	}
 }
 
 templ EditThingDetailsHeader(l10n Localizer, model ThingDetailsPageViewModel) {
-	<div class="flex flex-col gap-4">
-		<a
-			href={ string(templ.SafeURL(fmt.Sprintf("/things/%s", model.Thing.ID))) }
-			hx-get={ string(templ.SafeURL(fmt.Sprintf("/things/%s", model.Thing.ID))) }
-			hx-target="#app-shell"
-			hx-swap="outerHTML"
-			hx-replace-url="true"
-			class="inline-flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground"
-		>
-			<span aria-hidden="true">←</span>
-			<span>{ l10n.Get("things") }</span>
-		</a>
-		<div class="flex items-center justify-between gap-4">
-			<div class="min-w-0">
-				<h1 class="text-3xl font-bold font-heading text-foreground">{ l10n.Get("edit") } { thingDisplayName(model.Thing) }</h1>
-			</div>
-		</div>
-	</div>
+	@shared.FormPageHeader(shared.FormPageHeaderProps{
+		BackHref:  fmt.Sprintf("/things/%s", model.Thing.ID),
+		BackLabel: l10n.Get("things"),
+		Title:     l10n.Get("edit") + " " + thingDisplayName(model.Thing),
+		Meta:      thingDetailsMeta(l10n, model),
+	})
 }
 
 templ EditThingDetailsSection(l10n Localizer, model ThingDetailsPageViewModel) {
 	@shared.EditDetailSectionCard(l10n.Get("details"), icon.Info(icon.Props{Size: 24, Class: "text-foreground"})) {
-		<div class="grid gap-6 py-6 px-8">
+		<div class="grid gap-6">
 			<div class="grid gap-6 md:grid-cols-2">
 				@shared.FormReadOnlyField(l10n.Get("thingtype")) {
 					<div class="flex min-h-10 items-center px-0 text-sm text-foreground">
@@ -262,7 +250,7 @@ templ EditThingLocationSection(l10n Localizer, model ThingDetailsPageViewModel) 
 		l10n.Get("location"),
 		icon.MapPin(icon.Props{Size: 24, Class: "text-foreground"}),
 	) {
-		<div class="flex flex-col gap-6 py-6 px-8">
+		<div class="flex flex-col gap-6">
 			<div class="grid gap-6 md:grid-cols-2">
 				@shared.FormField(l10n.Get("latitude"), "latitude") {
 					@input.Input(input.Props{

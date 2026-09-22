@@ -51,12 +51,12 @@ templ AttachSensorDialog(l10n Localizer, _ AssetLoaderFunc, model AttachSensorDi
 						Options:           attachSensorSelectBoxOptions(model.SensorID),
 					})
 					@shared.SelectBoxField(shared.SelectBoxFieldProps{
-						FieldID:         "attach-sensor-type",
-						Name:            "sensorType",
-						Label:           l10n.Get("sensortype"),
-						Placeholder:     l10n.Get("choose"),
-						NoSearch:        true,
-						Options:         sensorTypeFieldOptions(model.DeviceProfiles, model.SelectedType),
+						FieldID:     "attach-sensor-type",
+						Name:        "sensorType",
+						Label:       l10n.Get("sensortype"),
+						Placeholder: l10n.Get("choose"),
+						NoSearch:    true,
+						Options:     sensorTypeFieldOptions(model.DeviceProfiles, model.SelectedType),
 					})
 				</div>
 				<div class="flex items-center justify-end gap-3 border-t border-border/60 px-6 py-5">
