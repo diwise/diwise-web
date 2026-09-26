@@ -895,6 +895,36 @@ other = "Rule service is not configured (TRANSFORM_URL missing)"
 [rules_notice_deleted]
 other = "The rule was deleted."
 
+[rules_new]
+other = "New rule"
+
+[rules_save]
+other = "Save"
+
+[rules_match]
+other = "Match"
+
+[rules_entity]
+other = "Entity"
+
+[rules_property]
+other = "Property"
+
+[rules_add_entity]
+other = "Add entity"
+
+[rules_source_value]
+other = "Source value"
+
+[rules_conflict]
+other = "The rule was changed by another user — reload and try again."
+
+[rules_notice_created]
+other = "The rule was created."
+
+[rules_notice_updated]
+other = "The rule was updated."
+
 [catalog_variants]
 other = "Variants"
 

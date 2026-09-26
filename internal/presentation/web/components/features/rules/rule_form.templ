@@ -1,0 +1,286 @@
+package rules
+
+import (
+	apptransform "github.com/diwise/diwise-web/internal/application/transform"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
+	<div class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
+			@shared.SectionHeading(viewModel.Heading(l10n), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+		</header>
+		if viewModel.ErrorMessage != "" {
+			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
+		}
+		if viewModel.Notice != "" {
+			<p class="text-sm text-green-700 dark:text-green-400">{ viewModel.Notice }</p>
+		}
+		if !viewModel.TransformConfigured {
+			<p class="text-sm text-muted-foreground">{ l10n.Get("rules_not_configured") }</p>
+		} else {
+		<section class="flex min-w-0 max-w-3xl flex-col gap-6">
+			<form
+				method="post"
+				action={ viewModel.FormAction() }
+				class="flex flex-col gap-6"
+			>
+				if !viewModel.IsNew {
+					<input type="hidden" name="revision" value={ viewModel.RevisionString() }/>
+				}
+				<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4">
+					<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_match") }</legend>
+					<label class="flex flex-col gap-1 text-sm">
+						<span>{ l10n.Get("tenant") }</span>
+						<select name="tenant" class="rounded-xl border border-border bg-background px-3 py-2">
+							for _, t := range viewModel.Tenants {
+								<option value={ t } selected?={ t == viewModel.Rule.Match.Tenant }>{ t }</option>
+							}
+						</select>
+					</label>
+					<label class="flex flex-col gap-1 text-sm">
+						<span>{ l10n.Get("rules_kind") }</span>
+						<select name="kind" class="rounded-xl border border-border bg-background px-3 py-2">
+							<option value="measurement" selected?={ viewModel.Rule.Match.Kind == "measurement" }>measurement</option>
+							<option value="thing" selected?={ viewModel.Rule.Match.Kind == "thing" }>thing</option>
+						</select>
+					</label>
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<label class="flex flex-col gap-1 text-sm">
+							<span>device</span>
+							<input name="device" value={ viewModel.Rule.Match.Device } class="rounded-xl border border-border bg-background px-3 py-2"/>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>port</span>
+							<input name="port" value={ viewModel.Rule.Match.Port } class="rounded-xl border border-border bg-background px-3 py-2"/>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>sensorType</span>
+							<input name="sensorType" value={ viewModel.Rule.Match.SensorType } class="rounded-xl border border-border bg-background px-3 py-2"/>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>object</span>
+							<input name="object" value={ viewModel.Rule.Match.Object } class="rounded-xl border border-border bg-background px-3 py-2"/>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>resource</span>
+							<input name="resource" value={ viewModel.Rule.Match.Resource } class="rounded-xl border border-border bg-background px-3 py-2"/>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>env</span>
+							<input name="env" value={ viewModel.Rule.Match.Env } class="rounded-xl border border-border bg-background px-3 py-2"/>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>type</span>
+							<input name="type" value={ viewModel.Rule.Match.Type } class="rounded-xl border border-border bg-background px-3 py-2"/>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>subType</span>
+							<input name="subType" value={ viewModel.Rule.Match.SubType } class="rounded-xl border border-border bg-background px-3 py-2"/>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>event</span>
+							<select name="event" class="rounded-xl border border-border bg-background px-3 py-2">
+								<option value="" selected?={ viewModel.Rule.Match.Event == "" }></option>
+								<option value="things.v1.values" selected?={ viewModel.Rule.Match.Event == "things.v1.values" }>things.v1.values</option>
+								<option value="things.v1.relations" selected?={ viewModel.Rule.Match.Event == "things.v1.relations" }>things.v1.relations</option>
+								<option value="things.v1.lifecycle" selected?={ viewModel.Rule.Match.Event == "things.v1.lifecycle" }>things.v1.lifecycle</option>
+							</select>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>relation</span>
+							<input name="relation" value={ viewModel.Rule.Match.Relation } class="rounded-xl border border-border bg-background px-3 py-2"/>
+						</label>
+						<label class="flex items-center gap-2 text-sm">
+							<input type="checkbox" name="relationRemoved" value="true" checked?={ viewModel.Rule.Match.RelationRemoved }/>
+							<span>relationRemoved</span>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>lifecycle</span>
+							<select name="lifecycle" class="rounded-xl border border-border bg-background px-3 py-2">
+								<option value="" selected?={ viewModel.Rule.Match.Lifecycle == "" }></option>
+								<option value="created" selected?={ viewModel.Rule.Match.Lifecycle == "created" }>created</option>
+								<option value="updated" selected?={ viewModel.Rule.Match.Lifecycle == "updated" }>updated</option>
+								<option value="deleted" selected?={ viewModel.Rule.Match.Lifecycle == "deleted" }>deleted</option>
+							</select>
+						</label>
+					</div>
+				</fieldset>
+				<input type="hidden" name="entityCount" value={ viewModel.EntityCountString() }/>
+				for i, e := range viewModel.Rule.Entities {
+					@EntityBlock(l10n, i, e)
+				}
+				<div class="flex flex-wrap gap-4">
+					@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Attributes: templ.Attributes{"type": "submit"}}) {
+						{ l10n.Get("rules_save") }
+					}
+					@button.Button(button.Props{
+						Variant: button.VariantSecondary,
+						Class:   "rounded-xl px-4",
+						Attributes: templ.Attributes{
+							"hx-get":        "/components/rules/entity-blank?index=" + viewModel.NextEntityIndex(),
+							"hx-target":     "#entity-blocks",
+							"hx-swap":       "beforeend",
+							"type":          "button",
+						},
+					}) {
+						{ l10n.Get("rules_add_entity") }
+					}
+				</div>
+				<div id="entity-blocks"></div>
+			</form>
+			if viewModel.ShowDelete {
+				<form
+					method="post"
+					action={ "/rules/" + viewModel.ID + "/delete" }
+					class="flex flex-col gap-4 rounded-xl border border-border p-4"
+				>
+					<input type="hidden" name="revision" value={ viewModel.RevisionString() }/>
+					if viewModel.IsSeed {
+						<p class="text-sm text-muted-foreground">{ l10n.Get("rules_seed_banner") }</p>
+						<p class="text-sm text-muted-foreground">{ l10n.Get("rules_seed_delete_warning") }</p>
+					}
+					if viewModel.ConfirmDelete {
+						<p class="text-sm font-semibold">{ l10n.Get("rules_confirm_delete") }</p>
+						<input type="hidden" name="confirm" value="yes"/>
+					}
+					<div>
+						@button.Button(button.Props{Variant: button.VariantDestructive, Class: "rounded-xl px-4", Attributes: templ.Attributes{"type": "submit"}}) {
+							if viewModel.ConfirmDelete {
+								{ l10n.Get("rules_delete_confirmed") }
+							} else {
+								{ l10n.Get("rules_delete") }
+							}
+						}
+					</div>
+				</form>
+			}
+		</section>
+		}
+	</div>
+}
+
+templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {
+	<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4" data-entity={ index }>
+		<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_entity") } { index }</legend>
+		<input type="hidden" name={ entityField(index, "propCount") } value={ propertyCount(entity) }/>
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+			<label class="flex flex-col gap-1 text-sm">
+				<span>name</span>
+				<input name={ entityField(index, "name") } value={ entity.Name } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>id</span>
+				<input name={ entityField(index, "id") } value={ entity.ID } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>type</span>
+				<input name={ entityField(index, "type") } value={ entity.Type } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>context</span>
+				<input name={ entityField(index, "context") } value={ entity.Context } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>removeAttributes ({ l10n.Get("catalog_one_per_line") })</span>
+				<textarea name={ entityField(index, "removeAttributes") } rows="2" class="rounded-xl border border-border bg-background px-3 py-2">{ removeAttributesText(entity) }</textarea>
+			</label>
+			<div class="flex items-center gap-4 text-sm">
+				<label class="flex items-center gap-2">
+					<input type="checkbox" name={ entityField(index, "create") } value="true" checked?={ entity.Create }/>
+					<span>create</span>
+				</label>
+				<label class="flex items-center gap-2">
+					<input type="checkbox" name={ entityField(index, "delete") } value="true" checked?={ entity.Delete }/>
+					<span>delete</span>
+				</label>
+			</div>
+		</div>
+		for j, p := range entity.Properties {
+			@PropertyBlock(l10n, index, j, p)
+		}
+		<div id={ propertyTarget(index) }></div>
+	</fieldset>
+}
+
+templ PropertyBlock(l10n Localizer, entity, index int, property apptransform.Property) {
+	<fieldset class="flex flex-col gap-3 rounded-xl border border-dashed border-border p-3" data-property={ index }>
+		<legend class="px-2 text-sm">{ l10n.Get("rules_property") } { index }</legend>
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+			<label class="flex flex-col gap-1 text-sm">
+				<span>target</span>
+				<input name={ propertyField(entity, index, "target") } value={ property.Target } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>type</span>
+				<select name={ propertyField(entity, index, "type") } class="rounded-xl border border-border bg-background px-3 py-2">
+					for _, t := range propertyTypes() {
+						<option value={ t } selected?={ t == property.Type }>{ t }</option>
+					}
+				</select>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>{ l10n.Get("rules_source") }</span>
+				<select name={ propertyField(entity, index, "sourceKind") } class="rounded-xl border border-border bg-background px-3 py-2">
+					for _, s := range sourceKinds() {
+						<option value={ s } selected?={ s == propertySourceKind(property) }>{ s }</option>
+					}
+				</select>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>{ l10n.Get("rules_source_value") }</span>
+				<input name={ propertyField(entity, index, "sourceValue") } value={ propertySourceValue(property) } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>unit</span>
+				<input name={ propertyField(entity, index, "unit") } value={ property.Unit } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>observedAt</span>
+				<input name={ propertyField(entity, index, "observedAt") } value={ property.ObservedAt } list="observedAt-options" class="rounded-xl border border-border bg-background px-3 py-2"/>
+				<datalist id="observedAt-options">
+					<option value="header"></option>
+					<option value="record"></option>
+					<option value="message"></option>
+					<option value="none"></option>
+				</datalist>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>observedBy</span>
+				<input name={ propertyField(entity, index, "observedBy") } value={ property.ObservedBy } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>prefix</span>
+				<input name={ propertyField(entity, index, "prefix") } value={ property.Prefix } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>transform</span>
+				<select name={ propertyField(entity, index, "transformOp") } class="rounded-xl border border-border bg-background px-3 py-2">
+					for _, op := range transformOps() {
+						<option value={ op } selected?={ op == propertyTransformOp(property) }>{ op }</option>
+					}
+				</select>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>transform value</span>
+				<input name={ propertyField(entity, index, "transformValue") } value={ propertyTransformValue(property) } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<div class="flex items-center gap-4 text-sm">
+				<label class="flex items-center gap-2">
+					<input type="checkbox" name={ propertyField(entity, index, "required") } value="true" checked?={ property.Required }/>
+					<span>required</span>
+				</label>
+				<label class="flex items-center gap-2">
+					<input type="checkbox" name={ propertyField(entity, index, "whenPresent") } value="true" checked?={ property.When == "present" }/>
+					<span>when: present</span>
+				</label>
+			</div>
+		</div>
+		<input type="hidden" name={ propertyField(entity, index, "derive") } value={ propertyDeriveJSON(property) }/>
+		<input type="hidden" name={ propertyField(entity, index, "subproperties") } value={ propertySubpropertiesJSON(property) }/>
+		<input type="hidden" name={ propertyField(entity, index, "transform") } value={ propertyTransformJSON(property) }/>
+	</fieldset>
+}

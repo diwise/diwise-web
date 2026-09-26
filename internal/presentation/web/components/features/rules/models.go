@@ -1,10 +1,5 @@
 package rules
 
-import (
-	apptransform "github.com/diwise/diwise-web/internal/application/transform"
-	"strconv"
-)
-
 // RuleRowViewModel är en regelrad i listan.
 type RuleRowViewModel struct {
 	ID       string
@@ -29,19 +24,4 @@ type RulesPageViewModel struct {
 	Notice              string
 	ErrorMessage        string
 	TransformConfigured bool
-}
-
-// RuleDetailsViewModel är detalj/redigera-sidan för /rules/{id}.
-type RuleDetailsViewModel struct {
-	Model               apptransform.Model
-	IsSeed              bool
-	Tenants             []string
-	ConfirmDelete       bool
-	ErrorMessage        string
-	TransformConfigured bool
-}
-
-// RevisionString är revisionen som dolt formulärfält (If-Match rev-n).
-func (m RuleDetailsViewModel) RevisionString() string {
-	return strconv.FormatInt(m.Model.Revision, 10)
 }

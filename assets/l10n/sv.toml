@@ -900,6 +900,36 @@ other = "Regeltjänsten är inte konfigurerad (TRANSFORM_URL saknas)"
 [rules_notice_deleted]
 other = "Regeln är borttagen."
 
+[rules_new]
+other = "Ny regel"
+
+[rules_save]
+other = "Spara"
+
+[rules_match]
+other = "Matchning"
+
+[rules_entity]
+other = "Entitet"
+
+[rules_property]
+other = "Egenskap"
+
+[rules_add_entity]
+other = "Lägg till entitet"
+
+[rules_source_value]
+other = "Källvärde"
+
+[rules_conflict]
+other = "Regeln ändrades av annan användare — ladda om sidan och försök igen."
+
+[rules_notice_created]
+other = "Regeln är skapad."
+
+[rules_notice_updated]
+other = "Regeln är uppdaterad."
+
 [catalog_variants]
 other = "Varianter"
 

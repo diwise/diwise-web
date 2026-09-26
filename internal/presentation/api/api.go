@@ -460,8 +460,13 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /catalog/variants/{id}/{version}", protectFunc(ReadThings, catalog.NewVariantDetailsPage(ctx, l10n, assetLoader.Load, app)))
 
 	r.Handle("GET /rules", protectFunc(ReadTransforms, rules.NewRulesPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /rules/new", protectFunc(CreateTransforms, rules.NewRuleNewPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /rules/new", protectFunc(CreateTransforms, rules.NewRuleCreatePage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /rules/{id}", protectFunc(ReadTransforms, rules.NewRuleDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /rules/{id}", protectFunc(UpdateTransforms, rules.NewRuleSavePage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("POST /rules/{id}/delete", protectFunc(DeleteTransforms, rules.NewRuleDeletePage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/rules/entity-blank", protect(ReadTransforms, RequireHX(rules.NewEntityBlankFragment(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/rules/property-blank", protect(ReadTransforms, RequireHX(rules.NewPropertyBlankFragment(ctx, l10n, assetLoader.Load, app))))
 
 	r.Handle("GET /admin", protect(Admin, admin.NewAdminPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /admin/export", protectFunc(Admin, func(w http.ResponseWriter, r *http.Request) {

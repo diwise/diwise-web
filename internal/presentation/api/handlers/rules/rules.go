@@ -174,25 +174,42 @@ func NewRuleDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 
-		model := featurerules.RuleDetailsViewModel{
-			Tenants:             ruleTokenTenants(r),
-			TransformConfigured: app.Transforms().Configured(),
-		}
-		if model.TransformConfigured {
-			m, err := app.Transforms().GetModel(ctx, "", id)
-			if err != nil {
-				if errors.Is(err, client.ErrNotFound) {
-					http.Error(w, "rule not found", http.StatusNotFound)
-					return
-				}
-				http.Error(w, "could not fetch rule", http.StatusInternalServerError)
-				return
+		if !app.Transforms().Configured() {
+			content := featurerules.RuleFormPage(localizer, featurerules.RuleFormViewModel{
+				Tenants: ruleTokenTenants(r),
+			})
+			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
+			if helpers.IsHxRequest(r) {
+				page = v2layout.AppShell(localizer, assets, content)
 			}
-			model.Model = m
-			model.IsSeed = m.Source == "seed"
+			helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, 0)
+			return
 		}
 
-		content := featurerules.RuleDetailsPage(localizer, model)
+		m, err := app.Transforms().GetModel(ctx, "", id)
+		if err != nil {
+			if errors.Is(err, client.ErrNotFound) {
+				http.Error(w, "rule not found", http.StatusNotFound)
+				return
+			}
+			http.Error(w, "could not fetch rule", http.StatusInternalServerError)
+			return
+		}
+
+		model := featurerules.RuleFormViewModel{
+			ID:                  id,
+			Revision:            m.Revision,
+			Tenants:             ruleTokenTenants(r),
+			Rule:                m.Rule,
+			IsSeed:              m.Source == "seed",
+			ShowDelete:          true,
+			TransformConfigured: true,
+		}
+		if notice := strings.TrimSpace(r.URL.Query().Get("notice")); notice != "" {
+			model.Notice = localizer.Get("rules_notice_" + notice)
+		}
+
+		content := featurerules.RuleFormPage(localizer, model)
 		page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 		if helpers.IsHxRequest(r) {
 			page = v2layout.AppShell(localizer, assets, content)
@@ -239,10 +256,13 @@ func NewRuleDeletePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, 
 				http.Error(w, "could not fetch rule", http.StatusInternalServerError)
 				return
 			}
-			content := featurerules.RuleDetailsPage(localizer, featurerules.RuleDetailsViewModel{
-				Model:               m,
-				IsSeed:              m.Source == "seed",
+			content := featurerules.RuleFormPage(localizer, featurerules.RuleFormViewModel{
+				ID:                  id,
+				Revision:            revision,
 				Tenants:             ruleTokenTenants(r),
+				Rule:                m.Rule,
+				IsSeed:              m.Source == "seed",
+				ShowDelete:          true,
 				ConfirmDelete:       true,
 				TransformConfigured: app.Transforms().Configured(),
 			})

@@ -69,6 +69,21 @@ func stubRules(t *testing.T) (*apptransform.Service, func()) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/models", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			var rule apptransform.Rule
+			if err := json.NewDecoder(r.Body).Decode(&rule); err != nil || len(rule.Entities) == 0 {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusBadRequest)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": "rule must declare at least one entity"})
+				return
+			}
+			created := owned
+			created.Rule = rule
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+			_ = json.NewEncoder(w).Encode(created)
+			return
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{"models": []apptransform.Model{seed, owned}})
 	})
@@ -82,6 +97,22 @@ func stubRules(t *testing.T) (*apptransform.Service, func()) {
 		}
 		switch r.Method {
 		case http.MethodGet:
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(m)
+		case http.MethodPut:
+			var rule apptransform.Rule
+			if err := json.NewDecoder(r.Body).Decode(&rule); err != nil || len(rule.Entities) == 0 {
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusBadRequest)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": "rule must declare at least one entity"})
+				return
+			}
+			if r.Header.Get("If-Match") != fmt.Sprintf(`"rev-%d"`, m.Revision) {
+				w.WriteHeader(http.StatusConflict)
+				return
+			}
+			m.Rule = rule
+			m.Revision++
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(m)
 		case http.MethodDelete:
@@ -131,7 +162,7 @@ func TestRulesPageRendersRowsAndFilters(t *testing.T) {
 	is.True(!strings.Contains(rec.Body.String(), "11111111"))
 }
 
-func TestRuleDetailsPageShowsSeedBanner(t *testing.T) {
+func TestRuleDetailsPageShowsEditorAndSeedBanner(t *testing.T) {
 	is := is.New(t)
 	app, done := testApp(t)
 	defer done()
@@ -146,8 +177,11 @@ func TestRuleDetailsPageShowsSeedBanner(t *testing.T) {
 
 	is.Equal(http.StatusOK, rec.Code)
 	body := rec.Body.String()
+	// Editor med ifylld regel + dold revision + seed-banner + delete.
+	is.True(strings.Contains(body, `name="revision" value="3"`))
+	is.True(strings.Contains(body, "urn:ngsi-ld:Room"))
 	is.True(strings.Contains(body, "rules_seed_banner"))
-	is.True(strings.Contains(body, `value="3"`))
+	is.True(strings.Contains(body, "/rules/11111111-1111-1111-1111-111111111111/delete"))
 }
 
 func TestRuleDetailsPageReturns404ForUnknownID(t *testing.T) {
