@@ -797,3 +797,30 @@ other = "Välj en fil"
 
 [upload]
 other = "Ladda upp"
+
+[catalog]
+other = "Mallar"
+
+[catalog_templates]
+other = "Mallar"
+
+[catalog_all_categories]
+other = "Alla kategorier"
+
+[catalog_required]
+other = "Obligatoriska egenskaper"
+
+[catalog_optional]
+other = "Valfria egenskaper"
+
+[catalog_relations]
+other = "Relationer"
+
+[catalog_recipes]
+other = "Beräkningar"
+
+[catalog_not_configured]
+other = "Katalogtjänsten är inte konfigurerad"
+
+[version]
+other = "Version"

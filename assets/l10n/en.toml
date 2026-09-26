@@ -792,3 +792,30 @@ other = "Choose a file"
 
 [upload]
 other = "Upload"
+
+[catalog]
+other = "Templates"
+
+[catalog_templates]
+other = "Templates"
+
+[catalog_all_categories]
+other = "All categories"
+
+[catalog_required]
+other = "Required properties"
+
+[catalog_optional]
+other = "Optional properties"
+
+[catalog_relations]
+other = "Relations"
+
+[catalog_recipes]
+other = "Calculations"
+
+[catalog_not_configured]
+other = "Catalog service is not configured"
+
+[version]
+other = "Version"
