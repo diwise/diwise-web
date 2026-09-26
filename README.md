@@ -27,6 +27,22 @@ export OAUTH2_CLIENT_ID="<client id>"
 export OAUTH2_CLIENT_SECRET="<client secret>"
 ```
 
+### Templates and rules (PLAN002)
+
+- Mallar: `/catalog/templates` (lista), `/catalog/templates/{id}/{version}`
+  (detalj), `/catalog/templates/new` (ny version = kopia + bump; versioner är
+  oföränderliga), dito `/catalog/variants...`. Läsning kräver `things.read`,
+  publicering `things.create`.
+- Regler: `/rules` (lista), `/rules/new`, `/rules/{id}` (redigera),
+  `POST /rules/{id}/delete` (tvåsteg med seed-varning). Scopes
+  `transforms.read/create/update/delete` (+ `transforms.write` för
+  validate/preview-fragmenten). Tom `TRANSFORM_URL` = regelsidorna visar
+  "ej konfigurerad" i stället för att anropa.
+- Nya env: `TRANSFORM_URL` (iot-transform-fiware `/api/v0`, frivillig),
+  befintliga `THINGS_V2_URL`, `DEV_MGMT_URL`, `THINGS_URL`, `MEASUREMENTS_URL`.
+- Scopes i `config/authz.rego` (+ devmode-policyn): `transforms.read` i
+  default, samtliga `transforms.*` i write-uppsättningen.
+
 ### Debug
 
 Add to configurations in launch.json
