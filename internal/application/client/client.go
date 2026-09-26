@@ -66,10 +66,11 @@ type Client struct {
 	adminURL             string
 	measurementURL       string
 	alarmsURL            string
+	transformURL         string
 	httpClient           http.Client
 }
 
-func NewClient(devmgmt, things, admin, alarms, measurement string) *Client {
+func NewClient(devmgmt, things, admin, alarms, measurement, transformURL string) *Client {
 	return &Client{
 		deviceManagementURL:  devmgmt,
 		sensorsManagementURL: strings.Replace(devmgmt, "/device", "/sensor", 1),
@@ -77,6 +78,7 @@ func NewClient(devmgmt, things, admin, alarms, measurement string) *Client {
 		adminURL:             admin,
 		alarmsURL:            alarms,
 		measurementURL:       measurement,
+		transformURL:         transformURL,
 		httpClient: http.Client{
 			Transport: otelhttp.NewTransport(&http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}),
 			Timeout:   10 * time.Second,
@@ -90,6 +92,7 @@ func (c *Client) ThingManagementURL() string   { return c.thingManagementURL }
 func (c *Client) AdminURL() string             { return c.adminURL }
 func (c *Client) MeasurementURL() string       { return c.measurementURL }
 func (c *Client) AlarmsURL() string            { return c.alarmsURL }
+func (c *Client) TransformURL() string         { return c.transformURL }
 
 func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Values) (*ApiResponse, error) {
 	if strings.ContainsAny(path, "/") {
@@ -285,6 +288,66 @@ func (c *Client) WriteRaw(ctx context.Context, method, baseURL, path string, par
 	}
 
 	return responseBody, resp.Header, nil
+}
+
+// WriteRawDetailed sends POST/PUT/DELETE like WriteRaw but returns the HTTP
+// status and body for all responses (only transport errors surface as err),
+// so callers can surface backend error texts (e.g. rule validation
+// {error}) in forms. 401/403 still mark access-denied for toasts.
+func (c *Client) WriteRawDetailed(ctx context.Context, method, baseURL, path string, params url.Values, headers map[string]string, body []byte) ([]byte, http.Header, int, error) {
+	if strings.ContainsAny(path, "/") {
+		path = strings.TrimPrefix(path, "/")
+		path = strings.TrimSuffix(path, "/")
+	}
+
+	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("path", path))
+	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, path), "/"))
+	if err != nil {
+		log.Error("could not parse url", "error", err)
+		return nil, nil, 0, fmt.Errorf("could not parse url: %s", err.Error())
+	}
+
+	u.RawQuery = params.Encode()
+	var reader *bytes.Reader
+	if body != nil {
+		reader = bytes.NewReader(body)
+	} else {
+		reader = bytes.NewReader(nil)
+	}
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), reader)
+	if err != nil {
+		log.Error("could not create http request", "error", err)
+		return nil, nil, 0, fmt.Errorf("failed to create http request: %w", err)
+	}
+	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	req.Header.Add("Content-Type", "application/json")
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		log.Error("could not send write request", "error", err)
+		return nil, nil, 0, fmt.Errorf("failed to send write request: %s", err.Error())
+	}
+	defer resp.Body.Close()
+
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Error("could not read response body", "error", err)
+		return nil, nil, 0, fmt.Errorf("failed to read response body: %s", err.Error())
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		log.Error("request failed with unauthorized status")
+		MarkAuthDenied(ctx)
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		log.Error("request failed with forbidden status")
+		MarkPermissionDenied(ctx)
+	}
+
+	return responseBody, resp.Header, resp.StatusCode, nil
 }
 
 func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) error {

@@ -160,7 +160,7 @@ func initialize(ctx context.Context, flags FlagMap, policiesFile io.ReadCloser, 
 				}
 
 				svcCfg.app, err = application.New(ctx,
-					flags[devMgmtURL], flags[thingsURL], flags[thingsV2URL], flags[adminURL], flags[alarmsURL], flags[measurementsURL],
+					flags[devMgmtURL], flags[thingsURL], flags[thingsV2URL], flags[transformURL], flags[adminURL], flags[alarmsURL], flags[measurementsURL],
 				)
 				if err != nil {
 					return err
@@ -305,6 +305,9 @@ func parseExternalConfig(ctx context.Context, flags FlagMap) (context.Context, F
 		flags[thingsURL] = env.GetVariableOrDie(ctx, "THINGS_URL", "things URL")
 		// Frivillig tills Saker-sidorna landar (Etapp 2): tom sträng = v2-klient utan bas-URL.
 		flags[thingsV2URL] = env.GetVariableOrDefault(ctx, "THINGS_V2_URL", "")
+		// Frivillig tills regelsidorna landar (PLAN002): tom sträng =
+		// transform-klient utan bas-URL (regelsidor visar "ej konfigurerad").
+		flags[transformURL] = env.GetVariableOrDefault(ctx, "TRANSFORM_URL", "")
 		flags[measurementsURL] = env.GetVariableOrDie(ctx, "MEASUREMENTS_URL", "measurements URL")
 	} else {
 		appRoot := flags[appRoot]

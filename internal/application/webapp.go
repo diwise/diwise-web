@@ -17,6 +17,7 @@ import (
 	"github.com/diwise/diwise-web/internal/application/measurements"
 	"github.com/diwise/diwise-web/internal/application/things"
 	"github.com/diwise/diwise-web/internal/application/thingsv2"
+	"github.com/diwise/diwise-web/internal/application/transform"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
@@ -33,11 +34,12 @@ type App struct {
 	measurements *measurements.Service
 	things       *things.Service
 	thingsv2     *thingsv2.Service
+	transforms   *transform.Service
 }
 
-func New(ctx context.Context, devmgmt, thingsURL, thingsV2URL, adminURL, alarmsURL, measurementURL string) (*App, error) {
+func New(ctx context.Context, devmgmt, thingsURL, thingsV2URL, transformURL, adminURL, alarmsURL, measurementURL string) (*App, error) {
 	_ = ctx
-	client := client.NewClient(devmgmt, thingsURL, adminURL, alarmsURL, measurementURL)
+	client := client.NewClient(devmgmt, thingsURL, adminURL, alarmsURL, measurementURL, transformURL)
 	return &App{
 		client:       client,
 		admin:        admin.NewService(client),
@@ -46,6 +48,7 @@ func New(ctx context.Context, devmgmt, thingsURL, thingsV2URL, adminURL, alarmsU
 		measurements: measurements.NewService(client),
 		things:       things.NewService(client),
 		thingsv2:     thingsv2.NewService(client, thingsV2URL),
+		transforms:   transform.NewService(client, transformURL),
 	}, nil
 }
 
@@ -150,6 +153,10 @@ func (a *App) GetTags(ctx context.Context) ([]string, error) {
 
 func (a *App) ThingsV2() *thingsv2.Service {
 	return a.thingsv2
+}
+
+func (a *App) Transforms() *transform.Service {
+	return a.transforms
 }
 
 func (a *App) GetTypes(ctx context.Context) ([]string, error) {
