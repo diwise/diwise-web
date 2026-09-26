@@ -444,7 +444,13 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("POST /components/things-v2/{id}/sensors/unbind", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2UnbindSensor(ctx, l10n, assetLoader.Load, app))))
 
 	r.Handle("GET /catalog/templates", protectFunc(ReadThings, catalog.NewTemplatesPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /catalog/templates/new", protectFunc(CreateThings, catalog.NewTemplateNewPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /catalog/templates/new", protectFunc(CreateThings, catalog.NewTemplateCreatePage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /catalog/templates/{id}/{version}", protectFunc(ReadThings, catalog.NewTemplateDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /catalog/variants", protectFunc(ReadThings, catalog.NewVariantsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /catalog/variants/new", protectFunc(CreateThings, catalog.NewVariantNewPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /catalog/variants/new", protectFunc(CreateThings, catalog.NewVariantCreatePage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /catalog/variants/{id}/{version}", protectFunc(ReadThings, catalog.NewVariantDetailsPage(ctx, l10n, assetLoader.Load, app)))
 
 	r.Handle("GET /admin", protect(Admin, admin.NewAdminPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /admin/export", protectFunc(Admin, func(w http.ResponseWriter, r *http.Request) {

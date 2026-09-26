@@ -822,5 +822,41 @@ other = "Beräkningar"
 [catalog_not_configured]
 other = "Katalogtjänsten är inte konfigurerad"
 
+[catalog_new_version]
+other = "Ny mallversion"
+
+[catalog_copy_from]
+other = "Kopierar från"
+
+[catalog_one_per_line]
+other = "en per rad"
+
+[catalog_key_value_lines]
+other = "nyckel=värde per rad"
+
+[catalog_geometries]
+other = "Tillåtna geometrier"
+
+[catalog_allow_no_location]
+other = "Tillåt sak utan plats"
+
+[catalog_params]
+other = "Parametrar"
+
+[catalog_overridable]
+other = "Överstyrbara parametrar"
+
+[catalog_copied]
+other = "Relationer, beräkningar och egenskapsdefinitioner kopieras med read-only"
+
+[catalog_publish]
+other = "Publicera"
+
+[catalog_variants]
+other = "Varianter"
+
+[catalog_template]
+other = "Mall"
+
 [version]
 other = "Version"

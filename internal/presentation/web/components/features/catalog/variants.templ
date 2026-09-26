@@ -1,0 +1,178 @@
+package catalog
+
+import (
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ VariantsPage(l10n Localizer, viewModel VariantsPageViewModel) {
+	<div class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
+			@shared.SectionHeading(l10n.Get("catalog_variants"), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+			@button.Button(button.Props{
+				Href:    "/catalog/variants/new",
+				Variant: button.VariantDefault,
+				Class:   "w-fit shrink-0 rounded-xl px-4 whitespace-nowrap",
+				Attributes: templ.Attributes{
+					"hx-get":         "/catalog/variants/new",
+					"hx-target":      "#app-shell",
+					"hx-swap":        "outerHTML",
+					"hx-replace-url": "true",
+				},
+			}) {
+				{ l10n.Get("new") }
+			}
+		</header>
+		if viewModel.ErrorMessage != "" {
+			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
+		}
+		<section class="flex min-w-0 flex-col gap-6">
+			<form
+				method="get"
+				action="/catalog/variants"
+				hx-get="/catalog/variants"
+				hx-target="#app-shell"
+				hx-swap="outerHTML"
+				hx-replace-url="true"
+				class="flex flex-wrap items-end gap-4"
+			>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("tenant") }</span>
+					<select name="tenant" class="rounded-xl border border-border bg-background px-3 py-2">
+						for _, t := range viewModel.Tenants {
+							<option value={ t } selected?={ t == viewModel.Tenant }>{ t }</option>
+						}
+					</select>
+				</label>
+				<div>
+					@button.Button(button.Props{Variant: button.VariantSecondary, Class: "rounded-xl px-4", Attributes: templ.Attributes{"type": "submit"}}) {
+						{ l10n.Get("search") }
+					}
+				</div>
+			</form>
+			<div class="overflow-x-auto rounded-xl border border-border">
+				<table class="w-full min-w-0 text-sm">
+					<thead>
+						<tr class="border-b border-border text-left text-muted-foreground">
+							<th class="px-4 py-2">{ l10n.Get("id") }</th>
+							<th class="px-4 py-2">{ l10n.Get("version") }</th>
+							<th class="px-4 py-2">{ l10n.Get("catalog_template") }</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, v := range viewModel.Variants {
+							<tr class="border-b border-border last:border-0">
+								<td class="px-4 py-2">
+									<a
+										class="underline"
+										href={ templ.SafeURL("/catalog/variants/" + v.ID + "/" + v.Version + "?tenant=" + viewModel.Tenant) }
+										hx-get={ "/catalog/variants/" + v.ID + "/" + v.Version + "?tenant=" + viewModel.Tenant }
+										hx-target="#app-shell"
+										hx-swap="outerHTML"
+										hx-replace-url="true"
+									>{ v.ID }</a>
+								</td>
+								<td class="px-4 py-2">{ v.Version }</td>
+								<td class="px-4 py-2">{ v.TemplateID } { v.TemplateVersion }</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</div>
+}
+
+templ VariantDetailsPage(l10n Localizer, viewModel VariantDetailsViewModel) {
+	<div class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
+			@shared.SectionHeading(viewModel.Spec.Variant.ID+" "+viewModel.Spec.Variant.Version, icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+		</header>
+		if viewModel.ErrorMessage != "" {
+			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
+		}
+		<section class="flex min-w-0 flex-col gap-6">
+			<dl class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+				<div>
+					<dt class="text-muted-foreground">{ l10n.Get("id") }</dt>
+					<dd>{ viewModel.Spec.Variant.ID }</dd>
+				</div>
+				<div>
+					<dt class="text-muted-foreground">{ l10n.Get("version") }</dt>
+					<dd>{ viewModel.Spec.Variant.Version }</dd>
+				</div>
+				<div>
+					<dt class="text-muted-foreground">{ l10n.Get("catalog_template") }</dt>
+					<dd>{ viewModel.Spec.Variant.TemplateID } { viewModel.Spec.Variant.TemplateVersion }</dd>
+				</div>
+			</dl>
+			<div>
+				<h2 class="mb-2 text-sm font-semibold">{ l10n.Get("catalog_params") }</h2>
+				<ul class="flex flex-col gap-1 text-sm">
+					for key, value := range viewModel.Spec.Variant.ParamValues {
+						<li>{ key }: { viewModel.Float(value) }</li>
+					}
+				</ul>
+			</div>
+		</section>
+	</div>
+}
+
+templ VariantNewPage(l10n Localizer, viewModel VariantNewViewModel) {
+	<div class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
+			@shared.SectionHeading(l10n.Get("catalog_new_version"), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+		</header>
+		if viewModel.ErrorMessage != "" {
+			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
+		}
+		<section class="flex min-w-0 max-w-2xl flex-col gap-6">
+			<form
+				method="post"
+				action="/catalog/variants/new"
+				class="flex flex-col gap-4"
+			>
+				if viewModel.From != "" {
+					<input type="hidden" name="from" value={ viewModel.From }/>
+					<p class="text-sm text-muted-foreground">{ l10n.Get("catalog_copy_from") }: { viewModel.From }</p>
+				}
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("id") }</span>
+					<input name="id" value={ viewModel.ID } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("tenant") }</span>
+					<select name="tenant" class="rounded-xl border border-border bg-background px-3 py-2">
+						for _, t := range viewModel.Tenants {
+							<option value={ t } selected?={ t == viewModel.Tenant }>{ t }</option>
+						}
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("version") }</span>
+					<input name="version" value={ viewModel.Version } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("catalog_template") } (id/version)</span>
+					<input name="templateRef" value={ viewModel.TemplateRef } list="template-options" class="rounded-xl border border-border bg-background px-3 py-2"/>
+					<datalist id="template-options">
+						for _, opt := range viewModel.TemplateOptions {
+							<option value={ opt }></option>
+						}
+					</datalist>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("catalog_params") } ({ l10n.Get("catalog_key_value_lines") })</span>
+					<textarea name="paramValues" rows="4" class="rounded-xl border border-border bg-background px-3 py-2">{ viewModel.ParamValues }</textarea>
+				</label>
+				<div>
+					@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Attributes: templ.Attributes{"type": "submit"}}) {
+						{ l10n.Get("catalog_publish") }
+					}
+				</div>
+			</form>
+		</section>
+	</div>
+}

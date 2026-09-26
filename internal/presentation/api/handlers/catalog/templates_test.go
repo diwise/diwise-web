@@ -51,7 +51,8 @@ func (a stubAsset) Path() string        { return a.path }
 func (a stubAsset) SHA256() string      { return "" }
 
 // stubCatalog svarar som iot-things-v2 catalog: lista med category-filter,
-// en version, 404 för okänt.
+// en version, 404 för okänt, POST skapar (201 tom), dubblett 409, ogiltig
+// body 400. Samma för varianter.
 func stubCatalog(t *testing.T) (*catalog.Service, *appthingsv2.Service, func()) {
 	t.Helper()
 
@@ -73,6 +74,21 @@ func stubCatalog(t *testing.T) (*catalog.Service, *appthingsv2.Service, func()) 
 		w.WriteHeader(http.StatusNotFound)
 	})
 	mux.HandleFunc("/catalog/templates", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			var spec appthingsv2.TemplateSpec
+			if err := json.NewDecoder(r.Body).Decode(&spec); err != nil || spec.Template.ID == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			for _, s := range specs {
+				if s.Template.ID == spec.Template.ID && s.Template.Version == spec.Template.Version {
+					w.WriteHeader(http.StatusConflict)
+					return
+				}
+			}
+			w.WriteHeader(http.StatusCreated)
+			return
+		}
 		out := specs
 		if cat := r.URL.Query().Get("category"); cat != "" {
 			out = nil
@@ -95,6 +111,36 @@ func stubCatalog(t *testing.T) (*catalog.Service, *appthingsv2.Service, func()) 
 				_ = json.NewEncoder(w).Encode(s)
 				return
 			}
+		}
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	variant := appthingsv2.VariantSpec{Variant: appthingsv2.Variant{
+		ID: "std", Version: "v1", TemplateID: "wastebin", TemplateVersion: "v1",
+		ParamValues: map[string]float64{"level": 1},
+	}}
+	mux.HandleFunc("/catalog/variants", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			var s appthingsv2.VariantSpec
+			if err := json.NewDecoder(r.Body).Decode(&s); err != nil || s.Variant.ID == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
+			if s.Variant.ID == variant.Variant.ID && s.Variant.Version == variant.Variant.Version {
+				w.WriteHeader(http.StatusConflict)
+				return
+			}
+			w.WriteHeader(http.StatusCreated)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]appthingsv2.VariantSpec{variant})
+	})
+	mux.HandleFunc("/catalog/variants/{id}/{version}", func(w http.ResponseWriter, r *http.Request) {
+		if r.PathValue("id") == variant.Variant.ID && r.PathValue("version") == variant.Variant.Version {
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(variant)
+			return
 		}
 		w.WriteHeader(http.StatusNotFound)
 	})

@@ -817,5 +817,41 @@ other = "Calculations"
 [catalog_not_configured]
 other = "Catalog service is not configured"
 
+[catalog_new_version]
+other = "New template version"
+
+[catalog_copy_from]
+other = "Copying from"
+
+[catalog_one_per_line]
+other = "one per line"
+
+[catalog_key_value_lines]
+other = "key=value per line"
+
+[catalog_geometries]
+other = "Allowed geometries"
+
+[catalog_allow_no_location]
+other = "Allow thing without location"
+
+[catalog_params]
+other = "Parameters"
+
+[catalog_overridable]
+other = "Overridable parameters"
+
+[catalog_copied]
+other = "Relations, calculations and property definitions ride along read-only"
+
+[catalog_publish]
+other = "Publish"
+
+[catalog_variants]
+other = "Variants"
+
+[catalog_template]
+other = "Template"
+
 [version]
 other = "Version"

@@ -1,0 +1,102 @@
+package catalog
+
+import (
+	"slices"
+
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ TemplateNewPage(l10n Localizer, viewModel TemplateNewViewModel) {
+	<div class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
+			@shared.SectionHeading(l10n.Get("catalog_new_version"), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+		</header>
+		if viewModel.ErrorMessage != "" {
+			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
+		}
+		<section class="flex min-w-0 max-w-2xl flex-col gap-6">
+			<form
+				method="post"
+				action="/catalog/templates/new"
+				class="flex flex-col gap-4"
+			>
+				if viewModel.FromLocked {
+					<input type="hidden" name="from" value={ viewModel.From }/>
+					<input type="hidden" name="id" value={ viewModel.ID }/>
+					<p class="text-sm text-muted-foreground">{ l10n.Get("catalog_copy_from") }: { viewModel.From }</p>
+				} else {
+					<label class="flex flex-col gap-1 text-sm">
+						<span>{ l10n.Get("id") }</span>
+						<input name="id" value={ viewModel.ID } class="rounded-xl border border-border bg-background px-3 py-2"/>
+					</label>
+				}
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("tenant") }</span>
+					<select name="tenant" class="rounded-xl border border-border bg-background px-3 py-2">
+						for _, t := range viewModel.Tenants {
+							<option value={ t } selected?={ t == viewModel.Tenant }>{ t }</option>
+						}
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("version") }</span>
+					<input name="version" value={ viewModel.Version } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("name") }</span>
+					<input name="displayName" value={ viewModel.DisplayName } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("description") }</span>
+					<input name="description" value={ viewModel.Description } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("category") }</span>
+					<input name="category" value={ viewModel.Category } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("catalog_required") } ({ l10n.Get("catalog_one_per_line") })</span>
+					<textarea name="required" rows="4" class="rounded-xl border border-border bg-background px-3 py-2">{ viewModel.Required }</textarea>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("catalog_optional") } ({ l10n.Get("catalog_one_per_line") })</span>
+					<textarea name="optional" rows="4" class="rounded-xl border border-border bg-background px-3 py-2">{ viewModel.Optional }</textarea>
+				</label>
+				<fieldset class="flex flex-col gap-1 text-sm">
+					<legend>{ l10n.Get("catalog_geometries") }</legend>
+					<label class="flex items-center gap-2">
+						<input type="checkbox" name="geometry" value="Point" checked?={ slices.Contains(viewModel.Geometries, "Point") }/>
+						<span>Point</span>
+					</label>
+					<label class="flex items-center gap-2">
+						<input type="checkbox" name="geometry" value="Polygon" checked?={ slices.Contains(viewModel.Geometries, "Polygon") }/>
+						<span>Polygon</span>
+					</label>
+				</fieldset>
+				<label class="flex items-center gap-2 text-sm">
+					<input type="checkbox" name="allowNoLocation" value="true" checked?={ viewModel.AllowNoLocation }/>
+					<span>{ l10n.Get("catalog_allow_no_location") }</span>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("catalog_params") } ({ l10n.Get("catalog_key_value_lines") })</span>
+					<textarea name="paramDefaults" rows="4" class="rounded-xl border border-border bg-background px-3 py-2">{ viewModel.ParamDefaults }</textarea>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("catalog_overridable") } ({ l10n.Get("catalog_one_per_line") })</span>
+					<textarea name="overridable" rows="3" class="rounded-xl border border-border bg-background px-3 py-2">{ viewModel.OverridableText }</textarea>
+				</label>
+				if viewModel.FromLocked {
+					<p class="text-sm text-muted-foreground">{ l10n.Get("catalog_copied") }</p>
+				}
+				<div>
+					@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Attributes: templ.Attributes{"type": "submit"}}) {
+						{ l10n.Get("catalog_publish") }
+					}
+				</div>
+			</form>
+		</section>
+	</div>
+}
