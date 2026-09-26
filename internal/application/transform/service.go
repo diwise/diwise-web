@@ -34,6 +34,12 @@ func NewService(client *client.Client, baseURL string) *Service {
 	return &Service{client: client, baseURL: baseURL}
 }
 
+// Configured reports whether a backend URL is set (empty TRANSFORM_URL
+// means the rules pages render "not configured" instead of calling out).
+func (s *Service) Configured() bool {
+	return s.baseURL != ""
+}
+
 func tenantParams(tenant string, filters map[string]string) url.Values {
 	params := url.Values{}
 	params.Add("tenant", tenant)

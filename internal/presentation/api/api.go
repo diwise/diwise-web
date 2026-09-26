@@ -20,6 +20,7 @@ import (
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/admin"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/catalog"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/home"
+	"github.com/diwise/diwise-web/internal/presentation/api/handlers/rules"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/sensors"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/things"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/thingsv2"
@@ -44,6 +45,12 @@ const (
 	CreateThings auth.Scope = "things.create"
 	UpdateThings auth.Scope = "things.update"
 	DeleteThings auth.Scope = "things.delete"
+
+	ReadTransforms   auth.Scope = "transforms.read"
+	CreateTransforms auth.Scope = "transforms.create"
+	UpdateTransforms auth.Scope = "transforms.update"
+	DeleteTransforms auth.Scope = "transforms.delete"
+	WriteTransforms  auth.Scope = "transforms.write"
 
 	Admin auth.Scope = "admin"
 )
@@ -451,6 +458,10 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /catalog/variants/new", protectFunc(CreateThings, catalog.NewVariantNewPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("POST /catalog/variants/new", protectFunc(CreateThings, catalog.NewVariantCreatePage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /catalog/variants/{id}/{version}", protectFunc(ReadThings, catalog.NewVariantDetailsPage(ctx, l10n, assetLoader.Load, app)))
+
+	r.Handle("GET /rules", protectFunc(ReadTransforms, rules.NewRulesPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /rules/{id}", protectFunc(ReadTransforms, rules.NewRuleDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /rules/{id}/delete", protectFunc(DeleteTransforms, rules.NewRuleDeletePage(ctx, l10n, assetLoader.Load, app)))
 
 	r.Handle("GET /admin", protect(Admin, admin.NewAdminPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /admin/export", protectFunc(Admin, func(w http.ResponseWriter, r *http.Request) {

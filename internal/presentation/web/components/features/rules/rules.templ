@@ -1,0 +1,194 @@
+package rules
+
+import (
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ RulesPage(l10n Localizer, viewModel RulesPageViewModel) {
+	<div class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
+			@shared.SectionHeading(l10n.Get("rules"), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+			@button.Button(button.Props{
+				Href:    "/rules/new",
+				Variant: button.VariantDefault,
+				Class:   "w-fit shrink-0 rounded-xl px-4 whitespace-nowrap",
+				Attributes: templ.Attributes{
+					"hx-get":         "/rules/new",
+					"hx-target":      "#app-shell",
+					"hx-swap":        "outerHTML",
+					"hx-replace-url": "true",
+				},
+			}) {
+				{ l10n.Get("new") }
+			}
+		</header>
+		if !viewModel.TransformConfigured {
+			<p class="text-sm text-muted-foreground">{ l10n.Get("rules_not_configured") }</p>
+		}
+		if viewModel.Notice != "" {
+			<p class="text-sm text-green-700 dark:text-green-400">{ viewModel.Notice }</p>
+		}
+		if viewModel.ErrorMessage != "" {
+			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
+		}
+		<section class="flex min-w-0 flex-col gap-6">
+			<form
+				method="get"
+				action="/rules"
+				hx-get="/rules"
+				hx-target="#app-shell"
+				hx-swap="outerHTML"
+				hx-replace-url="true"
+				class="flex flex-wrap items-end gap-4"
+			>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("rules_kind") }</span>
+					<select name="kind" class="rounded-xl border border-border bg-background px-3 py-2">
+						<option value="">{ l10n.Get("rules_all") }</option>
+						<option value="measurement" selected?={ viewModel.Kind == "measurement" }>measurement</option>
+						<option value="thing" selected?={ viewModel.Kind == "thing" }>thing</option>
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("rules_event") }</span>
+					<select name="event" class="rounded-xl border border-border bg-background px-3 py-2">
+						<option value="">{ l10n.Get("rules_all") }</option>
+						<option value="things.v1.values" selected?={ viewModel.Event == "things.v1.values" }>things.v1.values</option>
+						<option value="things.v1.relations" selected?={ viewModel.Event == "things.v1.relations" }>things.v1.relations</option>
+						<option value="things.v1.lifecycle" selected?={ viewModel.Event == "things.v1.lifecycle" }>things.v1.lifecycle</option>
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("tenant") }</span>
+					<select name="tenant" class="rounded-xl border border-border bg-background px-3 py-2">
+						<option value="">{ l10n.Get("rules_all") }</option>
+						for _, t := range viewModel.Tenants {
+							<option value={ t } selected?={ t == viewModel.Tenant }>{ t }</option>
+						}
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("rules_source") }</span>
+					<select name="source" class="rounded-xl border border-border bg-background px-3 py-2">
+						<option value="">{ l10n.Get("rules_all") }</option>
+						<option value="seed" selected?={ viewModel.Source == "seed" }>seed</option>
+						<option value="api" selected?={ viewModel.Source == "api" }>api</option>
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("search") }</span>
+					<input name="search" value={ viewModel.Search } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<div>
+					@button.Button(button.Props{Variant: button.VariantSecondary, Class: "rounded-xl px-4", Attributes: templ.Attributes{"type": "submit"}}) {
+						{ l10n.Get("search") }
+					}
+				</div>
+			</form>
+			<div class="overflow-x-auto rounded-xl border border-border">
+				<table class="w-full min-w-0 text-sm">
+					<thead>
+						<tr class="border-b border-border text-left text-muted-foreground">
+							<th class="px-4 py-2">{ l10n.Get("id") }</th>
+							<th class="px-4 py-2">{ l10n.Get("rules_kind") }</th>
+							<th class="px-4 py-2">{ l10n.Get("rules_summary") }</th>
+							<th class="px-4 py-2">{ l10n.Get("tenant") }</th>
+							<th class="px-4 py-2">{ l10n.Get("rules_source") }</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, rule := range viewModel.Rules {
+							<tr class="border-b border-border last:border-0">
+								<td class="px-4 py-2">
+									<a
+										class="underline"
+										href={ templ.SafeURL("/rules/" + rule.ID) }
+										hx-get={ "/rules/" + rule.ID }
+										hx-target="#app-shell"
+										hx-swap="outerHTML"
+										hx-replace-url="true"
+									>{ rule.ShortID }</a>
+								</td>
+								<td class="px-4 py-2">{ rule.Kind }</td>
+								<td class="px-4 py-2">{ rule.Summary }</td>
+								<td class="px-4 py-2">{ rule.Tenant }</td>
+								<td class="px-4 py-2">{ rule.Source }</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</div>
+}
+
+templ RuleDetailsPage(l10n Localizer, viewModel RuleDetailsViewModel) {
+	<div class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
+			@shared.SectionHeading(l10n.Get("rules_rule")+" "+viewModel.Model.ID, icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+		</header>
+		if !viewModel.TransformConfigured {
+			<p class="text-sm text-muted-foreground">{ l10n.Get("rules_not_configured") }</p>
+		}
+		if viewModel.IsSeed {
+			<p class="text-sm text-muted-foreground">{ l10n.Get("rules_seed_banner") }</p>
+		}
+		if viewModel.ErrorMessage != "" {
+			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
+		}
+		<section class="flex min-w-0 max-w-2xl flex-col gap-6">
+			<dl class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+				<div>
+					<dt class="text-muted-foreground">{ l10n.Get("rules_kind") }</dt>
+					<dd>{ viewModel.Model.Rule.Match.Kind }</dd>
+				</div>
+				<div>
+					<dt class="text-muted-foreground">{ l10n.Get("rules_event") }</dt>
+					<dd>{ viewModel.Model.Rule.Match.Event }</dd>
+				</div>
+				<div>
+					<dt class="text-muted-foreground">{ l10n.Get("tenant") }</dt>
+					<dd>{ viewModel.Model.Rule.Match.Tenant }</dd>
+				</div>
+				<div>
+					<dt class="text-muted-foreground">{ l10n.Get("rules_source") }</dt>
+					<dd>{ viewModel.Model.Source }</dd>
+				</div>
+			</dl>
+			<div>
+				<h2 class="mb-2 text-sm font-semibold">{ l10n.Get("rules_entities") }</h2>
+				<ul class="flex flex-col gap-1 text-sm">
+					for _, e := range viewModel.Model.Rule.Entities {
+						<li>{ e.Type }: { e.ID }</li>
+					}
+				</ul>
+			</div>
+			<form
+				method="post"
+				action={ "/rules/" + viewModel.Model.ID + "/delete" }
+				class="flex flex-col gap-4"
+			>
+				<input type="hidden" name="revision" value={ viewModel.RevisionString() }/>
+				if viewModel.IsSeed {
+					<p class="text-sm text-muted-foreground">{ l10n.Get("rules_seed_delete_warning") }</p>
+				}
+				if viewModel.ConfirmDelete {
+					<p class="text-sm font-semibold">{ l10n.Get("rules_confirm_delete") }</p>
+					<input type="hidden" name="confirm" value="yes"/>
+				}
+				<div>
+					@button.Button(button.Props{Variant: button.VariantDestructive, Class: "rounded-xl px-4", Attributes: templ.Attributes{"type": "submit"}}) {
+						if viewModel.ConfirmDelete {
+							{ l10n.Get("rules_delete_confirmed") }
+						} else {
+							{ l10n.Get("rules_delete") }
+						}
+					}
+				</div>
+			</form>
+		</section>
+	</div>
+}

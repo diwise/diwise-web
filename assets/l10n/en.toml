@@ -850,6 +850,51 @@ other = "Publish"
 [catalog_pick_tenant]
 other = "Pick a tenant to list templates (templates are global but reads need a tenant)"
 
+[rules]
+other = "Rules"
+
+[rules_kind]
+other = "Kind"
+
+[rules_event]
+other = "Event"
+
+[rules_source]
+other = "Source"
+
+[rules_summary]
+other = "Summary"
+
+[rules_all]
+other = "All"
+
+[rules_rule]
+other = "Rule"
+
+[rules_entities]
+other = "Entities"
+
+[rules_delete]
+other = "Delete"
+
+[rules_confirm_delete]
+other = "Confirm deletion — this cannot be undone."
+
+[rules_delete_confirmed]
+other = "Yes, delete the rule"
+
+[rules_seed_banner]
+other = "Seed rule: editing takes it over to api (seed never overwrites manual changes)."
+
+[rules_seed_delete_warning]
+other = "Seed rule: deletion tombstones the row (never revived) and prune removes it on deploy."
+
+[rules_not_configured]
+other = "Rule service is not configured (TRANSFORM_URL missing)"
+
+[rules_notice_deleted]
+other = "The rule was deleted."
+
 [catalog_variants]
 other = "Variants"
 

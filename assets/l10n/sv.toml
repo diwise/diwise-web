@@ -855,6 +855,51 @@ other = "Publicera"
 [catalog_pick_tenant]
 other = "Välj tenant för att lista mallar (mallar är globala men läsning kräver tenant)"
 
+[rules]
+other = "Regler"
+
+[rules_kind]
+other = "Typ"
+
+[rules_event]
+other = "Händelse"
+
+[rules_source]
+other = "Källa"
+
+[rules_summary]
+other = "Sammanfattning"
+
+[rules_all]
+other = "Alla"
+
+[rules_rule]
+other = "Regel"
+
+[rules_entities]
+other = "Entiteter"
+
+[rules_delete]
+other = "Ta bort"
+
+[rules_confirm_delete]
+other = "Bekräfta borttagning — åtgärden går inte att ångra."
+
+[rules_delete_confirmed]
+other = "Ja, ta bort regeln"
+
+[rules_seed_banner]
+other = "Seed-regel: redigering tar över regeln till api (seed skriver aldrig över manuella ändringar)."
+
+[rules_seed_delete_warning]
+other = "Seed-regel: borttagning tombstonar raden (återupplivas aldrig) och prune tar bort den vid deploy."
+
+[rules_not_configured]
+other = "Regeltjänsten är inte konfigurerad (TRANSFORM_URL saknas)"
+
+[rules_notice_deleted]
+other = "Regeln är borttagen."
+
 [catalog_variants]
 other = "Varianter"
 
