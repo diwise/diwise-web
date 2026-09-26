@@ -51,6 +51,11 @@ allow := response if {
 				"things.create",
 				"things.update",
 				"things.delete",
+				"transforms.read",
+				"transforms.create",
+				"transforms.update",
+				"transforms.delete",
+				"transforms.write",
 				"admin",
 			]
 		}
