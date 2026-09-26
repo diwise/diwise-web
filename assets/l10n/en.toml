@@ -847,6 +847,9 @@ other = "Relations, calculations and property definitions ride along read-only"
 [catalog_publish]
 other = "Publish"
 
+[catalog_pick_tenant]
+other = "Pick a tenant to list templates (templates are global but reads need a tenant)"
+
 [catalog_variants]
 other = "Variants"
 

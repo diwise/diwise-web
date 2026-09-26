@@ -28,6 +28,9 @@ templ TemplatesPage(l10n Localizer, viewModel TemplatesPageViewModel) {
 		if viewModel.ErrorMessage != "" {
 			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
 		}
+		if viewModel.Tenant == "" {
+			<p class="text-sm text-muted-foreground">{ l10n.Get("catalog_pick_tenant") }</p>
+		}
 		<section class="flex min-w-0 flex-col gap-6">
 			<form
 				method="get"

@@ -852,6 +852,9 @@ other = "Relationer, beräkningar och egenskapsdefinitioner kopieras med read-on
 [catalog_publish]
 other = "Publicera"
 
+[catalog_pick_tenant]
+other = "Välj tenant för att lista mallar (mallar är globala men läsning kräver tenant)"
+
 [catalog_variants]
 other = "Varianter"
 
