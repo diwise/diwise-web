@@ -69,9 +69,15 @@ type Template struct {
 	// Tomt = punkt + polygon (serverns default).
 	AllowedGeometries []string `json:"allowedGeometries,omitempty"`
 	// AllowNoLocation tillåter saker utan plats.
-	AllowNoLocation bool                   `json:"allowNoLocation,omitempty"`
-	Relations       []RelationSpec         `json:"relations,omitempty"`
-	PropertyDefs    map[string]PropertyDef `json:"propertyDefs,omitempty"`
+	AllowNoLocation bool `json:"allowNoLocation,omitempty"`
+	// RepeatGroups är egenskapsgrupper som får upprepas (punktprefix).
+	RepeatGroups []string `json:"repeatGroups,omitempty"`
+	// AllowedQuantities är tillåtna storheter för egenskaps-ID:n.
+	AllowedQuantities []string `json:"allowedQuantities,omitempty"`
+	// Labels är fritextetiketter för mallen.
+	Labels       []string               `json:"labels,omitempty"`
+	Relations    []RelationSpec         `json:"relations,omitempty"`
+	PropertyDefs map[string]PropertyDef `json:"propertyDefs,omitempty"`
 }
 
 // PropertyDef describes a property: display name and compatible signals.
@@ -101,6 +107,19 @@ type TemplateSpec struct {
 	ParamDefaults map[string]float64  `json:"paramDefaults,omitempty"`
 	Overridable   []string            `json:"overridable,omitempty"`
 	ParamInfo     map[string]ParamDef `json:"paramInfo,omitempty"`
+	Recipes       []Recipe            `json:"recipes,omitempty"`
+}
+
+// Recipe is a named calculation: operator version with inputs, outputs
+// and params. GUI v1 visar recipes read-only och kopierar dem med vid
+// ny version (full recipe-editor är deferred, PLAN002).
+type Recipe struct {
+	Name     string             `json:"name"`
+	Operator string             `json:"operator"`
+	Version  string             `json:"version,omitempty"`
+	Inputs   []string           `json:"inputs,omitempty"`
+	Outputs  []string           `json:"outputs,omitempty"`
+	Params   map[string]float64 `json:"params,omitempty"`
 }
 
 // ParamDef documents a parameter (unit, description, range).

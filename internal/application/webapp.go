@@ -12,6 +12,7 @@ import (
 
 	"github.com/diwise/diwise-web/internal/application/admin"
 	"github.com/diwise/diwise-web/internal/application/alarms"
+	"github.com/diwise/diwise-web/internal/application/catalog"
 	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
@@ -34,6 +35,7 @@ type App struct {
 	measurements *measurements.Service
 	things       *things.Service
 	thingsv2     *thingsv2.Service
+	catalog      *catalog.Service
 	transforms   *transform.Service
 }
 
@@ -48,6 +50,7 @@ func New(ctx context.Context, devmgmt, thingsURL, thingsV2URL, transformURL, adm
 		measurements: measurements.NewService(client),
 		things:       things.NewService(client),
 		thingsv2:     thingsv2.NewService(client, thingsV2URL),
+		catalog:      catalog.NewService(client, thingsV2URL),
 		transforms:   transform.NewService(client, transformURL),
 	}, nil
 }
@@ -157,6 +160,10 @@ func (a *App) ThingsV2() *thingsv2.Service {
 
 func (a *App) Transforms() *transform.Service {
 	return a.transforms
+}
+
+func (a *App) Catalog() *catalog.Service {
+	return a.catalog
 }
 
 func (a *App) GetTypes(ctx context.Context) ([]string, error) {
