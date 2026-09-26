@@ -205,3 +205,21 @@ func propertySubpropertiesJSON(p apptransform.Property) string {
 	}
 	return string(raw)
 }
+
+// previewFixtures är fixture-valen i preview-sektionen.
+func previewFixtures() []Fixture {
+	return Fixtures()
+}
+
+// defaultFixtureMessage är förifylld preview-text (första fixturen).
+func defaultFixtureMessage() string {
+	if all := Fixtures(); len(all) > 0 {
+		return all[0].Message
+	}
+	return "{}"
+}
+
+// previewEmpty är otömd preview-modell vid sidladdning.
+func previewEmpty() PreviewResultViewModel {
+	return PreviewResultViewModel{}
+}

@@ -930,6 +930,33 @@ other = "Regeln är skapad."
 [rules_notice_updated]
 other = "Regeln är uppdaterad."
 
+[rules_preview]
+other = "Torrkörning"
+
+[rules_fixture]
+other = "Exempelhändelse"
+
+[rules_message]
+other = "Meddelande (exakt ett JSON-dokument)"
+
+[rules_optional]
+other = "valfritt"
+
+[rules_validate]
+other = "Validera"
+
+[rules_preview_run]
+other = "Torrkör"
+
+[rules_valid]
+other = "Regeln är giltig."
+
+[rules_matched]
+other = "Regeln matchade"
+
+[rules_not_matched]
+other = "Ingen regel matchade händelsen."
+
 [catalog_variants]
 other = "Varianter"
 

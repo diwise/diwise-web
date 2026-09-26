@@ -1,0 +1,54 @@
+package rules
+
+import (
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ ValidateResult(l10n Localizer, viewModel ValidateResultViewModel) {
+	<div id="validate-result">
+		if viewModel.OK {
+			<p class="text-sm text-green-700 dark:text-green-400">{ l10n.Get("rules_valid") }</p>
+		} else {
+			<p class="text-sm text-destructive">{ viewModel.Message }</p>
+		}
+	</div>
+}
+
+templ PreviewResult(l10n Localizer, viewModel PreviewResultViewModel) {
+	<div id="preview-result">
+		if viewModel.ErrorMessage != "" {
+			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
+		} else if viewModel.Queried {
+			if viewModel.Result.Matched {
+				<p class="text-sm text-green-700 dark:text-green-400">{ l10n.Get("rules_matched") } ({ viewModel.ObservationsString() })</p>
+			} else {
+				<p class="text-sm text-muted-foreground">{ l10n.Get("rules_not_matched") }</p>
+			}
+			if viewModel.Result.SkippedReason != "" {
+				<p class="text-sm text-muted-foreground">{ viewModel.Result.SkippedReason }</p>
+			}
+			<div class="overflow-x-auto rounded-xl border border-border">
+				<table class="w-full min-w-0 text-sm">
+					<thead>
+						<tr class="border-b border-border text-left text-muted-foreground">
+							<th class="px-4 py-2">id</th>
+							<th class="px-4 py-2">type</th>
+							<th class="px-4 py-2">operation</th>
+							<th class="px-4 py-2">context</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, e := range viewModel.Result.Entities {
+							<tr class="border-b border-border last:border-0">
+								<td class="px-4 py-2">{ e.ID }</td>
+								<td class="px-4 py-2">{ e.Type }</td>
+								<td class="px-4 py-2">{ e.Operation }</td>
+								<td class="px-4 py-2">{ e.Context }</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		}
+	</div>
+}

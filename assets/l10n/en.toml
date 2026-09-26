@@ -925,6 +925,33 @@ other = "The rule was created."
 [rules_notice_updated]
 other = "The rule was updated."
 
+[rules_preview]
+other = "Dry run"
+
+[rules_fixture]
+other = "Example event"
+
+[rules_message]
+other = "Message (exactly one JSON document)"
+
+[rules_optional]
+other = "optional"
+
+[rules_validate]
+other = "Validate"
+
+[rules_preview_run]
+other = "Dry run"
+
+[rules_valid]
+other = "The rule is valid."
+
+[rules_matched]
+other = "The rule matched"
+
+[rules_not_matched]
+other = "No rule matched the event."
+
 [catalog_variants]
 other = "Variants"
 

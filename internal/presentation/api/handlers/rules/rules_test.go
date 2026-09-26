@@ -87,6 +87,39 @@ func stubRules(t *testing.T) (*apptransform.Service, func()) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{"models": []apptransform.Model{seed, owned}})
 	})
+	mux.HandleFunc("/models/validate", func(w http.ResponseWriter, r *http.Request) {
+		var rule apptransform.Rule
+		if err := json.NewDecoder(r.Body).Decode(&rule); err != nil || len(rule.Entities) == 0 {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "rule must declare at least one entity"})
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]bool{"valid": true})
+	})
+	mux.HandleFunc("/models/preview", func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			Rule  apptransform.Rule `json:"rule"`
+			Event struct {
+				Kind string `json:"kind"`
+			} `json:"event"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Event.Kind == "" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "event.kind is required"})
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"matched": true, "observations": 1,
+			"entities": []any{map[string]any{
+				"id": "urn:ngsi-ld:Room:r1", "type": "Room",
+				"properties": map[string]any{}, "operation": "merge",
+			}},
+		})
+	})
 	mux.HandleFunc("/models/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
 		models := map[string]apptransform.Model{seed.ID: seed, owned.ID: owned}

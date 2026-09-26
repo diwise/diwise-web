@@ -113,6 +113,72 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 				for i, e := range viewModel.Rule.Entities {
 					@EntityBlock(l10n, i, e)
 				}
+				<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4">
+					<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_preview") }</legend>
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+						<label class="flex flex-col gap-1 text-sm">
+							<span>{ l10n.Get("rules_event") }</span>
+							<select name="previewKind" class="rounded-xl border border-border bg-background px-3 py-2">
+								<option value="measurement">measurement</option>
+								<option value="things.v1.values">things.v1.values</option>
+								<option value="things.v1.relations">things.v1.relations</option>
+								<option value="things.v1.lifecycle">things.v1.lifecycle</option>
+							</select>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>{ l10n.Get("rules_fixture") }</span>
+							<select
+								name="previewFixture"
+								class="rounded-xl border border-border bg-background px-3 py-2"
+								hx-get="/components/rules/fixture"
+								hx-target="#preview-message"
+								hx-swap="innerHTML"
+							>
+								for _, f := range previewFixtures() {
+									<option value={ f.Name }>{ f.Label }</option>
+								}
+							</select>
+						</label>
+					</div>
+					<label class="flex flex-col gap-1 text-sm">
+						<span>{ l10n.Get("rules_message") }</span>
+						<textarea id="preview-message" name="previewMessage" rows="8" class="rounded-xl border border-border bg-background px-3 py-2 font-mono text-xs">{ defaultFixtureMessage() }</textarea>
+					</label>
+					<label class="flex flex-col gap-1 text-sm">
+						<span>sensorType ({ l10n.Get("rules_optional") })</span>
+						<input name="previewSensorType" class="rounded-xl border border-border bg-background px-3 py-2"/>
+					</label>
+					<div class="flex flex-wrap gap-4">
+						@button.Button(button.Props{
+							Variant: button.VariantSecondary,
+							Class:   "rounded-xl px-4",
+							Attributes: templ.Attributes{
+								"type":       "button",
+								"hx-post":    "/components/rules/validate",
+								"hx-include": "closest form",
+								"hx-target":  "#validate-result",
+								"hx-swap":    "outerHTML",
+							},
+						}) {
+							{ l10n.Get("rules_validate") }
+						}
+						@button.Button(button.Props{
+							Variant: button.VariantSecondary,
+							Class:   "rounded-xl px-4",
+							Attributes: templ.Attributes{
+								"type":       "button",
+								"hx-post":    "/components/rules/preview",
+								"hx-include": "closest form",
+								"hx-target":  "#preview-result",
+								"hx-swap":    "outerHTML",
+							},
+						}) {
+							{ l10n.Get("rules_preview_run") }
+						}
+					</div>
+					<div id="validate-result"></div>
+					@PreviewResult(l10n, previewEmpty())
+				</fieldset>
 				<div class="flex flex-wrap gap-4">
 					@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Attributes: templ.Attributes{"type": "submit"}}) {
 						{ l10n.Get("rules_save") }
