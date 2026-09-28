@@ -921,6 +921,9 @@ other = "Lägg till entitet"
 [rules_add_property]
 other = "Lägg till egenskap"
 
+[rules_pick_tenant_first]
+other = "Välj tenant för mallista"
+
 [rules_source_value]
 other = "Källvärde"
 

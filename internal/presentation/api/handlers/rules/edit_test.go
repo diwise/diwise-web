@@ -41,6 +41,66 @@ func TestRuleNewPageRendersBlankForm(t *testing.T) {
 	is.True(strings.Contains(body, "LanguageMap"))
 }
 
+func TestRuleNewPageWithTenantRendersTypeDropdown(t *testing.T) {
+	is := is.New(t)
+	app, done := testApp(t)
+	defer done()
+
+	handler := NewRuleNewPage(context.Background(), testLocaleBundle(), testAssets(), app)
+
+	req := httptest.NewRequest(http.MethodGet, "/rules/new?tenant=t1", nil)
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusOK, rec.Code)
+	body := rec.Body.String()
+	// Dropdown från katalogen (inte fritext).
+	is.True(strings.Contains(body, `<select name="type"`))
+	is.True(strings.Contains(body, `value="wastebin"`))
+	is.True(strings.Contains(body, `value="room"`))
+}
+
+func TestTypeOptionsFragment(t *testing.T) {
+	is := is.New(t)
+	app, done := testApp(t)
+	defer done()
+
+	handler := NewTypeOptionsFragment(context.Background(), testLocaleBundle(), testAssets(), app)
+
+	// Med tenant: select med mallar.
+	req := httptest.NewRequest(http.MethodGet, "/components/rules/type-options?tenant=t1", nil)
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusOK, rec.Code)
+	body := rec.Body.String()
+	is.True(strings.Contains(body, `id="match-type-field"`))
+	is.True(strings.Contains(body, `<select name="type"`))
+	is.True(strings.Contains(body, `value="wastebin"`))
+
+	// Aktuellt värde bevaras även utanför katalogen (ingen dataförlust).
+	req = httptest.NewRequest(http.MethodGet, "/components/rules/type-options?tenant=t1&current=custom", nil)
+	req.Header.Set("HX-Request", "true")
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusOK, rec.Code)
+	is.True(strings.Contains(rec.Body.String(), `value="custom" selected`))
+
+	// Utan tenant: fritext + hint.
+	req = httptest.NewRequest(http.MethodGet, "/components/rules/type-options", nil)
+	req.Header.Set("HX-Request", "true")
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusOK, rec.Code)
+	body = rec.Body.String()
+	is.True(strings.Contains(body, `<input name="type"`))
+	is.True(strings.Contains(body, "rules_pick_tenant_first"))
+}
+
 func TestRuleFormRendersMatchDatalists(t *testing.T) {
 	is := is.New(t)
 	app, done := testApp(t)

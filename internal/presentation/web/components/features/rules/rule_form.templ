@@ -1,6 +1,8 @@
 package rules
 
 import (
+	"slices"
+
 	apptransform "github.com/diwise/diwise-web/internal/application/transform"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared"
 	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
@@ -36,7 +38,14 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 					<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_match") }</legend>
 					<label class="flex flex-col gap-1 text-sm">
 						<span>{ l10n.Get("tenant") }</span>
-						<select name="tenant" class="rounded-xl border border-border bg-background px-3 py-2">
+						<select
+							name="tenant"
+							class="rounded-xl border border-border bg-background px-3 py-2"
+							hx-get="/components/rules/type-options"
+							hx-target="#match-type-field"
+							hx-swap="outerHTML"
+							hx-include="[name='tenant'], [name='type']"
+						>
 							for _, t := range viewModel.Tenants {
 								<option value={ t } selected?={ t == viewModel.Rule.Match.Tenant }>{ t }</option>
 							}
@@ -74,10 +83,7 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 							<span>env</span>
 							<input name="env" value={ viewModel.Rule.Match.Env } list="match-envs" class="rounded-xl border border-border bg-background px-3 py-2"/>
 						</label>
-						<label class="flex flex-col gap-1 text-sm">
-							<span>type</span>
-							<input name="type" value={ viewModel.Rule.Match.Type } class="rounded-xl border border-border bg-background px-3 py-2"/>
-						</label>
+						@TypeField(l10n, viewModel.Rule.Match.Type, viewModel.TypeOptions)
 						<label class="flex flex-col gap-1 text-sm">
 							<span>subType</span>
 							<input name="subType" value={ viewModel.Rule.Match.SubType } class="rounded-xl border border-border bg-background px-3 py-2"/>
@@ -297,8 +303,32 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 	</script>
 }
 
-templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {
-	<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4" data-entity={ index }>
+// TypeField är match.type-fältet: dropdown från katalogen när mallista
+// finns, annars fritext med hint. Aktuellt värde bevaras alltid som option
+// så att sparning aldrig tappar det.
+templ TypeField(l10n Localizer, current string, options []string) {
+	<div id="match-type-field">
+		<label class="flex flex-col gap-1 text-sm">
+			<span>type</span>
+			if len(options) > 0 {
+				<select name="type" class="rounded-xl border border-border bg-background px-3 py-2">
+					<option value="" selected?={ current == "" }></option>
+					if current != "" && !slices.Contains(options, current) {
+						<option value={ current } selected>{ current }</option>
+					}
+					for _, o := range options {
+						<option value={ o } selected?={ o == current }>{ o }</option>
+					}
+				</select>
+			} else {
+				<input name="type" value={ current } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				<span class="text-xs text-muted-foreground">{ l10n.Get("rules_pick_tenant_first") }</span>
+			}
+		</label>
+	</div>
+}
+
+templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {	<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4" data-entity={ index }>
 		<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_entity") } { index }</legend>
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 			<label class="flex flex-col gap-1 text-sm">

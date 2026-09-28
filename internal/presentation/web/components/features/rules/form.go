@@ -13,15 +13,17 @@ import (
 // delar utan formulärstöd (derive, subproperties, flerstegs-transform)
 // bevaras via dolda JSON-fält per property (B5: ingen YAML-visning).
 type RuleFormViewModel struct {
-	ID                  string
-	Revision            int64
-	IsNew               bool
-	CopyFrom            string
-	IsSeed              bool
-	ShowDelete          bool
-	ConfirmDelete       bool
-	Tenants             []string
-	Rule                apptransform.Rule
+	ID            string
+	Revision      int64
+	IsNew         bool
+	CopyFrom      string
+	IsSeed        bool
+	ShowDelete    bool
+	ConfirmDelete bool
+	Tenants       []string
+	Rule          apptransform.Rule
+	// TypeOptions är mall-ID:n från katalogen (tomt = fritext + hint).
+	TypeOptions         []string
 	Notice              string
 	ErrorMessage        string
 	TransformConfigured bool

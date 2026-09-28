@@ -288,12 +288,17 @@ func NewRuleNewPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			Rule:                blankRule(),
 			TransformConfigured: app.Transforms().Configured(),
 		}
+		// ?tenant= förväljer tenant (även mallistan); copy bevarar källans.
+		if preset := formTenant(r, ""); preset != "" {
+			model.Rule.Match.Tenant = preset
+		}
 		if copyID := strings.TrimSpace(r.URL.Query().Get("copy")); copyID != "" {
 			if m, err := app.Transforms().GetModel(ctx, "", copyID); err == nil {
 				model.Rule = m.Rule
 				model.CopyFrom = copyID
 			}
 		}
+		fillTypeOptions(ctx, app, model.Rule.Match.Tenant, &model)
 
 		content := featurerules.RuleFormPage(localizer, model)
 		page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
@@ -341,13 +346,15 @@ func NewRuleCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 		// vid HTMX bara innehållet — samma mönster som lyckad save
 		// (StartPage kräver inloggad ctx för innehåll).
 		renderErr := func(rule apptransform.Rule, msg string) {
-			content := featurerules.RuleFormPage(localizer, featurerules.RuleFormViewModel{
+			errModel := featurerules.RuleFormViewModel{
 				IsNew:               true,
 				Tenants:             ruleTokenTenants(r),
 				Rule:                rule,
 				ErrorMessage:        msg,
 				TransformConfigured: app.Transforms().Configured(),
-			})
+			}
+			fillTypeOptions(ctx, app, rule.Match.Tenant, &errModel)
+			content := featurerules.RuleFormPage(localizer, errModel)
 			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 			if helpers.IsHxRequest(r) {
 				page = v2layout.AppShell(localizer, assets, content)
@@ -411,7 +418,7 @@ func NewRuleSavePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderF
 		}
 
 		renderErr := func(rule apptransform.Rule, msg string) {
-			content := featurerules.RuleFormPage(localizer, featurerules.RuleFormViewModel{
+			errModel := featurerules.RuleFormViewModel{
 				ID:                  id,
 				Revision:            revision,
 				Tenants:             ruleTokenTenants(r),
@@ -419,7 +426,9 @@ func NewRuleSavePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderF
 				ShowDelete:          true,
 				ErrorMessage:        msg,
 				TransformConfigured: app.Transforms().Configured(),
-			})
+			}
+			fillTypeOptions(ctx, app, rule.Match.Tenant, &errModel)
+			content := featurerules.RuleFormPage(localizer, errModel)
 			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 			if helpers.IsHxRequest(r) {
 				page = v2layout.AppShell(localizer, assets, content)
@@ -453,6 +462,32 @@ func NewRuleSavePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderF
 		}
 
 		http.Redirect(w, r, "/rules/"+model.ID+"?notice=updated", http.StatusFound)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+// NewTypeOptionsFragment renderar match.type-fältet med aktuell mallista
+// (HTMX, RequireHX): anropas vid tenant-byte så dropdownen följer med utan
+// hel omladdning. Tom lista ger fritext + hint.
+func NewTypeOptionsFragment(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app rulesApp) http.HandlerFunc {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		localizer := l10n.For(r.Header.Get("Accept-Language"))
+		tenant := strings.TrimSpace(r.URL.Query().Get("tenant"))
+		current := strings.TrimSpace(r.URL.Query().Get("current"))
+
+		var options []string
+		if tenant != "" {
+			if specs, err := app.ThingsV2().ListTemplates(r.Context(), tenant, ""); err == nil {
+				for _, spec := range specs {
+					if spec.Template.ID != "" && !slices.Contains(options, spec.Template.ID) {
+						options = append(options, spec.Template.ID)
+					}
+				}
+			}
+		}
+
+		helpers.WriteComponentResponse(r.Context(), w, r, featurerules.TypeField(localizer, current, options), 16*1024, http.StatusOK)
 	}
 
 	return http.HandlerFunc(fn)

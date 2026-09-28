@@ -10,6 +10,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application/client"
+	appthingsv2 "github.com/diwise/diwise-web/internal/application/thingsv2"
 	apptransform "github.com/diwise/diwise-web/internal/application/transform"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
@@ -21,6 +22,7 @@ import (
 
 type rulesApp interface {
 	Transforms() *apptransform.Service
+	ThingsV2() *appthingsv2.Service
 }
 
 // ruleTokenTenants returnerar tokenens unika tenants.
@@ -97,6 +99,38 @@ func writeServiceError(w http.ResponseWriter, err error, fallback string) {
 		http.Error(w, "not found", http.StatusNotFound)
 	default:
 		http.Error(w, fallback, http.StatusInternalServerError)
+	}
+}
+
+// formTenant löser tenant för formulär: regelns egna vinner, annars
+// explicit ?tenant=, annars den enda token-auktoriserade tenanten.
+func formTenant(r *http.Request, ruleTenant string) string {
+	if ruleTenant != "" {
+		return ruleTenant
+	}
+	if q := strings.TrimSpace(r.URL.Query().Get("tenant")); q != "" {
+		return q
+	}
+	if tenants := ruleTokenTenants(r); len(tenants) == 1 {
+		return tenants[0]
+	}
+	return ""
+}
+
+// fillTypeOptions fyller mall-ID:n från katalogen (tomt vid okänd tenant
+// eller nere katalog — formuläret faller tillbaka på fritext).
+func fillTypeOptions(ctx context.Context, app rulesApp, tenant string, model *featurerules.RuleFormViewModel) {
+	if tenant == "" {
+		return
+	}
+	specs, err := app.ThingsV2().ListTemplates(ctx, tenant, "")
+	if err != nil {
+		return
+	}
+	for _, spec := range specs {
+		if spec.Template.ID != "" && !slices.Contains(model.TypeOptions, spec.Template.ID) {
+			model.TypeOptions = append(model.TypeOptions, spec.Template.ID)
+		}
 	}
 }
 
@@ -214,6 +248,7 @@ func NewRuleDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 			ShowDelete:          true,
 			TransformConfigured: true,
 		}
+		fillTypeOptions(ctx, app, m.Rule.Match.Tenant, &model)
 		if notice := strings.TrimSpace(r.URL.Query().Get("notice")); notice != "" {
 			model.Notice = localizer.Get("rules_notice_" + notice)
 		}
@@ -263,7 +298,7 @@ func NewRuleDeletePage(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 				writeServiceError(w, err, "could not fetch rule")
 				return
 			}
-			content := featurerules.RuleFormPage(localizer, featurerules.RuleFormViewModel{
+			deleteModel := featurerules.RuleFormViewModel{
 				ID:                  id,
 				Revision:            revision,
 				Tenants:             ruleTokenTenants(r),
@@ -272,7 +307,9 @@ func NewRuleDeletePage(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 				ShowDelete:          true,
 				ConfirmDelete:       true,
 				TransformConfigured: app.Transforms().Configured(),
-			})
+			}
+			fillTypeOptions(ctx, app, m.Rule.Match.Tenant, &deleteModel)
+			content := featurerules.RuleFormPage(localizer, deleteModel)
 			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 			if helpers.IsHxRequest(r) {
 				page = v2layout.AppShell(localizer, assets, content)

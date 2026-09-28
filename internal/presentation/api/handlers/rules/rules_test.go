@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/diwise/diwise-web/internal/application/client"
+	appthingsv2 "github.com/diwise/diwise-web/internal/application/thingsv2"
 	apptransform "github.com/diwise/diwise-web/internal/application/transform"
 	frontendtoolkit "github.com/diwise/frontend-toolkit"
 	ftkmock "github.com/diwise/frontend-toolkit/mock"
@@ -19,9 +20,11 @@ import (
 
 type testRulesApp struct {
 	transforms *apptransform.Service
+	v2         *appthingsv2.Service
 }
 
 func (a *testRulesApp) Transforms() *apptransform.Service { return a.transforms }
+func (a *testRulesApp) ThingsV2() *appthingsv2.Service    { return a.v2 }
 
 func testLocaleBundle() *ftkmock.LocaleBundleMock {
 	return &ftkmock.LocaleBundleMock{
@@ -58,7 +61,7 @@ func testRule() apptransform.Rule {
 
 // stubRules svarar som regel-API:t: lista, en regel (seed + api), delete
 // med revision (204, 404 okänt, 409 fel revision).
-func stubRules(t *testing.T) (*apptransform.Service, func()) {
+func stubRules(t *testing.T) (*apptransform.Service, *appthingsv2.Service, func()) {
 	t.Helper()
 
 	seed := apptransform.Model{ID: "11111111-1111-1111-1111-111111111111", Revision: 3, Source: "seed", SeedKey: "90-room#0", Kind: "thing", Rule: testRule()}
@@ -158,14 +161,23 @@ func stubRules(t *testing.T) (*apptransform.Service, func()) {
 		}
 	})
 
+	mux.HandleFunc("/catalog/templates", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]appthingsv2.TemplateSpec{
+			{Template: appthingsv2.Template{ID: "room", Version: "v1", Category: "indoor", DisplayName: "Rum"}},
+			{Template: appthingsv2.Template{ID: "wastebin", Version: "v1", Category: "waste", DisplayName: "Soptunna"}},
+		})
+	})
+
 	srv := httptest.NewServer(mux)
-	return apptransform.NewService(&client.Client{}, srv.URL), srv.Close
+	c := &client.Client{}
+	return apptransform.NewService(c, srv.URL), appthingsv2.NewService(c, srv.URL), srv.Close
 }
 
 func testApp(t *testing.T) (*testRulesApp, func()) {
 	t.Helper()
-	svc, done := stubRules(t)
-	return &testRulesApp{transforms: svc}, done
+	transforms, v2, done := stubRules(t)
+	return &testRulesApp{transforms: transforms, v2: v2}, done
 }
 
 func TestRulesPageRendersRowsAndFilters(t *testing.T) {

@@ -467,6 +467,7 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("POST /rules/{id}/delete", protectFunc(DeleteTransforms, rules.NewRuleDeletePage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /components/rules/entity-blank", protect(ReadTransforms, RequireHX(rules.NewEntityBlankFragment(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("GET /components/rules/property-blank", protect(ReadTransforms, RequireHX(rules.NewPropertyBlankFragment(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/rules/type-options", protect(ReadTransforms, RequireHX(rules.NewTypeOptionsFragment(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("POST /components/rules/validate", protect(WriteTransforms, RequireHX(rules.NewValidateFragment(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("POST /components/rules/preview", protect(WriteTransforms, RequireHX(rules.NewPreviewFragment(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("GET /components/rules/fixture", protect(ReadTransforms, RequireHX(rules.NewFixtureFragment(ctx, l10n, assetLoader.Load, app))))

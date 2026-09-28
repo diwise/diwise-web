@@ -916,6 +916,9 @@ other = "Add entity"
 [rules_add_property]
 other = "Add property"
 
+[rules_pick_tenant_first]
+other = "Pick a tenant for the template list"
+
 [rules_source_value]
 other = "Source value"
 
