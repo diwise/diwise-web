@@ -121,7 +121,8 @@ func TestFixtureFragment(t *testing.T) {
 
 	handler := NewFixtureFragment(context.Background(), testLocaleBundle(), testAssets(), app)
 
-	req := httptest.NewRequest(http.MethodGet, "/components/rules/fixture?name=lifecycle-deleted", nil)
+	// Formulärets fältnamn (det htmx skickar vid fixture-val).
+	req := httptest.NewRequest(http.MethodGet, "/components/rules/fixture?previewFixture=lifecycle-deleted", nil)
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -129,6 +130,14 @@ func TestFixtureFragment(t *testing.T) {
 	is.Equal(http.StatusOK, rec.Code)
 	var v any
 	is.NoErr(json.Unmarshal(rec.Body.Bytes(), &v))
+
+	// Fallback för direktlänkar.
+	req = httptest.NewRequest(http.MethodGet, "/components/rules/fixture?name=values", nil)
+	req.Header.Set("HX-Request", "true")
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusOK, rec.Code)
 
 	req = httptest.NewRequest(http.MethodGet, "/components/rules/fixture?name=nope", nil)
 	req.Header.Set("HX-Request", "true")

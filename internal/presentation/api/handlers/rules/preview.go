@@ -134,10 +134,17 @@ func NewPreviewFragment(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc,
 }
 
 // NewFixtureFragment returnerar ett exempel-message som text (HTMX,
-// RequireHX): fyller preview-textarean vid fixture-val.
+// RequireHX): fyller preview-textarean vid fixture-val. Läser
+// `previewFixture` (formulärfältets namn, det htmx skickar) med `name` som
+// fallback för direktlänkar.
 func NewFixtureFragment(_ context.Context, _ LocaleBundle, _ AssetLoaderFunc, _ rulesApp) http.HandlerFunc {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		f, ok := featurerules.FixtureByName(strings.TrimSpace(r.URL.Query().Get("name")))
+		q := r.URL.Query()
+		name := strings.TrimSpace(q.Get("previewFixture"))
+		if name == "" {
+			name = strings.TrimSpace(q.Get("name"))
+		}
+		f, ok := featurerules.FixtureByName(name)
 		if !ok {
 			http.Error(w, "unknown fixture", http.StatusBadRequest)
 			return

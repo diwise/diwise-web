@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/diwise/diwise-web/internal/application/client"
+	"github.com/diwise/diwise-web/internal/application/devices"
 	appthingsv2 "github.com/diwise/diwise-web/internal/application/thingsv2"
 	apptransform "github.com/diwise/diwise-web/internal/application/transform"
 	frontendtoolkit "github.com/diwise/frontend-toolkit"
@@ -25,6 +26,9 @@ type testRulesApp struct {
 
 func (a *testRulesApp) Transforms() *apptransform.Service { return a.transforms }
 func (a *testRulesApp) ThingsV2() *appthingsv2.Service    { return a.v2 }
+func (a *testRulesApp) GetDeviceProfiles(context.Context) []devices.SensorProfile {
+	return []devices.SensorProfile{{Name: "Elsys", Decoder: "elsys"}}
+}
 
 func testLocaleBundle() *ftkmock.LocaleBundleMock {
 	return &ftkmock.LocaleBundleMock{
@@ -65,7 +69,9 @@ func stubRules(t *testing.T) (*apptransform.Service, *appthingsv2.Service, func(
 	t.Helper()
 
 	seed := apptransform.Model{ID: "11111111-1111-1111-1111-111111111111", Revision: 3, Source: "seed", SeedKey: "90-room#0", Kind: "thing", Rule: testRule()}
-	owned := apptransform.Model{ID: "22222222-2222-2222-2222-222222222222", Revision: 1, Source: "api", Kind: "thing", Rule: testRule()}
+	ownedRule := testRule()
+	ownedRule.Match.SubType = "Indoor"
+	owned := apptransform.Model{ID: "22222222-2222-2222-2222-222222222222", Revision: 1, Source: "api", Kind: "thing", Rule: ownedRule}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/models", func(w http.ResponseWriter, r *http.Request) {

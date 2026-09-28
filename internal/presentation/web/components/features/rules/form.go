@@ -23,7 +23,11 @@ type RuleFormViewModel struct {
 	Tenants       []string
 	Rule          apptransform.Rule
 	// TypeOptions är mall-ID:n från katalogen (tomt = fritext + hint).
-	TypeOptions         []string
+	TypeOptions []string
+	// SensorTypeOptions är decoder-värden från device-profilerna.
+	SensorTypeOptions []string
+	// SubTypeOptions är subTyper från synliga syskonregler.
+	SubTypeOptions      []string
 	Notice              string
 	ErrorMessage        string
 	TransformConfigured bool

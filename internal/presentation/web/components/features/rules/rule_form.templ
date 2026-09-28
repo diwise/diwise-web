@@ -69,7 +69,7 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 						</label>
 						<label class="flex flex-col gap-1 text-sm">
 							<span>sensorType</span>
-							<input name="sensorType" value={ viewModel.Rule.Match.SensorType } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							<input name="sensorType" value={ viewModel.Rule.Match.SensorType } list="match-sensortypes" class="rounded-xl border border-border bg-background px-3 py-2"/>
 						</label>
 						<label class="flex flex-col gap-1 text-sm">
 							<span>object</span>
@@ -86,7 +86,7 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 						@TypeField(l10n, viewModel.Rule.Match.Type, viewModel.TypeOptions)
 						<label class="flex flex-col gap-1 text-sm">
 							<span>subType</span>
-							<input name="subType" value={ viewModel.Rule.Match.SubType } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							<input name="subType" value={ viewModel.Rule.Match.SubType } list="match-subtypes" class="rounded-xl border border-border bg-background px-3 py-2"/>
 						</label>
 						<label class="flex flex-col gap-1 text-sm">
 							<span>event</span>
@@ -134,6 +134,16 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 				<datalist id="match-relations">
 					for _, r := range RelationNames() {
 						<option value={ r }></option>
+					}
+				</datalist>
+				<datalist id="match-sensortypes">
+					for _, s := range viewModel.SensorTypeOptions {
+						<option value={ s }></option>
+					}
+				</datalist>
+				<datalist id="match-subtypes">
+					for _, s := range viewModel.SubTypeOptions {
+						<option value={ s }></option>
 					}
 				</datalist>
 				for i, e := range viewModel.Rule.Entities {

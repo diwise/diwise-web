@@ -127,6 +127,12 @@ func TestRuleFormRendersMatchDatalists(t *testing.T) {
 		`value="partOf"`,
 		`list="match-objects"`,
 		`list="match-relations"`,
+		`id="match-sensortypes"`,
+		`value="elsys"`,
+		`id="match-subtypes"`,
+		`value="Indoor"`,
+		`list="match-sensortypes"`,
+		`list="match-subtypes"`,
 	} {
 		is.True(strings.Contains(body, want))
 	}

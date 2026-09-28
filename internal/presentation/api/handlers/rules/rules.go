@@ -10,6 +10,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/diwise/diwise-web/internal/application/client"
+	"github.com/diwise/diwise-web/internal/application/devices"
 	appthingsv2 "github.com/diwise/diwise-web/internal/application/thingsv2"
 	apptransform "github.com/diwise/diwise-web/internal/application/transform"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
@@ -23,6 +24,7 @@ import (
 type rulesApp interface {
 	Transforms() *apptransform.Service
 	ThingsV2() *appthingsv2.Service
+	GetDeviceProfiles(ctx context.Context) []devices.SensorProfile
 }
 
 // ruleTokenTenants returnerar tokenens unika tenants.
@@ -130,6 +132,29 @@ func fillTypeOptions(ctx context.Context, app rulesApp, tenant string, model *fe
 	for _, spec := range specs {
 		if spec.Template.ID != "" && !slices.Contains(model.TypeOptions, spec.Template.ID) {
 			model.TypeOptions = append(model.TypeOptions, spec.Template.ID)
+		}
+	}
+}
+
+// fillMatchOptions fyller sensorType-förslag från device-profilerna
+// (decoder-värden) och subType-förslag från synliga syskonregler.
+// Tomt vid nere backend — fälten förblir fritext.
+func fillMatchOptions(ctx context.Context, app rulesApp, model *featurerules.RuleFormViewModel) {
+	for _, p := range app.GetDeviceProfiles(ctx) {
+		if p.Decoder != "" && !slices.Contains(model.SensorTypeOptions, p.Decoder) {
+			model.SensorTypeOptions = append(model.SensorTypeOptions, p.Decoder)
+		}
+	}
+	if !app.Transforms().Configured() {
+		return
+	}
+	models, err := app.Transforms().ListModels(ctx, "", nil)
+	if err != nil {
+		return
+	}
+	for _, m := range models {
+		if m.Rule.Match.SubType != "" && !slices.Contains(model.SubTypeOptions, m.Rule.Match.SubType) {
+			model.SubTypeOptions = append(model.SubTypeOptions, m.Rule.Match.SubType)
 		}
 	}
 }
@@ -249,6 +274,7 @@ func NewRuleDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 			TransformConfigured: true,
 		}
 		fillTypeOptions(ctx, app, m.Rule.Match.Tenant, &model)
+		fillMatchOptions(ctx, app, &model)
 		if notice := strings.TrimSpace(r.URL.Query().Get("notice")); notice != "" {
 			model.Notice = localizer.Get("rules_notice_" + notice)
 		}
@@ -309,6 +335,7 @@ func NewRuleDeletePage(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 				TransformConfigured: app.Transforms().Configured(),
 			}
 			fillTypeOptions(ctx, app, m.Rule.Match.Tenant, &deleteModel)
+			fillMatchOptions(ctx, app, &deleteModel)
 			content := featurerules.RuleFormPage(localizer, deleteModel)
 			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 			if helpers.IsHxRequest(r) {

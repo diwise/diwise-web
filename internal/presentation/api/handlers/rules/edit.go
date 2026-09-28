@@ -299,6 +299,7 @@ func NewRuleNewPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFu
 			}
 		}
 		fillTypeOptions(ctx, app, model.Rule.Match.Tenant, &model)
+		fillMatchOptions(ctx, app, &model)
 
 		content := featurerules.RuleFormPage(localizer, model)
 		page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
@@ -354,6 +355,7 @@ func NewRuleCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 				TransformConfigured: app.Transforms().Configured(),
 			}
 			fillTypeOptions(ctx, app, rule.Match.Tenant, &errModel)
+			fillMatchOptions(ctx, app, &errModel)
 			content := featurerules.RuleFormPage(localizer, errModel)
 			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 			if helpers.IsHxRequest(r) {
@@ -428,6 +430,7 @@ func NewRuleSavePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderF
 				TransformConfigured: app.Transforms().Configured(),
 			}
 			fillTypeOptions(ctx, app, rule.Match.Tenant, &errModel)
+			fillMatchOptions(ctx, app, &errModel)
 			content := featurerules.RuleFormPage(localizer, errModel)
 			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 			if helpers.IsHxRequest(r) {
