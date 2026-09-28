@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/diwise/diwise-web/internal/application/client"
 	apptransform "github.com/diwise/diwise-web/internal/application/transform"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	featurerules "github.com/diwise/diwise-web/internal/presentation/web/components/features/rules"
+
 	. "github.com/diwise/frontend-toolkit"
 )
 
@@ -73,6 +75,11 @@ func NewValidateFragment(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc
 		}
 
 		if err := app.Transforms().ValidateRule(r.Context(), "", rule); err != nil {
+			// 401/403 ger status för AccessDenied-toast; övrigt visas i badgen.
+			if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) {
+				writeServiceError(w, err, "")
+				return
+			}
 			msg := err.Error()
 			var verr *apptransform.ValidationError
 			if errors.As(err, &verr) {
@@ -107,6 +114,10 @@ func NewPreviewFragment(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc,
 
 		res, err := app.Transforms().PreviewRule(r.Context(), "", rule, event)
 		if err != nil {
+			if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) {
+				writeServiceError(w, err, "")
+				return
+			}
 			msg := err.Error()
 			var verr *apptransform.ValidationError
 			if errors.As(err, &verr) {

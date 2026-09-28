@@ -21,7 +21,6 @@ import (
 
 type rulesApp interface {
 	Transforms() *apptransform.Service
-	GetTenants(ctx context.Context) []string
 }
 
 // ruleTokenTenants returnerar tokenens unika tenants.
@@ -85,6 +84,22 @@ func shortID(id string) string {
 	return id
 }
 
+// writeServiceError mappar klassificerbara backend-fel till status så att
+// AccessDenied-middleware kan toasta/redirecta (401/403); 404 för okänt,
+// 500 med anroparens text för övrigt.
+func writeServiceError(w http.ResponseWriter, err error, fallback string) {
+	switch {
+	case errors.Is(err, client.ErrUnauthorized):
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	case errors.Is(err, client.ErrForbidden):
+		http.Error(w, "forbidden", http.StatusForbidden)
+	case errors.Is(err, client.ErrNotFound):
+		http.Error(w, "not found", http.StatusNotFound)
+	default:
+		http.Error(w, fallback, http.StatusInternalServerError)
+	}
+}
+
 func NewRulesPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app rulesApp) http.HandlerFunc {
 	version := helpers.GetVersion(ctx)
 
@@ -113,11 +128,11 @@ func NewRulesPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 		if model.TransformConfigured {
 			models, err := app.Transforms().ListModels(ctx, "", nil)
 			if err != nil {
-				http.Error(w, "could not fetch rules", http.StatusInternalServerError)
+				writeServiceError(w, err, "could not fetch rules")
 				return
 			}
 			for _, m := range models {
-				if model.Kind != "" && string(m.Rule.Match.Kind) != model.Kind {
+				if model.Kind != "" && m.Rule.Match.Kind != model.Kind {
 					continue
 				}
 				if model.Event != "" && m.Rule.Match.Event != model.Event {
@@ -133,14 +148,12 @@ func NewRulesPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 					continue
 				}
 				model.Rules = append(model.Rules, featurerules.RuleRowViewModel{
-					ID:       m.ID,
-					ShortID:  shortID(m.ID),
-					Kind:     string(m.Rule.Match.Kind),
-					Summary:  ruleSummary(m.Rule),
-					Tenant:   m.Rule.Match.Tenant,
-					Source:   m.Source,
-					SeedKey:  m.SeedKey,
-					Revision: m.Revision,
+					ID:      m.ID,
+					ShortID: shortID(m.ID),
+					Kind:    m.Rule.Match.Kind,
+					Summary: ruleSummary(m.Rule),
+					Tenant:  m.Rule.Match.Tenant,
+					Source:  m.Source,
 				})
 			}
 		}
@@ -188,11 +201,7 @@ func NewRuleDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 
 		m, err := app.Transforms().GetModel(ctx, "", id)
 		if err != nil {
-			if errors.Is(err, client.ErrNotFound) {
-				http.Error(w, "rule not found", http.StatusNotFound)
-				return
-			}
-			http.Error(w, "could not fetch rule", http.StatusInternalServerError)
+			writeServiceError(w, err, "could not fetch rule")
 			return
 		}
 
@@ -249,11 +258,7 @@ func NewRuleDeletePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, 
 		if r.Form.Get("confirm") != "yes" {
 			m, err := app.Transforms().GetModel(ctx, "", id)
 			if err != nil {
-				if errors.Is(err, client.ErrNotFound) {
-					http.Error(w, "rule not found", http.StatusNotFound)
-					return
-				}
-				http.Error(w, "could not fetch rule", http.StatusInternalServerError)
+				writeServiceError(w, err, "could not fetch rule")
 				return
 			}
 			content := featurerules.RuleFormPage(localizer, featurerules.RuleFormViewModel{
@@ -272,14 +277,16 @@ func NewRuleDeletePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, 
 
 		if err := app.Transforms().DeleteModel(ctx, "", id, revision); err != nil {
 			// Redan borta i annat fönster = OK (idempotent budskap, 4.5).
-			if !errors.Is(err, client.ErrNotFound) {
-				if errors.Is(err, client.ErrConflict) {
-					http.Error(w, "rule changed by another user", http.StatusConflict)
-					return
-				}
-				http.Error(w, "could not delete rule", http.StatusInternalServerError)
+			if errors.Is(err, client.ErrNotFound) {
+				http.Redirect(w, r, "/rules?notice=deleted", http.StatusFound)
 				return
 			}
+			if errors.Is(err, client.ErrConflict) {
+				http.Error(w, "rule changed by another user", http.StatusConflict)
+				return
+			}
+			writeServiceError(w, err, "could not delete rule")
+			return
 		}
 
 		http.Redirect(w, r, "/rules?notice=deleted", http.StatusFound)

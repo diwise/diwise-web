@@ -22,9 +22,6 @@ type testRulesApp struct {
 }
 
 func (a *testRulesApp) Transforms() *apptransform.Service { return a.transforms }
-func (a *testRulesApp) GetTenants(context.Context) []string {
-	return []string{"t1"}
-}
 
 func testLocaleBundle() *ftkmock.LocaleBundleMock {
 	return &ftkmock.LocaleBundleMock{
@@ -75,6 +72,10 @@ func stubRules(t *testing.T) (*apptransform.Service, func()) {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusBadRequest)
 				_ = json.NewEncoder(w).Encode(map[string]string{"error": "rule must declare at least one entity"})
+				return
+			}
+			if rule.Match.Tenant == "foreign" {
+				w.WriteHeader(http.StatusForbidden)
 				return
 			}
 			created := owned

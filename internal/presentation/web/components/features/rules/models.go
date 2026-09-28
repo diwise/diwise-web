@@ -2,14 +2,12 @@ package rules
 
 // RuleRowViewModel är en regelrad i listan.
 type RuleRowViewModel struct {
-	ID       string
-	ShortID  string
-	Kind     string
-	Summary  string
-	Tenant   string
-	Source   string
-	SeedKey  string
-	Revision int64
+	ID      string
+	ShortID string
+	Kind    string
+	Summary string
+	Tenant  string
+	Source  string
 }
 
 // RulesPageViewModel är listmodellen för /rules.

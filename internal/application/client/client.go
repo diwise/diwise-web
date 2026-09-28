@@ -20,6 +20,7 @@ import (
 
 var ErrNotFound = fmt.Errorf("not found")
 var ErrUnauthorized = fmt.Errorf("unauthorized")
+var ErrForbidden = fmt.Errorf("forbidden")
 var ErrConflict = fmt.Errorf("conflict")
 
 func errUnauthorized(ctx context.Context) error {
@@ -29,7 +30,7 @@ func errUnauthorized(ctx context.Context) error {
 
 func errForbidden(ctx context.Context) error {
 	MarkPermissionDenied(ctx)
-	return fmt.Errorf("request failed: forbidden")
+	return fmt.Errorf("request failed: %w", ErrForbidden)
 }
 
 type Meta struct {

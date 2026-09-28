@@ -23,9 +23,6 @@ type testCatalogApp struct {
 
 func (a *testCatalogApp) Catalog() *catalog.Service      { return a.catalog }
 func (a *testCatalogApp) ThingsV2() *appthingsv2.Service { return a.v2 }
-func (a *testCatalogApp) GetTenants(context.Context) []string {
-	return []string{"t1"}
-}
 
 func testLocaleBundle() *ftkmock.LocaleBundleMock {
 	return &ftkmock.LocaleBundleMock{

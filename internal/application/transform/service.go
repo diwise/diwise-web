@@ -169,16 +169,7 @@ func (s *Service) DeleteModel(ctx context.Context, tenant, id string, revision i
 	if err != nil {
 		return err
 	}
-	switch status {
-	case http.StatusNoContent:
-		return nil
-	case http.StatusNotFound:
-		return fmt.Errorf("request failed: %w", client.ErrNotFound)
-	case http.StatusConflict:
-		return fmt.Errorf("request failed: %w", client.ErrConflict)
-	default:
-		return fmt.Errorf("request failed: %d", status)
-	}
+	return checkWriteStatus(status)
 }
 
 // ValidateRule dry-validates a rule without saving.
@@ -202,10 +193,10 @@ func (s *Service) ValidateRule(ctx context.Context, tenant string, rule Rule) er
 	if status == http.StatusOK {
 		return nil
 	}
-	if msg := errorMessage(body); msg != "" {
+	if msg := errorMessage(body); msg != "" && status == http.StatusBadRequest {
 		return &ValidationError{Message: msg}
 	}
-	return fmt.Errorf("request failed: %d", status)
+	return checkWriteStatus(status)
 }
 
 // PreviewRule dry-runs an inline rule against an example event.
@@ -231,10 +222,10 @@ func (s *Service) PreviewRule(ctx context.Context, tenant string, rule Rule, eve
 		return PreviewResult{}, err
 	}
 	if status != http.StatusOK {
-		if msg := errorMessage(body); msg != "" {
+		if msg := errorMessage(body); msg != "" && status == http.StatusBadRequest {
 			return PreviewResult{}, &ValidationError{Message: msg}
 		}
-		return PreviewResult{}, fmt.Errorf("request failed: %d", status)
+		return PreviewResult{}, checkWriteStatus(status)
 	}
 
 	var res PreviewResult
@@ -261,11 +252,34 @@ func decodeModelResponse(body []byte, status int) (Model, error) {
 			return Model{}, &ValidationError{Message: msg}
 		}
 		return Model{}, fmt.Errorf("request failed: %d", status)
+	case http.StatusUnauthorized:
+		return Model{}, fmt.Errorf("request failed: %w", client.ErrUnauthorized)
+	case http.StatusForbidden:
+		return Model{}, fmt.Errorf("request failed: %w", client.ErrForbidden)
 	case http.StatusNotFound:
 		return Model{}, fmt.Errorf("request failed: %w", client.ErrNotFound)
 	case http.StatusConflict:
 		return Model{}, fmt.Errorf("request failed: %w", client.ErrConflict)
 	default:
 		return Model{}, fmt.Errorf("request failed: %d", status)
+	}
+}
+
+// checkWriteStatus mappar skrivstatus utan body till klassificerbara fel
+// (401/403 för toast/redirect via AccessDenied-middleware).
+func checkWriteStatus(status int) error {
+	switch status {
+	case http.StatusOK, http.StatusCreated, http.StatusNoContent:
+		return nil
+	case http.StatusUnauthorized:
+		return fmt.Errorf("request failed: %w", client.ErrUnauthorized)
+	case http.StatusForbidden:
+		return fmt.Errorf("request failed: %w", client.ErrForbidden)
+	case http.StatusNotFound:
+		return fmt.Errorf("request failed: %w", client.ErrNotFound)
+	case http.StatusConflict:
+		return fmt.Errorf("request failed: %w", client.ErrConflict)
+	default:
+		return fmt.Errorf("request failed: %d", status)
 	}
 }

@@ -358,6 +358,10 @@ func NewRuleCreatePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, 
 				renderErr(rule, verr.Message)
 				return
 			}
+			if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) {
+				writeServiceError(w, err, "")
+				return
+			}
 			renderErr(rule, err.Error())
 			return
 		}
@@ -421,6 +425,10 @@ func NewRuleSavePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, ap
 			}
 			if errors.Is(err, client.ErrConflict) {
 				renderErr(rule, localizer.Get("rules_conflict"))
+				return
+			}
+			if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) {
+				writeServiceError(w, err, "")
 				return
 			}
 			renderErr(rule, err.Error())

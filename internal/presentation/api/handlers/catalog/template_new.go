@@ -87,7 +87,7 @@ func NewTemplateNewPage(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		model, err := composeTemplateNewModel(ctx, r, app, nil)
 		if err != nil {
-			http.Error(w, "could not fetch template", http.StatusInternalServerError)
+			writeServiceError(w, err, "could not fetch template")
 			return
 		}
 
@@ -176,7 +176,7 @@ func NewTemplateCreatePage(_ context.Context, l10n LocaleBundle, assets AssetLoa
 		renderErr := func(msg string) {
 			model, err := composeTemplateNewModel(ctx, r, app, form)
 			if err != nil {
-				http.Error(w, "could not fetch template", http.StatusInternalServerError)
+				writeServiceError(w, err, "could not fetch template")
 				return
 			}
 			// Bevara inmatningen över felet.
@@ -212,6 +212,10 @@ func NewTemplateCreatePage(_ context.Context, l10n LocaleBundle, assets AssetLoa
 
 		spec, err := buildTemplateSpec(ctx, app, tenant, form, id, version)
 		if err != nil {
+			if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) || errors.Is(err, client.ErrNotFound) {
+				writeServiceError(w, err, "")
+				return
+			}
 			renderErr(err.Error())
 			return
 		}
@@ -219,6 +223,10 @@ func NewTemplateCreatePage(_ context.Context, l10n LocaleBundle, assets AssetLoa
 		if err := app.Catalog().PublishTemplate(ctx, tenant, spec); err != nil {
 			if errors.Is(err, client.ErrConflict) {
 				renderErr("versionen finns redan, välj nytt versionsnummer")
+				return
+			}
+			if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) {
+				writeServiceError(w, err, "")
 				return
 			}
 			renderErr(err.Error())

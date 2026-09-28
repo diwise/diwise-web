@@ -17,12 +17,13 @@ type TemplateRowViewModel struct {
 
 // TemplatesPageViewModel är listmodellen för /catalog/templates.
 type TemplatesPageViewModel struct {
-	Tenants         []string
-	Tenant          string
-	Category        string
-	CategoryOptions []featuresthings.TypeOption
-	Templates       []TemplateRowViewModel
-	ErrorMessage    string
+	Tenants           []string
+	Tenant            string
+	Category          string
+	CategoryOptions   []featuresthings.TypeOption
+	Templates         []TemplateRowViewModel
+	ErrorMessage      string
+	CatalogConfigured bool
 }
 
 // TemplateDetailsViewModel är detaljsidan för
@@ -68,10 +69,11 @@ type VariantRowViewModel struct {
 
 // VariantsPageViewModel är listmodellen för /catalog/variants.
 type VariantsPageViewModel struct {
-	Tenants      []string
-	Tenant       string
-	Variants     []VariantRowViewModel
-	ErrorMessage string
+	Tenants           []string
+	Tenant            string
+	Variants          []VariantRowViewModel
+	ErrorMessage      string
+	CatalogConfigured bool
 }
 
 // VariantDetailsViewModel är detaljsidan för

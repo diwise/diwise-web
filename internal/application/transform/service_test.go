@@ -170,6 +170,20 @@ func TestCreateModelValidationError(t *testing.T) {
 	is.True(errors.As(err, &verr))
 }
 
+func TestWriteMapsForbidden(t *testing.T) {
+	is := is.New(t)
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+	}))
+	defer srv.Close()
+
+	svc := NewService(&client.Client{}, srv.URL)
+	_, err := svc.CreateModel(context.Background(), "t", testRule())
+	is.True(errors.Is(err, client.ErrForbidden))
+	is.True(svc.ValidateRule(context.Background(), "t", testRule()) != nil)
+}
+
 func TestUpdateModelConflictAndIfMatch(t *testing.T) {
 	is := is.New(t)
 	svc, seen, done := testService(t)

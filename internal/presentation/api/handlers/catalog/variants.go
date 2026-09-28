@@ -2,12 +2,10 @@ package catalog
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	featurecatalog "github.com/diwise/diwise-web/internal/presentation/web/components/features/catalog"
 	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
@@ -28,14 +26,15 @@ func NewVariantsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderF
 
 		tenant := resolveCatalogTenant(r)
 		model := featurecatalog.VariantsPageViewModel{
-			Tenants:  tokenTenants(r),
-			Tenant:   tenant,
-			Variants: []featurecatalog.VariantRowViewModel{},
+			Tenants:           tokenTenants(r),
+			Tenant:            tenant,
+			Variants:          []featurecatalog.VariantRowViewModel{},
+			CatalogConfigured: app.Catalog().Configured(),
 		}
-		if tenant != "" {
+		if tenant != "" && model.CatalogConfigured {
 			specs, err := app.ThingsV2().ListVariants(ctx, tenant)
 			if err != nil {
-				http.Error(w, "could not fetch variants", http.StatusInternalServerError)
+				writeServiceError(w, err, "could not fetch variants")
 				return
 			}
 			for _, spec := range specs {
@@ -86,11 +85,7 @@ func NewVariantDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetL
 
 		spec, err := app.Catalog().GetVariant(ctx, tenant, id, ver)
 		if err != nil {
-			if errors.Is(err, client.ErrNotFound) {
-				http.Error(w, "variant not found", http.StatusNotFound)
-				return
-			}
-			http.Error(w, "could not fetch variant", http.StatusInternalServerError)
+			writeServiceError(w, err, "could not fetch variant")
 			return
 		}
 

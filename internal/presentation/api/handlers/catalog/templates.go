@@ -23,7 +23,22 @@ import (
 type catalogApp interface {
 	Catalog() *catalog.Service
 	ThingsV2() *appthingsv2.Service
-	GetTenants(ctx context.Context) []string
+}
+
+// writeServiceError mappar klassificerbara backend-fel till status så att
+// AccessDenied-middleware kan toasta/redirecta (401/403); 404 för okänt,
+// 500 med anroparens text för övrigt.
+func writeServiceError(w http.ResponseWriter, err error, fallback string) {
+	switch {
+	case errors.Is(err, client.ErrUnauthorized):
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+	case errors.Is(err, client.ErrForbidden):
+		http.Error(w, "forbidden", http.StatusForbidden)
+	case errors.Is(err, client.ErrNotFound):
+		http.Error(w, "not found", http.StatusNotFound)
+	default:
+		http.Error(w, fallback, http.StatusInternalServerError)
+	}
 }
 
 // tokenTenants returnerar tokenens unika tenants (routen är redan skyddad
@@ -65,7 +80,7 @@ func NewTemplatesPage(ctx context.Context, l10n LocaleBundle, assets AssetLoader
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		model, err := composeTemplatesModel(ctx, r, app)
 		if err != nil {
-			http.Error(w, "could not fetch templates", http.StatusInternalServerError)
+			writeServiceError(w, err, "could not fetch templates")
 			return
 		}
 
@@ -83,13 +98,14 @@ func NewTemplatesPage(ctx context.Context, l10n LocaleBundle, assets AssetLoader
 
 func composeTemplatesModel(ctx context.Context, r *http.Request, app catalogApp) (featurecatalog.TemplatesPageViewModel, error) {
 	model := featurecatalog.TemplatesPageViewModel{
-		Tenants:   tokenTenants(r),
-		Tenant:    resolveCatalogTenant(r),
-		Category:  strings.TrimSpace(r.URL.Query().Get("category")),
-		Templates: []featurecatalog.TemplateRowViewModel{},
+		Tenants:           tokenTenants(r),
+		Tenant:            resolveCatalogTenant(r),
+		Category:          strings.TrimSpace(r.URL.Query().Get("category")),
+		Templates:         []featurecatalog.TemplateRowViewModel{},
+		CatalogConfigured: app.Catalog().Configured(),
 	}
 
-	if model.Tenant == "" {
+	if model.Tenant == "" || !model.CatalogConfigured {
 		return model, nil
 	}
 
@@ -149,11 +165,7 @@ func NewTemplateDetailsPage(ctx context.Context, l10n LocaleBundle, assets Asset
 
 		spec, err := app.Catalog().GetTemplate(ctx, tenant, id, ver)
 		if err != nil {
-			if errors.Is(err, client.ErrNotFound) {
-				http.Error(w, "template not found", http.StatusNotFound)
-				return
-			}
-			http.Error(w, "could not fetch template", http.StatusInternalServerError)
+			writeServiceError(w, err, "could not fetch template")
 			return
 		}
 

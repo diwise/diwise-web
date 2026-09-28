@@ -28,6 +28,9 @@ templ VariantsPage(l10n Localizer, viewModel VariantsPageViewModel) {
 		if viewModel.ErrorMessage != "" {
 			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
 		}
+		if !viewModel.CatalogConfigured {
+			<p class="text-sm text-muted-foreground">{ l10n.Get("catalog_not_configured") }</p>
+		}
 		<section class="flex min-w-0 flex-col gap-6">
 			<form
 				method="get"

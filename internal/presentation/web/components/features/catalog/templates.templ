@@ -28,6 +28,9 @@ templ TemplatesPage(l10n Localizer, viewModel TemplatesPageViewModel) {
 		if viewModel.ErrorMessage != "" {
 			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
 		}
+		if !viewModel.CatalogConfigured {
+			<p class="text-sm text-muted-foreground">{ l10n.Get("catalog_not_configured") }</p>
+		}
 		if viewModel.Tenant == "" {
 			<p class="text-sm text-muted-foreground">{ l10n.Get("catalog_pick_tenant") }</p>
 		}

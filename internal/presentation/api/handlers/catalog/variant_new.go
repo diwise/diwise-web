@@ -28,7 +28,7 @@ func NewVariantNewPage(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		model, err := composeVariantNewModel(ctx, r, app, nil)
 		if err != nil {
-			http.Error(w, "could not fetch variant", http.StatusInternalServerError)
+			writeServiceError(w, err, "could not fetch variant")
 			return
 		}
 
@@ -104,7 +104,7 @@ func NewVariantCreatePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFun
 		renderErr := func(msg string) {
 			model, err := composeVariantNewModel(ctx, r, app, form)
 			if err != nil {
-				http.Error(w, "could not fetch variant", http.StatusInternalServerError)
+				writeServiceError(w, err, "could not fetch variant")
 				return
 			}
 			model.Tenant = firstForm(form, "tenant")
@@ -147,6 +147,10 @@ func NewVariantCreatePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFun
 		if err := app.Catalog().PublishVariant(ctx, tenant, spec); err != nil {
 			if errors.Is(err, client.ErrConflict) {
 				renderErr("versionen finns redan, välj nytt versionsnummer")
+				return
+			}
+			if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) {
+				writeServiceError(w, err, "")
 				return
 			}
 			renderErr(err.Error())

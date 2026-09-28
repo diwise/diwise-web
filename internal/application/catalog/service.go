@@ -29,6 +29,12 @@ func NewService(client *client.Client, baseURL string) *Service {
 	return &Service{client: client, baseURL: baseURL}
 }
 
+// Configured reports whether a backend URL is set (empty THINGS_V2_URL
+// means the catalog pages render "not configured" instead of calling out).
+func (s *Service) Configured() bool {
+	return s.baseURL != ""
+}
+
 // GetTemplate reads one published template version (round-trip base for
 // copy+bump; recipes ride along read-only).
 func (s *Service) GetTemplate(ctx context.Context, tenant, id, version string) (thingsv2.TemplateSpec, error) {
@@ -129,6 +135,10 @@ func checkStatus(body []byte, status int) error {
 			return fmt.Errorf("invalid template: %s", msg)
 		}
 		return fmt.Errorf("request failed: %d", status)
+	case http.StatusUnauthorized:
+		return fmt.Errorf("request failed: %w", client.ErrUnauthorized)
+	case http.StatusForbidden:
+		return fmt.Errorf("request failed: %w", client.ErrForbidden)
 	case http.StatusNotFound:
 		return fmt.Errorf("request failed: %w", client.ErrNotFound)
 	case http.StatusConflict:

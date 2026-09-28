@@ -88,6 +88,25 @@ func TestRuleCreateShowsValidationError(t *testing.T) {
 	is.True(strings.Contains(rec.Body.String(), "rule must declare"))
 }
 
+func TestRuleCreateForbiddenMapsTo403(t *testing.T) {
+	is := is.New(t)
+	app, done := testApp(t)
+	defer done()
+
+	handler := NewRuleCreatePage(context.Background(), testLocaleBundle(), testAssets(), app)
+
+	form := url.Values{
+		"tenant": {"foreign"}, "kind": {"thing"}, "event": {"things.v1.values"}, "type": {"room"},
+		"e0_id": {"urn:ngsi-ld:Room:{{nameOrID}}"}, "e0_type": {"Room"},
+		"e0_p0_target": {"name"}, "e0_p0_type": {"Text"},
+		"e0_p0_sourceKind": {"field"}, "e0_p0_sourceValue": {"name"},
+	}
+	rec := postForm(t, handler, "/rules/new", form)
+
+	// Backend-403 (främmande tenant) blir 403-svar för toast, inte 500.
+	is.Equal(http.StatusForbidden, rec.Code)
+}
+
 func TestParseRuleFormBuildsRule(t *testing.T) {
 	is := is.New(t)
 

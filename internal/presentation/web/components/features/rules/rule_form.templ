@@ -135,7 +135,7 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 								hx-swap="innerHTML"
 							>
 								for _, f := range previewFixtures() {
-									<option value={ f.Name }>{ f.Label }</option>
+									<option value={ f.Name } data-kind={ f.Kind }>{ f.Label }</option>
 								}
 							</select>
 						</label>
@@ -232,6 +232,7 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 		// Indexräknare för blanka block: nästa lediga index per typ, med
 		// optimistisk räknare så att snabba dubbelklick inte kolliderar.
 		// Servern avvisar ändå dubblettfält (se parseRuleForm).
+		// Fixture-val synkar även preview-kind från optionens data-kind.
 		(() => {
 			const seq = {};
 			const maxAttr = (root, selector, attr) => {
@@ -257,6 +258,21 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 				seq[key] = next;
 				return next;
 			};
+			const form = document.getElementById('rule-form');
+			if (form && !form.dataset.fixtureInit) {
+				form.dataset.fixtureInit = 'true';
+				form.addEventListener('change', (e) => {
+					if (!e.target || e.target.name !== 'previewFixture') {
+						return;
+					}
+					const opt = e.target.selectedOptions && e.target.selectedOptions[0];
+					const kind = opt && opt.dataset ? opt.dataset.kind : '';
+					const kindSelect = form.querySelector('select[name="previewKind"]');
+					if (kind && kindSelect) {
+						kindSelect.value = kind;
+					}
+				});
+			}
 		})();
 	</script>
 }
