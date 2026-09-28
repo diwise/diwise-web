@@ -41,6 +41,37 @@ func TestRuleNewPageRendersBlankForm(t *testing.T) {
 	is.True(strings.Contains(body, "LanguageMap"))
 }
 
+func TestRuleFormRendersMatchDatalists(t *testing.T) {
+	is := is.New(t)
+	app, done := testApp(t)
+	defer done()
+
+	handler := NewRuleNewPage(context.Background(), testLocaleBundle(), testAssets(), app)
+
+	req := httptest.NewRequest(http.MethodGet, "/rules/new", nil)
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusOK, rec.Code)
+	body := rec.Body.String()
+	// Kända värden som förslag (datalist, inte tvång).
+	for _, want := range []string{
+		`id="match-objects"`,
+		`value="urn:oma:lwm2m:ext:3303"`,
+		`id="match-resources"`,
+		`value="5700"`,
+		`id="match-envs"`,
+		`value="indoors"`,
+		`id="match-relations"`,
+		`value="partOf"`,
+		`list="match-objects"`,
+		`list="match-relations"`,
+	} {
+		is.True(strings.Contains(body, want))
+	}
+}
+
 func TestRuleCreateSavesAndRedirects(t *testing.T) {
 	is := is.New(t)
 	app, done := testApp(t)
@@ -86,6 +117,23 @@ func TestRuleCreateShowsValidationError(t *testing.T) {
 	// Stub-backend: tom entities-lista ger 400 {error} → formulärfel.
 	is.Equal(http.StatusOK, rec.Code)
 	is.True(strings.Contains(rec.Body.String(), "rule must declare"))
+}
+
+func TestRuleCreateErrorRendersFullPageForBrowserPost(t *testing.T) {
+	is := is.New(t)
+	app, done := testApp(t)
+	defer done()
+
+	handler := NewRuleCreatePage(context.Background(), testLocaleBundle(), testAssets(), app)
+
+	form := url.Values{"tenant": {"t1"}, "kind": {"thing"}}
+	req := httptest.NewRequest(http.MethodPost, "/rules/new", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusOK, rec.Code)
+	is.True(strings.Contains(rec.Body.String(), "<!doctype html>"))
 }
 
 func TestRuleCreateForbiddenMapsTo403(t *testing.T) {
@@ -255,6 +303,7 @@ func TestRuleSaveConflictShowsFormError(t *testing.T) {
 	// Fel revision (stubben har rev 1) -> 409 -> konfliktsida med formulär.
 	req := httptest.NewRequest(http.MethodPost, "/rules/"+id, strings.NewReader(ruleForm(id, "9").Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", id)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)

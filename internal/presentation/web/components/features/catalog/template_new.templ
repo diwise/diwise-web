@@ -92,7 +92,7 @@ templ TemplateNewPage(l10n Localizer, viewModel TemplateNewViewModel) {
 					<p class="text-sm text-muted-foreground">{ l10n.Get("catalog_copied") }</p>
 				}
 				<div>
-					@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Attributes: templ.Attributes{"type": "submit"}}) {
+					@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
 						{ l10n.Get("catalog_publish") }
 					}
 				</div>

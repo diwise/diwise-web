@@ -39,6 +39,8 @@ func TestTemplateNewPagePrefillsCopy(t *testing.T) {
 	is.True(strings.Contains(body, "wastebin/v1"))
 	is.True(strings.Contains(body, "Soptunna"))
 	is.True(strings.Contains(body, "fillRate"))
+	is.True(strings.Contains(body, `type="submit"`))
+	is.True(!strings.Contains(body, `type="button" type="submit"`))
 }
 
 func TestTemplateCreatePublishesAndRedirects(t *testing.T) {
@@ -75,6 +77,24 @@ func TestTemplateCreateConflictShowsFormError(t *testing.T) {
 
 	is.Equal(http.StatusOK, rec.Code)
 	is.True(strings.Contains(rec.Body.String(), "versionen finns redan"))
+}
+
+func TestTemplateCreateErrorRendersFullPageForBrowserPost(t *testing.T) {
+	is := is.New(t)
+	app, done := testApp(t)
+	defer done()
+
+	handler := NewTemplateCreatePage(context.Background(), testLocaleBundle(), testAssets(), app)
+	form := url.Values{"tenant": {"t1"}, "id": {"wastebin"}, "version": {"v1"}}
+	req := httptest.NewRequest(http.MethodPost, "/catalog/templates/new", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	is.Equal(http.StatusOK, rec.Code)
+	is.True(strings.Contains(rec.Body.String(), "<!doctype html>"))
+	is.True(strings.Contains(rec.Body.String(), "diwise.css"))
 }
 
 func TestTemplateCreateRejectsBadRef(t *testing.T) {

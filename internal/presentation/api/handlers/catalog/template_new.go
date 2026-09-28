@@ -158,7 +158,9 @@ func firstForm(form map[string][]string, key string) string {
 	return strings.TrimSpace(form[key][0])
 }
 
-func NewTemplateCreatePage(_ context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app catalogApp) http.HandlerFunc {
+func NewTemplateCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app catalogApp) http.HandlerFunc {
+	version := helpers.GetVersion(ctx)
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
@@ -195,7 +197,11 @@ func NewTemplateCreatePage(_ context.Context, l10n LocaleBundle, assets AssetLoa
 			model.AllowNoLocation = firstForm(form, "allowNoLocation") == "true"
 			model.ErrorMessage = msg
 			content := featurecatalog.TemplateNewPage(localizer, model)
-			helpers.WriteComponentResponse(ctx, w, r, content, 32*1024, http.StatusOK)
+			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
+			if helpers.IsHxRequest(r) {
+				page = v2layout.AppShell(localizer, assets, content)
+			}
+			helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, http.StatusOK)
 		}
 
 		tenant := firstForm(form, "tenant")

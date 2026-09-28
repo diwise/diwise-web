@@ -320,7 +320,9 @@ func blankRule() apptransform.Rule {
 	}
 }
 
-func NewRuleCreatePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app rulesApp) http.HandlerFunc {
+func NewRuleCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app rulesApp) http.HandlerFunc {
+	version := helpers.GetVersion(ctx)
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
@@ -335,14 +337,22 @@ func NewRuleCreatePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, 
 		}
 		form := map[string][]string(r.Form)
 
+		// Fel vid vanlig browser-POST renderar full sida (med layout),
+		// vid HTMX bara innehållet — samma mönster som lyckad save
+		// (StartPage kräver inloggad ctx för innehåll).
 		renderErr := func(rule apptransform.Rule, msg string) {
-			helpers.WriteComponentResponse(ctx, w, r, featurerules.RuleFormPage(localizer, featurerules.RuleFormViewModel{
+			content := featurerules.RuleFormPage(localizer, featurerules.RuleFormViewModel{
 				IsNew:               true,
 				Tenants:             ruleTokenTenants(r),
 				Rule:                rule,
 				ErrorMessage:        msg,
 				TransformConfigured: app.Transforms().Configured(),
-			}), 32*1024, http.StatusOK)
+			})
+			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
+			if helpers.IsHxRequest(r) {
+				page = v2layout.AppShell(localizer, assets, content)
+			}
+			helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, http.StatusOK)
 		}
 
 		rule, err := parseRuleForm(form)
@@ -372,7 +382,9 @@ func NewRuleCreatePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, 
 	return http.HandlerFunc(fn)
 }
 
-func NewRuleSavePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app rulesApp) http.HandlerFunc {
+func NewRuleSavePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app rulesApp) http.HandlerFunc {
+	version := helpers.GetVersion(ctx)
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
@@ -399,7 +411,7 @@ func NewRuleSavePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, ap
 		}
 
 		renderErr := func(rule apptransform.Rule, msg string) {
-			helpers.WriteComponentResponse(ctx, w, r, featurerules.RuleFormPage(localizer, featurerules.RuleFormViewModel{
+			content := featurerules.RuleFormPage(localizer, featurerules.RuleFormViewModel{
 				ID:                  id,
 				Revision:            revision,
 				Tenants:             ruleTokenTenants(r),
@@ -407,7 +419,12 @@ func NewRuleSavePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, ap
 				ShowDelete:          true,
 				ErrorMessage:        msg,
 				TransformConfigured: app.Transforms().Configured(),
-			}), 32*1024, http.StatusOK)
+			})
+			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
+			if helpers.IsHxRequest(r) {
+				page = v2layout.AppShell(localizer, assets, content)
+			}
+			helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, http.StatusOK)
 		}
 
 		rule, err := parseRuleForm(form)

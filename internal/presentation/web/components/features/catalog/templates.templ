@@ -61,7 +61,7 @@ templ TemplatesPage(l10n Localizer, viewModel TemplatesPageViewModel) {
 						}
 					</select>
 				</label>
-				@button.Button(button.Props{Variant: button.VariantSecondary, Class: "rounded-xl px-4", Attributes: templ.Attributes{"type": "submit"}}) {
+				@button.Button(button.Props{Variant: button.VariantSecondary, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
 					{ l10n.Get("search") }
 				}
 			</form>

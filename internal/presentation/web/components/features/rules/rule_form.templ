@@ -64,15 +64,15 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 						</label>
 						<label class="flex flex-col gap-1 text-sm">
 							<span>object</span>
-							<input name="object" value={ viewModel.Rule.Match.Object } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							<input name="object" value={ viewModel.Rule.Match.Object } list="match-objects" class="rounded-xl border border-border bg-background px-3 py-2"/>
 						</label>
 						<label class="flex flex-col gap-1 text-sm">
 							<span>resource</span>
-							<input name="resource" value={ viewModel.Rule.Match.Resource } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							<input name="resource" value={ viewModel.Rule.Match.Resource } list="match-resources" class="rounded-xl border border-border bg-background px-3 py-2"/>
 						</label>
 						<label class="flex flex-col gap-1 text-sm">
 							<span>env</span>
-							<input name="env" value={ viewModel.Rule.Match.Env } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							<input name="env" value={ viewModel.Rule.Match.Env } list="match-envs" class="rounded-xl border border-border bg-background px-3 py-2"/>
 						</label>
 						<label class="flex flex-col gap-1 text-sm">
 							<span>type</span>
@@ -93,7 +93,7 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 						</label>
 						<label class="flex flex-col gap-1 text-sm">
 							<span>relation</span>
-							<input name="relation" value={ viewModel.Rule.Match.Relation } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							<input name="relation" value={ viewModel.Rule.Match.Relation } list="match-relations" class="rounded-xl border border-border bg-background px-3 py-2"/>
 						</label>
 						<label class="flex items-center gap-2 text-sm">
 							<input type="checkbox" name="relationRemoved" value="true" checked?={ viewModel.Rule.Match.RelationRemoved }/>
@@ -110,6 +110,26 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 						</label>
 					</div>
 				</fieldset>
+				<datalist id="match-objects">
+					for _, o := range MeasurementObjects() {
+						<option value={ o }></option>
+					}
+				</datalist>
+				<datalist id="match-resources">
+					for _, r := range MeasurementResources() {
+						<option value={ r }></option>
+					}
+				</datalist>
+				<datalist id="match-envs">
+					for _, e := range MeasurementEnvs() {
+						<option value={ e }></option>
+					}
+				</datalist>
+				<datalist id="match-relations">
+					for _, r := range RelationNames() {
+						<option value={ r }></option>
+					}
+				</datalist>
 				for i, e := range viewModel.Rule.Entities {
 					@EntityBlock(l10n, i, e)
 				}
@@ -180,7 +200,7 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 					@PreviewResult(l10n, previewEmpty())
 				</fieldset>
 				<div class="flex flex-wrap gap-4">
-					@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Attributes: templ.Attributes{"type": "submit"}}) {
+					@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
 						{ l10n.Get("rules_save") }
 					}
 					@button.Button(button.Props{
@@ -215,7 +235,7 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 						<input type="hidden" name="confirm" value="yes"/>
 					}
 					<div>
-						@button.Button(button.Props{Variant: button.VariantDestructive, Class: "rounded-xl px-4", Attributes: templ.Attributes{"type": "submit"}}) {
+						@button.Button(button.Props{Variant: button.VariantDestructive, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
 							if viewModel.ConfirmDelete {
 								{ l10n.Get("rules_delete_confirmed") }
 							} else {

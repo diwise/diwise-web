@@ -86,7 +86,9 @@ func composeVariantNewModel(ctx context.Context, r *http.Request, app catalogApp
 	return model, nil
 }
 
-func NewVariantCreatePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app catalogApp) http.HandlerFunc {
+func NewVariantCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app catalogApp) http.HandlerFunc {
+	version := helpers.GetVersion(ctx)
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
@@ -114,7 +116,12 @@ func NewVariantCreatePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFun
 			model.TemplateRef = firstForm(form, "templateRef")
 			model.ParamValues = firstForm(form, "paramValues")
 			model.ErrorMessage = msg
-			helpers.WriteComponentResponse(ctx, w, r, featurecatalog.VariantNewPage(localizer, model), 32*1024, http.StatusOK)
+			content := featurecatalog.VariantNewPage(localizer, model)
+			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
+			if helpers.IsHxRequest(r) {
+				page = v2layout.AppShell(localizer, assets, content)
+			}
+			helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, http.StatusOK)
 		}
 
 		tenant := firstForm(form, "tenant")

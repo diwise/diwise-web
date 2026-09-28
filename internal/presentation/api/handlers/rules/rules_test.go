@@ -245,6 +245,7 @@ func TestRuleDeleteRequiresConfirmThenDeletes(t *testing.T) {
 	form := url.Values{"revision": {"1"}}
 	req := httptest.NewRequest(http.MethodPost, "/rules/"+id+"/delete", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", id)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)

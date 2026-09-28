@@ -230,7 +230,9 @@ func NewRuleDetailsPage(ctx context.Context, l10n LocaleBundle, assets AssetLoad
 	return http.HandlerFunc(fn)
 }
 
-func NewRuleDeletePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, app rulesApp) http.HandlerFunc {
+func NewRuleDeletePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc, app rulesApp) http.HandlerFunc {
+	version := helpers.GetVersion(ctx)
+
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := helpers.Decorate(
 			r.Context(),
@@ -271,7 +273,11 @@ func NewRuleDeletePage(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc, 
 				ConfirmDelete:       true,
 				TransformConfigured: app.Transforms().Configured(),
 			})
-			helpers.WriteComponentResponse(ctx, w, r, content, 32*1024, http.StatusOK)
+			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
+			if helpers.IsHxRequest(r) {
+				page = v2layout.AppShell(localizer, assets, content)
+			}
+			helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, http.StatusOK)
 			return
 		}
 

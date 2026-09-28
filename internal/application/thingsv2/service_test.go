@@ -196,7 +196,8 @@ func stubV2(t *testing.T) *httptest.Server {
 	})
 	mux.HandleFunc("/catalog/templates", func(w http.ResponseWriter, r *http.Request) {
 		specs := []TemplateSpec{
-			{Template: Template{ID: "wastebin", Version: "v1", Category: "container", DisplayName: "Soptunna"}},
+			{Template: Template{ID: "wastebin", Version: "v1", Category: "container", DisplayName: "Soptunna"},
+				Recipes: []Recipe{{Name: "fill-rate", Operator: "fillRate", Params: []string{"usableHeight"}}}},
 			{Template: Template{ID: "room", Version: "v1", Category: "room", DisplayName: "Rum"}},
 		}
 		if cat := r.URL.Query().Get("category"); cat != "" {
@@ -288,6 +289,7 @@ func TestListTemplatesCategoryFilter(t *testing.T) {
 	specs, err = svc.ListTemplates(context.Background(), "t1", "")
 	is.NoErr(err)
 	is.Equal(2, len(specs))
+	is.Equal([]string{"usableHeight"}, specs[0].Recipes[0].Params)
 }
 
 func TestLocationPoint(t *testing.T) {

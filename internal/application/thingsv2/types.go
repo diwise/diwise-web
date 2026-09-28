@@ -114,12 +114,12 @@ type TemplateSpec struct {
 // and params. GUI v1 visar recipes read-only och kopierar dem med vid
 // ny version (full recipe-editor är deferred, PLAN002).
 type Recipe struct {
-	Name     string             `json:"name"`
-	Operator string             `json:"operator"`
-	Version  string             `json:"version,omitempty"`
-	Inputs   []string           `json:"inputs,omitempty"`
-	Outputs  []string           `json:"outputs,omitempty"`
-	Params   map[string]float64 `json:"params,omitempty"`
+	Name     string   `json:"name"`
+	Operator string   `json:"operator"`
+	Version  string   `json:"version,omitempty"`
+	Inputs   []string `json:"inputs,omitempty"`
+	Outputs  []string `json:"outputs,omitempty"`
+	Params   []string `json:"params,omitempty"`
 }
 
 // ParamDef documents a parameter (unit, description, range).
