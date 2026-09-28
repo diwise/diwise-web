@@ -339,7 +339,12 @@ templ TypeField(l10n Localizer, current string, options []string) {
 }
 
 templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {	<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4" data-entity={ index }>
-		<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_entity") } { index }</legend>
+		<legend class="px-2 text-sm font-semibold">
+			{ l10n.Get("rules_entity") } { index }
+			if entity.Type != "" {
+				<span class="text-muted-foreground">· { entity.Type }</span>
+			}
+		</legend>
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 			<label class="flex flex-col gap-1 text-sm">
 				<span>name</span>

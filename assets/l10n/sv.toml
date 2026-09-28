@@ -910,7 +910,7 @@ other = "Spara"
 other = "Matchning"
 
 [rules_entity]
-other = "Entitet"
+other = "Smart datamodell"
 
 [rules_property]
 other = "Egenskap"

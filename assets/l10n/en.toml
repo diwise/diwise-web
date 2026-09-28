@@ -905,7 +905,7 @@ other = "Save"
 other = "Match"
 
 [rules_entity]
-other = "Entity"
+other = "Smart data model"
 
 [rules_property]
 other = "Property"

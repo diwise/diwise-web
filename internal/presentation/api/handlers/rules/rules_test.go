@@ -234,6 +234,9 @@ func TestRuleDetailsPageShowsEditorAndSeedBanner(t *testing.T) {
 	is.True(strings.Contains(body, "urn:ngsi-ld:Room"))
 	is.True(strings.Contains(body, "rules_seed_banner"))
 	is.True(strings.Contains(body, "/rules/11111111-1111-1111-1111-111111111111/delete"))
+	// Blockrubriken visar Smart datamodell + entitetstyp, inte "Entitet 0".
+	is.True(strings.Contains(body, "rules_entity"))
+	is.True(strings.Contains(body, "Room"))
 }
 
 func TestRuleDetailsPageReturns404ForUnknownID(t *testing.T) {
