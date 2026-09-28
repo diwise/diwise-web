@@ -55,8 +55,14 @@ func parseRuleForm(form map[string][]string) (apptransform.Rule, error) {
 	}
 
 	entityIdx := map[int]bool{}
-	for key := range form {
+	for key, values := range form {
 		if m := entityKeyRe.FindStringSubmatch(key); m != nil {
+			// Flera värden på samma fält betyder kolliderande blockindex
+			// (t.ex. dubbelklick utan JS-räknare) — fail fast i stället
+			// för att tyst tappa ena blockets data.
+			if len(values) > 1 {
+				return rule, fmt.Errorf("duplicate form fields for %q: add rows one at a time", key)
+			}
 			i, err := strconv.Atoi(m[1])
 			if err != nil || i < 0 || i > 99 {
 				return rule, fmt.Errorf("bad entity index %q", key)
@@ -117,8 +123,11 @@ func parseProperties(form map[string][]string, entity int) ([]apptransform.Prope
 	}
 
 	idx := map[int]bool{}
-	for key := range form {
+	for key, values := range form {
 		if m := propertyKeyRe.FindStringSubmatch(key); m != nil {
+			if len(values) > 1 {
+				return nil, fmt.Errorf("duplicate form fields for %q: add rows one at a time", key)
+			}
 			e, err1 := strconv.Atoi(m[1])
 			j, err2 := strconv.Atoi(m[2])
 			if err1 != nil || err2 != nil || e != entity || j < 0 || j > 99 {

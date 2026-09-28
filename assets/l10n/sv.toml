@@ -918,6 +918,9 @@ other = "Egenskap"
 [rules_add_entity]
 other = "Lägg till entitet"
 
+[rules_add_property]
+other = "Lägg till egenskap"
+
 [rules_source_value]
 other = "Källvärde"
 

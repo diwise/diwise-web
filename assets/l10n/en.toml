@@ -913,6 +913,9 @@ other = "Property"
 [rules_add_entity]
 other = "Add entity"
 
+[rules_add_property]
+other = "Add property"
+
 [rules_source_value]
 other = "Source value"
 

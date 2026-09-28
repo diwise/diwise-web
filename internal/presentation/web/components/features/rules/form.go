@@ -48,16 +48,6 @@ func (m RuleFormViewModel) RevisionString() string {
 	return strconv.FormatInt(m.Revision, 10)
 }
 
-// EntityCountString är antalet entitetsblock (bas för blank-index).
-func (m RuleFormViewModel) EntityCountString() string {
-	return strconv.Itoa(len(m.Rule.Entities))
-}
-
-// NextEntityIndex är index för nästa blanka entitetsblock.
-func (m RuleFormViewModel) NextEntityIndex() string {
-	return strconv.Itoa(len(m.Rule.Entities))
-}
-
 func entityField(index int, name string) string {
 	return fmt.Sprintf("e%d_%s", index, name)
 }
@@ -70,8 +60,10 @@ func propertyTarget(index int) string {
 	return fmt.Sprintf("entity-%d-properties", index)
 }
 
-func propertyCount(entity apptransform.Entity) string {
-	return strconv.Itoa(len(entity.Properties))
+// propertyBlankVals bygger hx-vals för blanka property-block: entitet statiskt,
+// index via JS-räknaren (ruleFormNext) så upprepade klick inte kolliderar.
+func propertyBlankVals(entity int) string {
+	return fmt.Sprintf(`js:{entity: %d, index: ruleFormNext('property', %d)}`, entity, entity)
 }
 
 func removeAttributesText(entity apptransform.Entity) string {

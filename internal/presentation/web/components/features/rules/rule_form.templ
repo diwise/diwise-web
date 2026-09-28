@@ -26,6 +26,7 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 			<form
 				method="post"
 				action={ viewModel.FormAction() }
+				id="rule-form"
 				class="flex flex-col gap-6"
 			>
 				if !viewModel.IsNew {
@@ -109,7 +110,6 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 						</label>
 					</div>
 				</fieldset>
-				<input type="hidden" name="entityCount" value={ viewModel.EntityCountString() }/>
 				for i, e := range viewModel.Rule.Entities {
 					@EntityBlock(l10n, i, e)
 				}
@@ -187,7 +187,8 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 						Variant: button.VariantSecondary,
 						Class:   "rounded-xl px-4",
 						Attributes: templ.Attributes{
-							"hx-get":        "/components/rules/entity-blank?index=" + viewModel.NextEntityIndex(),
+							"hx-get":        "/components/rules/entity-blank",
+							"hx-vals":       "js:{index: ruleFormNext('entity', -1)}",
 							"hx-target":     "#entity-blocks",
 							"hx-swap":       "beforeend",
 							"type":          "button",
@@ -227,12 +228,42 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 		</section>
 		}
 	</div>
+	<script nonce={ templ.GetNonce(ctx) }>
+		// Indexräknare för blanka block: nästa lediga index per typ, med
+		// optimistisk räknare så att snabba dubbelklick inte kolliderar.
+		// Servern avvisar ändå dubblettfält (se parseRuleForm).
+		(() => {
+			const seq = {};
+			const maxAttr = (root, selector, attr) => {
+				let m = -1;
+				(root || document).querySelectorAll(selector).forEach((el) => {
+					const n = parseInt(el.getAttribute(attr), 10);
+					if (!isNaN(n) && n > m) {
+						m = n;
+					}
+				});
+				return m;
+			};
+			window.ruleFormNext = (kind, scope) => {
+				let cur;
+				if (kind === 'entity') {
+					cur = maxAttr(document.getElementById('rule-form'), '[data-entity]', 'data-entity');
+				} else {
+					const root = document.querySelector('#rule-form [data-entity="' + scope + '"]');
+					cur = maxAttr(root, '[data-property]', 'data-property');
+				}
+				const key = kind + ':' + scope;
+				const next = Math.max(cur, seq[key] === undefined ? -1 : seq[key]) + 1;
+				seq[key] = next;
+				return next;
+			};
+		})();
+	</script>
 }
 
 templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {
 	<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4" data-entity={ index }>
 		<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_entity") } { index }</legend>
-		<input type="hidden" name={ entityField(index, "propCount") } value={ propertyCount(entity) }/>
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 			<label class="flex flex-col gap-1 text-sm">
 				<span>name</span>
@@ -269,6 +300,21 @@ templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {
 			@PropertyBlock(l10n, index, j, p)
 		}
 		<div id={ propertyTarget(index) }></div>
+		<div>
+			@button.Button(button.Props{
+				Variant: button.VariantSecondary,
+				Class:   "rounded-xl px-4",
+				Attributes: templ.Attributes{
+					"hx-get":  "/components/rules/property-blank",
+					"hx-vals": propertyBlankVals(index),
+					"hx-target": "#" + propertyTarget(index),
+					"hx-swap":   "beforeend",
+					"type":      "button",
+				},
+			}) {
+				{ l10n.Get("rules_add_property") }
+			}
+		</div>
 	</fieldset>
 }
 

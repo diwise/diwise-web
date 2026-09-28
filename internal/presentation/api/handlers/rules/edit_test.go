@@ -152,6 +152,18 @@ func TestParseRuleFormSkipsEmptyBlocks(t *testing.T) {
 	is.True(err != nil)
 }
 
+func TestParseRuleFormRejectsDuplicateFields(t *testing.T) {
+	is := is.New(t)
+
+	// Kolliderande blockindex (dubbelklick utan JS) ger fel, inte tyst
+	// dataförlust.
+	_, err := parseRuleForm(map[string][]string{
+		"kind":  {"thing"},
+		"e0_id": {"a", "b"},
+	})
+	is.True(err != nil)
+}
+
 func TestEntityBlankFragment(t *testing.T) {
 
 	is := is.New(t)
