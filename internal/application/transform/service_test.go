@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/diwise/diwise-web/internal/application/client"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/matryer/is"
 )
 
@@ -128,17 +129,17 @@ func TestListModelsParsesEnvelopeAndFilters(t *testing.T) {
 	svc, seen, done := testService(t)
 	defer done()
 
-	models, err := svc.ListModels(context.Background(), "t", nil)
+	models, err := svc.ListModels(auth.WithToken(context.Background(), "test-token"), "t", nil)
 	is.NoErr(err)
 	is.Equal(1, len(models))
 	is.Equal("Room", models[0].Rule.Entities[0].Type)
 
-	models, err = svc.ListModels(context.Background(), "t", map[string]string{"kind": "thing"})
+	models, err = svc.ListModels(auth.WithToken(context.Background(), "test-token"), "t", map[string]string{"kind": "thing"})
 	is.NoErr(err)
 	is.Equal(1, len(models))
 	is.True((*seen)["query"] != "")
 
-	models, err = svc.ListModels(context.Background(), "t", map[string]string{"kind": "nope"})
+	models, err = svc.ListModels(auth.WithToken(context.Background(), "test-token"), "t", map[string]string{"kind": "nope"})
 	is.NoErr(err)
 	is.Equal(0, len(models))
 }
@@ -148,11 +149,11 @@ func TestGetModel(t *testing.T) {
 	svc, _, done := testService(t)
 	defer done()
 
-	m, err := svc.GetModel(context.Background(), "t", "11111111-1111-1111-1111-111111111111")
+	m, err := svc.GetModel(auth.WithToken(context.Background(), "test-token"), "t", "11111111-1111-1111-1111-111111111111")
 	is.NoErr(err)
 	is.Equal(int64(1), m.Revision)
 
-	_, err = svc.GetModel(context.Background(), "t", "00000000-0000-0000-0000-000000000000")
+	_, err = svc.GetModel(auth.WithToken(context.Background(), "test-token"), "t", "00000000-0000-0000-0000-000000000000")
 	is.True(errors.Is(err, client.ErrNotFound))
 }
 
@@ -161,11 +162,11 @@ func TestCreateModelValidationError(t *testing.T) {
 	svc, _, done := testService(t)
 	defer done()
 
-	m, err := svc.CreateModel(context.Background(), "t", testRule())
+	m, err := svc.CreateModel(auth.WithToken(context.Background(), "test-token"), "t", testRule())
 	is.NoErr(err)
 	is.Equal("api", m.Source)
 
-	_, err = svc.CreateModel(context.Background(), "t", Rule{})
+	_, err = svc.CreateModel(auth.WithToken(context.Background(), "test-token"), "t", Rule{})
 	var verr *ValidationError
 	is.True(errors.As(err, &verr))
 }
@@ -179,9 +180,9 @@ func TestWriteMapsForbidden(t *testing.T) {
 	defer srv.Close()
 
 	svc := NewService(&client.Client{}, srv.URL)
-	_, err := svc.CreateModel(context.Background(), "t", testRule())
+	_, err := svc.CreateModel(auth.WithToken(context.Background(), "test-token"), "t", testRule())
 	is.True(errors.Is(err, client.ErrForbidden))
-	is.True(svc.ValidateRule(context.Background(), "t", testRule()) != nil)
+	is.True(svc.ValidateRule(auth.WithToken(context.Background(), "test-token"), "t", testRule()) != nil)
 }
 
 func TestUpdateModelConflictAndIfMatch(t *testing.T) {
@@ -190,12 +191,12 @@ func TestUpdateModelConflictAndIfMatch(t *testing.T) {
 	defer done()
 
 	id := "11111111-1111-1111-1111-111111111111"
-	m, err := svc.UpdateModel(context.Background(), "t", id, testRule(), 1)
+	m, err := svc.UpdateModel(auth.WithToken(context.Background(), "test-token"), "t", id, testRule(), 1)
 	is.NoErr(err)
 	is.Equal(int64(2), m.Revision)
 	is.Equal(`"rev-1"`, (*seen)["ifmatch"])
 
-	_, err = svc.UpdateModel(context.Background(), "t", id, testRule(), 9)
+	_, err = svc.UpdateModel(auth.WithToken(context.Background(), "test-token"), "t", id, testRule(), 9)
 	is.True(errors.Is(err, client.ErrConflict))
 }
 
@@ -205,12 +206,12 @@ func TestDeleteModel(t *testing.T) {
 	defer done()
 
 	id := "11111111-1111-1111-1111-111111111111"
-	is.NoErr(svc.DeleteModel(context.Background(), "t", id, 1))
+	is.NoErr(svc.DeleteModel(auth.WithToken(context.Background(), "test-token"), "t", id, 1))
 
-	err := svc.DeleteModel(context.Background(), "t", "00000000-0000-0000-0000-000000000000", 1)
+	err := svc.DeleteModel(auth.WithToken(context.Background(), "test-token"), "t", "00000000-0000-0000-0000-000000000000", 1)
 	is.True(errors.Is(err, client.ErrNotFound))
 
-	err = svc.DeleteModel(context.Background(), "t", id, 9)
+	err = svc.DeleteModel(auth.WithToken(context.Background(), "test-token"), "t", id, 9)
 	is.True(errors.Is(err, client.ErrConflict))
 }
 
@@ -219,20 +220,20 @@ func TestValidateAndPreview(t *testing.T) {
 	svc, _, done := testService(t)
 	defer done()
 
-	is.NoErr(svc.ValidateRule(context.Background(), "t", testRule()))
+	is.NoErr(svc.ValidateRule(auth.WithToken(context.Background(), "test-token"), "t", testRule()))
 
-	err := svc.ValidateRule(context.Background(), "t", Rule{})
+	err := svc.ValidateRule(auth.WithToken(context.Background(), "test-token"), "t", Rule{})
 	var verr *ValidationError
 	is.True(errors.As(err, &verr))
 	is.True(verr.Message != "")
 
-	res, err := svc.PreviewRule(context.Background(), "t", testRule(), PreviewEvent{Kind: "things.v1.values", Message: map[string]any{}})
+	res, err := svc.PreviewRule(auth.WithToken(context.Background(), "test-token"), "t", testRule(), PreviewEvent{Kind: "things.v1.values", Message: map[string]any{}})
 	is.NoErr(err)
 	is.True(res.Matched)
 	is.Equal(1, len(res.Entities))
 	is.Equal("merge", res.Entities[0].Operation)
 	is.Equal(1, res.Observations)
 
-	_, err = svc.PreviewRule(context.Background(), "t", testRule(), PreviewEvent{})
+	_, err = svc.PreviewRule(auth.WithToken(context.Background(), "test-token"), "t", testRule(), PreviewEvent{})
 	is.True(errors.As(err, &verr))
 }

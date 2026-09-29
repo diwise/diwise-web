@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/diwise/diwise-web/internal/application/client"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/matryer/is"
 )
 
@@ -230,7 +231,7 @@ func TestListThingsParsesArrayAndTotal(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	res, err := svc.ListThings(context.Background(), "t1", Filter{Limit: 10})
+	res, err := svc.ListThings(auth.WithToken(context.Background(), "test-token"), "t1", Filter{Limit: 10})
 	is.NoErr(err)
 	is.Equal(1, len(res.Things))
 	is.Equal(7, res.Total)
@@ -244,7 +245,7 @@ func TestListThingsAcrossTenantsMergesSorted(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	res, err := svc.ListThingsAcrossTenants(context.Background(), Filter{})
+	res, err := svc.ListThingsAcrossTenants(auth.WithToken(context.Background(), "test-token"), Filter{})
 	is.NoErr(err)
 	is.Equal(2, len(res.Things))
 	is.Equal("bin-1", res.Things[0].ThingID)
@@ -262,7 +263,7 @@ func TestListThingsAcrossTenantsFails(t *testing.T) {
 	c := &client.Client{}
 	svc := NewService(c, srv.URL)
 
-	_, err := svc.ListThingsAcrossTenants(context.Background(), Filter{})
+	_, err := svc.ListThingsAcrossTenants(auth.WithToken(context.Background(), "test-token"), Filter{})
 	is.True(err != nil)
 }
 
@@ -271,7 +272,7 @@ func TestGetThingNotFound(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	_, err := svc.GetThing(context.Background(), "t1", "missing")
+	_, err := svc.GetThing(auth.WithToken(context.Background(), "test-token"), "t1", "missing")
 	is.True(err != nil)
 	is.True(errors.Is(err, client.ErrNotFound))
 }
@@ -281,12 +282,12 @@ func TestListTemplatesCategoryFilter(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	specs, err := svc.ListTemplates(context.Background(), "t1", "room")
+	specs, err := svc.ListTemplates(auth.WithToken(context.Background(), "test-token"), "t1", "room")
 	is.NoErr(err)
 	is.Equal(1, len(specs))
 	is.Equal("Rum", specs[0].Template.DisplayName)
 
-	specs, err = svc.ListTemplates(context.Background(), "t1", "")
+	specs, err = svc.ListTemplates(auth.WithToken(context.Background(), "test-token"), "t1", "")
 	is.NoErr(err)
 	is.Equal(2, len(specs))
 	is.Equal([]string{"usableHeight"}, specs[0].Recipes[0].Params)
@@ -297,7 +298,7 @@ func TestLocationPoint(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	res, err := svc.ListThings(context.Background(), "t2", Filter{})
+	res, err := svc.ListThings(auth.WithToken(context.Background(), "test-token"), "t2", Filter{})
 	is.NoErr(err)
 	lon, lat, ok := res.Things[0].Location.Point()
 	is.True(ok)
@@ -317,7 +318,7 @@ func TestGetHistoryParsesPointsOldestFirst(t *testing.T) {
 	from := time.Date(2026, 9, 18, 0, 0, 0, 0, time.UTC)
 	to := time.Date(2026, 9, 18, 12, 0, 0, 0, time.UTC)
 
-	points, err := svc.GetHistory(context.Background(), "t1", "bin-1", "fillRate", from, to, 100)
+	points, err := svc.GetHistory(auth.WithToken(context.Background(), "test-token"), "t1", "bin-1", "fillRate", from, to, 100)
 	is.NoErr(err)
 	is.Equal(2, len(points))
 	is.Equal("fillRate", points[0].PropertyID)
@@ -332,7 +333,7 @@ func TestGetHistoryEmptyForUnknownProperty(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	points, err := svc.GetHistory(context.Background(), "t1", "bin-1", "missing", time.Time{}, time.Time{}, 0)
+	points, err := svc.GetHistory(auth.WithToken(context.Background(), "test-token"), "t1", "bin-1", "missing", time.Time{}, time.Time{}, 0)
 	is.NoErr(err)
 	is.Equal(0, len(points))
 }
@@ -342,7 +343,7 @@ func TestGetBindingsParsesDeviceSignals(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	bindings, err := svc.GetBindings(context.Background(), "t1", "bin-1")
+	bindings, err := svc.GetBindings(auth.WithToken(context.Background(), "test-token"), "t1", "bin-1")
 	is.NoErr(err)
 	is.Equal(1, len(bindings))
 	is.Equal("milesight:79", bindings[0].DeviceID)
@@ -356,7 +357,7 @@ func TestGetBindingsNotFound(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	_, err := svc.GetBindings(context.Background(), "t1", "missing")
+	_, err := svc.GetBindings(auth.WithToken(context.Background(), "test-token"), "t1", "missing")
 	is.True(err != nil)
 	is.True(errors.Is(err, client.ErrNotFound))
 }
@@ -377,7 +378,7 @@ func TestGetOverviewParsesThingAndChildren(t *testing.T) {
 	defer srv.Close()
 	svc := NewService(&client.Client{}, srv.URL)
 
-	overview, err := svc.GetOverview(context.Background(), "t1", "bin-1")
+	overview, err := svc.GetOverview(auth.WithToken(context.Background(), "test-token"), "t1", "bin-1")
 	is.NoErr(err)
 	is.Equal("Tunna", overview.Thing.Name)
 	is.Equal(1, len(overview.Children))
@@ -389,7 +390,7 @@ func TestCreateThingPostsSpec(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	thing, err := svc.CreateThing(context.Background(), "t1", ObjectSpec{
+	thing, err := svc.CreateThing(auth.WithToken(context.Background(), "test-token"), "t1", ObjectSpec{
 		ThingID: "bin-9", Name: "Tunna 9",
 		Location:        &Location{Type: "Point", Coordinates: json.RawMessage(`[17.3,62.39]`)},
 		TemplateID:      "wastebin",
@@ -406,7 +407,7 @@ func TestUpdateThingPutsSpecWithRevision(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	thing, err := svc.UpdateThing(context.Background(), "t1", "bin-1", ObjectSpec{
+	thing, err := svc.UpdateThing(auth.WithToken(context.Background(), "test-token"), "t1", "bin-1", ObjectSpec{
 		ThingID: "bin-1", Name: "Tunna ny",
 		Location:        &Location{Type: "Point", Coordinates: json.RawMessage(`[17.3,62.39]`)},
 		TemplateID:      "wastebin",
@@ -422,9 +423,9 @@ func TestDeleteThing(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	is.NoErr(svc.DeleteThing(context.Background(), "t1", "bin-1"))
+	is.NoErr(svc.DeleteThing(auth.WithToken(context.Background(), "test-token"), "t1", "bin-1"))
 
-	err := svc.DeleteThing(context.Background(), "t1", "parent-1")
+	err := svc.DeleteThing(auth.WithToken(context.Background(), "test-token"), "t1", "parent-1")
 	is.True(err != nil)
 	is.True(errors.Is(err, client.ErrConflict))
 }
@@ -434,7 +435,7 @@ func TestGetConfigParsesEffectiveConfig(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	config, err := svc.GetConfig(context.Background(), "t1", "bin-1")
+	config, err := svc.GetConfig(auth.WithToken(context.Background(), "test-token"), "t1", "bin-1")
 	is.NoErr(err)
 	is.Equal("wastebin", config.TemplateID)
 	is.Equal(1, len(config.Bindings))
@@ -442,7 +443,7 @@ func TestGetConfigParsesEffectiveConfig(t *testing.T) {
 	is.Equal(0.94, config.ParamValues["sensorToBottom"])
 	is.Equal("thing", config.ParamSources["sensorToBottom"])
 
-	_, err = svc.GetConfig(context.Background(), "t1", "missing")
+	_, err = svc.GetConfig(auth.WithToken(context.Background(), "test-token"), "t1", "missing")
 	is.True(err != nil)
 	is.True(errors.Is(err, client.ErrNotFound))
 }
@@ -452,7 +453,7 @@ func TestListVariants(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	specs, err := svc.ListVariants(context.Background(), "t1")
+	specs, err := svc.ListVariants(auth.WithToken(context.Background(), "test-token"), "t1")
 	is.NoErr(err)
 	is.Equal(1, len(specs))
 	is.Equal("160L", specs[0].Variant.ID)
@@ -464,7 +465,7 @@ func TestMoveParentPutsParentWithRevision(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	thing, err := svc.MoveParent(context.Background(), "t1", "tank-1", "gh-1", 2)
+	thing, err := svc.MoveParent(auth.WithToken(context.Background(), "test-token"), "t1", "tank-1", "gh-1", 2)
 	is.NoErr(err)
 	is.Equal("tank-1", thing.ThingID)
 	is.Equal(int64(3), thing.Revision)
@@ -475,7 +476,7 @@ func TestMoveParentNotFound(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	_, err := svc.MoveParent(context.Background(), "t1", "tank-1", "missing", 2)
+	_, err := svc.MoveParent(auth.WithToken(context.Background(), "test-token"), "t1", "tank-1", "missing", 2)
 	is.True(err != nil)
 	is.True(errors.Is(err, client.ErrNotFound))
 }
@@ -485,7 +486,7 @@ func TestUnlinkParentDeletesParent(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	thing, err := svc.UnlinkParent(context.Background(), "t1", "tank-1", 3)
+	thing, err := svc.UnlinkParent(auth.WithToken(context.Background(), "test-token"), "t1", "tank-1", 3)
 	is.NoErr(err)
 	is.Equal("tank-1", thing.ThingID)
 	is.Equal(int64(4), thing.Revision)
@@ -496,7 +497,7 @@ func TestSwapBindingsPutsBindingsWithRevision(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	thing, err := svc.SwapBindings(context.Background(), "t1", "bin-1", []Binding{
+	thing, err := svc.SwapBindings(auth.WithToken(context.Background(), "test-token"), "t1", "bin-1", []Binding{
 		{DeviceID: "milesight:80", Object: "urn:oma:lwm2m:ext:3330", Resource: "5700", Input: "distance"},
 	}, 2)
 	is.NoErr(err)
@@ -509,7 +510,7 @@ func TestSwapBindingsNotFound(t *testing.T) {
 	svc, done := testService(t)
 	defer done()
 
-	_, err := svc.SwapBindings(context.Background(), "t1", "missing", nil, 1)
+	_, err := svc.SwapBindings(auth.WithToken(context.Background(), "test-token"), "t1", "missing", nil, 1)
 	is.True(err != nil)
 	is.True(errors.Is(err, client.ErrNotFound))
 }

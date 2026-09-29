@@ -242,6 +242,10 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 		return nil, fmt.Errorf("export parameter is invalid")
 	}
 
+	if auth.Token(ctx) == "" {
+		return nil, fmt.Errorf("request failed: %w", client.ErrUnauthorized)
+	}
+
 	headers := map[string][]string{
 		"Authorization": {"Bearer " + auth.Token(ctx)},
 		"Accept":        {accept},
@@ -259,6 +263,10 @@ func (a *App) Import(ctx context.Context, t string, f io.Reader) error {
 	var err error
 	ctx, span := tracer.Start(ctx, "import")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	if auth.Token(ctx) == "" {
+		return fmt.Errorf("request failed: %w", client.ErrUnauthorized)
+	}
 
 	headers := map[string][]string{
 		"Authorization": {"Bearer " + auth.Token(ctx)},

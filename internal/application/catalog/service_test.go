@@ -10,6 +10,7 @@ import (
 
 	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/thingsv2"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/matryer/is"
 )
 
@@ -76,7 +77,7 @@ func TestGetTemplateRoundTripsRecipes(t *testing.T) {
 	svc, seen, done := testService(t)
 	defer done()
 
-	spec, err := svc.GetTemplate(context.Background(), "t", "wastebin", "v1")
+	spec, err := svc.GetTemplate(auth.WithToken(context.Background(), "test-token"), "t", "wastebin", "v1")
 	is.NoErr(err)
 	is.Equal("wastebin", spec.Template.ID)
 	is.Equal("t", (*seen)["tenant"])
@@ -85,7 +86,7 @@ func TestGetTemplateRoundTripsRecipes(t *testing.T) {
 	is.Equal("sum", spec.Recipes[0].Operator)
 	is.Equal(1, len(spec.Template.Relations))
 
-	_, err = svc.GetTemplate(context.Background(), "t", "nope", "v9")
+	_, err = svc.GetTemplate(auth.WithToken(context.Background(), "test-token"), "t", "nope", "v9")
 	is.True(errors.Is(err, client.ErrNotFound))
 }
 
@@ -94,16 +95,16 @@ func TestPublishTemplateConflictAndValidation(t *testing.T) {
 	svc, _, done := testService(t)
 	defer done()
 
-	is.NoErr(svc.PublishTemplate(context.Background(), "t", testSpec()))
+	is.NoErr(svc.PublishTemplate(auth.WithToken(context.Background(), "test-token"), "t", testSpec()))
 
 	dup := testSpec()
 	dup.Template.Version = "v1"
-	err := svc.PublishTemplate(context.Background(), "t", dup)
+	err := svc.PublishTemplate(auth.WithToken(context.Background(), "test-token"), "t", dup)
 	is.True(errors.Is(err, client.ErrConflict))
 
 	bad := testSpec()
 	bad.Template.ID = ""
-	err = svc.PublishTemplate(context.Background(), "t", bad)
+	err = svc.PublishTemplate(auth.WithToken(context.Background(), "test-token"), "t", bad)
 	is.True(err != nil && !errors.Is(err, client.ErrConflict))
 }
 
@@ -116,8 +117,8 @@ func TestPublishVariant(t *testing.T) {
 		ID: "v1", Version: "v2", TemplateID: "wastebin", TemplateVersion: "v1",
 		ParamValues: map[string]float64{"level": 2},
 	}}
-	is.NoErr(svc.PublishVariant(context.Background(), "t", spec))
+	is.NoErr(svc.PublishVariant(auth.WithToken(context.Background(), "test-token"), "t", spec))
 
 	bad := thingsv2.VariantSpec{}
-	is.True(svc.PublishVariant(context.Background(), "t", bad) != nil)
+	is.True(svc.PublishVariant(auth.WithToken(context.Background(), "test-token"), "t", bad) != nil)
 }

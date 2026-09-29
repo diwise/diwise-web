@@ -33,6 +33,15 @@ func errForbidden(ctx context.Context) error {
 	return fmt.Errorf("request failed: %w", ErrForbidden)
 }
 
+func bearerToken(ctx context.Context) (string, error) {
+	token := auth.Token(ctx)
+	if token == "" {
+		return "", errUnauthorized(ctx)
+	}
+
+	return token, nil
+}
+
 type Meta struct {
 	TotalRecords uint64  `json:"totalRecords"`
 	Offset       *uint64 `json:"offset,omitempty"`
@@ -102,6 +111,11 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 	}
 
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("path", path))
+	token, err := bearerToken(ctx)
+	if err != nil {
+		log.Error("missing auth token, refusing backend request")
+		return nil, err
+	}
 	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, path), "/"))
 	if err != nil {
 		log.Error("could not parse url", "error", err)
@@ -114,7 +128,7 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 		log.Error("could not create http request", "error", err)
 		return nil, fmt.Errorf("failed to create http request: %s", err.Error())
 	}
-	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Accept", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -172,6 +186,11 @@ func (c *Client) GetRaw(ctx context.Context, baseURL, path string, params url.Va
 	}
 
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("path", path))
+	token, err := bearerToken(ctx)
+	if err != nil {
+		log.Error("missing auth token, refusing backend request")
+		return nil, nil, err
+	}
 	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, path), "/"))
 	if err != nil {
 		log.Error("could not parse url", "error", err)
@@ -184,7 +203,7 @@ func (c *Client) GetRaw(ctx context.Context, baseURL, path string, params url.Va
 		log.Error("could not create http request", "error", err)
 		return nil, nil, fmt.Errorf("failed to create http request: %s", err.Error())
 	}
-	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Accept", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -230,6 +249,11 @@ func (c *Client) WriteRaw(ctx context.Context, method, baseURL, path string, par
 	}
 
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("path", path))
+	token, err := bearerToken(ctx)
+	if err != nil {
+		log.Error("missing auth token, refusing backend request")
+		return nil, nil, err
+	}
 	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, path), "/"))
 	if err != nil {
 		log.Error("could not parse url", "error", err)
@@ -248,7 +272,7 @@ func (c *Client) WriteRaw(ctx context.Context, method, baseURL, path string, par
 		log.Error("could not create http request", "error", err)
 		return nil, nil, fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Content-Type", "application/json")
 	for key, value := range headers {
 		req.Header.Set(key, value)
@@ -302,6 +326,11 @@ func (c *Client) WriteRawDetailed(ctx context.Context, method, baseURL, path str
 	}
 
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("path", path))
+	token, err := bearerToken(ctx)
+	if err != nil {
+		log.Error("missing auth token, refusing backend request")
+		return nil, nil, 0, err
+	}
 	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, path), "/"))
 	if err != nil {
 		log.Error("could not parse url", "error", err)
@@ -320,7 +349,7 @@ func (c *Client) WriteRawDetailed(ctx context.Context, method, baseURL, path str
 		log.Error("could not create http request", "error", err)
 		return nil, nil, 0, fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Content-Type", "application/json")
 	for key, value := range headers {
 		req.Header.Set(key, value)
@@ -354,6 +383,12 @@ func (c *Client) WriteRawDetailed(ctx context.Context, method, baseURL, path str
 func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) error {
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("id", id))
 
+	token, err := bearerToken(ctx)
+	if err != nil {
+		log.Error("missing auth token, refusing backend request")
+		return err
+	}
+
 	u, err := url.Parse(strings.TrimSuffix(fmt.Sprintf("%s/%s", baseURL, id), "/"))
 	if err != nil {
 		log.Error("could not parse url", "error", err)
@@ -365,7 +400,7 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -403,6 +438,12 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL))
 
+	token, err := bearerToken(ctx)
+	if err != nil {
+		log.Error("missing auth token, refusing backend request")
+		return err
+	}
+
 	u, err := url.Parse(strings.TrimSuffix(baseURL, "/"))
 	if err != nil {
 		log.Error("could not parse url", "error", err)
@@ -414,7 +455,7 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -452,6 +493,12 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL))
 
+	token, err := bearerToken(ctx)
+	if err != nil {
+		log.Error("missing auth token, refusing backend request")
+		return err
+	}
+
 	u, err := url.Parse(strings.TrimSuffix(baseURL, "/"))
 	if err != nil {
 		log.Error("could not parse url", "error", err)
@@ -463,7 +510,7 @@ func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Content-Type", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -501,6 +548,12 @@ func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 func (c *Client) Delete(ctx context.Context, baseURL string) error {
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL))
 
+	token, err := bearerToken(ctx)
+	if err != nil {
+		log.Error("missing auth token, refusing backend request")
+		return err
+	}
+
 	u, err := url.Parse(strings.TrimSuffix(baseURL, "/"))
 	if err != nil {
 		log.Error("could not parse url", "error", err)
@@ -512,7 +565,7 @@ func (c *Client) Delete(ctx context.Context, baseURL string) error {
 		log.Error("could not create http request", "error", err)
 		return fmt.Errorf("failed to create http request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+auth.Token(ctx))
+	req.Header.Add("Authorization", "Bearer "+token)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
