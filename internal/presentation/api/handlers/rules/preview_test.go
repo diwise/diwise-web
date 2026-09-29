@@ -3,6 +3,7 @@ package rules
 import (
 	"context"
 	"encoding/json"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -60,6 +61,7 @@ func previewForm(extra url.Values) url.Values {
 func postFragment(t *testing.T, handler http.HandlerFunc, form url.Values) *httptest.ResponseRecorder {
 	t.Helper()
 	req := httptest.NewRequest(http.MethodPost, "/x", strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
@@ -123,6 +125,7 @@ func TestFixtureFragment(t *testing.T) {
 
 	// Formulärets fältnamn (det htmx skickar vid fixture-val).
 	req := httptest.NewRequest(http.MethodGet, "/components/rules/fixture?previewFixture=lifecycle-deleted", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -133,6 +136,7 @@ func TestFixtureFragment(t *testing.T) {
 
 	// Fallback för direktlänkar.
 	req = httptest.NewRequest(http.MethodGet, "/components/rules/fixture?name=values", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec = httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -140,6 +144,7 @@ func TestFixtureFragment(t *testing.T) {
 	is.Equal(http.StatusOK, rec.Code)
 
 	req = httptest.NewRequest(http.MethodGet, "/components/rules/fixture?name=nope", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec = httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)

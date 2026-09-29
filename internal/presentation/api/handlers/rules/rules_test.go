@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -194,6 +195,7 @@ func TestRulesPageRendersRowsAndFilters(t *testing.T) {
 	handler := NewRulesPage(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/rules", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -206,6 +208,7 @@ func TestRulesPageRendersRowsAndFilters(t *testing.T) {
 
 	// Klientsides filter: kind utan träff ger tom tabell.
 	req = httptest.NewRequest(http.MethodGet, "/rules?kind=measurement", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec = httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -222,6 +225,7 @@ func TestRuleDetailsPageShowsEditorAndSeedBanner(t *testing.T) {
 	handler := NewRuleDetailsPage(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/rules/11111111-1111-1111-1111-111111111111", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "11111111-1111-1111-1111-111111111111")
 	rec := httptest.NewRecorder()
@@ -247,6 +251,7 @@ func TestRuleDetailsPageReturns404ForUnknownID(t *testing.T) {
 	handler := NewRuleDetailsPage(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/rules/nope", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.SetPathValue("id", "nope")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -265,6 +270,7 @@ func TestRuleDeleteRequiresConfirmThenDeletes(t *testing.T) {
 	// Första POST utan confirm visar bekräftelsen.
 	form := url.Values{"revision": {"1"}}
 	req := httptest.NewRequest(http.MethodPost, "/rules/"+id+"/delete", strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", id)
@@ -277,6 +283,7 @@ func TestRuleDeleteRequiresConfirmThenDeletes(t *testing.T) {
 	// Andra POST med confirm raderar och redirectar.
 	form.Set("confirm", "yes")
 	req = httptest.NewRequest(http.MethodPost, "/rules/"+id+"/delete", strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.SetPathValue("id", id)
 	rec = httptest.NewRecorder()
@@ -296,6 +303,7 @@ func TestRuleDeleteUnknownIDIsGone(t *testing.T) {
 	// Okänt id i confirm-steget: 404 (finns inget att bekräfta).
 	form := url.Values{"revision": {"1"}}
 	req := httptest.NewRequest(http.MethodPost, "/rules/nope/delete", strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.SetPathValue("id", "nope")
 	rec := httptest.NewRecorder()

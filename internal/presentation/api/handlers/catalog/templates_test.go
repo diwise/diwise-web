@@ -3,6 +3,7 @@ package catalog
 import (
 	"context"
 	"encoding/json"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -161,6 +162,7 @@ func TestTemplatesPageRendersRows(t *testing.T) {
 	handler := NewTemplatesPage(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/catalog/templates?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -182,6 +184,7 @@ func TestTemplatesPageFiltersByCategory(t *testing.T) {
 	handler := NewTemplatesPage(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/catalog/templates?tenant=t1&category=waste", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -202,6 +205,7 @@ func TestTemplatesPageWithoutTenantShowsPicker(t *testing.T) {
 
 	// Utan token-tenants och utan ?tenant=: väljare, ingen datahämtning.
 	req := httptest.NewRequest(http.MethodGet, "/catalog/templates", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -219,6 +223,7 @@ func TestTemplateDetailsPageRendersSpec(t *testing.T) {
 	handler := NewTemplateDetailsPage(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/catalog/templates/wastebin/v1?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "wastebin")
 	req.SetPathValue("version", "v1")
@@ -242,6 +247,7 @@ func TestTemplateDetailsPageReturns404ForUnknownVersion(t *testing.T) {
 	handler := NewTemplateDetailsPage(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/catalog/templates/nope/v9?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.SetPathValue("id", "nope")
 	req.SetPathValue("version", "v9")
 	rec := httptest.NewRecorder()
@@ -259,6 +265,7 @@ func TestTemplateDetailsPageRequiresTenantWhenAmbiguous(t *testing.T) {
 	handler := NewTemplateDetailsPage(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/catalog/templates/wastebin/v1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.SetPathValue("id", "wastebin")
 	req.SetPathValue("version", "v1")
 	rec := httptest.NewRecorder()

@@ -2,6 +2,7 @@ package thingsv2
 
 import (
 	"context"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -19,6 +20,7 @@ func TestThingsV2DeleteDialogRendersConfirm(t *testing.T) {
 	handler := NewThingsV2DeleteDialog(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/bin-1/delete?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()
@@ -40,6 +42,7 @@ func TestThingsV2DeletePageRedirectsOnSuccess(t *testing.T) {
 	handler := NewThingsV2DeletePage(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodPost, "/components/things-v2/bin-1/delete?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()
@@ -59,6 +62,7 @@ func TestThingsV2DeletePageShowsErrorForUnknownThing(t *testing.T) {
 	handler := NewThingsV2DeletePage(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodPost, "/components/things-v2/unknown/delete?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "unknown")
 	rec := httptest.NewRecorder()

@@ -91,6 +91,7 @@ func composeListModel(ctx context.Context, r *http.Request, localizer Localizer,
 	helpers.SanitizeParams(args, "mapview", "page", "limit", "offset")
 	selectedCategories := selectedValues(args, "category")
 	selectedTemplates := selectedValues(args, "template")
+	selectedTags := selectedValues(args, "tag")
 	nameFilter := args.Get("name")
 
 	if showMap {
@@ -104,6 +105,9 @@ func composeListModel(ctx context.Context, r *http.Request, localizer Localizer,
 	}
 	if len(selectedTemplates) > 0 {
 		filter.Template = selectedTemplates[0]
+	}
+	if len(selectedTags) > 0 {
+		filter.Tag = selectedTags[0]
 	}
 	if nameFilter != "" {
 		filter.Name = nameFilter
@@ -120,9 +124,21 @@ func composeListModel(ctx context.Context, r *http.Request, localizer Localizer,
 		return featuresthingsv2.ThingsV2PageViewModel{}, err
 	}
 
+	tags, err := app.ThingsV2().ListTags(ctx)
+	if err != nil {
+		return featuresthingsv2.ThingsV2PageViewModel{}, err
+	}
+
 	categoryOptions := make([]featuresthings.TypeOption, 0)
 	seenCategories := map[string]bool{}
 	templateOptions := make([]featuresthings.TypeOption, 0, len(templates))
+	tagOptions := make([]featuresthings.TypeOption, 0, len(tags))
+	for _, tag := range tags {
+		tagOptions = append(tagOptions, featuresthings.TypeOption{
+			Value: tag,
+			Label: tag,
+		})
+	}
 	for _, spec := range templates {
 		label := spec.Template.DisplayName
 		if label == "" {
@@ -164,11 +180,13 @@ func composeListModel(ctx context.Context, r *http.Request, localizer Localizer,
 		Filters: featuresthingsv2.FiltersViewModel{
 			SelectedCategories: selectedCategories,
 			SelectedTemplates:  selectedTemplates,
+			SelectedTags:       selectedTags,
 			Name:               nameFilter,
 			PageSize:           limit,
 		},
 		CategoryOptions: categoryOptions,
 		TemplateOptions: templateOptions,
+		TagOptions:      tagOptions,
 		MapView:         showMap,
 	}
 

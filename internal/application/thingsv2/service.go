@@ -46,6 +46,9 @@ func (s *Service) params(tenant string, f Filter) url.Values {
 	if f.Category != "" {
 		params.Add("category", f.Category)
 	}
+	if f.Tag != "" {
+		params.Add("tag", f.Tag)
+	}
 	if f.Limit > 0 {
 		params.Add("limit", strconv.Itoa(f.Limit))
 	}
@@ -156,6 +159,29 @@ func (s *Service) ListTemplates(ctx context.Context, tenant, category string) ([
 	}
 
 	return specs, nil
+}
+
+// ListTags lists distinct dynamic categorization tags across the token's
+// tenants (server fans out like ListThingsAcrossTenants).
+func (s *Service) ListTags(ctx context.Context) ([]string, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "list-tags-v2")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	body, _, err := s.client.GetRaw(ctx, s.baseURL, "things/tags", url.Values{})
+	if err != nil {
+		return nil, err
+	}
+
+	var tags []string
+	if err = json.Unmarshal(body, &tags); err != nil {
+		return nil, fmt.Errorf("failed to decode tags: %w", err)
+	}
+	if tags == nil {
+		tags = []string{}
+	}
+
+	return tags, nil
 }
 
 // GetHistory reads property history (oldest first) in [from, to].

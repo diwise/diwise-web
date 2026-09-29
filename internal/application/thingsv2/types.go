@@ -151,6 +151,7 @@ type Filter struct {
 	Variant         string
 	Name            string
 	Category        string
+	Tag             string
 	Limit           int
 	Offset          int
 }

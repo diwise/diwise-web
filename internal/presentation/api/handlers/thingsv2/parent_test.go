@@ -2,6 +2,7 @@ package thingsv2
 
 import (
 	"context"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -19,6 +20,7 @@ func TestThingsV2ParentDialogRendersSearch(t *testing.T) {
 	handler := NewThingsV2ParentDialog(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/bin-1/parent-dialog?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()
@@ -42,6 +44,7 @@ func TestThingsV2ParentSearchExcludesSelf(t *testing.T) {
 	handler := NewThingsV2ParentSearch(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/bin-1/parents?tenant=t1&query=t&revision=2", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()
@@ -69,6 +72,7 @@ func TestThingsV2ParentSearchEmptyQueryRendersNothing(t *testing.T) {
 	handler := NewThingsV2ParentSearch(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/bin-1/parents?tenant=t1&revision=2", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()
@@ -88,6 +92,7 @@ func TestThingsV2SetParentRedirectsToDetails(t *testing.T) {
 	handler := NewThingsV2SetParent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodPost, "/components/things-v2/bin-1/parent?tenant=t1", strings.NewReader("parentId=gh-1&revision=2"))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
@@ -108,6 +113,7 @@ func TestThingsV2SetParentRejectsSelf(t *testing.T) {
 	handler := NewThingsV2SetParent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodPost, "/components/things-v2/bin-1/parent?tenant=t1", strings.NewReader("parentId=bin-1&revision=2"))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
@@ -127,6 +133,7 @@ func TestThingsV2UnlinkParentRedirectsToDetails(t *testing.T) {
 	handler := NewThingsV2UnlinkParent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodPost, "/components/things-v2/bin-1/parent/remove?tenant=t1", strings.NewReader("revision=2"))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
@@ -148,6 +155,7 @@ func TestThingsV2DetailsHidesParentButtonWithoutSlot(t *testing.T) {
 	handler := NewThingsV2DetailsPage(context.Background(), testLocaleBundle(), testAssets(), &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/things-v2/bin-1?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()
@@ -169,6 +177,7 @@ func TestThingsV2ParentSearchFiltersAllowedTemplates(t *testing.T) {
 	// tank-1 har partOf → [greenhouse]: bara växthuset ska hittas,
 	// trots att stubblistan även har tunna och område.
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/tank-1/parents?tenant=t1&query=a&revision=1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "tank-1")
 	rec := httptest.NewRecorder()
@@ -189,11 +198,11 @@ func TestPartOfSlotReportsMissingSlot(t *testing.T) {
 	defer done()
 	app := &testThingsV2App{svc: svc}
 
-	_, ok, err := partOfSlot(context.Background(), app, "t1", "bin-1")
+	_, ok, err := partOfSlot(auth.WithToken(context.Background(), "test-token"), app, "t1", "bin-1")
 	is.NoErr(err)
 	is.True(!ok)
 
-	allowed, ok, err := partOfSlot(context.Background(), app, "t1", "tank-1")
+	allowed, ok, err := partOfSlot(auth.WithToken(context.Background(), "test-token"), app, "t1", "tank-1")
 	is.NoErr(err)
 	is.True(ok)
 	is.Equal([]string{"greenhouse"}, allowed)

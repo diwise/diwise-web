@@ -2,6 +2,7 @@ package catalog
 
 import (
 	"context"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -14,6 +15,7 @@ import (
 func postForm(t *testing.T, handler http.HandlerFunc, target string, form url.Values) *httptest.ResponseRecorder {
 	t.Helper()
 	req := httptest.NewRequest(http.MethodPost, target, strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
@@ -29,6 +31,7 @@ func TestTemplateNewPagePrefillsCopy(t *testing.T) {
 	handler := NewTemplateNewPage(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/catalog/templates/new?from=wastebin/v1&tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -87,6 +90,7 @@ func TestTemplateCreateErrorRendersFullPageForBrowserPost(t *testing.T) {
 	handler := NewTemplateCreatePage(context.Background(), testLocaleBundle(), testAssets(), app)
 	form := url.Values{"tenant": {"t1"}, "id": {"wastebin"}, "version": {"v1"}}
 	req := httptest.NewRequest(http.MethodPost, "/catalog/templates/new", strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	rec := httptest.NewRecorder()
 
@@ -118,6 +122,7 @@ func TestVariantsPageAndDetails(t *testing.T) {
 
 	handler := NewVariantsPage(context.Background(), testLocaleBundle(), testAssets(), app)
 	req := httptest.NewRequest(http.MethodGet, "/catalog/variants?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -128,6 +133,7 @@ func TestVariantsPageAndDetails(t *testing.T) {
 
 	handler = NewVariantDetailsPage(context.Background(), testLocaleBundle(), testAssets(), app)
 	req = httptest.NewRequest(http.MethodGet, "/catalog/variants/std/v1?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "std")
 	req.SetPathValue("version", "v1")

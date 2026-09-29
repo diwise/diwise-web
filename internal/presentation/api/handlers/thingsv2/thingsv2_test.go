@@ -3,6 +3,7 @@ package thingsv2
 import (
 	"context"
 	"encoding/json"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -261,6 +262,10 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(overview)
 	})
+	mux.HandleFunc("/things/tags", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]string{"centrum", "park"})
+	})
 	mux.HandleFunc("/things/{id}/history", func(w http.ResponseWriter, r *http.Request) {
 		points := []appthingsv2.HistoryPoint{
 			{PropertyID: "fillRate", ObservedAt: time.Date(2026, 9, 18, 10, 0, 0, 0, time.UTC), Value: ptr(42.0), Quality: "ok"},
@@ -297,6 +302,7 @@ func TestThingsV2DataListRendersPrimaryAndTenant(t *testing.T) {
 	handler := NewThingsV2DataList(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/list?limit=10", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -312,6 +318,24 @@ func TestThingsV2DataListRendersPrimaryAndTenant(t *testing.T) {
 	is.True(strings.Contains(body, `id="tableOrMapV2"`))
 }
 
+func TestThingsV2DataListRendersTagFilter(t *testing.T) {
+	is := is.New(t)
+
+	svc, done := stubThingsV2(t)
+	defer done()
+	app := &testThingsV2App{svc: svc}
+
+	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/list?limit=10&tag=park", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
+
+	model, err := composeListModel(req.Context(), req, testLocaleBundle().For(""), app)
+	is.NoErr(err)
+	is.Equal([]string{"park"}, model.Filters.SelectedTags)
+	is.Equal(2, len(model.TagOptions))
+	is.Equal("centrum", model.TagOptions[0].Value)
+	is.Equal("park", model.TagOptions[1].Value)
+}
+
 func TestThingsV2DataListMapViewRendersMap(t *testing.T) {
 	is := is.New(t)
 
@@ -321,6 +345,7 @@ func TestThingsV2DataListMapViewRendersMap(t *testing.T) {
 	handler := NewThingsV2DataList(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/list?mapview=true", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -339,6 +364,7 @@ func TestThingsV2DataListEmptyRendersMissing(t *testing.T) {
 	handler := NewThingsV2DataList(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/list?name=nomatch", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -402,6 +428,7 @@ func TestThingsV2DetailsPageRendersValuesAndMetadata(t *testing.T) {
 
 	// HX-vägen renderar AppShell direkt; full sida kräver inloggad ctx.
 	req := httptest.NewRequest(http.MethodGet, "/things-v2/bin-1?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()
@@ -430,6 +457,7 @@ func TestThingsV2DetailsPageReturns404ForUnknownThing(t *testing.T) {
 	handler := NewThingsV2DetailsPage(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/things-v2/nope?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.SetPathValue("id", "nope")
 	rec := httptest.NewRecorder()
 
@@ -447,6 +475,7 @@ func TestThingsV2DetailsPageRequiresTenantWhenAmbiguous(t *testing.T) {
 	handler := NewThingsV2DetailsPage(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/things-v2/bin-1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()
 
@@ -503,6 +532,7 @@ func TestThingsV2HistoryComponentRendersChart(t *testing.T) {
 	handler := NewThingsV2HistoryComponent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/bin-1/history?tenant=t1&property=fillRate&span=today", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()
@@ -525,6 +555,7 @@ func TestThingsV2HistoryComponentRequiresProperty(t *testing.T) {
 	handler := NewThingsV2HistoryComponent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/bin-1/history?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()

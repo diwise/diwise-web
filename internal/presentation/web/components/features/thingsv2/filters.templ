@@ -96,6 +96,33 @@ templ Filters(l10n Localizer, viewModel ThingsV2PageViewModel) {
 					Value:       viewModel.Filters.Name,
 				})
 			</div>
+			<div class="flex flex-col gap-2 lg:w-44 lg:shrink-0">
+				@selectbox.SelectBox(selectbox.Props{ID: "tag-v2-filter"}) {
+					@selectbox.Trigger(selectbox.TriggerProps{
+						Name:              "tag",
+						SelectedCountText: l10n.Get("selecteditemcount"),
+						Class:             shared.FilterTriggerClass(),
+					}) {
+						@selectbox.Value(selectbox.ValueProps{
+							Placeholder: l10n.Get("tags"),
+							Class:       shared.FilterTriggerValueClass(len(viewModel.Filters.SelectedTags) > 0),
+						})
+					}
+					@selectbox.Content(selectbox.ContentProps{Class: shared.FilterDropdownContentClass(), NoSearch: true}) {
+						@selectbox.Group(selectbox.GroupProps{Class: "p-2"}) {
+							for _, option := range viewModel.TagOptions {
+								@selectbox.Item(selectbox.ItemProps{
+									Value:    option.Value,
+									Selected: contains(viewModel.Filters.SelectedTags, option.Value),
+									Class:    shared.FilterDropdownItemClass(contains(viewModel.Filters.SelectedTags, option.Value)),
+								}) {
+									{ option.Label }
+								}
+							}
+						}
+					}
+				}
+			</div>
 		</form>
 	}
 	<div class="mt-4">
@@ -111,7 +138,7 @@ templ Filters(l10n Localizer, viewModel ThingsV2PageViewModel) {
 			SelectedFiltersLabel: l10n.Get("selectedfilters"),
 			NoFiltersLabel:       l10n.Get("nofilterselected"),
 			ClearAllLabel:        l10n.Get("clearall"),
-			TrackedFields:        []string{"category", "template", "name"},
+			TrackedFields:        []string{"category", "template", "tag", "name"},
 			PreserveFields:       []string{"limit", "mapview"},
 			Entries:              thingV2SelectedFilterEntries(viewModel),
 		})
@@ -130,7 +157,7 @@ func contains(values []string, expected string) bool {
 }
 
 func thingV2SelectedFilterEntries(viewModel ThingsV2PageViewModel) []shared.SelectedFilterEntry {
-	entries := make([]shared.SelectedFilterEntry, 0, len(viewModel.Filters.SelectedCategories)+len(viewModel.Filters.SelectedTemplates)+1)
+	entries := make([]shared.SelectedFilterEntry, 0, len(viewModel.Filters.SelectedCategories)+len(viewModel.Filters.SelectedTemplates)+len(viewModel.Filters.SelectedTags)+1)
 	for _, selected := range viewModel.Filters.SelectedCategories {
 		selected = strings.TrimSpace(selected)
 		if selected == "" {
@@ -151,6 +178,17 @@ func thingV2SelectedFilterEntries(viewModel ThingsV2PageViewModel) []shared.Sele
 			Name:  "template",
 			Value: selected,
 			Text:  thingV2TemplateLabel(viewModel.TemplateOptions, selected),
+		})
+	}
+	for _, selected := range viewModel.Filters.SelectedTags {
+		selected = strings.TrimSpace(selected)
+		if selected == "" {
+			continue
+		}
+		entries = append(entries, shared.SelectedFilterEntry{
+			Name:  "tag",
+			Value: selected,
+			Text:  selected,
 		})
 	}
 	if name := strings.TrimSpace(viewModel.Filters.Name); name != "" {

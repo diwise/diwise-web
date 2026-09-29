@@ -2,6 +2,7 @@ package thingsv2
 
 import (
 	"context"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -19,6 +20,7 @@ func TestThingsV2SensorsDialogListsBindableInputs(t *testing.T) {
 	handler := NewThingsV2SensorsDialog(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/bin-1/sensors?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()
@@ -43,6 +45,7 @@ func TestThingsV2SensorSearchListsCandidates(t *testing.T) {
 	handler := NewThingsV2SensorSearch(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/bin-1/sensors/search?tenant=t1&revision=2&input=distance&query=tunn", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()
@@ -65,6 +68,7 @@ func TestThingsV2SensorSearchEmptyQueryRendersNothing(t *testing.T) {
 	handler := NewThingsV2SensorSearch(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/bin-1/sensors/search?tenant=t1&revision=2&input=distance", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
 	rec := httptest.NewRecorder()
@@ -84,6 +88,7 @@ func TestThingsV2SetSensorRedirectsToDetails(t *testing.T) {
 	handler := NewThingsV2SetSensor(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodPost, "/components/things-v2/bin-1/sensors?tenant=t1", strings.NewReader("input=distance&deviceId=milesight%3A80&revision=2"))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
@@ -104,6 +109,7 @@ func TestThingsV2SetSensorRejectsMissingInput(t *testing.T) {
 	handler := NewThingsV2SetSensor(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodPost, "/components/things-v2/bin-1/sensors?tenant=t1", strings.NewReader("deviceId=milesight%3A80&revision=2"))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")
@@ -123,6 +129,7 @@ func TestThingsV2UnbindSensorRedirectsToDetails(t *testing.T) {
 	handler := NewThingsV2UnbindSensor(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodPost, "/components/things-v2/bin-1/sensors/unbind?tenant=t1", strings.NewReader("input=distance&revision=2"))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", "bin-1")

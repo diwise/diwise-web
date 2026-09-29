@@ -2,6 +2,7 @@ package thingsv2
 
 import (
 	"context"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -19,6 +20,7 @@ func TestThingsV2ParamsComponentUsesTemplateDefaults(t *testing.T) {
 	handler := NewThingsV2ParamsComponent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/params?template=wastebin/v1&prefix=new", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -40,6 +42,7 @@ func TestThingsV2ParamsComponentUsesVariantValues(t *testing.T) {
 	handler := NewThingsV2ParamsComponent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/params?template=wastebin/v1&variant=160L/v1&prefix=edit", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -61,6 +64,7 @@ func TestThingsV2ParamsComponentRejectsUnknownTemplate(t *testing.T) {
 	handler := NewThingsV2ParamsComponent(context.Background(), testLocaleBundle(), nil, &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/components/things-v2/params?template=nope/v1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 

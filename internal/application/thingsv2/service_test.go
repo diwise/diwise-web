@@ -23,6 +23,10 @@ func stubV2(t *testing.T) *httptest.Server {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})
+	mux.HandleFunc("/things/tags", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]string{"centrum", "park"})
+	})
 	mux.HandleFunc("/things", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
 			var spec ObjectSpec
@@ -291,6 +295,37 @@ func TestListTemplatesCategoryFilter(t *testing.T) {
 	is.NoErr(err)
 	is.Equal(2, len(specs))
 	is.Equal([]string{"usableHeight"}, specs[0].Recipes[0].Params)
+}
+
+func TestListTags(t *testing.T) {
+	is := is.New(t)
+	svc, done := testService(t)
+	defer done()
+
+	tags, err := svc.ListTags(auth.WithToken(context.Background(), "test-token"))
+	is.NoErr(err)
+	is.Equal([]string{"centrum", "park"}, tags)
+
+	_, err = svc.ListTags(context.Background())
+	is.True(err != nil)
+}
+
+func TestListThingsSendsTagFilter(t *testing.T) {
+	is := is.New(t)
+
+	var gotTag string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotTag = r.URL.Query().Get("tag")
+		w.Header().Set(TotalCountHeader, "0")
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]Thing{})
+	}))
+	defer srv.Close()
+
+	svc := NewService(&client.Client{}, srv.URL)
+	_, err := svc.ListThings(auth.WithToken(context.Background(), "test-token"), "t1", Filter{Tag: "park", Limit: 10})
+	is.NoErr(err)
+	is.Equal("park", gotTag)
 }
 
 func TestLocationPoint(t *testing.T) {

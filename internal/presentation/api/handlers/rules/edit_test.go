@@ -2,6 +2,7 @@ package rules
 
 import (
 	"context"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -14,6 +15,7 @@ import (
 func postForm(t *testing.T, handler http.HandlerFunc, target string, form url.Values) *httptest.ResponseRecorder {
 	t.Helper()
 	req := httptest.NewRequest(http.MethodPost, target, strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
@@ -29,6 +31,7 @@ func TestRuleNewPageRendersBlankForm(t *testing.T) {
 	handler := NewRuleNewPage(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/rules/new", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -49,6 +52,7 @@ func TestRuleNewPageWithTenantRendersTypeDropdown(t *testing.T) {
 	handler := NewRuleNewPage(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/rules/new?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -70,6 +74,7 @@ func TestTypeOptionsFragment(t *testing.T) {
 
 	// Med tenant: select med mallar.
 	req := httptest.NewRequest(http.MethodGet, "/components/rules/type-options?tenant=t1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -82,6 +87,7 @@ func TestTypeOptionsFragment(t *testing.T) {
 
 	// Aktuellt värde bevaras även utanför katalogen (ingen dataförlust).
 	req = httptest.NewRequest(http.MethodGet, "/components/rules/type-options?tenant=t1&current=custom", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec = httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -91,6 +97,7 @@ func TestTypeOptionsFragment(t *testing.T) {
 
 	// Utan tenant: fritext + hint.
 	req = httptest.NewRequest(http.MethodGet, "/components/rules/type-options", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec = httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -109,6 +116,7 @@ func TestRuleFormRendersMatchDatalists(t *testing.T) {
 	handler := NewRuleNewPage(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/rules/new", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -194,6 +202,7 @@ func TestRuleCreateErrorRendersFullPageForBrowserPost(t *testing.T) {
 
 	form := url.Values{"tenant": {"t1"}, "kind": {"thing"}}
 	req := httptest.NewRequest(http.MethodPost, "/rules/new", strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -306,6 +315,7 @@ func TestEntityBlankFragment(t *testing.T) {
 	handler := NewEntityBlankFragment(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/components/rules/entity-blank?index=2", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -322,6 +332,7 @@ func TestPropertyBlankFragment(t *testing.T) {
 	handler := NewPropertyBlankFragment(context.Background(), testLocaleBundle(), testAssets(), app)
 
 	req := httptest.NewRequest(http.MethodGet, "/components/rules/property-blank?entity=1&index=3", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -349,6 +360,7 @@ func TestRuleSaveUpdatesAndRedirects(t *testing.T) {
 	id := "22222222-2222-2222-2222-222222222222"
 
 	req := httptest.NewRequest(http.MethodPost, "/rules/"+id, strings.NewReader(ruleForm(id, "1").Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.SetPathValue("id", id)
 	rec := httptest.NewRecorder()
@@ -368,6 +380,7 @@ func TestRuleSaveConflictShowsFormError(t *testing.T) {
 
 	// Fel revision (stubben har rev 1) -> 409 -> konfliktsida med formulär.
 	req := httptest.NewRequest(http.MethodPost, "/rules/"+id, strings.NewReader(ruleForm(id, "9").Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	req.SetPathValue("id", id)

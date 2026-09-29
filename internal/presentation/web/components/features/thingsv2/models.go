@@ -36,6 +36,7 @@ type ThingsV2PageViewModel struct {
 	Filters         FiltersViewModel
 	CategoryOptions []featuresthings.TypeOption
 	TemplateOptions []featuresthings.TypeOption
+	TagOptions      []featuresthings.TypeOption
 	MapView         bool
 }
 
@@ -43,6 +44,7 @@ type ThingsV2PageViewModel struct {
 type FiltersViewModel struct {
 	SelectedCategories []string
 	SelectedTemplates  []string
+	SelectedTags       []string
 	Name               string
 	PageSize           int
 }

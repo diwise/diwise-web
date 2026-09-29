@@ -3,6 +3,7 @@ package thingsv2
 import (
 	"context"
 	"encoding/json"
+	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -23,6 +24,7 @@ func TestThingsV2NewPageShowsTemplatePicker(t *testing.T) {
 	handler := NewThingsV2NewPage(context.Background(), testLocaleBundle(), testAssets(), &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/things-v2/new", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -43,6 +45,7 @@ func TestThingsV2NewPageShowsFormForTemplate(t *testing.T) {
 	handler := NewThingsV2NewPage(context.Background(), testLocaleBundle(), testAssets(), &testThingsV2App{svc: svc})
 
 	req := httptest.NewRequest(http.MethodGet, "/things-v2/new?template=wastebin/v1", nil)
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -71,6 +74,7 @@ func TestThingsV2CreatePageCreatesAndRedirects(t *testing.T) {
 		"param.sensorToBottom": {"0.94"},
 	}
 	req := httptest.NewRequest(http.MethodPost, "/things-v2/new", strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
@@ -102,6 +106,7 @@ func TestThingsV2CreatePageRejectsMissingName(t *testing.T) {
 		"longitude": {"17.3"},
 	}
 	req := httptest.NewRequest(http.MethodPost, "/things-v2/new", strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
@@ -126,13 +131,14 @@ func TestBuildCreateSpecAllowsMissingLocation(t *testing.T) {
 		"name":     {"Tunna utan plats"},
 	}
 	req := httptest.NewRequest(http.MethodPost, "/things-v2/new", strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if err := req.ParseForm(); err != nil {
 		t.Fatal(err)
 	}
 
 	// Tom plats ger nil; servern avgör mot mallens allowNoLocation.
-	spec, _, fail := buildCreateSpec(context.Background(), app, req)
+	spec, _, fail := buildCreateSpec(req.Context(), app, req)
 	is.Equal("", fail)
 	is.True(spec.Location == nil)
 }
@@ -151,12 +157,13 @@ func TestBuildCreateSpecRejectsHalfFilledLocation(t *testing.T) {
 		"latitude": {"62.39"},
 	}
 	req := httptest.NewRequest(http.MethodPost, "/things-v2/new", strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if err := req.ParseForm(); err != nil {
 		t.Fatal(err)
 	}
 
-	_, _, fail := buildCreateSpec(context.Background(), app, req)
+	_, _, fail := buildCreateSpec(req.Context(), app, req)
 	is.True(strings.Contains(fail, "longitude"))
 }
 
@@ -197,12 +204,13 @@ func TestBuildCreateSpecBuildsPolygonLocation(t *testing.T) {
 		"geometry":     {rings},
 	}
 	req := httptest.NewRequest(http.MethodPost, "/things-v2/new", strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if err := req.ParseForm(); err != nil {
 		t.Fatal(err)
 	}
 
-	spec, _, fail := buildCreateSpec(context.Background(), app, req)
+	spec, _, fail := buildCreateSpec(req.Context(), app, req)
 	is.Equal("", fail)
 	is.True(spec.Location != nil)
 	is.Equal("Polygon", spec.Location.Type)
@@ -225,12 +233,13 @@ func TestBuildCreateSpecRejectsEmptyPolygon(t *testing.T) {
 			"geometry":     {geometry},
 		}
 		req := httptest.NewRequest(http.MethodPost, "/things-v2/new", strings.NewReader(form.Encode()))
+		req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		if err := req.ParseForm(); err != nil {
 			t.Fatal(err)
 		}
 
-		_, _, fail := buildCreateSpec(context.Background(), app, req)
+		_, _, fail := buildCreateSpec(req.Context(), app, req)
 		is.True(fail != "")
 	}
 }
@@ -243,7 +252,8 @@ func TestComposeCreateModelNormalizesGeometryKinds(t *testing.T) {
 	app := &testThingsV2App{svc: svc}
 
 	req := httptest.NewRequest(http.MethodGet, "/things-v2/new?template=wastebin/v1", nil)
-	model, err := composeCreateModel(context.Background(), req, app, "t1", "wastebin/v1", nil, "")
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
+	model, err := composeCreateModel(req.Context(), req, app, "t1", "wastebin/v1", nil, "")
 	is.NoErr(err)
 	is.Equal([]string{"Point", "Polygon"}, model.GeometryKinds)
 	is.Equal("point", model.GeometryMode)
@@ -279,12 +289,13 @@ func TestBuildCreateSpecIncludesRequiredProperties(t *testing.T) {
 		"longitude": {"17.3"},
 	}
 	req := httptest.NewRequest(http.MethodPost, "/things-v2/new", strings.NewReader(form.Encode()))
+	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if err := req.ParseForm(); err != nil {
 		t.Fatal(err)
 	}
 
-	spec, tenant, fail := buildCreateSpec(context.Background(), app, req)
+	spec, tenant, fail := buildCreateSpec(req.Context(), app, req)
 	is.Equal("", fail)
 	is.Equal("t1", tenant)
 	// Sak-ID:t genereras serversidan som UUID.
