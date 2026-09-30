@@ -1,8 +1,8 @@
 // Package transform is the client for iot-transform-fiware (/api/v0):
 // transform rules (measurements and things-v2 events to NGSI-LD).
 // Types mirror assets/docs/openapi.yaml in iot-transform-fiware at
-// PLAN001-complete (2026-09-24): Rule/Match/Entity/Property with
-// lifecycle/delete/relations, LanguageMap and Geo-GeoJSON. Hand-written;
+// TRANSFORM identity policy (2026-10-01): Rule/Match/Entity/Property with
+// lifecycle/delete/relations, Relationship array, LanguageMap and Geo-GeoJSON. Hand-written;
 // the source version is pinned in this comment so drift can be caught by
 // comparing JSON keys against a checked-in OpenAPI copy.
 package transform
@@ -37,6 +37,7 @@ type Derive struct {
 
 // Property describes one NGSI-LD attribute.
 type Property struct {
+	Array         bool   `json:"array,omitempty"`
 	Target        string `json:"target"`
 	Type          string `json:"type"`
 	Unit          string `json:"unit,omitempty"`

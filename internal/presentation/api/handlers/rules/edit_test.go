@@ -2,6 +2,7 @@ package rules
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"net/http"
 	"net/http/httptest"
@@ -157,7 +158,7 @@ func TestRuleCreateSavesAndRedirects(t *testing.T) {
 
 	form := url.Values{
 		"tenant": {"t1"}, "kind": {"thing"}, "event": {"things.v1.values"}, "type": {"room"},
-		"e0_name": {}, "e0_id": {"urn:ngsi-ld:Room:{{nameOrID}}"}, "e0_type": {"Room"},
+		"e0_name": {}, "e0_id": {"urn:ngsi-ld:Room:{{id}}"}, "e0_type": {"Room"},
 		"e0_p0_target": {"name"}, "e0_p0_type": {"Text"},
 		"e0_p0_sourceKind": {"field"}, "e0_p0_sourceValue": {"name"},
 	}
@@ -220,7 +221,7 @@ func TestRuleCreateForbiddenMapsTo403(t *testing.T) {
 
 	form := url.Values{
 		"tenant": {"foreign"}, "kind": {"thing"}, "event": {"things.v1.values"}, "type": {"room"},
-		"e0_id": {"urn:ngsi-ld:Room:{{nameOrID}}"}, "e0_type": {"Room"},
+		"e0_id": {"urn:ngsi-ld:Room:{{id}}"}, "e0_type": {"Room"},
 		"e0_p0_target": {"name"}, "e0_p0_type": {"Text"},
 		"e0_p0_sourceKind": {"field"}, "e0_p0_sourceValue": {"name"},
 	}
@@ -236,7 +237,7 @@ func TestParseRuleFormBuildsRule(t *testing.T) {
 	form := map[string][]string{
 		"tenant": {"t1"}, "kind": {"thing"}, "event": {"things.v1.values"}, "type": {"room"},
 		"relationRemoved":     {"true"},
-		"e0_id":               {"urn:ngsi-ld:Room:{{nameOrID}}"},
+		"e0_id":               {"urn:ngsi-ld:Room:{{id}}"},
 		"e0_type":             {"Room"},
 		"e0_create":           {"true"},
 		"e0_removeAttributes": {"refParent\nlocation"},
@@ -268,7 +269,7 @@ func TestParseRuleFormBuildsRule(t *testing.T) {
 	is.Equal("things.v1.values", rule.Match.Event)
 	is.True(rule.Match.RelationRemoved)
 	is.Equal(1, len(rule.Entities))
-	is.Equal("urn:ngsi-ld:Room:{{nameOrID}}", rule.Entities[0].ID)
+	is.Equal("urn:ngsi-ld:Room:{{id}}", rule.Entities[0].ID)
 	is.True(rule.Entities[0].Create)
 	is.Equal([]string{"refParent", "location"}, rule.Entities[0].RemoveAttributes)
 	is.Equal(2, len(rule.Entities[0].Properties))
@@ -281,6 +282,37 @@ func TestParseRuleFormBuildsRule(t *testing.T) {
 	name := rule.Entities[0].Properties[1]
 	is.Equal("LanguageMap", string(name.Type))
 	is.Equal(map[string]any{"sv": "Hej"}, name.Const)
+}
+
+func TestParseRuleFormPreservesRelationshipArray(t *testing.T) {
+	form := map[string][]string{
+		"kind": {"thing"}, "event": {"things.v1.relations"}, "type": {"tank"},
+		"e0_id": {"urn:ngsi-ld:X:{{relation.to.thingId}}"}, "e0_type": {"X"},
+		"e0_p0_target": {"links"}, "e0_p0_type": {"Relationship"}, "e0_p0_array": {"true"},
+		"e0_p0_sourceKind": {"value"}, "e0_p0_sourceValue": {"urn:ngsi-ld:Y:{{id}}"},
+	}
+	rule, err := parseRuleForm(form)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !rule.Entities[0].Properties[0].Array {
+		t.Fatal("form dropped relationship list representation")
+	}
+	raw, err := json.Marshal(rule)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(raw), `"array":true`) {
+		t.Fatalf("API payload dropped array flag: %s", raw)
+	}
+	delete(form, "e0_p0_array")
+	rule, err = parseRuleForm(form)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rule.Entities[0].Properties[0].Array {
+		t.Fatal("unchecked array flag remained enabled")
+	}
 }
 
 func TestParseRuleFormSkipsEmptyBlocks(t *testing.T) {
@@ -345,7 +377,7 @@ func ruleForm(id, revision string) url.Values {
 	return url.Values{
 		"tenant": {"t1"}, "kind": {"thing"}, "event": {"things.v1.values"}, "type": {"room"},
 		"revision": {revision},
-		"e0_id":    {"urn:ngsi-ld:Room:{{nameOrID}}"}, "e0_type": {"Room"},
+		"e0_id":    {"urn:ngsi-ld:Room:{{id}}"}, "e0_type": {"Room"},
 		"e0_p0_target": {"name"}, "e0_p0_type": {"Text"},
 		"e0_p0_sourceKind": {"field"}, "e0_p0_sourceValue": {"name"},
 	}

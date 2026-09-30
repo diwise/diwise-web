@@ -45,7 +45,7 @@ func TestFixturesAreValidJSON(t *testing.T) {
 func previewForm(extra url.Values) url.Values {
 	form := url.Values{
 		"tenant": {"t1"}, "kind": {"thing"}, "event": {"things.v1.values"}, "type": {"room"},
-		"e0_id": {"urn:ngsi-ld:Room:{{nameOrID}}"}, "e0_type": {"Room"},
+		"e0_id": {"urn:ngsi-ld:Room:{{id}}"}, "e0_type": {"Room"},
 		"e0_p0_target": {"name"}, "e0_p0_type": {"Text"},
 		"e0_p0_sourceKind": {"field"}, "e0_p0_sourceValue": {"name"},
 		"previewKind":       {"things.v1.values"},

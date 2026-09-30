@@ -462,7 +462,7 @@ templ PropertyBlock(l10n Localizer, entity, index int, property apptransform.Pro
 				<span>transform value</span>
 				<input name={ propertyField(entity, index, "transformValue") } value={ propertyTransformValue(property) } class="rounded-xl border border-border bg-background px-3 py-2"/>
 			</label>
-			<div class="flex items-center gap-4 text-sm">
+			<div class="flex flex-wrap items-center gap-4 text-sm">
 				<label class="flex items-center gap-2">
 					<input type="checkbox" name={ propertyField(entity, index, "required") } value="true" checked?={ property.Required }/>
 					<span>required</span>
@@ -470,6 +470,10 @@ templ PropertyBlock(l10n Localizer, entity, index int, property apptransform.Pro
 				<label class="flex items-center gap-2">
 					<input type="checkbox" name={ propertyField(entity, index, "whenPresent") } value="true" checked?={ property.When == "present" }/>
 					<span>when: present</span>
+				</label>
+				<label class="flex items-center gap-2">
+					<input type="checkbox" name={ propertyField(entity, index, "array") } value="true" checked?={ property.Array }/>
+					<span>array (Relationship)</span>
 				</label>
 			</div>
 		</div>

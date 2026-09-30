@@ -165,6 +165,7 @@ func parseProperties(form map[string][]string, entity int) ([]apptransform.Prope
 		if skip {
 			continue
 		}
+		p.Array = get(entity, j, "array") == "true"
 		props = append(props, p)
 	}
 
@@ -317,10 +318,10 @@ func blankRule() apptransform.Rule {
 	return apptransform.Rule{
 		Match: apptransform.Match{Kind: "thing", Event: "things.v1.values"},
 		Entities: []apptransform.Entity{{
-			ID:   "urn:ngsi-ld:X:{{nameOrID}}",
+			ID:   "urn:ngsi-ld:X:{{id}}",
 			Type: "X",
 			Properties: []apptransform.Property{
-				{Target: "name", Type: "Text", Source: apptransform.Source{Field: "name"}},
+				{Target: "name", Type: "Text", Source: apptransform.Source{Field: "name"}, ObservedAt: "none"},
 			},
 		}},
 	}
