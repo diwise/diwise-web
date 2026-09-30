@@ -10,10 +10,14 @@ templ ListFiltersCard(toggle templ.Component, actions ...templ.Component) {
 					{ children... }
 				</div>
 				<div class="flex items-center justify-end gap-3 lg:ml-auto lg:shrink-0">
-					if len(actions) > 0 && actions[0] != nil {
-						@actions[0]
+					for _, action := range actions {
+						if action != nil {
+							@action
+						}
 					}
-					@toggle
+					if toggle != nil {
+						@toggle
+					}
 				</div>
 			</div>
 		}

@@ -39,7 +39,7 @@ templ VariantsPage(l10n Localizer, viewModel VariantsPageViewModel) {
 				hx-target="#app-shell"
 				hx-swap="outerHTML"
 				hx-replace-url="true"
-				class="flex flex-wrap items-end gap-4"
+				class="diwise-filter-form flex flex-wrap items-end gap-4"
 			>
 				<label class="flex flex-col gap-1 text-sm">
 					<span>{ l10n.Get("tenant") }</span>
@@ -55,19 +55,19 @@ templ VariantsPage(l10n Localizer, viewModel VariantsPageViewModel) {
 					}
 				</div>
 			</form>
-			<div class="overflow-x-auto rounded-xl border border-border">
-				<table class="w-full min-w-0 text-sm">
+			<div class="overflow-x-auto rounded-2xl border border-border/80 shadow-sm">
+				<table class="diwise-data-table w-full min-w-[480px] text-sm">
 					<thead>
 						<tr class="border-b border-border text-left text-muted-foreground">
-							<th class="px-4 py-2">{ l10n.Get("id") }</th>
-							<th class="px-4 py-2">{ l10n.Get("version") }</th>
-							<th class="px-4 py-2">{ l10n.Get("catalog_template") }</th>
+							<th scope="col">{ l10n.Get("id") }</th>
+							<th scope="col">{ l10n.Get("version") }</th>
+							<th scope="col">{ l10n.Get("catalog_template") }</th>
 						</tr>
 					</thead>
 					<tbody>
 						for _, v := range viewModel.Variants {
 							<tr class="border-b border-border last:border-0">
-								<td class="px-4 py-2">
+								<td>
 									<a
 										class="underline"
 										href={ templ.SafeURL("/catalog/variants/" + v.ID + "/" + v.Version + "?tenant=" + viewModel.Tenant) }
@@ -77,8 +77,8 @@ templ VariantsPage(l10n Localizer, viewModel VariantsPageViewModel) {
 										hx-replace-url="true"
 									>{ v.ID }</a>
 								</td>
-								<td class="px-4 py-2">{ v.Version }</td>
-								<td class="px-4 py-2">{ v.TemplateID } { v.TemplateVersion }</td>
+								<td>{ v.Version }</td>
+								<td>{ v.TemplateID } { v.TemplateVersion }</td>
 							</tr>
 						}
 					</tbody>
@@ -135,7 +135,7 @@ templ VariantNewPage(l10n Localizer, viewModel VariantNewViewModel) {
 			<form
 				method="post"
 				action="/catalog/variants/new"
-				class="flex flex-col gap-4"
+				class="diwise-native-form flex flex-col gap-4"
 			>
 				if viewModel.From != "" {
 					<input type="hidden" name="from" value={ viewModel.From }/>

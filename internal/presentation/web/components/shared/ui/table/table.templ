@@ -78,7 +78,7 @@ templ Header(props ...HeaderProps) {
 		if p.ID != "" {
 			id={ p.ID }
 		}
-		class={ utils.TwMerge("[&_tr]:border-b", p.Class) }
+		class={ utils.TwMerge("bg-muted/40 [&_tr]:border-b", p.Class) }
 		{ p.Attributes... }
 	>
 		{ children... }

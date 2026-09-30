@@ -42,7 +42,7 @@ templ RulesPage(l10n Localizer, viewModel RulesPageViewModel) {
 				hx-target="#app-shell"
 				hx-swap="outerHTML"
 				hx-replace-url="true"
-				class="flex flex-wrap items-end gap-4"
+				class="diwise-filter-form flex flex-wrap items-end gap-4"
 			>
 				<label class="flex flex-col gap-1 text-sm">
 					<span>{ l10n.Get("rules_kind") }</span>
@@ -88,21 +88,21 @@ templ RulesPage(l10n Localizer, viewModel RulesPageViewModel) {
 					}
 				</div>
 			</form>
-			<div class="overflow-x-auto rounded-xl border border-border">
-				<table class="w-full min-w-0 text-sm">
+			<div class="overflow-x-auto rounded-2xl border border-border/80 shadow-sm">
+				<table class="diwise-data-table w-full min-w-[640px] text-sm">
 					<thead>
 						<tr class="border-b border-border text-left text-muted-foreground">
-							<th class="px-4 py-2">{ l10n.Get("id") }</th>
-							<th class="px-4 py-2">{ l10n.Get("rules_kind") }</th>
-							<th class="px-4 py-2">{ l10n.Get("rules_summary") }</th>
-							<th class="px-4 py-2">{ l10n.Get("tenant") }</th>
-							<th class="px-4 py-2">{ l10n.Get("rules_source") }</th>
+							<th scope="col">{ l10n.Get("id") }</th>
+							<th scope="col">{ l10n.Get("rules_kind") }</th>
+							<th scope="col">{ l10n.Get("rules_summary") }</th>
+							<th scope="col">{ l10n.Get("tenant") }</th>
+							<th scope="col">{ l10n.Get("rules_source") }</th>
 						</tr>
 					</thead>
 					<tbody>
 						for _, rule := range viewModel.Rules {
 							<tr class="border-b border-border last:border-0">
-								<td class="px-4 py-2">
+								<td>
 									<a
 										class="underline"
 										href={ templ.SafeURL("/rules/" + rule.ID) }
@@ -112,10 +112,10 @@ templ RulesPage(l10n Localizer, viewModel RulesPageViewModel) {
 										hx-replace-url="true"
 									>{ rule.ShortID }</a>
 								</td>
-								<td class="px-4 py-2">{ rule.Kind }</td>
-								<td class="px-4 py-2">{ rule.Summary }</td>
-								<td class="px-4 py-2">{ rule.Tenant }</td>
-								<td class="px-4 py-2">{ rule.Source }</td>
+								<td>{ rule.Kind }</td>
+								<td>{ rule.Summary }</td>
+								<td>{ rule.Tenant }</td>
+								<td>{ rule.Source }</td>
 							</tr>
 						}
 					</tbody>

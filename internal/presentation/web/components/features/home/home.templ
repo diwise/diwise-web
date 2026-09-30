@@ -84,7 +84,7 @@ templ OverviewCards(l10n Localizer, stats OverviewStats) {
 }
 
 templ OverviewCardsSkeleton() {
-	<div class="grid h-full gap-5 md:grid-cols-2">
+	<div class="grid h-full w-full gap-5 md:grid-cols-2">
 		for i := 0; i < 4; i++ {
 			@card.Card(card.Props{Class: "h-full rounded-2xl border-border/80 bg-card shadow-sm"}) {
 				@card.Content(card.ContentProps{Class: "flex min-h-44 flex-col gap-5 p-6"}) {
@@ -107,20 +107,16 @@ templ OverviewCard(title, href string, count int, leading templ.Component) {
 		hx-target="#app-shell"
 		hx-swap="outerHTML"
 		hx-replace-url="true"
-		class="block h-full"
+		class="group block h-full min-w-0 rounded-2xl outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
 	>
-		@card.Card(card.Props{Class: "h-full rounded-2xl border-border/80 bg-card shadow-sm"}) {
-			@card.Content(card.ContentProps{Class: "flex h-full items-end justify-between p-6"}) {
-				<div class="flex flex-col items-start justify-center gap-4">
+		@card.Card(card.Props{Class: "h-full rounded-2xl border-border/80 bg-card shadow-sm transition-colors group-hover:border-ring"}) {
+			@card.Content(card.ContentProps{Class: "flex h-full items-end justify-between gap-3 p-6"}) {
+				<div class="flex min-w-0 flex-col items-start justify-center gap-4">
 					@leading
 					<div class="text-[32px] font-bold leading-10 font-heading text-foreground">
-						if count > 0 {
-							{ fmt.Sprintf("%d", count) }
-						} else {
-							{ "-" }
-						}
+						{ fmt.Sprintf("%d", count) }
 					</div>
-					<div class="text-lg whitespace-nowrap text-muted-foreground">
+					<div class="break-words text-base text-muted-foreground">
 						{ title }
 					</div>
 				</div>

@@ -14,6 +14,26 @@ go install github.com/go-delve/delve/cmd/dlv@latest
 
 https://github.com/tailwindlabs/tailwindcss
 
+UI-källorna finns i `internal/presentation/web/components/**/*.templ` och
+`internal/presentation/web/css/input.css` (Tailwind CSS v4). Använd de gemensamma
+komponenterna i `components/shared` för kort, sidrubriker, filter och tabeller.
+Katalog- och regelformulär med native HTML-kontroller använder
+`diwise-filter-form`/`diwise-native-form`; deras tabeller använder
+`diwise-data-table`. Färger hämtas från de semantiska temavariablerna så att
+kontrast och ytor fungerar i både ljust och mörkt läge.
+
+Generera och verifiera efter ändringar:
+
+```bash
+templ generate
+NODE_PATH=$(npm root -g) tailwindcss -i ./internal/presentation/web/css/input.css -o ./assets/css/diwise.css
+go test ./...
+go vet ./...
+```
+
+Genererad Go-kod och `assets/css/diwise.css` är git-ignorerade och ska inte
+redigeras för hand. Kontrollera även smala mobilvyer och båda teman vid UI-ändringar.
+
 ### Visual Studio Code add-on
 
 https://marketplace.visualstudio.com/items?itemName=a-h.templ
@@ -74,4 +94,3 @@ air
 # open http://localhost:8080 in a browser
 # go templates, css output and updated webapp binary will be generated automatically on save
 ```
-

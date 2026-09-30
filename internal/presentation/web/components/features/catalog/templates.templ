@@ -38,11 +38,11 @@ templ TemplatesPage(l10n Localizer, viewModel TemplatesPageViewModel) {
 			<form
 				method="get"
 				action="/catalog/templates"
-			 hx-get="/catalog/templates"
+				hx-get="/catalog/templates"
 				hx-target="#app-shell"
 				hx-swap="outerHTML"
 				hx-replace-url="true"
-				class="flex flex-wrap items-end gap-4"
+				class="diwise-filter-form flex flex-wrap items-end gap-4"
 			>
 				<label class="flex flex-col gap-1 text-sm">
 					<span>{ l10n.Get("tenant") }</span>
@@ -65,20 +65,20 @@ templ TemplatesPage(l10n Localizer, viewModel TemplatesPageViewModel) {
 					{ l10n.Get("search") }
 				}
 			</form>
-			<div class="overflow-x-auto rounded-xl border border-border">
-				<table class="w-full min-w-0 text-sm">
+			<div class="overflow-x-auto rounded-2xl border border-border/80 shadow-sm">
+				<table class="diwise-data-table w-full min-w-[560px] text-sm">
 					<thead>
 						<tr class="border-b border-border text-left text-muted-foreground">
-							<th class="px-4 py-2">{ l10n.Get("id") }</th>
-							<th class="px-4 py-2">{ l10n.Get("version") }</th>
-							<th class="px-4 py-2">{ l10n.Get("category") }</th>
-							<th class="px-4 py-2">{ l10n.Get("name") }</th>
+							<th scope="col">{ l10n.Get("id") }</th>
+							<th scope="col">{ l10n.Get("version") }</th>
+							<th scope="col">{ l10n.Get("category") }</th>
+							<th scope="col">{ l10n.Get("name") }</th>
 						</tr>
 					</thead>
 					<tbody>
 						for _, tpl := range viewModel.Templates {
 							<tr class="border-b border-border last:border-0">
-								<td class="px-4 py-2">
+								<td>
 									<a
 										class="underline"
 										href={ templ.SafeURL("/catalog/templates/" + tpl.ID + "/" + tpl.Version + "?tenant=" + viewModel.Tenant) }
@@ -88,9 +88,9 @@ templ TemplatesPage(l10n Localizer, viewModel TemplatesPageViewModel) {
 										hx-replace-url="true"
 									>{ tpl.ID }</a>
 								</td>
-								<td class="px-4 py-2">{ tpl.Version }</td>
-								<td class="px-4 py-2">{ tpl.Category }</td>
-								<td class="px-4 py-2">{ tpl.DisplayName }</td>
+								<td>{ tpl.Version }</td>
+								<td>{ tpl.Category }</td>
+								<td>{ tpl.DisplayName }</td>
 							</tr>
 						}
 					</tbody>

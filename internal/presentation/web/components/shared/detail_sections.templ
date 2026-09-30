@@ -32,7 +32,7 @@ templ DetailSectionCardFlush(title string, leading templ.Component) {
 			@DetailSectionHeading(title, leading)
 		}
 		@card.Card(card.Props{Class: "overflow-hidden rounded-2xl border-border/80 bg-card shadow-sm"}) {
-			<div class="overflow-x-auto">
+			<div class="relative overflow-x-auto">
 				{ children... }
 			</div>
 		}

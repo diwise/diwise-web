@@ -24,244 +24,244 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 		if !viewModel.TransformConfigured {
 			<p class="text-sm text-muted-foreground">{ l10n.Get("rules_not_configured") }</p>
 		} else {
-		<section class="flex min-w-0 max-w-3xl flex-col gap-6">
-			<form
-				method="post"
-				action={ viewModel.FormAction() }
-				id="rule-form"
-				class="flex flex-col gap-6"
-			>
-				if !viewModel.IsNew {
-					<input type="hidden" name="revision" value={ viewModel.RevisionString() }/>
-				}
-				<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4">
-					<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_match") }</legend>
-					<label class="flex flex-col gap-1 text-sm">
-						<span>{ l10n.Get("tenant") }</span>
-						<select
-							name="tenant"
-							class="rounded-xl border border-border bg-background px-3 py-2"
-							hx-get="/components/rules/type-options"
-							hx-target="#match-type-field"
-							hx-swap="outerHTML"
-							hx-include="[name='tenant'], [name='type']"
-						>
-							for _, t := range viewModel.Tenants {
-								<option value={ t } selected?={ t == viewModel.Rule.Match.Tenant }>{ t }</option>
-							}
-						</select>
-					</label>
-					<label class="flex flex-col gap-1 text-sm">
-						<span>{ l10n.Get("rules_kind") }</span>
-						<select name="kind" class="rounded-xl border border-border bg-background px-3 py-2">
-							<option value="measurement" selected?={ viewModel.Rule.Match.Kind == "measurement" }>measurement</option>
-							<option value="thing" selected?={ viewModel.Rule.Match.Kind == "thing" }>thing</option>
-						</select>
-					</label>
-					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-						<label class="flex flex-col gap-1 text-sm">
-							<span>device</span>
-							<input name="device" value={ viewModel.Rule.Match.Device } class="rounded-xl border border-border bg-background px-3 py-2"/>
-						</label>
-						<label class="flex flex-col gap-1 text-sm">
-							<span>port</span>
-							<input name="port" value={ viewModel.Rule.Match.Port } class="rounded-xl border border-border bg-background px-3 py-2"/>
-						</label>
-						<label class="flex flex-col gap-1 text-sm">
-							<span>sensorType</span>
-							<input name="sensorType" value={ viewModel.Rule.Match.SensorType } list="match-sensortypes" class="rounded-xl border border-border bg-background px-3 py-2"/>
-						</label>
-						<label class="flex flex-col gap-1 text-sm">
-							<span>object</span>
-							<input name="object" value={ viewModel.Rule.Match.Object } list="match-objects" class="rounded-xl border border-border bg-background px-3 py-2"/>
-						</label>
-						<label class="flex flex-col gap-1 text-sm">
-							<span>resource</span>
-							<input name="resource" value={ viewModel.Rule.Match.Resource } list="match-resources" class="rounded-xl border border-border bg-background px-3 py-2"/>
-						</label>
-						<label class="flex flex-col gap-1 text-sm">
-							<span>env</span>
-							<input name="env" value={ viewModel.Rule.Match.Env } list="match-envs" class="rounded-xl border border-border bg-background px-3 py-2"/>
-						</label>
-						@TypeField(l10n, viewModel.Rule.Match.Type, viewModel.TypeOptions)
-						<label class="flex flex-col gap-1 text-sm">
-							<span>subType</span>
-							<input name="subType" value={ viewModel.Rule.Match.SubType } list="match-subtypes" class="rounded-xl border border-border bg-background px-3 py-2"/>
-						</label>
-						<label class="flex flex-col gap-1 text-sm">
-							<span>event</span>
-							<select name="event" class="rounded-xl border border-border bg-background px-3 py-2">
-								<option value="" selected?={ viewModel.Rule.Match.Event == "" }></option>
-								<option value="things.v1.values" selected?={ viewModel.Rule.Match.Event == "things.v1.values" }>things.v1.values</option>
-								<option value="things.v1.relations" selected?={ viewModel.Rule.Match.Event == "things.v1.relations" }>things.v1.relations</option>
-								<option value="things.v1.lifecycle" selected?={ viewModel.Rule.Match.Event == "things.v1.lifecycle" }>things.v1.lifecycle</option>
-							</select>
-						</label>
-						<label class="flex flex-col gap-1 text-sm">
-							<span>relation</span>
-							<input name="relation" value={ viewModel.Rule.Match.Relation } list="match-relations" class="rounded-xl border border-border bg-background px-3 py-2"/>
-						</label>
-						<label class="flex items-center gap-2 text-sm">
-							<input type="checkbox" name="relationRemoved" value="true" checked?={ viewModel.Rule.Match.RelationRemoved }/>
-							<span>relationRemoved</span>
-						</label>
-						<label class="flex flex-col gap-1 text-sm">
-							<span>lifecycle</span>
-							<select name="lifecycle" class="rounded-xl border border-border bg-background px-3 py-2">
-								<option value="" selected?={ viewModel.Rule.Match.Lifecycle == "" }></option>
-								<option value="created" selected?={ viewModel.Rule.Match.Lifecycle == "created" }>created</option>
-								<option value="updated" selected?={ viewModel.Rule.Match.Lifecycle == "updated" }>updated</option>
-								<option value="deleted" selected?={ viewModel.Rule.Match.Lifecycle == "deleted" }>deleted</option>
-							</select>
-						</label>
-					</div>
-				</fieldset>
-				<datalist id="match-objects">
-					for _, o := range MeasurementObjects() {
-						<option value={ o }></option>
+			<section class="flex min-w-0 max-w-3xl flex-col gap-6">
+				<form
+					method="post"
+					action={ viewModel.FormAction() }
+					id="rule-form"
+					class="diwise-native-form flex flex-col gap-6"
+				>
+					if !viewModel.IsNew {
+						<input type="hidden" name="revision" value={ viewModel.RevisionString() }/>
 					}
-				</datalist>
-				<datalist id="match-resources">
-					for _, r := range MeasurementResources() {
-						<option value={ r }></option>
-					}
-				</datalist>
-				<datalist id="match-envs">
-					for _, e := range MeasurementEnvs() {
-						<option value={ e }></option>
-					}
-				</datalist>
-				<datalist id="match-relations">
-					for _, r := range RelationNames() {
-						<option value={ r }></option>
-					}
-				</datalist>
-				<datalist id="match-sensortypes">
-					for _, s := range viewModel.SensorTypeOptions {
-						<option value={ s }></option>
-					}
-				</datalist>
-				<datalist id="match-subtypes">
-					for _, s := range viewModel.SubTypeOptions {
-						<option value={ s }></option>
-					}
-				</datalist>
-				for i, e := range viewModel.Rule.Entities {
-					@EntityBlock(l10n, i, e)
-				}
-				<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4">
-					<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_preview") }</legend>
-					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+					<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4">
+						<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_match") }</legend>
 						<label class="flex flex-col gap-1 text-sm">
-							<span>{ l10n.Get("rules_event") }</span>
-							<select name="previewKind" class="rounded-xl border border-border bg-background px-3 py-2">
-								<option value="measurement">measurement</option>
-								<option value="things.v1.values">things.v1.values</option>
-								<option value="things.v1.relations">things.v1.relations</option>
-								<option value="things.v1.lifecycle">things.v1.lifecycle</option>
-							</select>
-						</label>
-						<label class="flex flex-col gap-1 text-sm">
-							<span>{ l10n.Get("rules_fixture") }</span>
+							<span>{ l10n.Get("tenant") }</span>
 							<select
-								name="previewFixture"
+								name="tenant"
 								class="rounded-xl border border-border bg-background px-3 py-2"
-								hx-get="/components/rules/fixture"
-								hx-target="#preview-message"
-								hx-swap="innerHTML"
+								hx-get="/components/rules/type-options"
+								hx-target="#match-type-field"
+								hx-swap="outerHTML"
+								hx-include="[name='tenant'], [name='type']"
 							>
-								for _, f := range previewFixtures() {
-									<option value={ f.Name } data-kind={ f.Kind }>{ f.Label }</option>
+								for _, t := range viewModel.Tenants {
+									<option value={ t } selected?={ t == viewModel.Rule.Match.Tenant }>{ t }</option>
 								}
 							</select>
 						</label>
-					</div>
-					<label class="flex flex-col gap-1 text-sm">
-						<span>{ l10n.Get("rules_message") }</span>
-						<textarea id="preview-message" name="previewMessage" rows="8" class="rounded-xl border border-border bg-background px-3 py-2 font-mono text-xs">{ defaultFixtureMessage() }</textarea>
-					</label>
-					<label class="flex flex-col gap-1 text-sm">
-						<span>sensorType ({ l10n.Get("rules_optional") })</span>
-						<input name="previewSensorType" class="rounded-xl border border-border bg-background px-3 py-2"/>
-					</label>
-					<div class="flex flex-wrap gap-4">
-						@button.Button(button.Props{
-							Variant: button.VariantSecondary,
-							Class:   "rounded-xl px-4",
-							Attributes: templ.Attributes{
-								"type":       "button",
-								"hx-post":    "/components/rules/validate",
-								"hx-include": "closest form",
-								"hx-target":  "#validate-result",
-								"hx-swap":    "outerHTML",
-							},
-						}) {
-							{ l10n.Get("rules_validate") }
+						<label class="flex flex-col gap-1 text-sm">
+							<span>{ l10n.Get("rules_kind") }</span>
+							<select name="kind" class="rounded-xl border border-border bg-background px-3 py-2">
+								<option value="measurement" selected?={ viewModel.Rule.Match.Kind == "measurement" }>measurement</option>
+								<option value="thing" selected?={ viewModel.Rule.Match.Kind == "thing" }>thing</option>
+							</select>
+						</label>
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<label class="flex flex-col gap-1 text-sm">
+								<span>device</span>
+								<input name="device" value={ viewModel.Rule.Match.Device } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>port</span>
+								<input name="port" value={ viewModel.Rule.Match.Port } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>sensorType</span>
+								<input name="sensorType" value={ viewModel.Rule.Match.SensorType } list="match-sensortypes" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>object</span>
+								<input name="object" value={ viewModel.Rule.Match.Object } list="match-objects" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>resource</span>
+								<input name="resource" value={ viewModel.Rule.Match.Resource } list="match-resources" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>env</span>
+								<input name="env" value={ viewModel.Rule.Match.Env } list="match-envs" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							@TypeField(l10n, viewModel.Rule.Match.Type, viewModel.TypeOptions)
+							<label class="flex flex-col gap-1 text-sm">
+								<span>subType</span>
+								<input name="subType" value={ viewModel.Rule.Match.SubType } list="match-subtypes" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>event</span>
+								<select name="event" class="rounded-xl border border-border bg-background px-3 py-2">
+									<option value="" selected?={ viewModel.Rule.Match.Event == "" }></option>
+									<option value="things.v1.values" selected?={ viewModel.Rule.Match.Event == "things.v1.values" }>things.v1.values</option>
+									<option value="things.v1.relations" selected?={ viewModel.Rule.Match.Event == "things.v1.relations" }>things.v1.relations</option>
+									<option value="things.v1.lifecycle" selected?={ viewModel.Rule.Match.Event == "things.v1.lifecycle" }>things.v1.lifecycle</option>
+								</select>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>relation</span>
+								<input name="relation" value={ viewModel.Rule.Match.Relation } list="match-relations" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex items-center gap-2 text-sm">
+								<input type="checkbox" name="relationRemoved" value="true" checked?={ viewModel.Rule.Match.RelationRemoved }/>
+								<span>relationRemoved</span>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>lifecycle</span>
+								<select name="lifecycle" class="rounded-xl border border-border bg-background px-3 py-2">
+									<option value="" selected?={ viewModel.Rule.Match.Lifecycle == "" }></option>
+									<option value="created" selected?={ viewModel.Rule.Match.Lifecycle == "created" }>created</option>
+									<option value="updated" selected?={ viewModel.Rule.Match.Lifecycle == "updated" }>updated</option>
+									<option value="deleted" selected?={ viewModel.Rule.Match.Lifecycle == "deleted" }>deleted</option>
+								</select>
+							</label>
+						</div>
+					</fieldset>
+					<datalist id="match-objects">
+						for _, o := range MeasurementObjects() {
+							<option value={ o }></option>
 						}
-						@button.Button(button.Props{
-							Variant: button.VariantSecondary,
-							Class:   "rounded-xl px-4",
-							Attributes: templ.Attributes{
-								"type":       "button",
-								"hx-post":    "/components/rules/preview",
-								"hx-include": "closest form",
-								"hx-target":  "#preview-result",
-								"hx-swap":    "outerHTML",
-							},
-						}) {
-							{ l10n.Get("rules_preview_run") }
+					</datalist>
+					<datalist id="match-resources">
+						for _, r := range MeasurementResources() {
+							<option value={ r }></option>
 						}
-					</div>
-					<div id="validate-result"></div>
-					@PreviewResult(l10n, previewEmpty())
-				</fieldset>
-				<div class="flex flex-wrap gap-4">
-					@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
-						{ l10n.Get("rules_save") }
+					</datalist>
+					<datalist id="match-envs">
+						for _, e := range MeasurementEnvs() {
+							<option value={ e }></option>
+						}
+					</datalist>
+					<datalist id="match-relations">
+						for _, r := range RelationNames() {
+							<option value={ r }></option>
+						}
+					</datalist>
+					<datalist id="match-sensortypes">
+						for _, s := range viewModel.SensorTypeOptions {
+							<option value={ s }></option>
+						}
+					</datalist>
+					<datalist id="match-subtypes">
+						for _, s := range viewModel.SubTypeOptions {
+							<option value={ s }></option>
+						}
+					</datalist>
+					for i, e := range viewModel.Rule.Entities {
+						@EntityBlock(l10n, i, e)
 					}
-					@button.Button(button.Props{
-						Variant: button.VariantSecondary,
-						Class:   "rounded-xl px-4",
-						Attributes: templ.Attributes{
-							"hx-get":        "/components/rules/entity-blank",
-							"hx-vals":       "js:{index: ruleFormNext('entity', -1)}",
-							"hx-target":     "#entity-blocks",
-							"hx-swap":       "beforeend",
-							"type":          "button",
-						},
-					}) {
-						{ l10n.Get("rules_add_entity") }
-					}
-				</div>
-				<div id="entity-blocks"></div>
-			</form>
-			if viewModel.ShowDelete {
-				<form
-					method="post"
-					action={ "/rules/" + viewModel.ID + "/delete" }
-					class="flex flex-col gap-4 rounded-xl border border-border p-4"
-				>
-					<input type="hidden" name="revision" value={ viewModel.RevisionString() }/>
-					if viewModel.IsSeed {
-						<p class="text-sm text-muted-foreground">{ l10n.Get("rules_seed_banner") }</p>
-						<p class="text-sm text-muted-foreground">{ l10n.Get("rules_seed_delete_warning") }</p>
-					}
-					if viewModel.ConfirmDelete {
-						<p class="text-sm font-semibold">{ l10n.Get("rules_confirm_delete") }</p>
-						<input type="hidden" name="confirm" value="yes"/>
-					}
-					<div>
-						@button.Button(button.Props{Variant: button.VariantDestructive, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
-							if viewModel.ConfirmDelete {
-								{ l10n.Get("rules_delete_confirmed") }
-							} else {
-								{ l10n.Get("rules_delete") }
+					<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4">
+						<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_preview") }</legend>
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<label class="flex flex-col gap-1 text-sm">
+								<span>{ l10n.Get("rules_event") }</span>
+								<select name="previewKind" class="rounded-xl border border-border bg-background px-3 py-2">
+									<option value="measurement">measurement</option>
+									<option value="things.v1.values">things.v1.values</option>
+									<option value="things.v1.relations">things.v1.relations</option>
+									<option value="things.v1.lifecycle">things.v1.lifecycle</option>
+								</select>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>{ l10n.Get("rules_fixture") }</span>
+								<select
+									name="previewFixture"
+									class="rounded-xl border border-border bg-background px-3 py-2"
+									hx-get="/components/rules/fixture"
+									hx-target="#preview-message"
+									hx-swap="innerHTML"
+								>
+									for _, f := range previewFixtures() {
+										<option value={ f.Name } data-kind={ f.Kind }>{ f.Label }</option>
+									}
+								</select>
+							</label>
+						</div>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>{ l10n.Get("rules_message") }</span>
+							<textarea id="preview-message" name="previewMessage" rows="8" class="rounded-xl border border-border bg-background px-3 py-2 font-mono text-xs">{ defaultFixtureMessage() }</textarea>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>sensorType ({ l10n.Get("rules_optional") })</span>
+							<input name="previewSensorType" class="rounded-xl border border-border bg-background px-3 py-2"/>
+						</label>
+						<div class="flex flex-wrap gap-4">
+							@button.Button(button.Props{
+								Variant: button.VariantSecondary,
+								Class:   "rounded-xl px-4",
+								Attributes: templ.Attributes{
+									"type":       "button",
+									"hx-post":    "/components/rules/validate",
+									"hx-include": "closest form",
+									"hx-target":  "#validate-result",
+									"hx-swap":    "outerHTML",
+								},
+							}) {
+								{ l10n.Get("rules_validate") }
 							}
+							@button.Button(button.Props{
+								Variant: button.VariantSecondary,
+								Class:   "rounded-xl px-4",
+								Attributes: templ.Attributes{
+									"type":       "button",
+									"hx-post":    "/components/rules/preview",
+									"hx-include": "closest form",
+									"hx-target":  "#preview-result",
+									"hx-swap":    "outerHTML",
+								},
+							}) {
+								{ l10n.Get("rules_preview_run") }
+							}
+						</div>
+						<div id="validate-result"></div>
+						@PreviewResult(l10n, previewEmpty())
+					</fieldset>
+					<div class="flex flex-wrap gap-4">
+						@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
+							{ l10n.Get("rules_save") }
+						}
+						@button.Button(button.Props{
+							Variant: button.VariantSecondary,
+							Class:   "rounded-xl px-4",
+							Attributes: templ.Attributes{
+								"hx-get":    "/components/rules/entity-blank",
+								"hx-vals":   "js:{index: ruleFormNext('entity', -1)}",
+								"hx-target": "#entity-blocks",
+								"hx-swap":   "beforeend",
+								"type":      "button",
+							},
+						}) {
+							{ l10n.Get("rules_add_entity") }
 						}
 					</div>
+					<div id="entity-blocks"></div>
 				</form>
-			}
-		</section>
+				if viewModel.ShowDelete {
+					<form
+						method="post"
+						action={ "/rules/" + viewModel.ID + "/delete" }
+						class="flex flex-col gap-4 rounded-xl border border-border p-4"
+					>
+						<input type="hidden" name="revision" value={ viewModel.RevisionString() }/>
+						if viewModel.IsSeed {
+							<p class="text-sm text-muted-foreground">{ l10n.Get("rules_seed_banner") }</p>
+							<p class="text-sm text-muted-foreground">{ l10n.Get("rules_seed_delete_warning") }</p>
+						}
+						if viewModel.ConfirmDelete {
+							<p class="text-sm font-semibold">{ l10n.Get("rules_confirm_delete") }</p>
+							<input type="hidden" name="confirm" value="yes"/>
+						}
+						<div>
+							@button.Button(button.Props{Variant: button.VariantDestructive, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
+								if viewModel.ConfirmDelete {
+									{ l10n.Get("rules_delete_confirmed") }
+								} else {
+									{ l10n.Get("rules_delete") }
+								}
+							}
+						</div>
+					</form>
+				}
+			</section>
 		}
 	</div>
 	<script nonce={ templ.GetNonce(ctx) }>
@@ -338,7 +338,8 @@ templ TypeField(l10n Localizer, current string, options []string) {
 	</div>
 }
 
-templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {	<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4" data-entity={ index }>
+templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {
+	<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4" data-entity={ index }>
 		<legend class="px-2 text-sm font-semibold">
 			{ l10n.Get("rules_entity") } { index }
 			if entity.Type != "" {
@@ -386,8 +387,8 @@ templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {	<fiel
 				Variant: button.VariantSecondary,
 				Class:   "rounded-xl px-4",
 				Attributes: templ.Attributes{
-					"hx-get":  "/components/rules/property-blank",
-					"hx-vals": propertyBlankVals(index),
+					"hx-get":    "/components/rules/property-blank",
+					"hx-vals":   propertyBlankVals(index),
 					"hx-target": "#" + propertyTarget(index),
 					"hx-swap":   "beforeend",
 					"type":      "button",

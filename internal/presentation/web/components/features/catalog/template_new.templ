@@ -21,7 +21,7 @@ templ TemplateNewPage(l10n Localizer, viewModel TemplateNewViewModel) {
 			<form
 				method="post"
 				action="/catalog/templates/new"
-				class="flex flex-col gap-4"
+				class="diwise-native-form flex flex-col gap-4"
 			>
 				if viewModel.FromLocked {
 					<input type="hidden" name="from" value={ viewModel.From }/>
