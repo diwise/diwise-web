@@ -47,6 +47,26 @@ export OAUTH2_CLIENT_ID="<client id>"
 export OAUTH2_CLIENT_SECRET="<client secret>"
 ```
 
+### Authorization and navigation
+
+Access-object authorization is the default. The runtime OPA policy must return
+`{"access":{"tenant-a":["sensors.read","things.read","transforms.read"]}}`.
+The policy determines the granted scopes; the web application does not infer
+permissions from a tenant list or expand wildcard strings such as `sensors.*`.
+
+Desktop and mobile navigation require the exact scope of the destination:
+`sensors.read` for sensors, `things.read` for things and the catalog, and
+`transforms.read` for rules. Home and logout remain available. A scope granted
+in any authorized tenant makes the navigation item visible. The complete
+policy access object is kept server-side in request context for `auth.HasScope`
+and `auth.HasScopeInTenant`; endpoint tenant filtering remains separate.
+Menu visibility does not replace endpoint authorization.
+
+Legacy tenant-list policies require `AUTHZ_ACCESS_OBJECT_ENABLED=false` or
+`-authz-access-object=false`. In legacy mode, scope-gated navigation still
+requires an `access` object from the policy: a `tenants` list alone cannot
+prove concrete scopes and does not enable those navigation items.
+
 ### Templates and rules (PLAN002)
 
 - Mallar: `/catalog/templates` (lista), `/catalog/templates/{id}/{version}`
@@ -60,8 +80,9 @@ export OAUTH2_CLIENT_SECRET="<client secret>"
   "ej konfigurerad" i stället för att anropa.
 - Nya env: `TRANSFORM_URL` (iot-transform-fiware `/api/v0`, frivillig),
   befintliga `THINGS_V2_URL`, `DEV_MGMT_URL`, `THINGS_URL`, `MEASUREMENTS_URL`.
-- Scopes i `config/authz.rego` (+ devmode-policyn): `transforms.read` i
-  default, samtliga `transforms.*` i write-uppsättningen.
+- Runtime-policyn måste tilldela motsvarande scopes i sitt access-objekt.
+  Devmode-policyn tilldelar samtliga scopes för de skyddade webbrutterna,
+  inklusive `sensors.create` och `transforms.read/create/update/delete/write`.
 
 ### Debug
 

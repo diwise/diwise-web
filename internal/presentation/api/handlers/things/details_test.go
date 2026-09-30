@@ -183,10 +183,10 @@ func TestNewSaveThingDetailsPageRendersEditPageWithToastForUnknownConnectedSenso
 	}
 	authenticator, err := apiauth.NewAuthenticator(context.Background(), strings.NewReader(`package example.authz
 
-	allow := {"tenants": ["default"]}`))
+	allow := {"access": {"default": ["things.update"]}}`))
 	is.NoErr(err)
 
-	handler := authenticator.RequireAccess()(NewSaveThingDetailsPage(context.Background(), testLocaleBundle(), func(name string) frontendtoolkit.Asset {
+	handler := authenticator.RequireAccess("things.update")(NewSaveThingDetailsPage(context.Background(), testLocaleBundle(), func(name string) frontendtoolkit.Asset {
 		return testAsset(pathValue(name))
 	}, app))
 

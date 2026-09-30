@@ -155,11 +155,19 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 			<nav class="mt-14 flex flex-col gap-2">
 				@NavItem(l10n.Get("home"), "/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
 				<hr class="mx-4 my-2 border-t border-border"/>
-				@NavItem(l10n.Get("sensors"), "/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
-				@NavItem(l10n.Get("thingsv2"), "/things-v2", isCurrent(ctx, "things-v2"), icon.Shapes(icon.Props{Size: 18}))
+				if apiauth.HasScope(ctx, "sensors.read") {
+					@NavItem(l10n.Get("sensors"), "/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
+				}
+				if apiauth.HasScope(ctx, "things.read") {
+					@NavItem(l10n.Get("thingsv2"), "/things-v2", isCurrent(ctx, "things-v2"), icon.Shapes(icon.Props{Size: 18}))
+				}
 				<hr class="mx-4 my-2 border-t border-border"/>
-				@NavItem(l10n.Get("catalog"), "/catalog/templates", isCurrent(ctx, "catalog"), icon.BookOpenText(icon.Props{Size: 18}))
-				@NavItem(l10n.Get("rules"), "/rules", isCurrent(ctx, "rules"), icon.ListChecks(icon.Props{Size: 18}))
+				if apiauth.HasScope(ctx, "things.read") {
+					@NavItem(l10n.Get("catalog"), "/catalog/templates", isCurrent(ctx, "catalog"), icon.BookOpenText(icon.Props{Size: 18}))
+				}
+				if apiauth.HasScope(ctx, "transforms.read") {
+					@NavItem(l10n.Get("rules"), "/rules", isCurrent(ctx, "rules"), icon.ListChecks(icon.Props{Size: 18}))
+				}
 			</nav>
 			<div class="mt-auto flex flex-col gap-3">
 				@NavItem(l10n.Get("logout"), "/logout", false, icon.LogOut(icon.Props{Size: 18}))
@@ -174,10 +182,16 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 					</div>
 					<nav class="order-3 flex w-full flex-wrap items-center gap-1 border-t border-border pt-3 sm:order-none sm:w-auto sm:border-0 sm:pt-0">
 						@IconNav(l10n.Get("home"), "/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
-						@IconNav(l10n.Get("sensors"), "/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
-						@IconNav(l10n.Get("thingsv2"), "/things-v2", isCurrent(ctx, "things-v2"), icon.Shapes(icon.Props{Size: 18}))
-						@IconNav(l10n.Get("catalog"), "/catalog/templates", isCurrent(ctx, "catalog"), icon.BookOpenText(icon.Props{Size: 18}))
-						@IconNav(l10n.Get("rules"), "/rules", isCurrent(ctx, "rules"), icon.ListChecks(icon.Props{Size: 18}))
+						if apiauth.HasScope(ctx, "sensors.read") {
+							@IconNav(l10n.Get("sensors"), "/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
+						}
+						if apiauth.HasScope(ctx, "things.read") {
+							@IconNav(l10n.Get("thingsv2"), "/things-v2", isCurrent(ctx, "things-v2"), icon.Shapes(icon.Props{Size: 18}))
+							@IconNav(l10n.Get("catalog"), "/catalog/templates", isCurrent(ctx, "catalog"), icon.BookOpenText(icon.Props{Size: 18}))
+						}
+						if apiauth.HasScope(ctx, "transforms.read") {
+							@IconNav(l10n.Get("rules"), "/rules", isCurrent(ctx, "rules"), icon.ListChecks(icon.Props{Size: 18}))
+						}
 					</nav>
 					<div class="ml-auto flex items-center gap-1">
 						@IconNav(l10n.Get("logout"), "/logout", false, icon.LogOut(icon.Props{Size: 18}))

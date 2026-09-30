@@ -46,6 +46,7 @@ allow := response if {
 		"access": {
 			"default": [
 				"sensors.read",
+				"sensors.create",
 				"sensors.update",
 				"things.read",
 				"things.create",
