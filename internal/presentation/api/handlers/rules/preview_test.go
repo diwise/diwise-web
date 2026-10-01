@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -52,9 +53,7 @@ func previewForm(extra url.Values) url.Values {
 		"previewMessage":    {`{"thingId":"r1"}`},
 		"previewSensorType": {""},
 	}
-	for k, v := range extra {
-		form[k] = v
-	}
+	maps.Copy(form, extra)
 	return form
 }
 

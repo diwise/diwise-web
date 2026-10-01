@@ -390,7 +390,10 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                 break;
                             case 'sandstorage':
                                 iconUrl = isDarkMode ? '/assets/db0e25bc57ab0e6232d08eecd73fc7a0c04c5bc90fb2f7f2ceae114f0644d159/sandstorageblack.svg' : '/assets/c5b697a2a9ba29ba3d356ad069b1cbd04f151dcd1aa90c3f86539a01253e5c72/sandstorage.svg';
-                                break;        
+                                break;
+                            default:
+                                iconUrl = isDarkMode ? '/assets/ea4fbf040ffc101dcc425140ef38ba0f840c63af0f7b5a1d3d5f3868a8c6c5fb/sensorblack.svg' : '/assets/34ed2a96f7750c911539c45ae445b9b3cf95264ac9eb7f194718b86215aadb6b/sensor.svg';
+                                break;
                         }
                         break;
                     case 'lifebuoy':

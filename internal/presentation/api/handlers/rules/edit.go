@@ -87,7 +87,7 @@ func parseRuleForm(form map[string][]string) (apptransform.Rule, error) {
 			Create:  p("create") == "true",
 			Delete:  p("delete") == "true",
 		}
-		for _, a := range strings.Split(p("removeAttributes"), "\n") {
+		for a := range strings.SplitSeq(p("removeAttributes"), "\n") {
 			if a = strings.TrimSpace(a); a != "" {
 				ent.RemoveAttributes = append(ent.RemoveAttributes, a)
 			}
@@ -138,7 +138,7 @@ func parseProperties(form map[string][]string, entity int) ([]apptransform.Prope
 	}
 
 	props := []apptransform.Property{}
-	for j := 0; j < 100; j++ {
+	for j := range 100 {
 		if !idx[j] {
 			continue
 		}
@@ -321,7 +321,7 @@ func blankRule() apptransform.Rule {
 			ID:   "urn:ngsi-ld:X:{{id}}",
 			Type: "X",
 			Properties: []apptransform.Property{
-				{Target: "name", Type: "Text", Source: apptransform.Source{Field: "name"}, ObservedAt: "none"},
+				{Target: "name", Type: "Text", Field: "name", ObservedAt: "none"},
 			},
 		}},
 	}
@@ -373,8 +373,7 @@ func NewRuleCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 
 		model, err := app.Transforms().CreateModel(ctx, "", rule)
 		if err != nil {
-			var verr *apptransform.ValidationError
-			if errors.As(err, &verr) {
+			if verr, ok := errors.AsType[*apptransform.ValidationError](err); ok {
 				renderErr(rule, verr.Message)
 				return
 			}
@@ -448,8 +447,7 @@ func NewRuleSavePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderF
 
 		model, err := app.Transforms().UpdateModel(ctx, "", id, rule, revision)
 		if err != nil {
-			var verr *apptransform.ValidationError
-			if errors.As(err, &verr) {
+			if verr, ok := errors.AsType[*apptransform.ValidationError](err); ok {
 				renderErr(rule, verr.Message)
 				return
 			}

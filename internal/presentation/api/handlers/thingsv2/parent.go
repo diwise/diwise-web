@@ -20,8 +20,7 @@ func NewThingsV2ParentDialog(_ context.Context, l10n LocaleBundle, _ AssetLoader
 		ctx := helpers.Decorate(r.Context())
 
 		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
+		if !requireThingID(w, id) {
 			return
 		}
 
@@ -63,8 +62,7 @@ func NewThingsV2ParentSearch(_ context.Context, l10n LocaleBundle, _ AssetLoader
 		ctx := helpers.Decorate(r.Context())
 
 		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
+		if !requireThingID(w, id) {
 			return
 		}
 
@@ -137,8 +135,7 @@ func NewThingsV2SetParent(_ context.Context, l10n LocaleBundle, _ AssetLoaderFun
 		ctx := helpers.Decorate(r.Context())
 
 		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
+		if !requireThingID(w, id) {
 			return
 		}
 
@@ -176,8 +173,7 @@ func NewThingsV2UnlinkParent(_ context.Context, l10n LocaleBundle, _ AssetLoader
 		ctx := helpers.Decorate(r.Context())
 
 		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
+		if !requireThingID(w, id) {
 			return
 		}
 

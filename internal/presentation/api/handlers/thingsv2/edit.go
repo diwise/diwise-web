@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"strconv"
 	"strings"
@@ -24,8 +25,7 @@ func NewThingsV2SavePage(ctx context.Context, l10n LocaleBundle, assets AssetLoa
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
+		if !requireThingID(w, id) {
 			return
 		}
 
@@ -267,9 +267,7 @@ func buildEditSpec(ctx context.Context, app thingsV2App, r *http.Request, id str
 	}
 
 	metadata := map[string]string{}
-	for key, value := range config.Metadata {
-		metadata[key] = value
-	}
+	maps.Copy(metadata, config.Metadata)
 	if description := strings.TrimSpace(r.Form.Get("description")); description != "" {
 		metadata["description"] = description
 	} else {

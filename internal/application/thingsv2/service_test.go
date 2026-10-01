@@ -49,16 +49,16 @@ func stubV2(t *testing.T) *httptest.Server {
 				{ThingID: "bin-1", Tenant: "t1", Name: "Tunna", Category: "container",
 					TemplateID: "wastebin", TemplateVersion: "v1", Revision: 1,
 					Values: map[string]PropertyValue{
-						"fillRate": {PropertyID: "fillRate", Value: ptr(42.0), Unit: "%", Quality: "ok"},
+						"fillRate": {PropertyID: "fillRate", Value: new(42.0), Unit: "%", Quality: "ok"},
 					},
-					Primary: &PropertyValue{PropertyID: "fillRate", Value: ptr(42.0), Unit: "%", Quality: "ok"}},
+					Primary: &PropertyValue{PropertyID: "fillRate", Value: new(42.0), Unit: "%", Quality: "ok"}},
 			},
 			"t2": {
 				{ThingID: "room-1", Tenant: "t2", Name: "Rum", Category: "room",
 					TemplateID: "room", TemplateVersion: "v1", Revision: 1,
 					Location: &Location{Type: "Point", Coordinates: json.RawMessage(`[18.06,59.33]`)},
 					Values: map[string]PropertyValue{
-						"temperature": {PropertyID: "temperature", Value: ptr(21.5), Unit: "Cel", Quality: "ok"},
+						"temperature": {PropertyID: "temperature", Value: new(21.5), Unit: "Cel", Quality: "ok"},
 					}},
 			},
 		}
@@ -110,7 +110,7 @@ func stubV2(t *testing.T) *httptest.Server {
 	})
 	mux.HandleFunc("/things/{id}/history", func(w http.ResponseWriter, r *http.Request) {
 		points := []HistoryPoint{
-			{PropertyID: "fillRate", ObservedAt: time.Date(2026, 9, 18, 10, 0, 0, 0, time.UTC), Value: ptr(42.0), Quality: "ok"},
+			{PropertyID: "fillRate", ObservedAt: time.Date(2026, 9, 18, 10, 0, 0, 0, time.UTC), Value: new(42.0), Quality: "ok"},
 			{PropertyID: "fillRate", ObservedAt: time.Date(2026, 9, 18, 11, 0, 0, 0, time.UTC), Quality: "uncertain"},
 		}
 		if r.URL.Query().Get("property") == "missing" {
@@ -220,7 +220,8 @@ func stubV2(t *testing.T) *httptest.Server {
 	return httptest.NewServer(mux)
 }
 
-func ptr(v float64) *float64 { return &v }
+//go:fix inline
+func ptr(v float64) *float64 { return new(v) }
 
 func testService(t *testing.T) (*Service, func()) {
 	t.Helper()

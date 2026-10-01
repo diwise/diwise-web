@@ -20,10 +20,10 @@ func TestThingsV2EditModeRendersLockedTemplate(t *testing.T) {
 
 	handler := NewThingsV2DetailsPage(context.Background(), testLocaleBundle(), testAssets(), &testThingsV2App{svc: svc})
 
-	req := httptest.NewRequest(http.MethodGet, "/things-v2/bin-1?tenant=t1&mode=edit", nil)
+	req := httptest.NewRequest(http.MethodGet, "/things-v2/"+testBinID+"?tenant=t1&mode=edit", nil)
 	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("HX-Request", "true")
-	req.SetPathValue("id", "bin-1")
+	req.SetPathValue("id", testBinID)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -54,17 +54,17 @@ func TestThingsV2SavePageUpdatesAndRedirects(t *testing.T) {
 		"longitude":            {"17.3"},
 		"param.sensorToBottom": {"1.0"},
 	}
-	req := httptest.NewRequest(http.MethodPost, "/things-v2/bin-1", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest(http.MethodPost, "/things-v2/"+testBinID, strings.NewReader(form.Encode()))
 	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
-	req.SetPathValue("id", "bin-1")
+	req.SetPathValue("id", testBinID)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
 
 	is.Equal(http.StatusOK, rec.Code)
-	is.Equal("/things-v2/bin-1?tenant=t1", rec.Header().Get("HX-Redirect"))
+	is.Equal("/things-v2/"+testBinID+"?tenant=t1", rec.Header().Get("HX-Redirect"))
 }
 
 func TestThingsV2SavePageRejectsMissingName(t *testing.T) {
@@ -81,11 +81,11 @@ func TestThingsV2SavePageRejectsMissingName(t *testing.T) {
 		"latitude":  {"62.39"},
 		"longitude": {"17.3"},
 	}
-	req := httptest.NewRequest(http.MethodPost, "/things-v2/bin-1", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest(http.MethodPost, "/things-v2/"+testBinID, strings.NewReader(form.Encode()))
 	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
-	req.SetPathValue("id", "bin-1")
+	req.SetPathValue("id", testBinID)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -106,14 +106,14 @@ func TestBuildEditSpecClearsLocationWhenEmpty(t *testing.T) {
 		"revision": {"2"},
 		"name":     {"Tunna"},
 	}
-	req := httptest.NewRequest(http.MethodPost, "/things-v2/bin-1", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest(http.MethodPost, "/things-v2/"+testBinID, strings.NewReader(form.Encode()))
 	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	if err := req.ParseForm(); err != nil {
 		t.Fatal(err)
 	}
 
-	spec, _, _, fail := buildEditSpec(req.Context(), app, req, "bin-1")
+	spec, _, _, fail := buildEditSpec(req.Context(), app, req, testBinID)
 	is.Equal("", fail)
 	is.True(spec.Location == nil)
 }
@@ -130,9 +130,9 @@ func TestComposeEditModelKeepsClearedCoordinates(t *testing.T) {
 		"latitude":  {""},
 		"longitude": {""},
 	}
-	req := httptest.NewRequest(http.MethodGet, "/things-v2/bin-1?tenant=t1&mode=edit", nil)
+	req := httptest.NewRequest(http.MethodGet, "/things-v2/"+testBinID+"?tenant=t1&mode=edit", nil)
 	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
-	model, err := composeEditModel(req.Context(), req, app, "bin-1", submitted, "name is required")
+	model, err := composeEditModel(req.Context(), req, app, testBinID, submitted, "name is required")
 	is.NoErr(err)
 	is.Equal("", model.Latitude)
 	is.Equal("", model.Longitude)
@@ -145,9 +145,9 @@ func TestComposeEditModelResolvesPointMode(t *testing.T) {
 	defer done()
 	app := &testThingsV2App{svc: svc}
 
-	req := httptest.NewRequest(http.MethodGet, "/things-v2/bin-1?tenant=t1&mode=edit", nil)
+	req := httptest.NewRequest(http.MethodGet, "/things-v2/"+testBinID+"?tenant=t1&mode=edit", nil)
 	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
-	model, err := composeEditModel(req.Context(), req, app, "bin-1", nil, "")
+	model, err := composeEditModel(req.Context(), req, app, testBinID, nil, "")
 	is.NoErr(err)
 	is.Equal("point", model.GeometryMode)
 	is.Equal("", model.GeometryJSON)
@@ -169,16 +169,16 @@ func TestThingsV2SavePageIgnoresSmuggledTemplate(t *testing.T) {
 		"latitude":  {"62.39"},
 		"longitude": {"17.3"},
 	}
-	req := httptest.NewRequest(http.MethodPost, "/things-v2/bin-1", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest(http.MethodPost, "/things-v2/"+testBinID, strings.NewReader(form.Encode()))
 	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("HX-Request", "true")
-	req.SetPathValue("id", "bin-1")
+	req.SetPathValue("id", testBinID)
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
 
 	// Mallen kommer från lagrad config, aldrig från formuläret.
 	is.Equal(http.StatusOK, rec.Code)
-	is.Equal("/things-v2/bin-1?tenant=t1", rec.Header().Get("HX-Redirect"))
+	is.Equal("/things-v2/"+testBinID+"?tenant=t1", rec.Header().Get("HX-Redirect"))
 }

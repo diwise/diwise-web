@@ -62,6 +62,11 @@ policy access object is kept server-side in request context for `auth.HasScope`
 and `auth.HasScopeInTenant`; endpoint tenant filtering remains separate.
 Menu visibility does not replace endpoint authorization.
 
+Things-v2 routes containing a thing ID require a canonical UUID (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`).
+Malformed path IDs return HTTP 400 locally, before any request to iot-things-v2.
+Map markers use a fallback icon for unrecognized container subtypes, including
+template IDs, so that a missing icon cannot produce an `undefined` image URL.
+
 Legacy tenant-list policies require `AUTHZ_ACCESS_OBJECT_ENABLED=false` or
 `-authz-access-object=false`. In legacy mode, scope-gated navigation still
 requires an `access` object from the policy: a `tenants` list alone cannot

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	apptransform "github.com/diwise/diwise-web/internal/application/transform"
 	. "github.com/diwise/frontend-toolkit"
@@ -73,14 +74,14 @@ func propertyBlankVals(entity int) string {
 }
 
 func removeAttributesText(entity apptransform.Entity) string {
-	out := ""
+	var out strings.Builder
 	for i, a := range entity.RemoveAttributes {
 		if i > 0 {
-			out += "\n"
+			out.WriteString("\n")
 		}
-		out += a
+		out.WriteString(a)
 	}
-	return out
+	return out.String()
 }
 
 func propertyTypes() []string {

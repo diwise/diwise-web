@@ -45,10 +45,8 @@ func TestConcurrentPageRequestsKeepTheirOwnToken(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			var wg sync.WaitGroup
 			start := make(chan struct{})
-			for i := 0; i < 32; i++ {
-				wg.Add(1)
-				go func() {
-					defer wg.Done()
+			for i := range 32 {
+				wg.Go(func() {
 					token := fmt.Sprintf("request-token-%02d-end", i)
 					r := httptest.NewRequest(http.MethodGet, "/"+name, nil)
 					r.Header.Set("HX-Request", "true")
@@ -59,12 +57,12 @@ func TestConcurrentPageRequestsKeepTheirOwnToken(t *testing.T) {
 					if !strings.Contains(w.Body.String(), token) {
 						t.Errorf("%s response lost its own token", token)
 					}
-					for j := 0; j < 32; j++ {
+					for j := range 32 {
 						if j != i && strings.Contains(w.Body.String(), fmt.Sprintf("request-token-%02d-end", j)) {
 							t.Errorf("%s response contains another request's token", token)
 						}
 					}
-				}()
+				})
 			}
 			close(start)
 			wg.Wait()

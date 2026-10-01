@@ -21,8 +21,7 @@ func NewThingsV2SensorsDialog(_ context.Context, l10n LocaleBundle, _ AssetLoade
 		ctx := helpers.Decorate(r.Context())
 
 		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
+		if !requireThingID(w, id) {
 			return
 		}
 
@@ -54,8 +53,7 @@ func NewThingsV2SensorSearch(_ context.Context, l10n LocaleBundle, _ AssetLoader
 		ctx := helpers.Decorate(r.Context())
 
 		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
+		if !requireThingID(w, id) {
 			return
 		}
 
@@ -111,8 +109,7 @@ func NewThingsV2SetSensor(_ context.Context, l10n LocaleBundle, _ AssetLoaderFun
 		ctx := helpers.Decorate(r.Context())
 
 		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
+		if !requireThingID(w, id) {
 			return
 		}
 
@@ -151,8 +148,7 @@ func NewThingsV2UnbindSensor(_ context.Context, l10n LocaleBundle, _ AssetLoader
 		ctx := helpers.Decorate(r.Context())
 
 		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
+		if !requireThingID(w, id) {
 			return
 		}
 

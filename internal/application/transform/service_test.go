@@ -18,7 +18,7 @@ func testRule() Rule {
 		Match: Match{Kind: "thing", Event: "things.v1.values", Type: "room", Tenant: "t"},
 		Entities: []Entity{{
 			ID: "urn:ngsi-ld:Room:{{id}}", Type: "Room",
-			Properties: []Property{{Target: "name", Type: "Text", Source: Source{Field: "name"}}},
+			Properties: []Property{{Target: "name", Type: "Text", Field: "name"}},
 		}},
 	}
 }

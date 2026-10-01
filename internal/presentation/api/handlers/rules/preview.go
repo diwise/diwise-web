@@ -81,8 +81,7 @@ func NewValidateFragment(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc
 				return
 			}
 			msg := err.Error()
-			var verr *apptransform.ValidationError
-			if errors.As(err, &verr) {
+			if verr, ok := errors.AsType[*apptransform.ValidationError](err); ok {
 				msg = verr.Message
 			}
 			helpers.WriteComponentResponse(r.Context(), w, r, featurerules.ValidateResult(localizer, featurerules.ValidateResultViewModel{Message: msg}), 16*1024, http.StatusOK)
@@ -119,8 +118,7 @@ func NewPreviewFragment(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc,
 				return
 			}
 			msg := err.Error()
-			var verr *apptransform.ValidationError
-			if errors.As(err, &verr) {
+			if verr, ok := errors.AsType[*apptransform.ValidationError](err); ok {
 				msg = verr.Message
 			}
 			helpers.WriteComponentResponse(r.Context(), w, r, featurerules.PreviewResult(localizer, featurerules.PreviewResultViewModel{ErrorMessage: msg}), 16*1024, http.StatusOK)

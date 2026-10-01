@@ -59,7 +59,7 @@ func testRule() apptransform.Rule {
 		Match: apptransform.Match{Kind: "thing", Event: "things.v1.values", Type: "room", Tenant: "t1"},
 		Entities: []apptransform.Entity{{
 			ID: "urn:ngsi-ld:Room:{{id}}", Type: "Room",
-			Properties: []apptransform.Property{{Target: "name", Type: "Text", Source: apptransform.Source{Field: "name"}}},
+			Properties: []apptransform.Property{{Target: "name", Type: "Text", Field: "name"}},
 		}},
 	}
 }

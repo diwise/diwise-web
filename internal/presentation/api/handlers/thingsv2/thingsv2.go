@@ -255,8 +255,7 @@ func NewThingsV2DetailsPage(ctx context.Context, l10n LocaleBundle, assets Asset
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
+		if !requireThingID(w, id) {
 			return
 		}
 
@@ -454,8 +453,7 @@ func NewThingsV2HistoryComponent(_ context.Context, l10n LocaleBundle, _ AssetLo
 		)
 
 		id := r.PathValue("id")
-		if id == "" {
-			http.Error(w, "no id found in url", http.StatusBadRequest)
+		if !requireThingID(w, id) {
 			return
 		}
 
