@@ -55,6 +55,16 @@ func (m RuleFormViewModel) RevisionString() string {
 	return strconv.FormatInt(m.Revision, 10)
 }
 
+func (m RuleFormViewModel) PriorityString() string { return strconv.Itoa(m.Rule.Priority) }
+
+func propertyConversionJSON(p apptransform.Property) string {
+	if p.Convert == nil {
+		return ""
+	}
+	raw, _ := json.Marshal(p.Convert)
+	return string(raw)
+}
+
 func entityField(index int, name string) string {
 	return fmt.Sprintf("e%d_%s", index, name)
 }

@@ -67,6 +67,12 @@ Malformed path IDs return HTTP 400 locally, before any request to iot-things-v2.
 Map markers use a fallback icon for unrecognized container subtypes, including
 template IDs, so that a missing icon cannot produce an `undefined` image URL.
 
+The rule editor preserves transform stage-5 fields: signed integer `priority`,
+the relation target filter `match.toType`, and explicit numeric unit conversions
+(`convert` JSON with `from`, `to`, optional `factor` and `offset`). Conversion
+JSON rejects unknown fields and multiple documents. Backend validation remains
+authoritative for matching, units and runtime source data.
+
 Legacy tenant-list policies require `AUTHZ_ACCESS_OBJECT_ENABLED=false` or
 `-authz-access-object=false`. In legacy mode, scope-gated navigation still
 requires an `access` object from the policy: a `tenants` list alone cannot

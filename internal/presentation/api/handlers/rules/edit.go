@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 	"slices"
@@ -52,6 +53,14 @@ func parseRuleForm(form map[string][]string) (apptransform.Rule, error) {
 		Relation:        get("relation"),
 		RelationRemoved: get("relationRemoved") == "true",
 		Lifecycle:       get("lifecycle"),
+		ToType:          get("toType"),
+	}
+	if text := get("priority"); text != "" {
+		priority, err := strconv.Atoi(text)
+		if err != nil {
+			return rule, fmt.Errorf("priority must be an integer")
+		}
+		rule.Priority = priority
 	}
 
 	entityIdx := map[int]bool{}
@@ -166,6 +175,16 @@ func parseProperties(form map[string][]string, entity int) ([]apptransform.Prope
 			continue
 		}
 		p.Array = get(entity, j, "array") == "true"
+		if text := get(entity, j, "convert"); text != "" {
+			decoder := json.NewDecoder(strings.NewReader(text))
+			decoder.DisallowUnknownFields()
+			if err := decoder.Decode(&p.Convert); err != nil {
+				return nil, fmt.Errorf("convert: %w", err)
+			}
+			if err := decoder.Decode(new(any)); err != io.EOF {
+				return nil, fmt.Errorf("convert must contain one JSON document")
+			}
+		}
 		props = append(props, p)
 	}
 

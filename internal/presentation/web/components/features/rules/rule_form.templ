@@ -60,6 +60,10 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 						</label>
 						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 							<label class="flex flex-col gap-1 text-sm">
+								<span>priority</span>
+								<input type="number" step="1" name="priority" value={ viewModel.PriorityString() } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
 								<span>device</span>
 								<input name="device" value={ viewModel.Rule.Match.Device } class="rounded-xl border border-border bg-background px-3 py-2"/>
 							</label>
@@ -100,6 +104,10 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 							<label class="flex flex-col gap-1 text-sm">
 								<span>relation</span>
 								<input name="relation" value={ viewModel.Rule.Match.Relation } list="match-relations" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>toType (things.v1.relations)</span>
+								<input name="toType" value={ viewModel.Rule.Match.ToType } class="rounded-xl border border-border bg-background px-3 py-2"/>
 							</label>
 							<label class="flex items-center gap-2 text-sm">
 								<input type="checkbox" name="relationRemoved" value="true" checked?={ viewModel.Rule.Match.RelationRemoved }/>
@@ -479,6 +487,10 @@ templ PropertyBlock(l10n Localizer, entity, index int, property apptransform.Pro
 		</div>
 		<input type="hidden" name={ propertyField(entity, index, "derive") } value={ propertyDeriveJSON(property) }/>
 		<input type="hidden" name={ propertyField(entity, index, "subproperties") } value={ propertySubpropertiesJSON(property) }/>
+		<label class="flex flex-col gap-1 text-sm">
+			<span>convert (JSON: from, to, factor, offset)</span>
+			<textarea name={ propertyField(entity, index, "convert") } class="rounded-xl border border-border bg-background px-3 py-2" rows="2">{ propertyConversionJSON(property) }</textarea>
+		</label>
 		<input type="hidden" name={ propertyField(entity, index, "transform") } value={ propertyTransformJSON(property) }/>
 	</fieldset>
 }

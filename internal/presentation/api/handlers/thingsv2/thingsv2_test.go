@@ -120,7 +120,7 @@ func stubThingsV2(t *testing.T) (*appthingsv2.Service, func()) {
 				ParamDefaults: map[string]float64{"sensorToBottom": 1.5},
 				Overridable:   []string{"sensorToBottom"},
 				ParamInfo: map[string]appthingsv2.ParamDef{
-					"sensorToBottom": {Unit: "m", Description: "Avstånd sensor till botten", Min: ptr(0), Max: ptr(5)},
+					"sensorToBottom": {Unit: "m", Description: "Avstånd sensor till botten", Min: new(float64(0)), Max: new(float64(5))},
 				}},
 			{Template: appthingsv2.Template{ID: "room", Version: "v1", Category: "room", DisplayName: "Rum"}},
 			{Template: appthingsv2.Template{ID: "tank", Version: "v1", Category: "tank", DisplayName: "Tank",

@@ -37,18 +37,26 @@ type Derive struct {
 
 // Property describes one NGSI-LD attribute.
 type Property struct {
-	Array         bool   `json:"array,omitempty"`
-	Target        string `json:"target"`
-	Type          string `json:"type"`
-	Unit          string `json:"unit,omitempty"`
-	ObservedAt    string `json:"observedAt,omitempty"`
-	ObservedBy    string `json:"observedBy,omitempty"`
-	When          string `json:"when,omitempty"`
-	Required      bool   `json:"required,omitempty"`
+	Array         bool        `json:"array,omitempty"`
+	Target        string      `json:"target"`
+	Type          string      `json:"type"`
+	Unit          string      `json:"unit,omitempty"`
+	Convert       *Conversion `json:"convert,omitempty"`
+	ObservedAt    string      `json:"observedAt,omitempty"`
+	ObservedBy    string      `json:"observedBy,omitempty"`
+	When          string      `json:"when,omitempty"`
+	Required      bool        `json:"required,omitempty"`
 	Source        `json:",inline"`
 	Transform     []Transform `json:"transform,omitempty"`
 	Derive        *Derive     `json:"derive,omitempty"`
 	Subproperties []Property  `json:"subproperties,omitempty"`
+}
+
+type Conversion struct {
+	From   string   `json:"from"`
+	To     string   `json:"to"`
+	Factor *float64 `json:"factor,omitempty"`
+	Offset float64  `json:"offset,omitempty"`
 }
 
 // Entity describes one NGSI-LD entity to write.
@@ -77,12 +85,14 @@ type Match struct {
 	Tenant          string `json:"tenant,omitempty"`
 	Event           string `json:"event,omitempty"`
 	Relation        string `json:"relation,omitempty"`
+	ToType          string `json:"toType,omitempty"`
 	RelationRemoved bool   `json:"relationRemoved,omitempty"`
 	Lifecycle       string `json:"lifecycle,omitempty"`
 }
 
 // Rule matches a source and describes entities to write.
 type Rule struct {
+	Priority int      `json:"priority,omitempty"`
 	Match    Match    `json:"match"`
 	Entities []Entity `json:"entities"`
 }
