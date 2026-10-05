@@ -119,6 +119,13 @@ templ VariantDetailsPage(l10n Localizer, viewModel VariantDetailsViewModel) {
 					}
 				</ul>
 			</div>
+			<p class="text-sm text-muted-foreground">Publicerad version är oföränderlig.</p>
+			<a class="underline" href={ templ.SafeURL("/catalog/variants/new?from=" + viewModel.Spec.Variant.ID + "/" + viewModel.Spec.Variant.Version + "&tenant=" + viewModel.Tenant) }>Publicera ny version</a>
+			<ul class="text-sm">
+				for _, property := range viewModel.Spec.PresetProperties {
+					<li>{ property }</li>
+				}
+			</ul>
 		</section>
 	</div>
 }
@@ -141,10 +148,15 @@ templ VariantNewPage(l10n Localizer, viewModel VariantNewViewModel) {
 					<input type="hidden" name="from" value={ viewModel.From }/>
 					<p class="text-sm text-muted-foreground">{ l10n.Get("catalog_copy_from") }: { viewModel.From }</p>
 				}
-				<label class="flex flex-col gap-1 text-sm">
-					<span>{ l10n.Get("id") }</span>
-					<input name="id" value={ viewModel.ID } class="rounded-xl border border-border bg-background px-3 py-2"/>
-				</label>
+				if viewModel.From != "" {
+					<input type="hidden" name="id" value={ viewModel.ID }/>
+					<p class="text-sm">{ l10n.Get("id") }: { viewModel.ID }</p>
+				} else {
+					<label class="flex flex-col gap-1 text-sm">
+						<span>{ l10n.Get("id") }</span>
+						<input name="id" value={ viewModel.ID } class="rounded-xl border border-border bg-background px-3 py-2"/>
+					</label>
+				}
 				<label class="flex flex-col gap-1 text-sm">
 					<span>{ l10n.Get("tenant") }</span>
 					<select name="tenant" class="rounded-xl border border-border bg-background px-3 py-2">
@@ -170,6 +182,7 @@ templ VariantNewPage(l10n Localizer, viewModel VariantNewViewModel) {
 					<span>{ l10n.Get("catalog_params") } ({ l10n.Get("catalog_key_value_lines") })</span>
 					<textarea name="paramValues" rows="4" class="rounded-xl border border-border bg-background px-3 py-2">{ viewModel.ParamValues }</textarea>
 				</label>
+				@CatalogTextField("presetProperties", "Preset-egenskaper", viewModel.PresetProperties, "Ett egenskaps-ID per rad. Varianten binds till exakt mallversion; ändringar kräver ny version.")
 				<div>
 					@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
 						{ l10n.Get("catalog_publish") }

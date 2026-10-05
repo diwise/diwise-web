@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"net/http"
 	"slices"
 	"strconv"
@@ -54,8 +55,11 @@ func parseKeyValues(s string) (map[string]float64, error) {
 			return nil, fmt.Errorf("bad parameter line %q (want key=value)", line)
 		}
 		f, err := strconv.ParseFloat(v, 64)
-		if err != nil {
+		if err != nil || math.IsNaN(f) || math.IsInf(f, 0) {
 			return nil, fmt.Errorf("bad parameter value %q", line)
+		}
+		if _, exists := out[k]; exists {
+			return nil, fmt.Errorf("duplicate parameter %q", k)
 		}
 		out[k] = f
 	}
@@ -109,9 +113,16 @@ func composeTemplateNewModel(ctx context.Context, r *http.Request, app catalogAp
 		Tenant:  resolveCatalogTenant(r),
 		From:    strings.TrimSpace(r.URL.Query().Get("from")),
 	}
+	model.RelationsStructured = true
+	model.RelationRows = []featurecatalog.RelationEditRow{{}}
+	if submitted == nil && model.Tenant != "" && len(model.Tenants) > 0 && !slices.Contains(model.Tenants, model.Tenant) {
+		return model, client.ErrForbidden
+	}
 	if submitted != nil {
 		model.Tenant = firstForm(submitted, "tenant")
 		model.From = firstForm(submitted, "from")
+		model.FromLocked = model.From != ""
+		return model, nil // Error rendering must not depend on another backend read.
 	}
 
 	if model.From != "" {
@@ -146,6 +157,8 @@ func composeTemplateNewModel(ctx context.Context, r *http.Request, app catalogAp
 		model.OverridableText = strings.Join(spec.Overridable, "\n")
 		model.CopiedRelations = len(spec.Template.Relations)
 		model.CopiedRecipes = len(spec.Recipes)
+		model.RelationRows = nil
+		templateFields(&model, spec)
 	}
 
 	return model, nil
@@ -175,7 +188,7 @@ func NewTemplateCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetL
 		}
 		form := map[string][]string(r.Form)
 
-		renderErr := func(msg string) {
+		renderErr := func(msg string, statuses ...int) {
 			model, err := composeTemplateNewModel(ctx, r, app, form)
 			if err != nil {
 				writeServiceError(w, err, "could not fetch template")
@@ -184,29 +197,42 @@ func NewTemplateCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetL
 			// Bevara inmatningen över felet.
 			model.Tenant = firstForm(form, "tenant")
 			model.From = firstForm(form, "from")
-			model.ID = firstForm(form, "id")
-			model.Version = firstForm(form, "version")
-			model.DisplayName = firstForm(form, "displayName")
-			model.Description = firstForm(form, "description")
-			model.Category = firstForm(form, "category")
-			model.Required = firstForm(form, "required")
-			model.Optional = firstForm(form, "optional")
-			model.ParamDefaults = firstForm(form, "paramDefaults")
-			model.OverridableText = firstForm(form, "overridable")
+			model.ID = submittedRaw(form, "id")
+			model.Version = submittedRaw(form, "version")
+			model.DisplayName = submittedRaw(form, "displayName")
+			model.Description = submittedRaw(form, "description")
+			model.Category = submittedRaw(form, "category")
+			model.Required = submittedRaw(form, "required")
+			model.Optional = submittedRaw(form, "optional")
+			model.ParamDefaults = submittedRaw(form, "paramDefaults")
+			model.OverridableText = submittedRaw(form, "overridable")
 			model.Geometries = form["geometry"]
 			model.AllowNoLocation = firstForm(form, "allowNoLocation") == "true"
+			submittedTemplateFields(&model, form)
 			model.ErrorMessage = msg
 			content := featurecatalog.TemplateNewPage(localizer, model)
 			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 			if helpers.IsHxRequest(r) {
 				page = v2layout.AppShell(localizer, assets, content)
 			}
-			helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, http.StatusOK)
+			status := http.StatusOK
+			if len(statuses) > 0 {
+				status = statuses[0]
+			}
+			helpers.WriteComponentResponse(ctx, formStatusWriter{w, status}, r, page, 32*1024, 0)
 		}
 
 		tenant := firstForm(form, "tenant")
+		if tenants := tokenTenants(r); len(tenants) > 0 && !slices.Contains(tenants, tenant) {
+			renderErr("tenant is not authorized", http.StatusForbidden)
+			return
+		}
 		if tenant == "" {
 			renderErr("tenant is required")
+			return
+		}
+		if firstForm(form, "addRelation") == "true" {
+			renderErr("")
 			return
 		}
 		id := firstForm(form, "id")
@@ -218,8 +244,8 @@ func NewTemplateCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetL
 
 		spec, err := buildTemplateSpec(ctx, app, tenant, form, id, version)
 		if err != nil {
-			if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) || errors.Is(err, client.ErrNotFound) {
-				writeServiceError(w, err, "")
+			if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) {
+				renderErr(err.Error(), errorStatus(err))
 				return
 			}
 			renderErr(err.Error())
@@ -228,11 +254,11 @@ func NewTemplateCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetL
 
 		if err := app.Catalog().PublishTemplate(ctx, tenant, spec); err != nil {
 			if errors.Is(err, client.ErrConflict) {
-				renderErr("versionen finns redan, välj nytt versionsnummer")
+				renderErr("versionen finns redan, välj nytt versionsnummer: " + err.Error())
 				return
 			}
 			if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) {
-				writeServiceError(w, err, "")
+				renderErr(err.Error(), errorStatus(err))
 				return
 			}
 			renderErr(err.Error())
@@ -246,9 +272,8 @@ func NewTemplateCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetL
 	return http.HandlerFunc(fn)
 }
 
-// buildTemplateSpec bygger publiceringsspecen: kopia av From (ny version +
-// redigerade fält; relations/recipes/propertyDefs/paramInfo följer med
-// read-only) eller blankett utan källa.
+// buildTemplateSpec copies the pinned source before applying submitted fields.
+// Omitted advanced fields preserve the source; explicitly empty fields clear it.
 func buildTemplateSpec(ctx context.Context, app catalogApp, tenant string, form map[string][]string, id, version string) (appthingsv2.TemplateSpec, error) {
 	var spec appthingsv2.TemplateSpec
 	if from := firstForm(form, "from"); from != "" {
@@ -284,6 +309,42 @@ func buildTemplateSpec(ctx context.Context, app catalogApp, tenant string, form 
 	}
 	spec.ParamDefaults = params
 	spec.Overridable = parseLines(firstForm(form, "overridable"))
+	if _, ok := form["primaryProperty"]; ok {
+		spec.Template.PrimaryProperty = firstForm(form, "primaryProperty")
+	}
+	if _, ok := form["repeatGroups"]; ok {
+		spec.Template.RepeatGroups = parseLines(firstForm(form, "repeatGroups"))
+	}
+	if _, ok := form["allowedQuantities"]; ok {
+		spec.Template.AllowedQuantities = parseLines(firstForm(form, "allowedQuantities"))
+	}
+	if _, ok := form["labels"]; ok {
+		spec.Template.Labels = parseLines(firstForm(form, "labels"))
+	}
+	for _, field := range []struct {
+		name string
+		dest any
+	}{
+		{"propertyDefs", &spec.Template.PropertyDefs},
+		{"relations", &spec.Template.Relations},
+		{"recipes", &spec.Recipes},
+		{"paramInfo", &spec.ParamInfo},
+		{"operatorVersions", &spec.OperatorVersions},
+	} {
+		if field.name == "relations" && firstForm(form, "relationRowsPresent") == "true" {
+			continue
+		}
+		if err := decodeField(form, field.name, field.dest); err != nil {
+			return spec, err
+		}
+	}
+	if firstForm(form, "relationRowsPresent") == "true" {
+		relations, err := parseRelationRows(form)
+		if err != nil {
+			return spec, err
+		}
+		spec.Template.Relations = relations
+	}
 
 	return spec, nil
 }

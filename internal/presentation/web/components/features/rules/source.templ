@@ -1,0 +1,97 @@
+package rules
+
+import (
+	"fmt"
+	"strings"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ SourceSelection(l10n Localizer, model RuleFormViewModel) {
+	<div id="source-selection" class="flex flex-col gap-3" hx-get="/components/rules/type-options" hx-trigger="change" hx-target="this" hx-swap="outerHTML" hx-include="[name='tenant'], [name='type'], [name='thingTypeVersion'], [name='variantId'], [name='variantVersion']">
+		@TypeField(l10n, model.Rule.Match.Type, model.TypeOptions)
+		<label class="flex flex-col gap-1 text-sm">
+			<span>thingTypeVersion (exact published version)</span>
+			<input name="thingTypeVersion" value={ model.Rule.Match.ThingTypeVersion } list="source-versions" class="rounded-xl border border-border bg-background px-3 py-2"/>
+		</label>
+		<datalist id="source-versions">
+			for _, version := range model.TemplateVersions() {
+				<option value={ version }></option>
+			}
+		</datalist>
+		<label class="flex flex-col gap-1 text-sm">
+			<span>variantId</span>
+			<input name="variantId" value={ model.Rule.Match.VariantID } list="source-variants" class="rounded-xl border border-border bg-background px-3 py-2"/>
+		</label>
+		<datalist id="source-variants">
+			for _, spec := range model.MatchingVariants() {
+				<option value={ spec.Variant.ID }>{ spec.Variant.Version }</option>
+			}
+		</datalist>
+		<label class="flex flex-col gap-1 text-sm">
+			<span>variantVersion</span>
+			<input name="variantVersion" value={ model.Rule.Match.VariantVersion } list="source-variant-versions" class="rounded-xl border border-border bg-background px-3 py-2"/>
+		</label>
+		<datalist id="source-variant-versions">
+			for _, spec := range model.MatchingVariants() {
+				if spec.Variant.ID == model.Rule.Match.VariantID {
+					<option value={ spec.Variant.Version }></option>
+				}
+			}
+		</datalist>
+		if model.SourceError != "" {
+			<p class="text-sm text-destructive">{ model.SourceError }</p>
+		}
+		if spec := model.SelectedTemplate(); spec != nil {
+			<details open>
+				<summary>Source contract: { spec.Template.ID } / { spec.Template.Version }</summary>
+				<p class="text-xs">Geometry: { strings.Join(spec.Template.AllowedGeometries, ", ") }; allowNoLocation: { fmt.Sprint(spec.Template.AllowNoLocation) }</p>
+				<p class="text-xs">Metadata is free-form; paths are checked dynamically. Numeric value support is not implied by a declared dataType. Repeat groups and optional sources require runtime checks.</p>
+				<pre class="overflow-x-auto whitespace-pre-wrap text-xs">{ jsonText(spec.Template.PropertyDefs) }</pre>
+				<p class="text-xs">Value paths (delta is this update; snapshot is producer current-state, never inferred from Thing.Values):</p>
+				<ul class="text-xs font-mono">
+					for property := range spec.Template.PropertyDefs {
+						for _, path := range valueSourcePaths(property) {
+							<li>{ path }</li>
+						}
+					}
+				</ul>
+				<p class="text-xs">Required: { strings.Join(spec.Template.Required, ", ") }; optional: { strings.Join(spec.Template.Optional, ", ") }; repeat groups: { strings.Join(spec.Template.RepeatGroups, ", ") }</p>
+				<pre class="overflow-x-auto whitespace-pre-wrap text-xs">{ jsonText(spec.Template.Relations) }</pre>
+			</details>
+		} else {
+			<p class="text-xs text-muted-foreground">Choose an exact template version to inspect properties and relation slots. No compatibility guarantee without backend checking.</p>
+		}
+		if spec := model.SelectedVariant(); spec != nil {
+			<details open><summary>Selected variant contract (backend checks effective constraints)</summary><pre class="overflow-x-auto whitespace-pre-wrap text-xs">{ jsonText(spec) }</pre></details>
+		}
+	</div>
+}
+
+templ RuleJSONField(model RuleFormViewModel) {
+	<label id="rule-json-field" class="flex flex-col gap-1 text-sm">
+		<span>Complete rule JSON (authoritative only in JSON mode)</span>
+		<textarea name="ruleJSON" rows="14" class="rounded-xl border border-border bg-background px-3 py-2 font-mono text-xs">{ model.RuleJSON() }</textarea>
+	</label>
+}
+
+templ CompatibilityResult(model CompatibilityViewModel) {
+	<div id="compatibility-result" class="flex flex-col gap-2 text-sm">
+		if model.CandidateName != "" {
+			<p class="break-words font-semibold">Candidate rule: { model.CandidateName }</p>
+		}
+		if model.ErrorMessage != "" {
+			<p class="text-destructive">{ model.ErrorMessage }</p>
+		} else {
+			<p>Compatible: { fmt.Sprint(model.Result.Compatible) }</p>
+			<h4>Errors / compatibility issues</h4>
+			for _, issue := range model.Result.Issues {
+				<pre class="overflow-x-auto whitespace-pre-wrap text-destructive">{ jsonText(issue) }</pre>
+			}
+			<h4>Warnings / dynamic limitations</h4>
+			for _, issue := range model.Result.Warnings {
+				<pre class="overflow-x-auto whitespace-pre-wrap text-muted-foreground">{ jsonText(issue) }</pre>
+			}
+			<p class="text-xs">Static checking does not prove runtime source availability, broker existence, full SDM schema conformance or JSON-LD expansion.</p>
+		}
+	</div>
+}

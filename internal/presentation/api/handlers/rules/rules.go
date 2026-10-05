@@ -127,7 +127,13 @@ func fillTypeOptions(ctx context.Context, app rulesApp, tenant string, model *fe
 	}
 	specs, err := app.ThingsV2().ListTemplates(ctx, tenant, "")
 	if err != nil {
+		model.SourceError = err.Error()
 		return
+	}
+	model.Templates = specs
+	model.Variants, err = app.ThingsV2().ListVariants(ctx, tenant)
+	if err != nil {
+		model.SourceError = err.Error()
 	}
 	for _, spec := range specs {
 		if spec.Template.ID != "" && !slices.Contains(model.TypeOptions, spec.Template.ID) {
@@ -203,11 +209,12 @@ func NewRulesPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 				if model.Source != "" && m.Source != model.Source {
 					continue
 				}
-				if model.Search != "" && !strings.Contains(strings.ToLower(m.Rule.Match.Type+m.Rule.Match.Event+m.ID), strings.ToLower(model.Search)) {
+				if model.Search != "" && !strings.Contains(strings.ToLower(m.Rule.Name+m.Rule.Match.Type+m.Rule.Match.Event+m.ID), strings.ToLower(model.Search)) {
 					continue
 				}
 				model.Rules = append(model.Rules, featurerules.RuleRowViewModel{
 					ID:      m.ID,
+					Name:    m.Rule.Name,
 					ShortID: shortID(m.ID),
 					Kind:    m.Rule.Match.Kind,
 					Summary: ruleSummary(m.Rule),

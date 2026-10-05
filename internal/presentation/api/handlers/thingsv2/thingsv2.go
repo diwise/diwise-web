@@ -268,7 +268,11 @@ func NewThingsV2DetailsPage(ctx context.Context, l10n LocaleBundle, assets Asset
 
 		tenant, err := resolveDetailsTenant(r)
 		if err != nil {
-			http.Error(w, "tenant is required", http.StatusBadRequest)
+			status := formErrorStatus(err)
+			if status == http.StatusOK {
+				status = http.StatusBadRequest
+			}
+			http.Error(w, "tenant is required or not authorized", status)
 			return
 		}
 
@@ -329,6 +333,7 @@ func NewThingsV2DetailsPage(ctx context.Context, l10n LocaleBundle, assets Asset
 		}
 
 		model := toDetailsViewModel(thing, bindings, children, parent)
+		model.Relations, model.RelationsError = detailRelations(ctx, app, tenant, id)
 		if _, ok, _ := partOfSlot(ctx, app, tenant, id); ok {
 			model.CanChangeParent = true
 		}
@@ -349,6 +354,9 @@ func NewThingsV2DetailsPage(ctx context.Context, l10n LocaleBundle, assets Asset
 // ?tenant= vinner, annars den enda token-auktoriserade tenanten.
 func resolveDetailsTenant(r *http.Request) (string, error) {
 	if tenant := strings.TrimSpace(r.URL.Query().Get("tenant")); tenant != "" {
+		if _, ok := resolveCreateTenant(r, tokenTenants(r), tenant); !ok {
+			return "", client.ErrForbidden
+		}
 		return tenant, nil
 	}
 

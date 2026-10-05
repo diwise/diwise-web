@@ -227,7 +227,7 @@ func TestValidateAndPreview(t *testing.T) {
 	is.True(errors.As(err, &verr))
 	is.True(verr.Message != "")
 
-	res, err := svc.PreviewRule(auth.WithToken(context.Background(), "test-token"), "t", testRule(), PreviewEvent{Kind: "things.v1.values", Message: map[string]any{}})
+	res, err := svc.PreviewRule(auth.WithToken(context.Background(), "test-token"), "t", testRule(), PreviewEvent{Kind: "things.v1.values", Message: json.RawMessage(`{}`)})
 	is.NoErr(err)
 	is.True(res.Matched)
 	is.Equal(1, len(res.Entities))

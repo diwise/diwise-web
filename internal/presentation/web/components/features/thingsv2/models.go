@@ -92,6 +92,8 @@ type ThingV2DetailsViewModel struct {
 	Tenant                 string
 	HistoryProperties      []featuresthings.TypeOption
 	DefaultHistoryProperty string
+	Relations              []RelationViewModel
+	RelationsError         string
 }
 
 // ParamFieldViewModel är ett överstyrbart parameterfält i skapa/redigera.
@@ -117,6 +119,8 @@ type ThingV2CreateViewModel struct {
 	Variants        []featuresthings.TypeOption
 	Variant         string
 	Params          []ParamFieldViewModel
+	Relations       []RelationSlotViewModel
+	RelationsError  string
 	Name            string
 	Description     string
 	Latitude        string
@@ -144,6 +148,8 @@ type ThingV2EditViewModel struct {
 	Variants        []featuresthings.TypeOption
 	Variant         string
 	Params          []ParamFieldViewModel
+	Relations       []RelationSlotViewModel
+	RelationsError  string
 	Name            string
 	Description     string
 	Latitude        string
@@ -157,6 +163,22 @@ type ThingV2EditViewModel struct {
 	// GeometryJSON är ritad polygon (rings-JSON) för dolt fält + karta.
 	GeometryJSON string
 	ErrorMessage string
+}
+
+type RelationSlotViewModel struct {
+	Name     string
+	Min, Max int
+	Options  []RelationOption
+}
+
+type RelationOption struct {
+	ID, Label string
+	Selected  bool
+}
+
+type RelationViewModel struct {
+	Name, ID, Label  string
+	Incoming, Broken bool
 }
 
 // ThingV2DeleteViewModel är raderingsdialogen för /things-v2/{id}.

@@ -1,9 +1,11 @@
 package transform
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 
@@ -14,13 +16,23 @@ import (
 
 var tracer = otel.Tracer("diwise-web/app/transform")
 
-// ValidationError carries a backend 400 text (rule validation) for form
-// display. The backend responds {error: string} in cleartext.
+// ValidationError carries a backend 400/422 text (rule validation) for form
+// display. The backend responds {error: string} in cleartext. Wraps
+// client.ErrBadRequest (400) or client.ErrUnprocessable (422) so
+// errors.Is classifies it.
 type ValidationError struct {
 	Message string
+	Status  int
 }
 
 func (e *ValidationError) Error() string { return "invalid rule: " + e.Message }
+
+func (e *ValidationError) Unwrap() error {
+	if e.Status == http.StatusUnprocessableEntity {
+		return client.ErrUnprocessable
+	}
+	return client.ErrBadRequest
+}
 
 // Service is the client for iot-transform-fiware (/api/v0): rule CRUD
 // plus dry-run validate/preview. Writes carry If-Match rev-n; conflicts
@@ -93,6 +105,10 @@ func (s *Service) GetModel(ctx context.Context, tenant, id string) (Model, error
 	ctx, span := tracer.Start(ctx, "get-model")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
+	if err = client.ValidatePathID(id, "model"); err != nil {
+		return Model{}, err
+	}
+
 	params := url.Values{}
 	params.Add("tenant", tenant)
 
@@ -139,6 +155,10 @@ func (s *Service) UpdateModel(ctx context.Context, tenant, id string, rule Rule,
 	ctx, span := tracer.Start(ctx, "update-model")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
 
+	if err = client.ValidatePathID(id, "model"); err != nil {
+		return Model{}, err
+	}
+
 	raw, err := json.Marshal(rule)
 	if err != nil {
 		return Model{}, fmt.Errorf("failed to encode rule: %w", err)
@@ -160,6 +180,10 @@ func (s *Service) DeleteModel(ctx context.Context, tenant, id string, revision i
 	var err error
 	ctx, span := tracer.Start(ctx, "delete-model")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	if err = client.ValidatePathID(id, "model"); err != nil {
+		return err
+	}
 
 	params := url.Values{}
 	params.Add("tenant", tenant)
@@ -193,17 +217,57 @@ func (s *Service) ValidateRule(ctx context.Context, tenant string, rule Rule) er
 	if status == http.StatusOK {
 		return nil
 	}
-	if msg := errorMessage(body); msg != "" && status == http.StatusBadRequest {
-		return &ValidationError{Message: msg}
+	if msg := errorMessage(body); msg != "" && (status == http.StatusBadRequest || status == http.StatusUnprocessableEntity) {
+		return &ValidationError{Message: msg, Status: status}
 	}
 	return checkWriteStatus(status)
 }
 
-// PreviewRule dry-runs an inline rule against an example event.
+// NewPreviewEvent builds a preview event from raw JSON text, enforcing
+// exactly one JSON document (same rule as backend decodeJSONBody). Returns
+// RawMessage so no field is lost in roundtrip.
+func NewPreviewEvent(kind, rawMessage, sensorType string) (PreviewEvent, error) {
+	if kind == "" {
+		return PreviewEvent{}, &ValidationError{Message: "preview kind is required", Status: http.StatusBadRequest}
+	}
+	trimmed := []byte(rawMessage)
+	if len(trimmed) == 0 {
+		return PreviewEvent{}, &ValidationError{Message: "preview message is required", Status: http.StatusBadRequest}
+	}
+	if !json.Valid(trimmed) {
+		return PreviewEvent{}, &ValidationError{Message: "preview message must be exactly one JSON document", Status: http.StatusBadRequest}
+	}
+	// Exactly one document: a second Decode must hit EOF.
+	dec := json.NewDecoder(bytes.NewReader(trimmed))
+	var first json.RawMessage
+	if err := dec.Decode(&first); err != nil {
+		return PreviewEvent{}, &ValidationError{Message: "preview message must be exactly one JSON document", Status: http.StatusBadRequest}
+	}
+	var extra any
+	if err := dec.Decode(&extra); err != io.EOF {
+		return PreviewEvent{}, &ValidationError{Message: "preview message must be exactly one JSON document", Status: http.StatusBadRequest}
+	}
+	return PreviewEvent{Kind: kind, Message: json.RawMessage(trimmed), SensorType: sensorType}, nil
+}
+
+// PreviewRule dry-runs an inline rule against an example event. Message must
+// be exactly one JSON document (use NewPreviewEvent); empty/invalid yields a
+// client-side ValidationError without backend contact. Never triggers broker
+// calls or mutations.
 func (s *Service) PreviewRule(ctx context.Context, tenant string, rule Rule, event PreviewEvent) (PreviewResult, error) {
 	var err error
 	ctx, span := tracer.Start(ctx, "preview-rule")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	if event.Kind == "" {
+		return PreviewResult{}, &ValidationError{Message: "preview kind is required", Status: http.StatusBadRequest}
+	}
+	if len(event.Message) == 0 {
+		return PreviewResult{}, &ValidationError{Message: "preview message is required", Status: http.StatusBadRequest}
+	}
+	if !json.Valid(event.Message) {
+		return PreviewResult{}, &ValidationError{Message: "preview message must be exactly one JSON document", Status: http.StatusBadRequest}
+	}
 
 	req := struct {
 		Rule  Rule         `json:"rule"`
@@ -222,8 +286,8 @@ func (s *Service) PreviewRule(ctx context.Context, tenant string, rule Rule, eve
 		return PreviewResult{}, err
 	}
 	if status != http.StatusOK {
-		if msg := errorMessage(body); msg != "" && status == http.StatusBadRequest {
-			return PreviewResult{}, &ValidationError{Message: msg}
+		if msg := errorMessage(body); msg != "" && (status == http.StatusBadRequest || status == http.StatusUnprocessableEntity) {
+			return PreviewResult{}, &ValidationError{Message: msg, Status: status}
 		}
 		return PreviewResult{}, checkWriteStatus(status)
 	}
@@ -232,11 +296,154 @@ func (s *Service) PreviewRule(ctx context.Context, tenant string, rule Rule, eve
 	if err = json.Unmarshal(body, &res); err != nil {
 		return PreviewResult{}, fmt.Errorf("failed to decode preview: %w", err)
 	}
+	res = normalizePreviewResult(res)
+
+	return res, nil
+}
+
+// normalizePreviewResult keeps E wire "competing" verbatim and maps it to
+// GUI views "matches"/"diagnostics" (A-rekommendation Våg3: backend behåller
+// competing, G mappar + dokumenterar). Skipped stays []Diagnostic with full
+// fields (code,ruleId,ruleRevision,snapshotVersion,entity,attribute,
+// expression,tenant,thingId,configRevision) without loss; legacy
+// reason/target/message keys survive in Diagnostic's tolerant aliases.
+// Old stubs without competing (matches/diagnostics only) derive competing
+// so J-acceptans sees one canonical view either way.
+func normalizePreviewResult(res PreviewResult) PreviewResult {
 	if res.Entities == nil {
 		res.Entities = []PreviewEntity{}
 	}
+	if res.Competing == nil {
+		res.Competing = []MatchDiagnostic{}
+	}
+	if res.Skipped == nil {
+		res.Skipped = []Diagnostic{}
+	}
+	if res.Matches == nil {
+		res.Matches = []PreviewMatch{}
+	}
+	if res.Diagnostics == nil {
+		res.Diagnostics = []MatchDiagnostic{}
+	}
+	if res.Overlaps == nil {
+		res.Overlaps = []RuleOverlap{}
+	}
+	if len(res.Competing) > 0 {
+		if len(res.Matches) == 0 {
+			res.Matches = CompetingToMatches(res.Competing)
+		}
+		if len(res.Diagnostics) == 0 {
+			res.Diagnostics = append([]MatchDiagnostic(nil), res.Competing...)
+		}
+	} else {
+		if len(res.Matches) > 0 {
+			res.Competing = MatchesToCompeting(res.Matches)
+		} else if len(res.Diagnostics) > 0 {
+			res.Competing = append([]MatchDiagnostic(nil), res.Diagnostics...)
+			res.Matches = CompetingToMatches(res.Competing)
+		}
+		if len(res.Diagnostics) == 0 && len(res.Competing) > 0 {
+			res.Diagnostics = append([]MatchDiagnostic(nil), res.Competing...)
+		}
+		if len(res.Matches) == 0 && len(res.Competing) > 0 {
+			res.Matches = CompetingToMatches(res.Competing)
+		}
+	}
+	return res
+}
 
-	return res, nil
+// CheckCompatibility checks a candidate rule set against an explicit
+// template version + source contract (D-facit CompatRequest{template,
+// sources,rules,tenant,thingId,configRevision} + POST /models/compat,
+// register.go + compat_d_test.go). Tenant in body never widens token auth:
+// query ?tenant= carries auth scope, body tenant/thingId/configRevision are
+// diagnostic context only. Empty template version/variant is wildcard per D
+// (old G required version; now only thingType is required). Response is
+// CompatResult{compatible,diagnostics}; Issues/Warnings are derived for H/I
+// templ. A 404 from an old backend surfaces as ErrNotFound (caller falls
+// back to ValidateRule).
+func (s *Service) CheckCompatibility(ctx context.Context, tenant string, req CompatibilityRequest) (CompatibilityResult, error) {
+	var err error
+	ctx, span := tracer.Start(ctx, "check-compatibility")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	effectiveThingType := req.Template.ThingType
+	if effectiveThingType == "" {
+		effectiveThingType = req.TemplateID
+	}
+	if effectiveThingType == "" {
+		return CompatibilityResult{}, fmt.Errorf("template thingType is required: %w", client.ErrBadRequest)
+	}
+	if len(req.Rules) == 0 {
+		return CompatibilityResult{}, fmt.Errorf("at least one rule is required: %w", client.ErrBadRequest)
+	}
+	// Body tenant defaults to query tenant for diagnostic context; never
+	// widens token auth (backend checks auth context, not body).
+	if req.Tenant == "" {
+		req.Tenant = tenant
+	}
+
+	raw, err := json.Marshal(req)
+	if err != nil {
+		return CompatibilityResult{}, fmt.Errorf("failed to encode compatibility: %w", err)
+	}
+
+	params := url.Values{}
+	params.Add("tenant", tenant)
+
+	body, _, status, err := s.client.WriteRawDetailed(ctx, http.MethodPost, s.baseURL, "models/compat", params, nil, raw)
+	if err != nil {
+		return CompatibilityResult{}, err
+	}
+	switch status {
+	case http.StatusOK:
+		var res CompatibilityResult
+		if err = json.Unmarshal(body, &res); err != nil {
+			return CompatibilityResult{}, fmt.Errorf("failed to decode compatibility: %w", err)
+		}
+		res = normalizeCompatibilityResult(res)
+		return res, nil
+	case http.StatusBadRequest, http.StatusUnprocessableEntity:
+		if msg := errorMessage(body); msg != "" {
+			return CompatibilityResult{}, &ValidationError{Message: msg, Status: status}
+		}
+		return CompatibilityResult{}, checkWriteStatus(status)
+	case http.StatusNotFound:
+		return CompatibilityResult{}, fmt.Errorf("request failed: %w", client.ErrNotFound)
+	default:
+		return CompatibilityResult{}, checkWriteStatus(status)
+	}
+}
+
+// normalizeCompatibilityResult keeps D diagnostics verbatim and derives
+// legacy GUI views Issues/Warnings for H/I templ (which ranges over them).
+// Old stubs with issues/warnings only derive diagnostics back so J sees one
+// canonical view either way. No diagnostic value is dropped: Detail/Message,
+// Entity/TargetRole, Attribute/Target survive in both shapes.
+func normalizeCompatibilityResult(res CompatibilityResult) CompatibilityResult {
+	if res.Diagnostics == nil {
+		res.Diagnostics = []Diagnostic{}
+	}
+	if res.Issues == nil {
+		res.Issues = []CompatibilityIssue{}
+	}
+	if res.Warnings == nil {
+		res.Warnings = []CompatibilityIssue{}
+	}
+	if len(res.Diagnostics) > 0 && len(res.Issues) == 0 {
+		for _, d := range res.Diagnostics {
+			res.Issues = append(res.Issues, DiagnosticToIssue(d))
+		}
+	}
+	if len(res.Diagnostics) == 0 && (len(res.Issues) > 0 || len(res.Warnings) > 0) {
+		for _, i := range res.Issues {
+			res.Diagnostics = append(res.Diagnostics, IssueToDiagnostic(i))
+		}
+		for _, w := range res.Warnings {
+			res.Diagnostics = append(res.Diagnostics, IssueToDiagnostic(w))
+		}
+	}
+	return res
 }
 
 func decodeModelResponse(body []byte, status int) (Model, error) {
@@ -247,9 +454,9 @@ func decodeModelResponse(body []byte, status int) (Model, error) {
 			return Model{}, fmt.Errorf("failed to decode model: %w", err)
 		}
 		return model, nil
-	case http.StatusBadRequest:
+	case http.StatusBadRequest, http.StatusUnprocessableEntity:
 		if msg := errorMessage(body); msg != "" {
-			return Model{}, &ValidationError{Message: msg}
+			return Model{}, &ValidationError{Message: msg, Status: status}
 		}
 		return Model{}, fmt.Errorf("request failed: %d", status)
 	case http.StatusUnauthorized:

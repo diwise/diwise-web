@@ -35,28 +35,42 @@ type TemplateDetailsViewModel struct {
 }
 
 // TemplateNewViewModel är skapa-ny-version för /catalog/templates/new.
-// Källa (From "id/version") kopieras med ny version (B3); relations,
-// recipes, propertyDefs och paramInfo följer med read-only. Blankett utan
-// källa sätter endast basfält + required/optional + params.
+// The pinned source is copied into editable fields; publication always creates
+// a new version. Advanced JSON is retained verbatim when validation fails.
 type TemplateNewViewModel struct {
-	Tenants         []string
-	Tenant          string
-	From            string
-	FromLocked      bool
-	ID              string
-	Version         string
-	DisplayName     string
-	Description     string
-	Category        string
-	Required        string
-	Optional        string
-	Geometries      []string
-	AllowNoLocation bool
-	ParamDefaults   string
-	OverridableText string
-	CopiedRelations int
-	CopiedRecipes   int
-	ErrorMessage    string
+	Tenants             []string
+	Tenant              string
+	From                string
+	FromLocked          bool
+	ID                  string
+	Version             string
+	DisplayName         string
+	Description         string
+	Category            string
+	Required            string
+	Optional            string
+	PrimaryProperty     string
+	RepeatGroups        string
+	AllowedQuantities   string
+	Labels              string
+	PropertyDefs        string
+	Relations           string
+	RelationRows        []RelationEditRow
+	RelationsStructured bool
+	Recipes             string
+	ParamInfo           string
+	OperatorVersions    string
+	Geometries          []string
+	AllowNoLocation     bool
+	ParamDefaults       string
+	OverridableText     string
+	CopiedRelations     int
+	CopiedRecipes       int
+	ErrorMessage        string
+}
+
+type RelationEditRow struct {
+	Name, AllowedTargets, Min, Max string
 }
 
 // VariantRowViewModel är en variantrad i listan.
@@ -91,13 +105,14 @@ func (VariantDetailsViewModel) Float(f float64) string {
 
 // VariantNewViewModel är skapa-ny-version för /catalog/variants/new.
 type VariantNewViewModel struct {
-	Tenants         []string
-	Tenant          string
-	From            string
-	ID              string
-	Version         string
-	TemplateRef     string
-	TemplateOptions []string
-	ParamValues     string
-	ErrorMessage    string
+	Tenants          []string
+	Tenant           string
+	From             string
+	ID               string
+	Version          string
+	TemplateRef      string
+	TemplateOptions  []string
+	ParamValues      string
+	PresetProperties string
+	ErrorMessage     string
 }

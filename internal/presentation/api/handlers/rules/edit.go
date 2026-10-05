@@ -30,6 +30,17 @@ var propertyKeyRe = regexp.MustCompile(`^e(\d+)_p(\d+)_(.+)$`)
 // hoppas över; tomma properties (utan target) likaså.
 func parseRuleForm(form map[string][]string) (apptransform.Rule, error) {
 	var rule apptransform.Rule
+	if modes := form["editorMode"]; len(modes) > 1 || (len(modes) == 1 && modes[0] != "form" && modes[0] != "json") {
+		return rule, fmt.Errorf("invalid rule editor mode")
+	}
+	if len(form["editorMode"]) == 1 && form["editorMode"][0] == "json" {
+		if len(form["ruleJSON"]) != 1 {
+			return rule, fmt.Errorf("one rule JSON document is required")
+		}
+		err := decodeRuleJSON(form["ruleJSON"][0], &rule)
+		rule.Name = strings.TrimSpace(rule.Name)
+		return rule, err
+	}
 
 	get := func(key string) string {
 		if len(form[key]) == 0 {
@@ -38,22 +49,26 @@ func parseRuleForm(form map[string][]string) (apptransform.Rule, error) {
 		return strings.TrimSpace(form[key][0])
 	}
 
+	rule.Name = get("name")
 	rule.Match = apptransform.Match{
-		Kind:            get("kind"),
-		Device:          get("device"),
-		Port:            get("port"),
-		SensorType:      get("sensorType"),
-		Object:          get("object"),
-		Resource:        get("resource"),
-		Env:             get("env"),
-		Type:            get("type"),
-		SubType:         get("subType"),
-		Tenant:          get("tenant"),
-		Event:           get("event"),
-		Relation:        get("relation"),
-		RelationRemoved: get("relationRemoved") == "true",
-		Lifecycle:       get("lifecycle"),
-		ToType:          get("toType"),
+		Kind:             get("kind"),
+		Device:           get("device"),
+		Port:             get("port"),
+		SensorType:       get("sensorType"),
+		Object:           get("object"),
+		Resource:         get("resource"),
+		Env:              get("env"),
+		Type:             get("type"),
+		SubType:          get("subType"),
+		Tenant:           get("tenant"),
+		Event:            get("event"),
+		Relation:         get("relation"),
+		RelationRemoved:  get("relationRemoved") == "true",
+		Lifecycle:        get("lifecycle"),
+		ToType:           get("toType"),
+		ThingTypeVersion: get("thingTypeVersion"),
+		VariantID:        get("variantId"),
+		VariantVersion:   get("variantVersion"),
 	}
 	if text := get("priority"); text != "" {
 		priority, err := strconv.Atoi(text)
@@ -108,7 +123,7 @@ func parseRuleForm(form map[string][]string) (apptransform.Rule, error) {
 		}
 		ent.Properties = props
 
-		if ent.ID == "" && ent.Type == "" && ent.Name == "" && len(ent.Properties) == 0 &&
+		if ent.ID == "" && ent.Type == "" && ent.Name == "" && ent.Context == "" && len(ent.Properties) == 0 &&
 			len(ent.RemoveAttributes) == 0 && !ent.Create && !ent.Delete {
 			continue
 		}
@@ -139,8 +154,11 @@ func parseProperties(form map[string][]string, entity int) ([]apptransform.Prope
 			}
 			e, err1 := strconv.Atoi(m[1])
 			j, err2 := strconv.Atoi(m[2])
-			if err1 != nil || err2 != nil || e != entity || j < 0 || j > 99 {
+			if e != entity {
 				continue
+			}
+			if err1 != nil || err2 != nil || j < 0 || j > 99 {
+				return nil, fmt.Errorf("bad property index %q", key)
 			}
 			idx[j] = true
 		}
@@ -150,6 +168,15 @@ func parseProperties(form map[string][]string, entity int) ([]apptransform.Prope
 	for j := range 100 {
 		if !idx[j] {
 			continue
+		}
+		// A blank target must never silently discard advanced input. Blank
+		// added rows may carry default type/source selectors, but no content.
+		if get(entity, j, "target") == "" {
+			for _, name := range []string{"sourceValue", "unit", "observedAt", "observedBy", "when", "whenPresent", "required", "prefix", "transformOp", "transformValue", "transform", "derive", "subproperties", "array", "convert"} {
+				if get(entity, j, name) != "" {
+					return nil, fmt.Errorf("property target is required (entity %d, property %d, field %s)", entity, j, name)
+				}
+			}
 		}
 		p, skip, err := parseProperty(
 			get(entity, j, "target"),
@@ -175,6 +202,9 @@ func parseProperties(form map[string][]string, entity int) ([]apptransform.Prope
 			continue
 		}
 		p.Array = get(entity, j, "array") == "true"
+		if _, supplied := form["e"+strconv.Itoa(entity)+"_p"+strconv.Itoa(j)+"_when"]; supplied {
+			p.When = get(entity, j, "when")
+		}
 		if text := get(entity, j, "convert"); text != "" {
 			decoder := json.NewDecoder(strings.NewReader(text))
 			decoder.DisallowUnknownFields()
@@ -214,6 +244,7 @@ func parseProperty(target, typ, sourceKind, sourceValue, unit, observedAt, obser
 	p.Prefix = prefix
 
 	switch sourceKind {
+	case "derive": // The aggregate sources live in derive.of, not a primary source.
 	case "resource":
 		p.Resource = sourceValue
 	case "object":
@@ -251,10 +282,19 @@ func parseProperty(target, typ, sourceKind, sourceValue, unit, observedAt, obser
 			}
 			t.Value = &f
 		}
-		p.Transform = []apptransform.Transform{t}
+		if transformJSON != "" {
+			if err := decodeRuleJSON(transformJSON, &p.Transform); err != nil {
+				return p, false, fmt.Errorf("property %q: bad transform data: %w", target, err)
+			}
+		}
+		if len(p.Transform) == 0 {
+			p.Transform = []apptransform.Transform{t}
+		} else {
+			p.Transform[0] = t
+		}
 	} else if transformJSON != "" {
 		var steps []apptransform.Transform
-		if err := json.Unmarshal([]byte(transformJSON), &steps); err != nil {
+		if err := decodeRuleJSON(transformJSON, &steps); err != nil {
 			return p, false, fmt.Errorf("property %q: bad transform data", target)
 		}
 		p.Transform = steps
@@ -262,14 +302,14 @@ func parseProperty(target, typ, sourceKind, sourceValue, unit, observedAt, obser
 
 	if deriveJSON != "" {
 		var d apptransform.Derive
-		if err := json.Unmarshal([]byte(deriveJSON), &d); err != nil {
+		if err := decodeRuleJSON(deriveJSON, &d); err != nil {
 			return p, false, fmt.Errorf("property %q: bad derive data", target)
 		}
 		p.Derive = &d
 	}
 	if subpropertiesJSON != "" {
 		var subs []apptransform.Property
-		if err := json.Unmarshal([]byte(subpropertiesJSON), &subs); err != nil {
+		if err := decodeRuleJSON(subpropertiesJSON, &subs); err != nil {
 			return p, false, fmt.Errorf("property %q: bad subproperties data", target)
 		}
 		p.Subproperties = subs
@@ -286,7 +326,9 @@ func parseConst(s string) (any, error) {
 		return nil, fmt.Errorf("const value is required")
 	}
 	var v any
-	if err := json.Unmarshal([]byte(s), &v); err == nil {
+	decoder := json.NewDecoder(strings.NewReader(s))
+	decoder.UseNumber()
+	if json.Valid([]byte(s)) && decoder.Decode(&v) == nil {
 		return v, nil
 	}
 	return s, nil
@@ -373,6 +415,7 @@ func NewRuleCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 				Rule:                rule,
 				ErrorMessage:        msg,
 				TransformConfigured: app.Transforms().Configured(),
+				SubmittedForm:       form,
 			}
 			fillTypeOptions(ctx, app, rule.Match.Tenant, &errModel)
 			fillMatchOptions(ctx, app, &errModel)
@@ -386,7 +429,7 @@ func NewRuleCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetLoade
 
 		rule, err := parseRuleForm(form)
 		if err != nil {
-			renderErr(blankRule(), err.Error())
+			renderErr(rule, err.Error())
 			return
 		}
 
@@ -447,6 +490,7 @@ func NewRuleSavePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderF
 				ShowDelete:          true,
 				ErrorMessage:        msg,
 				TransformConfigured: app.Transforms().Configured(),
+				SubmittedForm:       form,
 			}
 			fillTypeOptions(ctx, app, rule.Match.Tenant, &errModel)
 			fillMatchOptions(ctx, app, &errModel)
@@ -460,7 +504,7 @@ func NewRuleSavePage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderF
 
 		rule, err := parseRuleForm(form)
 		if err != nil {
-			renderErr(blankRule(), err.Error())
+			renderErr(rule, err.Error())
 			return
 		}
 
@@ -496,19 +540,19 @@ func NewTypeOptionsFragment(_ context.Context, l10n LocaleBundle, _ AssetLoaderF
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
 		tenant := strings.TrimSpace(r.URL.Query().Get("tenant"))
 		current := strings.TrimSpace(r.URL.Query().Get("current"))
-
-		var options []string
-		if tenant != "" {
-			if specs, err := app.ThingsV2().ListTemplates(r.Context(), tenant, ""); err == nil {
-				for _, spec := range specs {
-					if spec.Template.ID != "" && !slices.Contains(options, spec.Template.ID) {
-						options = append(options, spec.Template.ID)
-					}
-				}
-			}
+		if current == "" {
+			current = r.URL.Query().Get("type")
 		}
-
-		helpers.WriteComponentResponse(r.Context(), w, r, featurerules.TypeField(localizer, current, options), 16*1024, http.StatusOK)
+		if tenant != "" && !slices.Contains(ruleTokenTenants(r), tenant) {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
+		model := featurerules.RuleFormViewModel{Rule: apptransform.Rule{Match: apptransform.Match{
+			Type: current, Tenant: tenant, ThingTypeVersion: r.URL.Query().Get("thingTypeVersion"),
+			VariantID: r.URL.Query().Get("variantId"), VariantVersion: r.URL.Query().Get("variantVersion"),
+		}}}
+		fillTypeOptions(r.Context(), app, tenant, &model)
+		helpers.WriteComponentResponse(r.Context(), w, r, featurerules.SourceSelection(localizer, model), 32*1024, http.StatusOK)
 	}
 
 	return http.HandlerFunc(fn)

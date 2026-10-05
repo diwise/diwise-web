@@ -2,10 +2,9 @@ package rules
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/diwise/diwise-web/internal/application/client"
@@ -40,21 +39,8 @@ func parsePreviewForm(form map[string][]string) (apptransform.Rule, apptransform
 	if raw == "" {
 		return rule, apptransform.PreviewEvent{}, errors.New("preview message is required")
 	}
-	var msg any
-	dec := json.NewDecoder(strings.NewReader(raw))
-	if err := dec.Decode(&msg); err != nil {
-		return rule, apptransform.PreviewEvent{}, errors.New("preview message must be exactly one JSON document")
-	}
-	var extra any
-	if err := dec.Decode(&extra); err != io.EOF {
-		return rule, apptransform.PreviewEvent{}, errors.New("preview message must be exactly one JSON document")
-	}
-
-	return rule, apptransform.PreviewEvent{
-		Kind:       kind,
-		Message:    msg,
-		SensorType: first("previewSensorType"),
-	}, nil
+	event, err := apptransform.NewPreviewEvent(kind, raw, first("previewSensorType"))
+	return rule, event, err
 }
 
 // NewValidateFragment torrvaliderar formulärregeln utan att spara (HTMX,
@@ -70,7 +56,54 @@ func NewValidateFragment(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc
 		}
 		rule, err := parseRuleForm(map[string][]string(r.Form))
 		if err != nil {
+			if r.Form.Get("editorAction") != "" {
+				w.Header().Set("HX-Retarget", "#validate-result")
+				w.Header().Set("HX-Reswap", "outerHTML")
+			}
 			helpers.WriteComponentResponse(r.Context(), w, r, featurerules.ValidateResult(localizer, featurerules.ValidateResultViewModel{Message: err.Error()}), 16*1024, http.StatusOK)
+			return
+		}
+		if r.Form.Get("editorAction") == "export" {
+			helpers.WriteComponentResponse(r.Context(), w, r, featurerules.RuleJSONField(featurerules.RuleFormViewModel{Rule: rule}), 32*1024, http.StatusOK)
+			return
+		}
+		if r.Form.Get("editorAction") == "import" {
+			id := r.Form.Get("ruleID")
+			revision, err := parseRevision(r.Form.Get("revision"))
+			if id != "" && err != nil {
+				http.Error(w, "revision is required", http.StatusBadRequest)
+				return
+			}
+			model := featurerules.RuleFormViewModel{ID: id, Revision: revision, IsNew: id == "", ShowDelete: id != "", Rule: rule,
+				Tenants: ruleTokenTenants(r), TransformConfigured: app.Transforms().Configured(), SubmittedForm: map[string][]string{
+					"previewKind": {r.Form.Get("previewKind")}, "previewMessage": {r.Form.Get("previewMessage")}, "previewSensorType": {r.Form.Get("previewSensorType")},
+				}}
+			fillTypeOptions(r.Context(), app, rule.Match.Tenant, &model)
+			fillMatchOptions(r.Context(), app, &model)
+			helpers.WriteComponentResponse(r.Context(), w, r, featurerules.RuleFormPage(localizer, model), 32*1024, http.StatusOK)
+			return
+		}
+		if r.Form.Get("checkCompatibility") == "true" {
+			if !slices.Contains(ruleTokenTenants(r), rule.Match.Tenant) {
+				http.Error(w, "forbidden", http.StatusForbidden)
+				return
+			}
+			result, err := app.Transforms().CheckCompatibility(r.Context(), rule.Match.Tenant, apptransform.CompatibilityRequest{
+				TemplateID: rule.Match.Type, TemplateVersion: rule.Match.ThingTypeVersion,
+				VariantID: rule.Match.VariantID, VariantVersion: rule.Match.VariantVersion, Rules: []apptransform.Rule{rule},
+			})
+			model := featurerules.CompatibilityViewModel{Result: result, CandidateName: featurerules.RuleRowViewModel{Name: rule.Name, ID: r.Form.Get("ruleID")}.DisplayName()}
+			if err != nil {
+				if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) {
+					writeServiceError(w, err, "")
+					return
+				}
+				model.ErrorMessage = err.Error()
+				if errors.Is(err, client.ErrNotFound) {
+					model.ErrorMessage = "Compatibility API is not available; rule validation is not a compatibility guarantee."
+				}
+			}
+			helpers.WriteComponentResponse(r.Context(), w, r, featurerules.CompatibilityResult(model), 32*1024, http.StatusOK)
 			return
 		}
 
@@ -125,7 +158,7 @@ func NewPreviewFragment(_ context.Context, l10n LocaleBundle, _ AssetLoaderFunc,
 			return
 		}
 
-		helpers.WriteComponentResponse(r.Context(), w, r, featurerules.PreviewResult(localizer, featurerules.PreviewResultViewModel{Result: res, Queried: true}), 16*1024, http.StatusOK)
+		helpers.WriteComponentResponse(r.Context(), w, r, featurerules.PreviewResult(localizer, featurerules.PreviewResultViewModel{Result: res, Event: event, Queried: true, CandidateName: featurerules.RuleRowViewModel{Name: rule.Name, ID: r.Form.Get("ruleID")}.DisplayName()}), 32*1024, http.StatusOK)
 	}
 
 	return http.HandlerFunc(fn)

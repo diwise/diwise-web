@@ -2,6 +2,7 @@ package thingsv2
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
@@ -40,37 +41,39 @@ func NewThingsV2SavePage(ctx context.Context, l10n LocaleBundle, assets AssetLoa
 		}
 
 		localizer := l10n.For(r.Header.Get("Accept-Language"))
-		renderEdit := func(model featuresthingsv2.ThingV2EditViewModel) {
+		renderEdit := func(model featuresthingsv2.ThingV2EditViewModel, statuses ...int) {
 			content := featuresthingsv2.ThingV2EditPage(localizer, model)
 			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 			if helpers.IsHxRequest(r) {
 				page = v2layout.AppShell(localizer, assets, content)
 			}
-			helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, 0)
+			status := http.StatusOK
+			if len(statuses) > 0 {
+				status = statuses[0]
+			}
+			helpers.WriteComponentResponse(ctx, formStatusWriter{w, status}, r, page, 32*1024, 0)
 		}
 
 		spec, tenant, revision, fail := buildEditSpec(ctx, app, r, id)
 		if fail != "" {
 			model, err := composeEditModel(ctx, r, app, id, r.Form, fail)
 			if err != nil {
-				http.Error(w, "could not fetch thing", http.StatusInternalServerError)
-				return
+				model = fallbackEdit(r, id, fail+": "+err.Error())
 			}
-			renderEdit(model)
+			renderEdit(model, formErrorStatus(err))
 			return
 		}
 
 		if _, err := app.ThingsV2().UpdateThing(ctx, tenant, id, spec, revision); err != nil {
 			message := err.Error()
 			if errors.Is(err, client.ErrConflict) {
-				message = localizer.Get("saveconflict")
+				message = localizer.Get("saveconflict") + ": " + err.Error()
 			}
 			model, modelErr := composeEditModel(ctx, r, app, id, r.Form, message)
 			if modelErr != nil {
-				http.Error(w, "could not fetch thing", http.StatusInternalServerError)
-				return
+				model = fallbackEdit(r, id, message)
 			}
-			renderEdit(model)
+			renderEdit(model, formErrorStatus(err))
 			return
 		}
 
@@ -98,6 +101,9 @@ func composeEditModel(ctx context.Context, r *http.Request, app thingsV2App, id 
 		}
 	}
 	model.Tenant = tenant
+	if _, ok := resolveCreateTenant(r, tokenTenants(r), tenant); !ok {
+		return model, client.ErrForbidden
+	}
 
 	thing, err := app.ThingsV2().GetThing(ctx, tenant, id)
 	if err != nil {
@@ -108,7 +114,7 @@ func composeEditModel(ctx context.Context, r *http.Request, app thingsV2App, id 
 		return featuresthingsv2.ThingV2EditViewModel{}, err
 	}
 
-	templates, err := app.ThingsV2().ListTemplates(ctx, "", "")
+	templates, err := app.ThingsV2().ListTemplates(ctx, tenant, "")
 	if err != nil {
 		return featuresthingsv2.ThingV2EditViewModel{}, err
 	}
@@ -128,7 +134,7 @@ func composeEditModel(ctx context.Context, r *http.Request, app thingsV2App, id 
 		return featuresthingsv2.ThingV2EditViewModel{}, err
 	}
 	selectedVariant := submittedValue(submitted, "variant")
-	if selectedVariant == "" && config.VariantID != "" {
+	if submitted == nil && config.VariantID != "" {
 		selectedVariant = config.VariantID + "/" + config.VariantVersion
 	}
 	variantParams := map[string]float64{}
@@ -158,8 +164,9 @@ func composeEditModel(ctx context.Context, r *http.Request, app thingsV2App, id 
 		}
 	}
 	model.Params = paramFieldsForVariant(spec, variantParams, stored, submitted)
+	model.Relations, model.RelationsError = relationSlots(ctx, app, tenant, id, spec.Template.Relations, config.Relations, submitted)
 
-	model.Name = firstNonEmpty(submittedValue(submitted, "name"), config.Name)
+	model.Name = submittedOrStored(submitted, "name", config.Name)
 	description := config.Metadata["description"]
 	if submitted != nil {
 		if values, ok := submitted["description"]; ok && len(values) > 0 {
@@ -212,8 +219,25 @@ func buildEditSpec(ctx context.Context, app thingsV2App, r *http.Request, id str
 	if locFail != "" {
 		return appthingsv2.ObjectSpec{}, "", 0, locFail
 	}
+	// A presentation-only edit must not truncate the third coordinate of a
+	// stored Point. Reuse raw coordinates when the visible lon/lat did not change.
+	if config.Location != nil && location != nil && config.Location.Type == "Point" && location.Type == "Point" {
+		oldLon, oldLat, oldOK := config.Location.Point()
+		newLon, newLat, newOK := location.Point()
+		if oldOK && newOK && oldLon == newLon && oldLat == newLat {
+			location = config.Location
+		} else if oldOK && newOK {
+			var coordinates []float64
+			if json.Unmarshal(config.Location.Coordinates, &coordinates) == nil && len(coordinates) > 2 {
+				coordinates[0], coordinates[1] = newLon, newLat
+				if encoded, err := json.Marshal(coordinates); err == nil {
+					location.Coordinates = encoded
+				}
+			}
+		}
+	}
 
-	templates, err := app.ThingsV2().ListTemplates(ctx, "", "")
+	templates, err := app.ThingsV2().ListTemplates(ctx, tenant, "")
 	if err != nil {
 		return appthingsv2.ObjectSpec{}, "", 0, "could not fetch templates"
 	}
@@ -277,6 +301,8 @@ func buildEditSpec(ctx context.Context, app thingsV2App, r *http.Request, id str
 	spec := appthingsv2.ObjectSpec{
 		ThingID:         id,
 		Name:            name,
+		AlternativeName: config.AlternativeName,
+		SubType:         config.SubType,
 		Category:        config.Category,
 		Location:        location,
 		Metadata:        metadata,
@@ -289,6 +315,11 @@ func buildEditSpec(ctx context.Context, app thingsV2App, r *http.Request, id str
 		ParamOverrides:  overrides,
 		Relations:       config.Relations,
 	}
+	relations, relationFail := parseRelations(ctx, app, tenant, id, specTemplate.Template.Relations, config.Relations, r.Form)
+	if relationFail != "" {
+		return appthingsv2.ObjectSpec{}, "", 0, relationFail
+	}
+	spec.Relations = relations
 
 	return spec, tenant, revision, ""
 }

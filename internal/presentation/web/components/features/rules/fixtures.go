@@ -1,9 +1,8 @@
 package rules
 
 // Fixture är ett exempel-message per event-kind för preview-formuläret.
-// Kopierade från iot-transform-fiware tester/seed 2026-09-24 (register_test,
-// values/relations/lifecycle-tester, 93/94-seed): mätpack i produktionsform
-// (bn/bt), värdesevent med deskriptor, relations set/removed med
+// Exempel enligt things-v1/PLAN1050: mätpack i produktionsform
+// (bn/bt), värdesevent med separat delta och snapshot, relations set/removed med
 // from/to-descriptors, lifecycle created/deleted.
 type Fixture struct {
 	Name    string
@@ -33,6 +32,19 @@ func Fixtures() []Fixture {
   "thingId": "room-a", "thingType": "room", "thingTypeVersion": "1",
   "configRevision": 2, "publishedAt": "2024-09-10T12:00:00Z",
   "thing": {"thingId": "room-a", "name": "Rum A", "category": "room"},
+  "delta": [
+    {"thingId": "room-a", "tenant": "t1", "propertyId": "temperature",
+     "value": 21.5, "quality": "ok", "unit": "Cel",
+     "source": "s/3303/5700", "observedAt": "2024-09-10T12:00:00Z"}
+  ],
+  "snapshot": [
+    {"propertyId": "temperature", "value": 21.5, "quality": "ok", "unit": "Cel",
+     "source": "s/3303/5700", "configRevision": 2,
+     "observedAt": "2024-09-10T12:00:00Z", "receivedAt": "2024-09-10T12:00:01Z"},
+    {"propertyId": "humidity", "value": 45, "quality": "ok", "unit": "%RH",
+     "source": "s/3304/5700", "configRevision": 2,
+     "observedAt": "2024-09-10T11:59:00Z", "receivedAt": "2024-09-10T11:59:01Z"}
+  ],
   "values": [
     {"thingId": "room-a", "tenant": "t1", "propertyId": "temperature",
      "value": 21.5, "quality": "ok", "unit": "Cel",

@@ -75,6 +75,14 @@ templ TemplateNewPage(l10n Localizer, viewModel TemplateNewViewModel) {
 						<input type="checkbox" name="geometry" value="Polygon" checked?={ slices.Contains(viewModel.Geometries, "Polygon") }/>
 						<span>Polygon</span>
 					</label>
+					for _, kind := range viewModel.Geometries {
+						if kind != "Point" && kind != "Polygon" {
+							<label class="flex items-center gap-2">
+								<input type="checkbox" name="geometry" value={ kind } checked/>
+								<span>{ kind }</span>
+							</label>
+						}
+					}
 				</fieldset>
 				<label class="flex items-center gap-2 text-sm">
 					<input type="checkbox" name="allowNoLocation" value="true" checked?={ viewModel.AllowNoLocation }/>
@@ -88,9 +96,33 @@ templ TemplateNewPage(l10n Localizer, viewModel TemplateNewViewModel) {
 					<span>{ l10n.Get("catalog_overridable") } ({ l10n.Get("catalog_one_per_line") })</span>
 					<textarea name="overridable" rows="3" class="rounded-xl border border-border bg-background px-3 py-2">{ viewModel.OverridableText }</textarea>
 				</label>
-				if viewModel.FromLocked {
-					<p class="text-sm text-muted-foreground">{ l10n.Get("catalog_copied") }</p>
+				<p class="text-sm text-muted-foreground">Publicerade versioner är oföränderliga. Ändringar publiceras som en ny version. Backend validerar alla fält.</p>
+				@CatalogTextField("primaryProperty", "Primär egenskap", viewModel.PrimaryProperty, "Egenskaps-ID")
+				@CatalogTextField("repeatGroups", "Repeat groups", viewModel.RepeatGroups, "Ett grupprefix per rad")
+				@CatalogTextField("allowedQuantities", "Tillåtna storheter", viewModel.AllowedQuantities, "En storhet per rad")
+				@CatalogTextField("labels", "Etiketter", viewModel.Labels, "En etikett per rad")
+				@CatalogTextField("propertyDefs", "Egenskapsdefinitioner (JSON)", viewModel.PropertyDefs, `{"temperature":{"displayName":"Temperatur","dataType":"number","quantity":"temperature","unit":"Cel","signals":[]}}`)
+				if viewModel.RelationsStructured {
+					<input type="hidden" name="relationRowsPresent" value="true"/>
+					<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4">
+						<legend>Relationsplatser</legend>
+						<p class="text-sm text-muted-foreground">Tomt namn tar bort platsen. Tomma måltyper tillåter alla malltyper. Max 0 = obegränsat.</p>
+						for _, row := range viewModel.RelationRows {
+							<div class="grid grid-cols-2 gap-2 border-b border-border pb-3">
+								<label class="flex flex-col gap-1 text-sm">Namn<input name="relationName" value={ row.Name } class="rounded-xl border border-border bg-background px-3 py-2"/></label>
+								<label class="flex flex-col gap-1 text-sm">Tillåtna måltyper (mall-ID per rad)<textarea name="relationTargets" class="rounded-xl border border-border bg-background px-3 py-2">{ row.AllowedTargets }</textarea></label>
+								<label class="flex flex-col gap-1 text-sm">Min<input name="relationMin" type="number" min="0" value={ row.Min } class="rounded-xl border border-border bg-background px-3 py-2"/></label>
+								<label class="flex flex-col gap-1 text-sm">Max<input name="relationMax" type="number" min="0" value={ row.Max } class="rounded-xl border border-border bg-background px-3 py-2"/></label>
+							</div>
+						}
+						<button type="submit" name="addRelation" value="true" formnovalidate class="rounded-xl border border-border px-3 py-2">Lägg till relationsplats (utan publicering)</button>
+					</fieldset>
+				} else {
+					@CatalogTextField("relations", "Relationsplatser (JSON)", viewModel.Relations, `[{"name":"serves","allowedTargets":["building"],"min":0,"max":3}]`)
 				}
+				@CatalogTextField("recipes", "Recipes (JSON)", viewModel.Recipes, `[{"name":"value","operator":"identity","version":"v1","inputs":["input"],"outputs":["temperature"],"params":[]}]`)
+				@CatalogTextField("paramInfo", "Parameterdefinitioner (JSON)", viewModel.ParamInfo, `{"offset":{"unit":"Cel","description":"Offset","min":0,"max":10}}`)
+				@CatalogTextField("operatorVersions", "Operatorversioner (JSON)", viewModel.OperatorVersions, `{"identity":"v1"}`)
 				<div>
 					@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
 						{ l10n.Get("catalog_publish") }
@@ -99,4 +131,12 @@ templ TemplateNewPage(l10n Localizer, viewModel TemplateNewViewModel) {
 			</form>
 		</section>
 	</div>
+}
+
+templ CatalogTextField(name string, label string, value string, hint string) {
+	<label class="flex flex-col gap-1 text-sm">
+		<span>{ label }</span>
+		<textarea name={ name } rows="4" spellcheck="false" class="rounded-xl border border-border bg-background px-3 py-2 font-mono">{ value }</textarea>
+		<span class="text-xs text-muted-foreground">{ hint }</span>
+	</label>
 }

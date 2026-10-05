@@ -76,6 +76,7 @@ func TestTypeOptionsFragment(t *testing.T) {
 	// Med tenant: select med mallar.
 	req := httptest.NewRequest(http.MethodGet, "/components/rules/type-options?tenant=t1", nil)
 	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
+	req = req.WithContext(auth.WithAccess(req.Context(), map[string]map[auth.Scope]struct{}{"t1": {auth.AnyScope: {}}}))
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
@@ -89,6 +90,7 @@ func TestTypeOptionsFragment(t *testing.T) {
 	// Aktuellt värde bevaras även utanför katalogen (ingen dataförlust).
 	req = httptest.NewRequest(http.MethodGet, "/components/rules/type-options?tenant=t1&current=custom", nil)
 	req = req.WithContext(auth.WithToken(req.Context(), "test-token"))
+	req = req.WithContext(auth.WithAccess(req.Context(), map[string]map[auth.Scope]struct{}{"t1": {auth.AnyScope: {}}}))
 	req.Header.Set("HX-Request", "true")
 	rec = httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)

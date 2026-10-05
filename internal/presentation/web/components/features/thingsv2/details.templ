@@ -30,6 +30,8 @@ templ ThingV2DetailsPage(l10n Localizer, model ThingV2DetailsViewModel) {
 		@ThingV2DetailsSensorsSection(l10n, model)
 		@ThingV2RelatedThingsSection(l10n, model)
 		@ThingV2DetailsValuesSection(l10n, model)
+		<p class="text-sm text-muted-foreground">Värdena ovan är backendens aktuella värden (current), med egen observationstid, enhet och kvalitet. Senaste event-delta exponeras inte separat av sakens läs-API; det får inte förväxlas med current eller en ogiltig observation.</p>
+		@ThingV2RelationsSection(model)
 		<div class="grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-2">
 			<div class="flex min-w-0 flex-col gap-6">
 				@ThingV2DetailsPropertiesSection(l10n, model)
@@ -59,11 +61,11 @@ templ thingV2DetailsPrimary(l10n Localizer, model ThingV2DetailsViewModel) {
 
 templ thingV2DetailsActions(l10n Localizer, model ThingV2DetailsViewModel) {
 	@button.Button(button.Props{
-		Href:    fmt.Sprintf("/things-v2/%s?mode=edit", model.Thing.ID),
+		Href:    fmt.Sprintf("/things-v2/%s?mode=edit&tenant=%s", model.Thing.ID, model.Thing.Tenant),
 		Variant: button.VariantOutline,
 		Class:   "shrink-0 rounded-xl px-4",
 		Attributes: templ.Attributes{
-			"hx-get":         fmt.Sprintf("/things-v2/%s?mode=edit", model.Thing.ID),
+			"hx-get":         fmt.Sprintf("/things-v2/%s?mode=edit&tenant=%s", model.Thing.ID, model.Thing.Tenant),
 			"hx-target":      "#app-shell",
 			"hx-swap":        "outerHTML",
 			"hx-replace-url": "true",

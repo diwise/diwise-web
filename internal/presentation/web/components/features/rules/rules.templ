@@ -92,7 +92,7 @@ templ RulesPage(l10n Localizer, viewModel RulesPageViewModel) {
 				<table class="diwise-data-table w-full min-w-[640px] text-sm">
 					<thead>
 						<tr class="border-b border-border text-left text-muted-foreground">
-							<th scope="col">{ l10n.Get("id") }</th>
+							<th scope="col">{ l10n.Get("name") }</th>
 							<th scope="col">{ l10n.Get("rules_kind") }</th>
 							<th scope="col">{ l10n.Get("rules_summary") }</th>
 							<th scope="col">{ l10n.Get("tenant") }</th>
@@ -104,13 +104,15 @@ templ RulesPage(l10n Localizer, viewModel RulesPageViewModel) {
 							<tr class="border-b border-border last:border-0">
 								<td>
 									<a
-										class="underline"
+										class="block truncate underline"
+										style="max-width: 16rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+										title={ rule.DisplayName() }
 										href={ templ.SafeURL("/rules/" + rule.ID) }
 										hx-get={ "/rules/" + rule.ID }
 										hx-target="#app-shell"
 										hx-swap="outerHTML"
 										hx-replace-url="true"
-									>{ rule.ShortID }</a>
+									>{ rule.DisplayName() }</a>
 								</td>
 								<td>{ rule.Kind }</td>
 								<td>{ rule.Summary }</td>

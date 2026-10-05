@@ -179,6 +179,7 @@ templ ThingV2CreatePage(l10n Localizer, viewModel ThingV2CreateViewModel) {
 						Latitude: viewModel.Latitude, Longitude: viewModel.Longitude,
 					})
 				}
+				@ThingV2RelationFields(viewModel.Relations, viewModel.RelationsError)
 				<div class="flex flex-col gap-3 sm:flex-row">
 					@button.Button(button.Props{
 						Variant: button.VariantDefault,

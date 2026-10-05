@@ -15,13 +15,96 @@ import (
 
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/logging"
+	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
 )
+
+var tracer = otel.Tracer("diwise-web/app/client")
 
 var ErrNotFound = fmt.Errorf("not found")
 var ErrUnauthorized = fmt.Errorf("unauthorized")
 var ErrForbidden = fmt.Errorf("forbidden")
 var ErrConflict = fmt.Errorf("conflict")
+var ErrBadRequest = fmt.Errorf("bad request")
+var ErrUnprocessable = fmt.Errorf("unprocessable entity")
+
+// maxResponseBodyBytes bounds backend response bodies (same order as
+// things-v2 maxRequestBodyBytes 1MiB, with headroom for list/export payloads).
+const maxResponseBodyBytes = 4 << 20
+
+// ValidatePathID rejects empty IDs and path separators before they become
+// URL segments (thing/template/variant/model IDs must not contain "/").
+// UUIDs are validated by callers with uuid.Parse where required.
+func ValidatePathID(id, what string) error {
+	if strings.TrimSpace(id) == "" {
+		return fmt.Errorf("%w: %s id is empty", ErrBadRequest, what)
+	}
+	if strings.Contains(id, "/") {
+		return fmt.Errorf("%w: %s id %q must not contain %q", ErrBadRequest, what, id, "/")
+	}
+	return nil
+}
+
+// BackendError carries a classified backend failure with its text for form
+// display (400/422 validation details, 409 conflicts). errors.Is matches
+// the sentinel (ErrBadRequest/ErrUnprocessable/ErrNotFound/ErrConflict/...).
+type BackendError struct {
+	Status  int
+	Message string
+}
+
+func (e *BackendError) Error() string {
+	if e.Message != "" {
+		return fmt.Sprintf("request failed: %d: %s", e.Status, e.Message)
+	}
+	return fmt.Sprintf("request failed: %d", e.Status)
+}
+
+func (e *BackendError) Unwrap() error {
+	switch e.Status {
+	case http.StatusBadRequest:
+		return ErrBadRequest
+	case http.StatusUnprocessableEntity:
+		return ErrUnprocessable
+	case http.StatusNotFound:
+		return ErrNotFound
+	case http.StatusConflict:
+		return ErrConflict
+	case http.StatusUnauthorized:
+		return ErrUnauthorized
+	case http.StatusForbidden:
+		return ErrForbidden
+	default:
+		return nil
+	}
+}
+
+// errorMessage extracts backend {error: string} text without failing on
+// empty/non-JSON bodies.
+func errorMessage(body []byte) string {
+	var m struct {
+		Error string `json:"error"`
+	}
+	if err := json.Unmarshal(body, &m); err != nil {
+		return strings.TrimSpace(string(body))
+	}
+	return m.Error
+}
+
+// readLimitedBody reads at most maxResponseBodyBytes+1 and reports overflow
+// as ErrBadRequest so callers never OOM on backend payloads.
+func readLimitedBody(resp *http.Response) ([]byte, error) {
+	limited := io.LimitReader(resp.Body, maxResponseBodyBytes+1)
+	raw, err := io.ReadAll(limited)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+	if len(raw) > maxResponseBodyBytes {
+		return nil, fmt.Errorf("response body exceeds %d bytes: %w", maxResponseBodyBytes, ErrBadRequest)
+	}
+	return raw, nil
+}
 
 func errUnauthorized(ctx context.Context) error {
 	MarkAuthDenied(ctx)
@@ -104,7 +187,10 @@ func (c *Client) MeasurementURL() string       { return c.measurementURL }
 func (c *Client) AlarmsURL() string            { return c.alarmsURL }
 func (c *Client) TransformURL() string         { return c.transformURL }
 
-func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Values) (*ApiResponse, error) {
+func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Values) (respOut *ApiResponse, err error) {
+	ctx, span := tracer.Start(ctx, "client.get")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	if strings.ContainsAny(path, "/") {
 		path = strings.TrimPrefix(path, "/")
 		path = strings.TrimSuffix(path, "/")
@@ -138,10 +224,10 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readLimitedBody(resp)
 	if err != nil {
 		log.Error("could not read response body", "error", err)
-		return nil, fmt.Errorf("failed to read response body: %s", err.Error())
+		return nil, err
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
@@ -155,6 +241,10 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
 		return nil, fmt.Errorf("request failed: %w", ErrNotFound)
+	}
+	if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusUnprocessableEntity {
+		log.Error("request failed with validation status", "statusCode", resp.StatusCode, "responseBody", string(body))
+		return nil, &BackendError{Status: resp.StatusCode, Message: errorMessage(body)}
 	}
 	if resp.StatusCode >= http.StatusBadRequest {
 		log.Error("request failed with status code", "statusCode", resp.StatusCode, "responseBody", string(body))
@@ -179,7 +269,10 @@ func (c *Client) Get(ctx context.Context, baseURL, path string, params url.Value
 // GetRaw performs a GET against a non-envelope JSON API (iot-things-v2
 // returns bare arrays with totals in headers, not {meta, data}).
 // The body is returned raw with the response headers.
-func (c *Client) GetRaw(ctx context.Context, baseURL, path string, params url.Values) ([]byte, http.Header, error) {
+func (c *Client) GetRaw(ctx context.Context, baseURL, path string, params url.Values) (bodyOut []byte, headerOut http.Header, err error) {
+	ctx, span := tracer.Start(ctx, "client.get-raw")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	if strings.ContainsAny(path, "/") {
 		path = strings.TrimPrefix(path, "/")
 		path = strings.TrimSuffix(path, "/")
@@ -213,10 +306,10 @@ func (c *Client) GetRaw(ctx context.Context, baseURL, path string, params url.Va
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := readLimitedBody(resp)
 	if err != nil {
 		log.Error("could not read response body", "error", err)
-		return nil, nil, fmt.Errorf("failed to read response body: %s", err.Error())
+		return nil, nil, err
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
@@ -231,6 +324,10 @@ func (c *Client) GetRaw(ctx context.Context, baseURL, path string, params url.Va
 		log.Error("request failed with not found status")
 		return nil, nil, fmt.Errorf("request failed: %w", ErrNotFound)
 	}
+	if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusUnprocessableEntity {
+		log.Error("request failed with validation status", "statusCode", resp.StatusCode, "responseBody", string(body))
+		return nil, nil, &BackendError{Status: resp.StatusCode, Message: errorMessage(body)}
+	}
 	if resp.StatusCode >= http.StatusBadRequest {
 		log.Error("request failed with status code", "statusCode", resp.StatusCode, "responseBody", string(body))
 		return nil, nil, fmt.Errorf("request failed: %d", resp.StatusCode)
@@ -241,8 +338,12 @@ func (c *Client) GetRaw(ctx context.Context, baseURL, path string, params url.Va
 
 // WriteRaw sends POST/PUT/DELETE with query params and extra headers
 // (e.g. If-Match), returning response body and header. 404/409 map to
-// ErrNotFound/ErrConflict like the other helpers.
-func (c *Client) WriteRaw(ctx context.Context, method, baseURL, path string, params url.Values, headers map[string]string, body []byte) ([]byte, http.Header, error) {
+// ErrNotFound/ErrConflict, 400/422 to BackendError with backend text,
+// like the other helpers.
+func (c *Client) WriteRaw(ctx context.Context, method, baseURL, path string, params url.Values, headers map[string]string, body []byte) (bodyOut []byte, headerOut http.Header, err error) {
+	ctx, span := tracer.Start(ctx, "client.write-raw")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	if strings.ContainsAny(path, "/") {
 		path = strings.TrimPrefix(path, "/")
 		path = strings.TrimSuffix(path, "/")
@@ -285,10 +386,10 @@ func (c *Client) WriteRaw(ctx context.Context, method, baseURL, path string, par
 	}
 	defer resp.Body.Close()
 
-	responseBody, err := io.ReadAll(resp.Body)
+	responseBody, err := readLimitedBody(resp)
 	if err != nil {
 		log.Error("could not read response body", "error", err)
-		return nil, nil, fmt.Errorf("failed to read response body: %s", err.Error())
+		return nil, nil, err
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
@@ -307,6 +408,10 @@ func (c *Client) WriteRaw(ctx context.Context, method, baseURL, path string, par
 		log.Error("request failed with conflict status")
 		return nil, nil, fmt.Errorf("request failed: %w", ErrConflict)
 	}
+	if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusUnprocessableEntity {
+		log.Error("request failed with validation status", "statusCode", resp.StatusCode, "responseBody", string(responseBody))
+		return nil, nil, &BackendError{Status: resp.StatusCode, Message: errorMessage(responseBody)}
+	}
 	if resp.StatusCode >= http.StatusBadRequest {
 		log.Error("request failed with status code", "statusCode", resp.StatusCode, "responseBody", string(responseBody))
 		return nil, nil, fmt.Errorf("request failed: %d", resp.StatusCode)
@@ -319,7 +424,10 @@ func (c *Client) WriteRaw(ctx context.Context, method, baseURL, path string, par
 // status and body for all responses (only transport errors surface as err),
 // so callers can surface backend error texts (e.g. rule validation
 // {error}) in forms. 401/403 still mark access-denied for toasts.
-func (c *Client) WriteRawDetailed(ctx context.Context, method, baseURL, path string, params url.Values, headers map[string]string, body []byte) ([]byte, http.Header, int, error) {
+func (c *Client) WriteRawDetailed(ctx context.Context, method, baseURL, path string, params url.Values, headers map[string]string, body []byte) (bodyOut []byte, headerOut http.Header, statusOut int, err error) {
+	ctx, span := tracer.Start(ctx, "client.write-raw-detailed")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	if strings.ContainsAny(path, "/") {
 		path = strings.TrimPrefix(path, "/")
 		path = strings.TrimSuffix(path, "/")
@@ -362,10 +470,10 @@ func (c *Client) WriteRawDetailed(ctx context.Context, method, baseURL, path str
 	}
 	defer resp.Body.Close()
 
-	responseBody, err := io.ReadAll(resp.Body)
+	responseBody, err := readLimitedBody(resp)
 	if err != nil {
 		log.Error("could not read response body", "error", err)
-		return nil, nil, 0, fmt.Errorf("failed to read response body: %s", err.Error())
+		return nil, nil, 0, err
 	}
 
 	if resp.StatusCode == http.StatusUnauthorized {
@@ -380,7 +488,10 @@ func (c *Client) WriteRawDetailed(ctx context.Context, method, baseURL, path str
 	return responseBody, resp.Header, resp.StatusCode, nil
 }
 
-func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) error {
+func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) (err error) {
+	ctx, span := tracer.Start(ctx, "client.patch")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL), slog.String("id", id))
 
 	token, err := bearerToken(ctx)
@@ -409,7 +520,7 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 		return fmt.Errorf("failed to send patch request: %s", err.Error())
 	}
 	defer resp.Body.Close()
-	_, _ = io.Copy(io.Discard, resp.Body)
+	respBody, _ := readLimitedBody(resp)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
@@ -427,6 +538,9 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 		log.Error("request failed with conflict status")
 		return fmt.Errorf("request failed: %w", ErrConflict)
 	}
+	if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusUnprocessableEntity {
+		return &BackendError{Status: resp.StatusCode, Message: errorMessage(respBody)}
+	}
 	if resp.StatusCode >= http.StatusBadRequest {
 		log.Error("request failed with status code", "statusCode", resp.StatusCode)
 		return fmt.Errorf("request failed: %d", resp.StatusCode)
@@ -435,7 +549,10 @@ func (c *Client) Patch(ctx context.Context, baseURL, id string, body []byte) err
 	return nil
 }
 
-func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
+func (c *Client) Post(ctx context.Context, baseURL string, body []byte) (err error) {
+	ctx, span := tracer.Start(ctx, "client.post")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL))
 
 	token, err := bearerToken(ctx)
@@ -464,7 +581,7 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 		return fmt.Errorf("failed to send post request: %s", err.Error())
 	}
 	defer resp.Body.Close()
-	_, _ = io.Copy(io.Discard, resp.Body)
+	respBody, _ := readLimitedBody(resp)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
@@ -482,6 +599,9 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 		log.Error("request failed with conflict status")
 		return fmt.Errorf("request failed: %w", ErrConflict)
 	}
+	if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusUnprocessableEntity {
+		return &BackendError{Status: resp.StatusCode, Message: errorMessage(respBody)}
+	}
 	if resp.StatusCode >= http.StatusBadRequest {
 		log.Error("request failed with status code", "statusCode", resp.StatusCode)
 		return fmt.Errorf("request failed: %d", resp.StatusCode)
@@ -490,7 +610,10 @@ func (c *Client) Post(ctx context.Context, baseURL string, body []byte) error {
 	return nil
 }
 
-func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
+func (c *Client) Put(ctx context.Context, baseURL string, body []byte) (err error) {
+	ctx, span := tracer.Start(ctx, "client.put")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL))
 
 	token, err := bearerToken(ctx)
@@ -519,7 +642,7 @@ func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 		return fmt.Errorf("failed to send put request: %s", err.Error())
 	}
 	defer resp.Body.Close()
-	_, _ = io.Copy(io.Discard, resp.Body)
+	respBody, _ := readLimitedBody(resp)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
@@ -537,6 +660,9 @@ func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 		log.Error("request failed with conflict status")
 		return fmt.Errorf("request failed: %w", ErrConflict)
 	}
+	if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusUnprocessableEntity {
+		return &BackendError{Status: resp.StatusCode, Message: errorMessage(respBody)}
+	}
 	if resp.StatusCode >= http.StatusBadRequest {
 		log.Error("request failed with status code", "statusCode", resp.StatusCode)
 		return fmt.Errorf("request failed: %d", resp.StatusCode)
@@ -545,7 +671,10 @@ func (c *Client) Put(ctx context.Context, baseURL string, body []byte) error {
 	return nil
 }
 
-func (c *Client) Delete(ctx context.Context, baseURL string) error {
+func (c *Client) Delete(ctx context.Context, baseURL string) (err error) {
+	ctx, span := tracer.Start(ctx, "client.delete")
+	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
 	log := logging.GetFromContext(ctx).With(slog.String("url", baseURL))
 
 	token, err := bearerToken(ctx)
@@ -573,7 +702,7 @@ func (c *Client) Delete(ctx context.Context, baseURL string) error {
 		return fmt.Errorf("failed to send delete request: %w", err)
 	}
 	defer resp.Body.Close()
-	_, _ = io.Copy(io.Discard, resp.Body)
+	respBody, _ := readLimitedBody(resp)
 
 	if resp.StatusCode == http.StatusUnauthorized {
 		log.Error("request failed with unauthorized status")
@@ -586,6 +715,9 @@ func (c *Client) Delete(ctx context.Context, baseURL string) error {
 	if resp.StatusCode == http.StatusNotFound {
 		log.Error("request failed with not found status")
 		return fmt.Errorf("request failed: %w", ErrNotFound)
+	}
+	if resp.StatusCode == http.StatusBadRequest || resp.StatusCode == http.StatusUnprocessableEntity {
+		return &BackendError{Status: resp.StatusCode, Message: errorMessage(respBody)}
 	}
 	if resp.StatusCode >= http.StatusBadRequest {
 		log.Error("request failed with status code", "statusCode", resp.StatusCode)

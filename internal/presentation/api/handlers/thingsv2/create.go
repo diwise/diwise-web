@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
+	"github.com/diwise/diwise-web/internal/application/client"
 	appthingsv2 "github.com/diwise/diwise-web/internal/application/thingsv2"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
@@ -68,15 +69,14 @@ func NewThingsV2CreatePage(ctx context.Context, l10n LocaleBundle, assets AssetL
 		if fail != "" {
 			model, err := composeCreateModel(ctx, r, app, r.Form.Get("tenant"), r.Form.Get("template"), r.Form, fail)
 			if err != nil {
-				http.Error(w, "could not fetch templates", http.StatusInternalServerError)
-				return
+				model = fallbackCreate(r, fail+": "+err.Error())
 			}
 			content := featuresthingsv2.ThingV2CreatePage(localizer, model)
 			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 			if helpers.IsHxRequest(r) {
 				page = v2layout.AppShell(localizer, assets, content)
 			}
-			helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, 0)
+			helpers.WriteComponentResponse(ctx, formStatusWriter{w, formErrorStatus(err)}, r, page, 32*1024, 0)
 			return
 		}
 
@@ -84,15 +84,14 @@ func NewThingsV2CreatePage(ctx context.Context, l10n LocaleBundle, assets AssetL
 		if err != nil {
 			model, modelErr := composeCreateModel(ctx, r, app, r.Form.Get("tenant"), r.Form.Get("template"), r.Form, err.Error())
 			if modelErr != nil {
-				http.Error(w, "could not create thing", http.StatusInternalServerError)
-				return
+				model = fallbackCreate(r, err.Error())
 			}
 			content := featuresthingsv2.ThingV2CreatePage(localizer, model)
 			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 			if helpers.IsHxRequest(r) {
 				page = v2layout.AppShell(localizer, assets, content)
 			}
-			helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, 0)
+			helpers.WriteComponentResponse(ctx, formStatusWriter{w, formErrorStatus(err)}, r, page, 32*1024, 0)
 			return
 		}
 
@@ -156,13 +155,18 @@ func findTemplateSpec(specs []appthingsv2.TemplateSpec, id, version string) (app
 func composeCreateModel(ctx context.Context, r *http.Request, app thingsV2App, tenant, template string, submitted map[string][]string, errorMessage string) (featuresthingsv2.ThingV2CreateViewModel, error) {
 	model := featuresthingsv2.ThingV2CreateViewModel{ErrorMessage: errorMessage}
 	model.Tenants = tokenTenants(r)
+	if selected, ok := resolveCreateTenant(r, model.Tenants, tenant); ok {
+		tenant = selected
+	} else if tenant != "" {
+		return model, client.ErrForbidden
+	}
 
 	if tenant == "" && len(model.Tenants) == 1 {
 		tenant = model.Tenants[0]
 	}
 	model.Tenant = tenant
 
-	templates, err := app.ThingsV2().ListTemplates(ctx, "", "")
+	templates, err := app.ThingsV2().ListTemplates(ctx, tenant, "")
 	if err != nil {
 		return featuresthingsv2.ThingV2CreateViewModel{}, err
 	}
@@ -180,6 +184,9 @@ func composeCreateModel(ctx context.Context, r *http.Request, app thingsV2App, t
 	templateID, templateVersion, templateOK := splitTemplateRef(template)
 	spec, found := findTemplateSpec(templates, templateID, templateVersion)
 	if !templateOK || !found {
+		if submitted != nil {
+			return fallbackCreate(r, errorMessage), nil
+		}
 		return model, nil
 	}
 	model.Template = template
@@ -214,6 +221,7 @@ func composeCreateModel(ctx context.Context, r *http.Request, app thingsV2App, t
 	}
 
 	model.Params = paramFieldsForVariant(spec, variantParams, nil, submitted)
+	model.Relations, model.RelationsError = relationSlots(ctx, app, tenant, "", spec.Template.Relations, nil, submitted)
 
 	model.Name = submittedValue(submitted, "name")
 	model.Description = submittedValue(submitted, "description")
@@ -304,8 +312,10 @@ func resolveGeometryMode(submitted map[string][]string, stored *appthingsv2.Loca
 
 // resolveGeometryJSON ekar inskickad polygon, annars lagrad polygon.
 func resolveGeometryJSON(submitted map[string][]string, stored *appthingsv2.Location) string {
-	if raw := strings.TrimSpace(submittedValue(submitted, "geometry")); raw != "" {
-		return raw
+	if submitted != nil {
+		if values, exists := submitted["geometry"]; exists && len(values) > 0 {
+			return values[0]
+		}
 	}
 	if stored != nil && strings.EqualFold(stored.Type, "Polygon") && len(stored.Coordinates) > 0 {
 		return string(stored.Coordinates)
@@ -368,7 +378,7 @@ func buildCreateSpec(ctx context.Context, app thingsV2App, r *http.Request) (app
 	if !templateOK {
 		return appthingsv2.ObjectSpec{}, "", "template is required"
 	}
-	templates, err := app.ThingsV2().ListTemplates(ctx, "", "")
+	templates, err := app.ThingsV2().ListTemplates(ctx, tenant, "")
 	if err != nil {
 		return appthingsv2.ObjectSpec{}, "", "could not fetch templates"
 	}
@@ -447,6 +457,11 @@ func buildCreateSpec(ctx context.Context, app thingsV2App, r *http.Request) (app
 	if description := strings.TrimSpace(r.Form.Get("description")); description != "" {
 		spec.Metadata = map[string]string{"description": description}
 	}
+	relations, relationFail := parseRelations(ctx, app, tenant, thingID, specTemplate.Template.Relations, nil, r.Form)
+	if relationFail != "" {
+		return appthingsv2.ObjectSpec{}, "", relationFail
+	}
+	spec.Relations = relations
 
 	return spec, tenant, ""
 }

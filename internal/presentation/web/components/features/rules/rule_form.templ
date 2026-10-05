@@ -11,7 +11,7 @@ import (
 )
 
 templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
-	<div class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+	<div id="rule-editor" class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
 		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
 			@shared.SectionHeading(viewModel.Heading(l10n), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
 		</header>
@@ -29,8 +29,28 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 					method="post"
 					action={ viewModel.FormAction() }
 					id="rule-form"
+					data-submitted={ viewModel.SubmittedJSON() }
 					class="diwise-native-form flex flex-col gap-6"
 				>
+					<input type="hidden" name="ruleID" value={ viewModel.ID }/>
+					<label class="flex flex-col gap-1 text-sm">
+						<span>{ l10n.Get("name") }</span>
+						<input name="name" value={ viewModel.SubmittedValue("name", viewModel.Rule.Name) } class="rounded-xl border border-border bg-background px-3 py-2"/>
+					</label>
+					<fieldset class="flex flex-col gap-3 rounded-xl border border-border p-4">
+						<legend>Rule editor</legend>
+						<select name="editorMode" class="rounded-xl border border-border bg-background px-3 py-2">
+							<option value="form" selected?={ viewModel.EditorMode() == "form" }>Form fields</option>
+							<option value="json" selected?={ viewModel.EditorMode() == "json" }>Complete JSON (ignores form fields)</option>
+						</select>
+						<p class="text-xs">Export current form fields before switching to JSON. Use “Apply JSON to form” to transfer JSON edits back to fields. Unknown JSON fields are rejected, never silently discarded.</p>
+						<button type="button" hx-post="/components/rules/validate" hx-include="closest form" hx-vals='{"editorAction":"export"}' hx-target="#rule-json-field" hx-swap="outerHTML" class="rounded-xl border px-3 py-2">Export current rule to JSON</button>
+						<button type="button" hx-post="/components/rules/validate" hx-include="closest form" hx-vals='{"editorAction":"import","editorMode":"json"}' hx-target="#rule-editor" hx-swap="outerHTML" class="rounded-xl border px-3 py-2">Apply JSON to form</button>
+						@RuleJSONField(viewModel)
+						if len(viewModel.SubmittedForm) > 0 {
+							<details><summary>Preserved submitted fields (including invalid input)</summary><pre class="overflow-x-auto whitespace-pre-wrap text-xs">{ viewModel.SubmittedJSON() }</pre></details>
+						}
+					</fieldset>
 					if !viewModel.IsNew {
 						<input type="hidden" name="revision" value={ viewModel.RevisionString() }/>
 					}
@@ -42,10 +62,13 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 								name="tenant"
 								class="rounded-xl border border-border bg-background px-3 py-2"
 								hx-get="/components/rules/type-options"
-								hx-target="#match-type-field"
+								hx-target="#source-selection"
 								hx-swap="outerHTML"
-								hx-include="[name='tenant'], [name='type']"
+								hx-include="[name='tenant'], [name='type'], [name='thingTypeVersion'], [name='variantId'], [name='variantVersion']"
 							>
+								if !slices.Contains(viewModel.Tenants, viewModel.Rule.Match.Tenant) {
+									<option value={ viewModel.Rule.Match.Tenant } selected>{ viewModel.Rule.Match.Tenant }</option>
+								}
 								for _, t := range viewModel.Tenants {
 									<option value={ t } selected?={ t == viewModel.Rule.Match.Tenant }>{ t }</option>
 								}
@@ -54,6 +77,9 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 						<label class="flex flex-col gap-1 text-sm">
 							<span>{ l10n.Get("rules_kind") }</span>
 							<select name="kind" class="rounded-xl border border-border bg-background px-3 py-2">
+								if viewModel.Rule.Match.Kind != "measurement" && viewModel.Rule.Match.Kind != "thing" {
+									<option value={ viewModel.Rule.Match.Kind } selected>{ viewModel.Rule.Match.Kind }</option>
+								}
 								<option value="measurement" selected?={ viewModel.Rule.Match.Kind == "measurement" }>measurement</option>
 								<option value="thing" selected?={ viewModel.Rule.Match.Kind == "thing" }>thing</option>
 							</select>
@@ -87,7 +113,7 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 								<span>env</span>
 								<input name="env" value={ viewModel.Rule.Match.Env } list="match-envs" class="rounded-xl border border-border bg-background px-3 py-2"/>
 							</label>
-							@TypeField(l10n, viewModel.Rule.Match.Type, viewModel.TypeOptions)
+							@SourceSelection(l10n, viewModel)
 							<label class="flex flex-col gap-1 text-sm">
 								<span>subType</span>
 								<input name="subType" value={ viewModel.Rule.Match.SubType } list="match-subtypes" class="rounded-xl border border-border bg-background px-3 py-2"/>
@@ -95,6 +121,9 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 							<label class="flex flex-col gap-1 text-sm">
 								<span>event</span>
 								<select name="event" class="rounded-xl border border-border bg-background px-3 py-2">
+									if viewModel.Rule.Match.Event != "" && viewModel.Rule.Match.Event != "things.v1.values" && viewModel.Rule.Match.Event != "things.v1.relations" && viewModel.Rule.Match.Event != "things.v1.lifecycle" {
+										<option value={ viewModel.Rule.Match.Event } selected>{ viewModel.Rule.Match.Event }</option>
+									}
 									<option value="" selected?={ viewModel.Rule.Match.Event == "" }></option>
 									<option value="things.v1.values" selected?={ viewModel.Rule.Match.Event == "things.v1.values" }>things.v1.values</option>
 									<option value="things.v1.relations" selected?={ viewModel.Rule.Match.Event == "things.v1.relations" }>things.v1.relations</option>
@@ -116,6 +145,9 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 							<label class="flex flex-col gap-1 text-sm">
 								<span>lifecycle</span>
 								<select name="lifecycle" class="rounded-xl border border-border bg-background px-3 py-2">
+									if viewModel.Rule.Match.Lifecycle != "" && viewModel.Rule.Match.Lifecycle != "created" && viewModel.Rule.Match.Lifecycle != "updated" && viewModel.Rule.Match.Lifecycle != "deleted" {
+										<option value={ viewModel.Rule.Match.Lifecycle } selected>{ viewModel.Rule.Match.Lifecycle }</option>
+									}
 									<option value="" selected?={ viewModel.Rule.Match.Lifecycle == "" }></option>
 									<option value="created" selected?={ viewModel.Rule.Match.Lifecycle == "created" }>created</option>
 									<option value="updated" selected?={ viewModel.Rule.Match.Lifecycle == "updated" }>updated</option>
@@ -154,8 +186,8 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 							<option value={ s }></option>
 						}
 					</datalist>
-					for i, e := range viewModel.Rule.Entities {
-						@EntityBlock(l10n, i, e)
+					for _, row := range viewModel.EntityRows() {
+						@EntityFormBlock(l10n, row.Index, row.Entity, viewModel.PropertyRows(row.Index, row.Entity.Properties))
 					}
 					<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4">
 						<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_preview") }</legend>
@@ -163,10 +195,9 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 							<label class="flex flex-col gap-1 text-sm">
 								<span>{ l10n.Get("rules_event") }</span>
 								<select name="previewKind" class="rounded-xl border border-border bg-background px-3 py-2">
-									<option value="measurement">measurement</option>
-									<option value="things.v1.values">things.v1.values</option>
-									<option value="things.v1.relations">things.v1.relations</option>
-									<option value="things.v1.lifecycle">things.v1.lifecycle</option>
+									for _, kind := range previewKinds() {
+										<option value={ kind } selected?={ viewModel.SubmittedValue("previewKind", "measurement") == kind }>{ kind }</option>
+									}
 								</select>
 							</label>
 							<label class="flex flex-col gap-1 text-sm">
@@ -186,13 +217,14 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 						</div>
 						<label class="flex flex-col gap-1 text-sm">
 							<span>{ l10n.Get("rules_message") }</span>
-							<textarea id="preview-message" name="previewMessage" rows="8" class="rounded-xl border border-border bg-background px-3 py-2 font-mono text-xs">{ defaultFixtureMessage() }</textarea>
+							<textarea id="preview-message" name="previewMessage" rows="8" class="rounded-xl border border-border bg-background px-3 py-2 font-mono text-xs">{ viewModel.SubmittedValue("previewMessage", defaultFixtureMessage()) }</textarea>
 						</label>
 						<label class="flex flex-col gap-1 text-sm">
 							<span>sensorType ({ l10n.Get("rules_optional") })</span>
-							<input name="previewSensorType" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							<input name="previewSensorType" value={ viewModel.SubmittedValue("previewSensorType", "") } class="rounded-xl border border-border bg-background px-3 py-2"/>
 						</label>
 						<div class="flex flex-wrap gap-4">
+							<button type="button" hx-post="/components/rules/validate" hx-include="closest form" hx-vals='{"checkCompatibility":"true"}' hx-target="#compatibility-result" hx-swap="outerHTML" class="rounded-xl border px-3 py-2">Check template compatibility</button>
 							@button.Button(button.Props{
 								Variant: button.VariantSecondary,
 								Class:   "rounded-xl px-4",
@@ -221,6 +253,7 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 							}
 						</div>
 						<div id="validate-result"></div>
+						<div id="compatibility-result"></div>
 						@PreviewResult(l10n, previewEmpty())
 					</fieldset>
 					<div class="flex flex-wrap gap-4">
@@ -303,6 +336,21 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 				return next;
 			};
 			const form = document.getElementById('rule-form');
+			if (form) {
+				const submitted = JSON.parse(form.dataset.submitted || '{}') || {};
+				for (const control of form.elements) {
+					const values = submitted[control.name];
+					if (!values || !values.length) continue;
+					if (control.type === 'checkbox') {
+						control.checked = values.includes(control.value);
+					} else {
+						if (control.tagName === 'SELECT' && !Array.from(control.options).some(o => o.value === values[0])) {
+							control.add(new Option(values[0], values[0]));
+						}
+						control.value = values[0];
+					}
+				}
+			}
 			if (form && !form.dataset.fixtureInit) {
 				form.dataset.fixtureInit = 'true';
 				form.addEventListener('change', (e) => {
@@ -347,6 +395,10 @@ templ TypeField(l10n Localizer, current string, options []string) {
 }
 
 templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {
+	@EntityFormBlock(l10n, index, entity, RuleFormViewModel{}.PropertyRows(index, entity.Properties))
+}
+
+templ EntityFormBlock(l10n Localizer, index int, entity apptransform.Entity, properties []PropertyFormRow) {
 	<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4" data-entity={ index }>
 		<legend class="px-2 text-sm font-semibold">
 			{ l10n.Get("rules_entity") } { index }
@@ -356,7 +408,7 @@ templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {
 		</legend>
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 			<label class="flex flex-col gap-1 text-sm">
-				<span>name</span>
+				<span>name (reusable target role)</span>
 				<input name={ entityField(index, "name") } value={ entity.Name } class="rounded-xl border border-border bg-background px-3 py-2"/>
 			</label>
 			<label class="flex flex-col gap-1 text-sm">
@@ -386,8 +438,8 @@ templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {
 				</label>
 			</div>
 		</div>
-		for j, p := range entity.Properties {
-			@PropertyBlock(l10n, index, j, p)
+		for _, row := range properties {
+			@PropertyBlock(l10n, index, row.Index, row.Property)
 		}
 		<div id={ propertyTarget(index) }></div>
 		<div>
@@ -419,6 +471,9 @@ templ PropertyBlock(l10n Localizer, entity, index int, property apptransform.Pro
 			<label class="flex flex-col gap-1 text-sm">
 				<span>type</span>
 				<select name={ propertyField(entity, index, "type") } class="rounded-xl border border-border bg-background px-3 py-2">
+					if !slices.Contains(propertyTypes(), property.Type) {
+						<option value={ property.Type } selected>{ property.Type }</option>
+					}
 					for _, t := range propertyTypes() {
 						<option value={ t } selected?={ t == property.Type }>{ t }</option>
 					}
@@ -435,6 +490,7 @@ templ PropertyBlock(l10n Localizer, entity, index int, property apptransform.Pro
 			<label class="flex flex-col gap-1 text-sm">
 				<span>{ l10n.Get("rules_source_value") }</span>
 				<input name={ propertyField(entity, index, "sourceValue") } value={ propertySourceValue(property) } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				<span class="text-xs">Use the backend's delta/snapshot paths for value sources; field for descriptor/metadata/geometry, ref for reusable target roles. Relationship array describes list form, not persistent set projection.</span>
 			</label>
 			<label class="flex flex-col gap-1 text-sm">
 				<span>unit</span>
@@ -461,6 +517,9 @@ templ PropertyBlock(l10n Localizer, entity, index int, property apptransform.Pro
 			<label class="flex flex-col gap-1 text-sm">
 				<span>transform</span>
 				<select name={ propertyField(entity, index, "transformOp") } class="rounded-xl border border-border bg-background px-3 py-2">
+					if !slices.Contains(transformOps(), propertyTransformOp(property)) {
+						<option value={ propertyTransformOp(property) } selected>{ propertyTransformOp(property) }</option>
+					}
 					for _, op := range transformOps() {
 						<option value={ op } selected?={ op == propertyTransformOp(property) }>{ op }</option>
 					}
@@ -475,9 +534,9 @@ templ PropertyBlock(l10n Localizer, entity, index int, property apptransform.Pro
 					<input type="checkbox" name={ propertyField(entity, index, "required") } value="true" checked?={ property.Required }/>
 					<span>required</span>
 				</label>
-				<label class="flex items-center gap-2">
-					<input type="checkbox" name={ propertyField(entity, index, "whenPresent") } value="true" checked?={ property.When == "present" }/>
-					<span>when: present</span>
+				<label class="flex flex-col gap-1">
+					<span>when (backend activation condition)</span>
+					<input name={ propertyField(entity, index, "when") } value={ property.When } class="rounded-xl border border-border bg-background px-3 py-2"/>
 				</label>
 				<label class="flex items-center gap-2">
 					<input type="checkbox" name={ propertyField(entity, index, "array") } value="true" checked?={ property.Array }/>
@@ -485,8 +544,9 @@ templ PropertyBlock(l10n Localizer, entity, index int, property apptransform.Pro
 				</label>
 			</div>
 		</div>
-		<input type="hidden" name={ propertyField(entity, index, "derive") } value={ propertyDeriveJSON(property) }/>
-		<input type="hidden" name={ propertyField(entity, index, "subproperties") } value={ propertySubpropertiesJSON(property) }/>
+		<p class="text-xs text-muted-foreground">Required and when are the backend's supported requirement/activation fields. No separate createRequired/updateRequired contract is available; validate and preview each lifecycle/value event rather than assuming those semantics. For inverse relationships, add another target entity with its own ID and Relationship mapping; removal uses removeAttributes or delete, as validated by the backend.</p>
+		<label class="flex flex-col gap-1 text-sm"><span>derive (aggregate JSON: fn, of; sources validated by backend)</span><textarea name={ propertyField(entity, index, "derive") } rows="3" class="rounded-xl border border-border bg-background px-3 py-2 font-mono text-xs">{ propertyDeriveJSON(property) }</textarea></label>
+		<label class="flex flex-col gap-1 text-sm"><span>subproperties (JSON)</span><textarea name={ propertyField(entity, index, "subproperties") } rows="3" class="rounded-xl border border-border bg-background px-3 py-2 font-mono text-xs">{ propertySubpropertiesJSON(property) }</textarea></label>
 		<label class="flex flex-col gap-1 text-sm">
 			<span>convert (JSON: from, to, factor, offset)</span>
 			<textarea name={ propertyField(entity, index, "convert") } class="rounded-xl border border-border bg-background px-3 py-2" rows="2">{ propertyConversionJSON(property) }</textarea>

@@ -36,11 +36,18 @@ func (s *Service) Configured() bool {
 }
 
 // GetTemplate reads one published template version (round-trip base for
-// copy+bump; recipes ride along read-only).
+// copy+bump; recipes and operatorVersions ride along read-only).
 func (s *Service) GetTemplate(ctx context.Context, tenant, id, version string) (thingsv2.TemplateSpec, error) {
 	var err error
 	ctx, span := tracer.Start(ctx, "get-template")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	if err = client.ValidatePathID(id, "template"); err != nil {
+		return thingsv2.TemplateSpec{}, err
+	}
+	if err = client.ValidatePathID(version, "template version"); err != nil {
+		return thingsv2.TemplateSpec{}, err
+	}
 
 	params := url.Values{}
 	params.Add("tenant", tenant)
@@ -82,11 +89,19 @@ func (s *Service) PublishTemplate(ctx context.Context, tenant string, spec thing
 	return checkStatus(body, status)
 }
 
-// GetVariant reads one published variant version.
+// GetVariant reads one published variant version (presetProperties ride
+// along read-only).
 func (s *Service) GetVariant(ctx context.Context, tenant, id, version string) (thingsv2.VariantSpec, error) {
 	var err error
 	ctx, span := tracer.Start(ctx, "get-variant")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	if err = client.ValidatePathID(id, "variant"); err != nil {
+		return thingsv2.VariantSpec{}, err
+	}
+	if err = client.ValidatePathID(version, "variant version"); err != nil {
+		return thingsv2.VariantSpec{}, err
+	}
 
 	params := url.Values{}
 	params.Add("tenant", tenant)
@@ -130,11 +145,14 @@ func checkStatus(body []byte, status int) error {
 	switch status {
 	case http.StatusCreated, http.StatusOK, http.StatusNoContent:
 		return nil
-	case http.StatusBadRequest:
+	case http.StatusBadRequest, http.StatusUnprocessableEntity:
 		if msg := errorMessage(body); msg != "" {
-			return fmt.Errorf("invalid template: %s", msg)
+			return &client.BackendError{Status: status, Message: msg}
 		}
-		return fmt.Errorf("request failed: %d", status)
+		if status == http.StatusBadRequest {
+			return fmt.Errorf("request failed: %w", client.ErrBadRequest)
+		}
+		return fmt.Errorf("request failed: %w", client.ErrUnprocessable)
 	case http.StatusUnauthorized:
 		return fmt.Errorf("request failed: %w", client.ErrUnauthorized)
 	case http.StatusForbidden:

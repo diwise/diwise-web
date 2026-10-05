@@ -3,7 +3,9 @@ package catalog
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 
 	"github.com/a-h/templ"
@@ -50,9 +52,13 @@ func composeVariantNewModel(ctx context.Context, r *http.Request, app catalogApp
 		Tenant:  resolveCatalogTenant(r),
 		From:    strings.TrimSpace(r.URL.Query().Get("from")),
 	}
+	if submitted == nil && model.Tenant != "" && len(model.Tenants) > 0 && !slices.Contains(model.Tenants, model.Tenant) {
+		return model, client.ErrForbidden
+	}
 	if submitted != nil {
 		model.Tenant = firstForm(submitted, "tenant")
 		model.From = firstForm(submitted, "from")
+		return model, nil
 	}
 
 	tenant := model.Tenant
@@ -69,16 +75,21 @@ func composeVariantNewModel(ctx context.Context, r *http.Request, app catalogApp
 				model.TemplateOptions = append(model.TemplateOptions,
 					spec.Template.ID+"/"+spec.Template.Version)
 			}
+		} else {
+			return model, err
 		}
 		if model.From != "" && submitted == nil {
 			fromID, fromVersion, ok := splitRef(model.From)
 			if !ok {
-				return model, nil
+				return model, fmt.Errorf("invalid from reference")
 			}
 			if spec, err := app.Catalog().GetVariant(ctx, tenant, fromID, fromVersion); err == nil {
 				model.ID = spec.Variant.ID
 				model.TemplateRef = spec.Variant.TemplateID + "/" + spec.Variant.TemplateVersion
 				model.ParamValues = formatKeyValues(spec.Variant.ParamValues)
+				model.PresetProperties = strings.Join(spec.PresetProperties, "\n")
+			} else {
+				return model, err
 			}
 		}
 	}
@@ -103,7 +114,7 @@ func NewVariantCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 		}
 		form := map[string][]string(r.Form)
 
-		renderErr := func(msg string) {
+		renderErr := func(msg string, statuses ...int) {
 			model, err := composeVariantNewModel(ctx, r, app, form)
 			if err != nil {
 				writeServiceError(w, err, "could not fetch variant")
@@ -111,20 +122,29 @@ func NewVariantCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 			}
 			model.Tenant = firstForm(form, "tenant")
 			model.From = firstForm(form, "from")
-			model.ID = firstForm(form, "id")
-			model.Version = firstForm(form, "version")
-			model.TemplateRef = firstForm(form, "templateRef")
-			model.ParamValues = firstForm(form, "paramValues")
+			model.ID = submittedRaw(form, "id")
+			model.Version = submittedRaw(form, "version")
+			model.TemplateRef = submittedRaw(form, "templateRef")
+			model.ParamValues = submittedRaw(form, "paramValues")
+			model.PresetProperties = submittedRaw(form, "presetProperties")
 			model.ErrorMessage = msg
 			content := featurecatalog.VariantNewPage(localizer, model)
 			page := templ.Component(v2layout.StartPage(version, localizer, assets, content))
 			if helpers.IsHxRequest(r) {
 				page = v2layout.AppShell(localizer, assets, content)
 			}
-			helpers.WriteComponentResponse(ctx, w, r, page, 32*1024, http.StatusOK)
+			status := http.StatusOK
+			if len(statuses) > 0 {
+				status = statuses[0]
+			}
+			helpers.WriteComponentResponse(ctx, formStatusWriter{w, status}, r, page, 32*1024, 0)
 		}
 
 		tenant := firstForm(form, "tenant")
+		if tenants := tokenTenants(r); len(tenants) > 0 && !slices.Contains(tenants, tenant) {
+			renderErr("tenant is not authorized", http.StatusForbidden)
+			return
+		}
 		if tenant == "" {
 			renderErr("tenant is required")
 			return
@@ -151,13 +171,33 @@ func NewVariantCreatePage(ctx context.Context, l10n LocaleBundle, assets AssetLo
 			TemplateID: templateID, TemplateVersion: templateVersion,
 			ParamValues: params,
 		}}
+		if from := firstForm(form, "from"); from != "" {
+			fromID, fromVersion, valid := splitRef(from)
+			if !valid || fromID != id {
+				renderErr("variant id is locked to the copied version")
+				return
+			}
+			copied, err := app.Catalog().GetVariant(ctx, tenant, fromID, fromVersion)
+			if err != nil {
+				if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) {
+					renderErr(err.Error(), errorStatus(err))
+				} else {
+					renderErr(err.Error())
+				}
+				return
+			}
+			spec.PresetProperties = copied.PresetProperties
+		}
+		if _, exists := form["presetProperties"]; exists {
+			spec.PresetProperties = parseLines(firstForm(form, "presetProperties"))
+		}
 		if err := app.Catalog().PublishVariant(ctx, tenant, spec); err != nil {
 			if errors.Is(err, client.ErrConflict) {
-				renderErr("versionen finns redan, välj nytt versionsnummer")
+				renderErr("versionen finns redan, välj nytt versionsnummer: " + err.Error())
 				return
 			}
 			if errors.Is(err, client.ErrUnauthorized) || errors.Is(err, client.ErrForbidden) {
-				writeServiceError(w, err, "")
+				renderErr(err.Error(), errorStatus(err))
 				return
 			}
 			renderErr(err.Error())

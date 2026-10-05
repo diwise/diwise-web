@@ -12,11 +12,19 @@ type ValidateResultViewModel struct {
 	Message string
 }
 
+type CompatibilityViewModel struct {
+	CandidateName string
+	Result        apptransform.CompatibilityResult
+	ErrorMessage  string
+}
+
 // PreviewResultViewModel är preview-svaret (HTMX-del).
 type PreviewResultViewModel struct {
-	Result       apptransform.PreviewResult
-	Queried      bool
-	ErrorMessage string
+	CandidateName string
+	Result        apptransform.PreviewResult
+	Event         apptransform.PreviewEvent
+	Queried       bool
+	ErrorMessage  string
 }
 
 // ObservationsString är antal utvärderade observationer som text.
