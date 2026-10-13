@@ -78,6 +78,7 @@ templ List(props ...ListProps) {
 		}
 		data-tui-tabs-list
 		data-tui-tabs-id={ tabsID }
+		role="group"
 		{ p.Attributes... }
 	>
 		{ children... }
@@ -111,6 +112,7 @@ templ Trigger(props ...TriggerProps) {
 		data-tui-tabs-id={ tabsID }
 		data-tui-tabs-value={ p.Value }
 		data-tui-tabs-state={ utils.IfElse(p.IsActive, "active", "inactive") }
+		aria-pressed={ utils.IfElse(p.IsActive, "true", "false") }
 		{ p.Attributes... }
 	>
 		{ children... }
@@ -160,4 +162,19 @@ func IDFromContext(ctx context.Context) string {
 
 templ Script() {
 	<script defer nonce={ templ.GetNonce(ctx) } src={ utils.ScriptURL("/assets/js/tabs.min.js") }></script>
+	<script nonce={ templ.GetNonce(ctx) }>
+		(() => {
+			const sync = (trigger) => trigger.setAttribute('aria-pressed', trigger.dataset.tuiTabsState === 'active' ? 'true' : 'false');
+			const start = () => {
+				document.querySelectorAll('[data-tui-tabs-trigger]').forEach(sync);
+				new MutationObserver((mutations) => mutations.forEach((mutation) => sync(mutation.target))).observe(document.body, {
+					subtree: true,
+					attributes: true,
+					attributeFilter: ['data-tui-tabs-state'],
+				});
+			};
+			if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+			else start();
+		})();
+	</script>
 }

@@ -1,0 +1,142 @@
+package catalog
+
+import (
+	"slices"
+
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ TemplateNewPage(l10n Localizer, viewModel TemplateNewViewModel) {
+	<div class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
+			@shared.SectionHeading(l10n.Get("catalog_new_version"), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+		</header>
+		if viewModel.ErrorMessage != "" {
+			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
+		}
+		<section class="flex min-w-0 max-w-2xl flex-col gap-6">
+			<form
+				method="post"
+				action="/catalog/templates/new"
+				class="diwise-native-form flex flex-col gap-4"
+			>
+				if viewModel.FromLocked {
+					<input type="hidden" name="from" value={ viewModel.From }/>
+					<input type="hidden" name="id" value={ viewModel.ID }/>
+					<p class="text-sm text-muted-foreground">{ l10n.Get("catalog_copy_from") }: { viewModel.From }</p>
+				} else {
+					<label class="flex flex-col gap-1 text-sm">
+						<span>{ l10n.Get("id") }</span>
+						<input name="id" value={ viewModel.ID } class="rounded-xl border border-border bg-background px-3 py-2"/>
+					</label>
+				}
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("tenant") }</span>
+					<select name="tenant" class="rounded-xl border border-border bg-background px-3 py-2">
+						for _, t := range viewModel.Tenants {
+							<option value={ t } selected?={ t == viewModel.Tenant }>{ t }</option>
+						}
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("version") }</span>
+					<input name="version" value={ viewModel.Version } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("name") }</span>
+					<input name="displayName" value={ viewModel.DisplayName } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("description") }</span>
+					<input name="description" value={ viewModel.Description } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("category") }</span>
+					<input name="category" value={ viewModel.Category } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("catalog_required") } ({ l10n.Get("catalog_one_per_line") })</span>
+					<textarea name="required" rows="4" class="rounded-xl border border-border bg-background px-3 py-2">{ viewModel.Required }</textarea>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("catalog_optional") } ({ l10n.Get("catalog_one_per_line") })</span>
+					<textarea name="optional" rows="4" class="rounded-xl border border-border bg-background px-3 py-2">{ viewModel.Optional }</textarea>
+				</label>
+				<fieldset class="flex flex-col gap-1 text-sm">
+					<legend>{ l10n.Get("catalog_geometries") }</legend>
+					<label class="flex items-center gap-2">
+						<input type="checkbox" name="geometry" value="Point" checked?={ slices.Contains(viewModel.Geometries, "Point") }/>
+						<span>Point</span>
+					</label>
+					<label class="flex items-center gap-2">
+						<input type="checkbox" name="geometry" value="Polygon" checked?={ slices.Contains(viewModel.Geometries, "Polygon") }/>
+						<span>Polygon</span>
+					</label>
+					for _, kind := range viewModel.Geometries {
+						if kind != "Point" && kind != "Polygon" {
+							<label class="flex items-center gap-2">
+								<input type="checkbox" name="geometry" value={ kind } checked/>
+								<span>{ kind }</span>
+							</label>
+						}
+					}
+				</fieldset>
+				<label class="flex items-center gap-2 text-sm">
+					<input type="checkbox" name="allowNoLocation" value="true" checked?={ viewModel.AllowNoLocation }/>
+					<span>{ l10n.Get("catalog_allow_no_location") }</span>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("catalog_params") } ({ l10n.Get("catalog_key_value_lines") })</span>
+					<textarea name="paramDefaults" rows="4" class="rounded-xl border border-border bg-background px-3 py-2">{ viewModel.ParamDefaults }</textarea>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("catalog_overridable") } ({ l10n.Get("catalog_one_per_line") })</span>
+					<textarea name="overridable" rows="3" class="rounded-xl border border-border bg-background px-3 py-2">{ viewModel.OverridableText }</textarea>
+				</label>
+				<p class="text-sm text-muted-foreground">Publicerade versioner är oföränderliga. Ändringar publiceras som en ny version. Backend validerar alla fält.</p>
+				@CatalogTextField("primaryProperty", "Primär egenskap", viewModel.PrimaryProperty, "Egenskaps-ID")
+				@CatalogTextField("repeatGroups", "Repeat groups", viewModel.RepeatGroups, "Ett grupprefix per rad")
+				@CatalogTextField("allowedQuantities", "Tillåtna storheter", viewModel.AllowedQuantities, "En storhet per rad")
+				@CatalogTextField("labels", "Etiketter", viewModel.Labels, "En etikett per rad")
+				@CatalogTextField("propertyDefs", "Egenskapsdefinitioner (JSON)", viewModel.PropertyDefs, `{"temperature":{"displayName":"Temperatur","dataType":"number","quantity":"temperature","unit":"Cel","signals":[]}}`)
+				if viewModel.RelationsStructured {
+					<input type="hidden" name="relationRowsPresent" value="true"/>
+					<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4">
+						<legend>Relationsplatser</legend>
+						<p class="text-sm text-muted-foreground">Tomt namn tar bort platsen. Tomma måltyper tillåter alla malltyper. Max 0 = obegränsat.</p>
+						for _, row := range viewModel.RelationRows {
+							<div class="grid grid-cols-2 gap-2 border-b border-border pb-3">
+								<label class="flex flex-col gap-1 text-sm">Namn<input name="relationName" value={ row.Name } class="rounded-xl border border-border bg-background px-3 py-2"/></label>
+								<label class="flex flex-col gap-1 text-sm">Tillåtna måltyper (mall-ID per rad)<textarea name="relationTargets" class="rounded-xl border border-border bg-background px-3 py-2">{ row.AllowedTargets }</textarea></label>
+								<label class="flex flex-col gap-1 text-sm">Min<input name="relationMin" type="number" min="0" value={ row.Min } class="rounded-xl border border-border bg-background px-3 py-2"/></label>
+								<label class="flex flex-col gap-1 text-sm">Max<input name="relationMax" type="number" min="0" value={ row.Max } class="rounded-xl border border-border bg-background px-3 py-2"/></label>
+							</div>
+						}
+						<button type="submit" name="addRelation" value="true" formnovalidate class="rounded-xl border border-border px-3 py-2">Lägg till relationsplats (utan publicering)</button>
+					</fieldset>
+				} else {
+					@CatalogTextField("relations", "Relationsplatser (JSON)", viewModel.Relations, `[{"name":"serves","allowedTargets":["building"],"min":0,"max":3}]`)
+				}
+				@CatalogTextField("recipes", "Recipes (JSON)", viewModel.Recipes, `[{"name":"value","operator":"identity","version":"v1","inputs":["input"],"outputs":["temperature"],"params":[]}]`)
+				@CatalogTextField("paramInfo", "Parameterdefinitioner (JSON)", viewModel.ParamInfo, `{"offset":{"unit":"Cel","description":"Offset","min":0,"max":10}}`)
+				@CatalogTextField("operatorVersions", "Operatorversioner (JSON)", viewModel.OperatorVersions, `{"identity":"v1"}`)
+				<div>
+					@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
+						{ l10n.Get("catalog_publish") }
+					}
+				</div>
+			</form>
+		</section>
+	</div>
+}
+
+templ CatalogTextField(name string, label string, value string, hint string) {
+	<label class="flex flex-col gap-1 text-sm">
+		<span>{ label }</span>
+		<textarea name={ name } rows="4" spellcheck="false" class="rounded-xl border border-border bg-background px-3 py-2 font-mono">{ value }</textarea>
+		<span class="text-xs text-muted-foreground">{ hint }</span>
+	</label>
+}

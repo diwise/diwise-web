@@ -18,9 +18,12 @@ import (
 	appclient "github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/admin"
+	"github.com/diwise/diwise-web/internal/presentation/api/handlers/catalog"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/home"
+	"github.com/diwise/diwise-web/internal/presentation/api/handlers/rules"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/sensors"
 	"github.com/diwise/diwise-web/internal/presentation/api/handlers/things"
+	"github.com/diwise/diwise-web/internal/presentation/api/handlers/thingsv2"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	authcomponents "github.com/diwise/diwise-web/internal/presentation/web/components/features/auth"
 	v2layout "github.com/diwise/diwise-web/internal/presentation/web/components/layout"
@@ -42,6 +45,12 @@ const (
 	CreateThings auth.Scope = "things.create"
 	UpdateThings auth.Scope = "things.update"
 	DeleteThings auth.Scope = "things.delete"
+
+	ReadTransforms   auth.Scope = "transforms.read"
+	CreateTransforms auth.Scope = "transforms.create"
+	UpdateTransforms auth.Scope = "transforms.update"
+	DeleteTransforms auth.Scope = "transforms.delete"
+	WriteTransforms  auth.Scope = "transforms.write"
 
 	Admin auth.Scope = "admin"
 )
@@ -421,6 +430,47 @@ func RegisterHandlers(ctx context.Context, mux *http.ServeMux, middleware []func
 	r.Handle("GET /components/things/{id}/measurements", protect(ReadThings, RequireHX(things.NewThingMeasurementComponentHandler(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("GET /components/things/search-compatible-sensor-options", protect(UpdateThings, RequireHX(things.NewCompatibleSensorSearchOptionsHandler(ctx, l10n, assetLoader.Load, app))))
 	r.Handle("GET /components/things/list", protect(ReadThings, RequireHX(things.NewThingsDataList(ctx, l10n, assetLoader.Load, app))))
+
+	r.Handle("GET /things-v2", protectFunc(ReadThings, thingsv2.NewThingsV2Page(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /things-v2/new", protectFunc(CreateThings, thingsv2.NewThingsV2NewPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /things-v2/new", protectFunc(CreateThings, thingsv2.NewThingsV2CreatePage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /things-v2/{id}", protectEditModeFunc(ReadThings, UpdateThings, thingsv2.NewThingsV2DetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /things-v2/{id}", protectFunc(UpdateThings, thingsv2.NewThingsV2SavePage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/things-v2/list", protect(ReadThings, RequireHX(thingsv2.NewThingsV2DataList(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/things-v2/params", protect(ReadThings, RequireHX(thingsv2.NewThingsV2ParamsComponent(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/things-v2/{id}/history", protect(ReadThings, RequireHX(thingsv2.NewThingsV2HistoryComponent(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/things-v2/{id}/delete", protect(DeleteThings, RequireHX(thingsv2.NewThingsV2DeleteDialog(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("POST /components/things-v2/{id}/delete", protect(DeleteThings, RequireHX(thingsv2.NewThingsV2DeletePage(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/things-v2/{id}/parent-dialog", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2ParentDialog(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/things-v2/{id}/parents", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2ParentSearch(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("POST /components/things-v2/{id}/parent", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2SetParent(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("POST /components/things-v2/{id}/parent/remove", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2UnlinkParent(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/things-v2/{id}/sensors", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2SensorsDialog(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/things-v2/{id}/sensors/search", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2SensorSearch(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("POST /components/things-v2/{id}/sensors", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2SetSensor(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("POST /components/things-v2/{id}/sensors/unbind", protect(UpdateThings, RequireHX(thingsv2.NewThingsV2UnbindSensor(ctx, l10n, assetLoader.Load, app))))
+
+	r.Handle("GET /catalog/templates", protectFunc(ReadThings, catalog.NewTemplatesPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /catalog/templates/new", protectFunc(CreateThings, catalog.NewTemplateNewPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /catalog/templates/new", protectFunc(CreateThings, catalog.NewTemplateCreatePage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /catalog/templates/{id}/{version}", protectFunc(ReadThings, catalog.NewTemplateDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /catalog/variants", protectFunc(ReadThings, catalog.NewVariantsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /catalog/variants/new", protectFunc(CreateThings, catalog.NewVariantNewPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /catalog/variants/new", protectFunc(CreateThings, catalog.NewVariantCreatePage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /catalog/variants/{id}/{version}", protectFunc(ReadThings, catalog.NewVariantDetailsPage(ctx, l10n, assetLoader.Load, app)))
+
+	r.Handle("GET /rules", protectFunc(ReadTransforms, rules.NewRulesPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /rules/new", protectFunc(CreateTransforms, rules.NewRuleNewPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /rules/new", protectFunc(CreateTransforms, rules.NewRuleCreatePage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /rules/{id}", protectFunc(ReadTransforms, rules.NewRuleDetailsPage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /rules/{id}", protectFunc(UpdateTransforms, rules.NewRuleSavePage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("POST /rules/{id}/delete", protectFunc(DeleteTransforms, rules.NewRuleDeletePage(ctx, l10n, assetLoader.Load, app)))
+	r.Handle("GET /components/rules/entity-blank", protect(ReadTransforms, RequireHX(rules.NewEntityBlankFragment(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/rules/property-blank", protect(ReadTransforms, RequireHX(rules.NewPropertyBlankFragment(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/rules/type-options", protect(ReadTransforms, RequireHX(rules.NewTypeOptionsFragment(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("POST /components/rules/validate", protect(WriteTransforms, RequireHX(rules.NewValidateFragment(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("POST /components/rules/preview", protect(WriteTransforms, RequireHX(rules.NewPreviewFragment(ctx, l10n, assetLoader.Load, app))))
+	r.Handle("GET /components/rules/fixture", protect(ReadTransforms, RequireHX(rules.NewFixtureFragment(ctx, l10n, assetLoader.Load, app))))
 
 	r.Handle("GET /admin", protect(Admin, admin.NewAdminPage(ctx, l10n, assetLoader.Load, app)))
 	r.Handle("GET /admin/export", protectFunc(Admin, func(w http.ResponseWriter, r *http.Request) {

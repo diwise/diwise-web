@@ -1,0 +1,101 @@
+package thingsv2
+
+import (
+	"strings"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+func ThingsV2Map(l10n Localizer, model ThingsV2PageViewModel) templ.Component {
+	if !model.MapView {
+		return templ.NopComponent
+	}
+
+	mapData := shared.NewMapData(62.3908, 17.3069)
+	mapData.CurrentView = "thing-v2"
+	return shared.Map("large", true, false, mapData, thingsV2ToMapFeature(l10n, model.Things))
+}
+
+// ThingsV2DetailsMap visar en sak utan popup: punkt centrerad, polygon
+// via bounds-anpassning från delade kartan.
+func ThingsV2DetailsMap(l10n Localizer, thing ThingV2ViewModel) templ.Component {
+	if !thing.HasLocation && !thing.HasGeometry {
+		return templ.NopComponent
+	}
+
+	mapData := shared.NewMapData(0, 0)
+	if thing.HasLocation {
+		mapData = shared.NewMapData(thing.Latitude, thing.Longitude)
+	}
+	mapData.CurrentView = "thing-v2"
+	return shared.Map("medium", false, false, mapData, thingsV2ToMapFeature(l10n, []ThingV2ViewModel{thing}))
+}
+
+// ThingsV2EditMap visar en flyttbar markör för formulär: befintlig plats
+// markeras (0,0 = ingen markör, klick sätter ny). Delade kartans editmode
+// skriver tillbaka till #latitude/#longitude vid drag och klick.
+// geometryMode (point/polygon/none) exponeras via data-geometry-mode för
+// polygonritning; ritad polygon läses från dolda #geometry-fältet.
+templ ThingsV2EditMap(latitude, longitude float64, geometryMode string) {
+	{{ mapData := shared.NewMapData(latitude, longitude) }}
+	{{ features := make([]shared.Feature, 0, 1) }}
+	if latitude != 0 || longitude != 0 {
+		{{ features = append(features, shared.NewFeature(shared.NewPoint(latitude, longitude))) }}
+	}
+	<div data-geometry-mode={ geometryMode }>
+		@shared.Map("medium", false, true, mapData, shared.NewFeatureCollection(features))
+	</div>
+}
+
+func thingsV2ToMapFeature(l10n Localizer, things []ThingV2ViewModel) shared.FeatureCollection {
+	features := make([]shared.Feature, 0, len(things))
+
+	for _, thing := range things {
+		var feature shared.Feature
+
+		switch {
+		case thing.HasLocation:
+			feature = shared.NewFeature(shared.NewPoint(thing.Latitude, thing.Longitude))
+			feature.AddProperty("latitude", thing.Latitude)
+			feature.AddProperty("longitude", thing.Longitude)
+		case thing.HasGeometry:
+			feature = shared.NewPolygonFeature(thing.GeometryType, thing.Geometry)
+		default:
+			continue
+		}
+
+		feature.AddProperty("id", thing.ID)
+		feature.AddProperty("type", strings.ToLower(thing.Category))
+		feature.AddProperty("subtype", strings.ToLower(thing.TemplateID))
+		feature.AddProperty("name", displayThingV2Name(thing))
+		feature.AddProperty("category", thing.Category)
+
+		if thing.HasPrimaryValue {
+			feature.AddProperty("hasprimary", true)
+			feature.AddProperty("primaryvalue", formatPrimaryValue(thing))
+			feature.AddProperty("primaryunit", thing.PrimaryUnit)
+			feature.AddProperty("primarynumeric", thing.PrimaryValue)
+		} else {
+			feature.AddProperty("hasprimary", false)
+		}
+
+		feature.AddProperty("text_category", l10n.Get("category"))
+		feature.AddProperty("text_missingdata", l10n.Get("missingdata"))
+		feature.AddProperty("text_moreinformation", l10n.Get("moreinformation"))
+		feature.AddProperty("text_name", l10n.Get("name"))
+		feature.AddProperty("text_position", l10n.Get("location"))
+		feature.AddProperty("text_primary", l10n.Get("primary"))
+
+		features = append(features, feature)
+	}
+
+	return shared.NewFeatureCollection(features)
+}
+
+func displayThingV2Name(thing ThingV2ViewModel) string {
+	if strings.TrimSpace(thing.Name) != "" {
+		return thing.Name
+	}
+	return thing.ID
+}

@@ -1,0 +1,556 @@
+package rules
+
+import (
+	"slices"
+
+	apptransform "github.com/diwise/diwise-web/internal/application/transform"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
+	<div id="rule-editor" class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
+			@shared.SectionHeading(viewModel.Heading(l10n), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+		</header>
+		if viewModel.ErrorMessage != "" {
+			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
+		}
+		if viewModel.Notice != "" {
+			<p class="text-sm text-green-700 dark:text-green-400">{ viewModel.Notice }</p>
+		}
+		if !viewModel.TransformConfigured {
+			<p class="text-sm text-muted-foreground">{ l10n.Get("rules_not_configured") }</p>
+		} else {
+			<section class="flex min-w-0 max-w-3xl flex-col gap-6">
+				<form
+					method="post"
+					action={ viewModel.FormAction() }
+					id="rule-form"
+					data-submitted={ viewModel.SubmittedJSON() }
+					class="diwise-native-form flex flex-col gap-6"
+				>
+					<input type="hidden" name="ruleID" value={ viewModel.ID }/>
+					<label class="flex flex-col gap-1 text-sm">
+						<span>{ l10n.Get("name") }</span>
+						<input name="name" value={ viewModel.SubmittedValue("name", viewModel.Rule.Name) } class="rounded-xl border border-border bg-background px-3 py-2"/>
+					</label>
+					<fieldset class="flex flex-col gap-3 rounded-xl border border-border p-4">
+						<legend>Rule editor</legend>
+						<select name="editorMode" class="rounded-xl border border-border bg-background px-3 py-2">
+							<option value="form" selected?={ viewModel.EditorMode() == "form" }>Form fields</option>
+							<option value="json" selected?={ viewModel.EditorMode() == "json" }>Complete JSON (ignores form fields)</option>
+						</select>
+						<p class="text-xs">Export current form fields before switching to JSON. Use “Apply JSON to form” to transfer JSON edits back to fields. Unknown JSON fields are rejected, never silently discarded.</p>
+						<button type="button" hx-post="/components/rules/validate" hx-include="closest form" hx-vals='{"editorAction":"export"}' hx-target="#rule-json-field" hx-swap="outerHTML" class="rounded-xl border px-3 py-2">Export current rule to JSON</button>
+						<button type="button" hx-post="/components/rules/validate" hx-include="closest form" hx-vals='{"editorAction":"import","editorMode":"json"}' hx-target="#rule-editor" hx-swap="outerHTML" class="rounded-xl border px-3 py-2">Apply JSON to form</button>
+						@RuleJSONField(viewModel)
+						if len(viewModel.SubmittedForm) > 0 {
+							<details><summary>Preserved submitted fields (including invalid input)</summary><pre class="overflow-x-auto whitespace-pre-wrap text-xs">{ viewModel.SubmittedJSON() }</pre></details>
+						}
+					</fieldset>
+					if !viewModel.IsNew {
+						<input type="hidden" name="revision" value={ viewModel.RevisionString() }/>
+					}
+					<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4">
+						<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_match") }</legend>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>{ l10n.Get("tenant") }</span>
+							<select
+								name="tenant"
+								class="rounded-xl border border-border bg-background px-3 py-2"
+								hx-get="/components/rules/type-options"
+								hx-target="#source-selection"
+								hx-swap="outerHTML"
+								hx-include="[name='tenant'], [name='type'], [name='thingTypeVersion'], [name='variantId'], [name='variantVersion']"
+							>
+								if !slices.Contains(viewModel.Tenants, viewModel.Rule.Match.Tenant) {
+									<option value={ viewModel.Rule.Match.Tenant } selected>{ viewModel.Rule.Match.Tenant }</option>
+								}
+								for _, t := range viewModel.Tenants {
+									<option value={ t } selected?={ t == viewModel.Rule.Match.Tenant }>{ t }</option>
+								}
+							</select>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>{ l10n.Get("rules_kind") }</span>
+							<select name="kind" class="rounded-xl border border-border bg-background px-3 py-2">
+								if viewModel.Rule.Match.Kind != "measurement" && viewModel.Rule.Match.Kind != "thing" {
+									<option value={ viewModel.Rule.Match.Kind } selected>{ viewModel.Rule.Match.Kind }</option>
+								}
+								<option value="measurement" selected?={ viewModel.Rule.Match.Kind == "measurement" }>measurement</option>
+								<option value="thing" selected?={ viewModel.Rule.Match.Kind == "thing" }>thing</option>
+							</select>
+						</label>
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<label class="flex flex-col gap-1 text-sm">
+								<span>priority</span>
+								<input type="number" step="1" name="priority" value={ viewModel.PriorityString() } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>device</span>
+								<input name="device" value={ viewModel.Rule.Match.Device } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>port</span>
+								<input name="port" value={ viewModel.Rule.Match.Port } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>sensorType</span>
+								<input name="sensorType" value={ viewModel.Rule.Match.SensorType } list="match-sensortypes" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>object</span>
+								<input name="object" value={ viewModel.Rule.Match.Object } list="match-objects" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>resource</span>
+								<input name="resource" value={ viewModel.Rule.Match.Resource } list="match-resources" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>env</span>
+								<input name="env" value={ viewModel.Rule.Match.Env } list="match-envs" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							@SourceSelection(l10n, viewModel)
+							<label class="flex flex-col gap-1 text-sm">
+								<span>subType</span>
+								<input name="subType" value={ viewModel.Rule.Match.SubType } list="match-subtypes" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>event</span>
+								<select name="event" class="rounded-xl border border-border bg-background px-3 py-2">
+									if viewModel.Rule.Match.Event != "" && viewModel.Rule.Match.Event != "things.v1.values" && viewModel.Rule.Match.Event != "things.v1.relations" && viewModel.Rule.Match.Event != "things.v1.lifecycle" {
+										<option value={ viewModel.Rule.Match.Event } selected>{ viewModel.Rule.Match.Event }</option>
+									}
+									<option value="" selected?={ viewModel.Rule.Match.Event == "" }></option>
+									<option value="things.v1.values" selected?={ viewModel.Rule.Match.Event == "things.v1.values" }>things.v1.values</option>
+									<option value="things.v1.relations" selected?={ viewModel.Rule.Match.Event == "things.v1.relations" }>things.v1.relations</option>
+									<option value="things.v1.lifecycle" selected?={ viewModel.Rule.Match.Event == "things.v1.lifecycle" }>things.v1.lifecycle</option>
+								</select>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>relation</span>
+								<input name="relation" value={ viewModel.Rule.Match.Relation } list="match-relations" class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>toType (things.v1.relations)</span>
+								<input name="toType" value={ viewModel.Rule.Match.ToType } class="rounded-xl border border-border bg-background px-3 py-2"/>
+							</label>
+							<label class="flex items-center gap-2 text-sm">
+								<input type="checkbox" name="relationRemoved" value="true" checked?={ viewModel.Rule.Match.RelationRemoved }/>
+								<span>relationRemoved</span>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>lifecycle</span>
+								<select name="lifecycle" class="rounded-xl border border-border bg-background px-3 py-2">
+									if viewModel.Rule.Match.Lifecycle != "" && viewModel.Rule.Match.Lifecycle != "created" && viewModel.Rule.Match.Lifecycle != "updated" && viewModel.Rule.Match.Lifecycle != "deleted" {
+										<option value={ viewModel.Rule.Match.Lifecycle } selected>{ viewModel.Rule.Match.Lifecycle }</option>
+									}
+									<option value="" selected?={ viewModel.Rule.Match.Lifecycle == "" }></option>
+									<option value="created" selected?={ viewModel.Rule.Match.Lifecycle == "created" }>created</option>
+									<option value="updated" selected?={ viewModel.Rule.Match.Lifecycle == "updated" }>updated</option>
+									<option value="deleted" selected?={ viewModel.Rule.Match.Lifecycle == "deleted" }>deleted</option>
+								</select>
+							</label>
+						</div>
+					</fieldset>
+					<datalist id="match-objects">
+						for _, o := range MeasurementObjects() {
+							<option value={ o }></option>
+						}
+					</datalist>
+					<datalist id="match-resources">
+						for _, r := range MeasurementResources() {
+							<option value={ r }></option>
+						}
+					</datalist>
+					<datalist id="match-envs">
+						for _, e := range MeasurementEnvs() {
+							<option value={ e }></option>
+						}
+					</datalist>
+					<datalist id="match-relations">
+						for _, r := range RelationNames() {
+							<option value={ r }></option>
+						}
+					</datalist>
+					<datalist id="match-sensortypes">
+						for _, s := range viewModel.SensorTypeOptions {
+							<option value={ s }></option>
+						}
+					</datalist>
+					<datalist id="match-subtypes">
+						for _, s := range viewModel.SubTypeOptions {
+							<option value={ s }></option>
+						}
+					</datalist>
+					for _, row := range viewModel.EntityRows() {
+						@EntityFormBlock(l10n, row.Index, row.Entity, viewModel.PropertyRows(row.Index, row.Entity.Properties))
+					}
+					<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4">
+						<legend class="px-2 text-sm font-semibold">{ l10n.Get("rules_preview") }</legend>
+						<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+							<label class="flex flex-col gap-1 text-sm">
+								<span>{ l10n.Get("rules_event") }</span>
+								<select name="previewKind" class="rounded-xl border border-border bg-background px-3 py-2">
+									for _, kind := range previewKinds() {
+										<option value={ kind } selected?={ viewModel.SubmittedValue("previewKind", "measurement") == kind }>{ kind }</option>
+									}
+								</select>
+							</label>
+							<label class="flex flex-col gap-1 text-sm">
+								<span>{ l10n.Get("rules_fixture") }</span>
+								<select
+									name="previewFixture"
+									class="rounded-xl border border-border bg-background px-3 py-2"
+									hx-get="/components/rules/fixture"
+									hx-target="#preview-message"
+									hx-swap="innerHTML"
+								>
+									for _, f := range previewFixtures() {
+										<option value={ f.Name } data-kind={ f.Kind }>{ f.Label }</option>
+									}
+								</select>
+							</label>
+						</div>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>{ l10n.Get("rules_message") }</span>
+							<textarea id="preview-message" name="previewMessage" rows="8" class="rounded-xl border border-border bg-background px-3 py-2 font-mono text-xs">{ viewModel.SubmittedValue("previewMessage", defaultFixtureMessage()) }</textarea>
+						</label>
+						<label class="flex flex-col gap-1 text-sm">
+							<span>sensorType ({ l10n.Get("rules_optional") })</span>
+							<input name="previewSensorType" value={ viewModel.SubmittedValue("previewSensorType", "") } class="rounded-xl border border-border bg-background px-3 py-2"/>
+						</label>
+						<div class="flex flex-wrap gap-4">
+							<button type="button" hx-post="/components/rules/validate" hx-include="closest form" hx-vals='{"checkCompatibility":"true"}' hx-target="#compatibility-result" hx-swap="outerHTML" class="rounded-xl border px-3 py-2">Check template compatibility</button>
+							@button.Button(button.Props{
+								Variant: button.VariantSecondary,
+								Class:   "rounded-xl px-4",
+								Attributes: templ.Attributes{
+									"type":       "button",
+									"hx-post":    "/components/rules/validate",
+									"hx-include": "closest form",
+									"hx-target":  "#validate-result",
+									"hx-swap":    "outerHTML",
+								},
+							}) {
+								{ l10n.Get("rules_validate") }
+							}
+							@button.Button(button.Props{
+								Variant: button.VariantSecondary,
+								Class:   "rounded-xl px-4",
+								Attributes: templ.Attributes{
+									"type":       "button",
+									"hx-post":    "/components/rules/preview",
+									"hx-include": "closest form",
+									"hx-target":  "#preview-result",
+									"hx-swap":    "outerHTML",
+								},
+							}) {
+								{ l10n.Get("rules_preview_run") }
+							}
+						</div>
+						<div id="validate-result"></div>
+						<div id="compatibility-result"></div>
+						@PreviewResult(l10n, previewEmpty())
+					</fieldset>
+					<div class="flex flex-wrap gap-4">
+						@button.Button(button.Props{Variant: button.VariantDefault, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
+							{ l10n.Get("rules_save") }
+						}
+						@button.Button(button.Props{
+							Variant: button.VariantSecondary,
+							Class:   "rounded-xl px-4",
+							Attributes: templ.Attributes{
+								"hx-get":    "/components/rules/entity-blank",
+								"hx-vals":   "js:{index: ruleFormNext('entity', -1)}",
+								"hx-target": "#entity-blocks",
+								"hx-swap":   "beforeend",
+								"type":      "button",
+							},
+						}) {
+							{ l10n.Get("rules_add_entity") }
+						}
+					</div>
+					<div id="entity-blocks"></div>
+				</form>
+				if viewModel.ShowDelete {
+					<form
+						method="post"
+						action={ "/rules/" + viewModel.ID + "/delete" }
+						class="flex flex-col gap-4 rounded-xl border border-border p-4"
+					>
+						<input type="hidden" name="revision" value={ viewModel.RevisionString() }/>
+						if viewModel.IsSeed {
+							<p class="text-sm text-muted-foreground">{ l10n.Get("rules_seed_banner") }</p>
+							<p class="text-sm text-muted-foreground">{ l10n.Get("rules_seed_delete_warning") }</p>
+						}
+						if viewModel.ConfirmDelete {
+							<p class="text-sm font-semibold">{ l10n.Get("rules_confirm_delete") }</p>
+							<input type="hidden" name="confirm" value="yes"/>
+						}
+						<div>
+							@button.Button(button.Props{Variant: button.VariantDestructive, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
+								if viewModel.ConfirmDelete {
+									{ l10n.Get("rules_delete_confirmed") }
+								} else {
+									{ l10n.Get("rules_delete") }
+								}
+							}
+						</div>
+					</form>
+				}
+			</section>
+		}
+	</div>
+	<script nonce={ templ.GetNonce(ctx) }>
+		// Indexräknare för blanka block: nästa lediga index per typ, med
+		// optimistisk räknare så att snabba dubbelklick inte kolliderar.
+		// Servern avvisar ändå dubblettfält (se parseRuleForm).
+		// Fixture-val synkar även preview-kind från optionens data-kind.
+		(() => {
+			const seq = {};
+			const maxAttr = (root, selector, attr) => {
+				let m = -1;
+				(root || document).querySelectorAll(selector).forEach((el) => {
+					const n = parseInt(el.getAttribute(attr), 10);
+					if (!isNaN(n) && n > m) {
+						m = n;
+					}
+				});
+				return m;
+			};
+			window.ruleFormNext = (kind, scope) => {
+				let cur;
+				if (kind === 'entity') {
+					cur = maxAttr(document.getElementById('rule-form'), '[data-entity]', 'data-entity');
+				} else {
+					const root = document.querySelector('#rule-form [data-entity="' + scope + '"]');
+					cur = maxAttr(root, '[data-property]', 'data-property');
+				}
+				const key = kind + ':' + scope;
+				const next = Math.max(cur, seq[key] === undefined ? -1 : seq[key]) + 1;
+				seq[key] = next;
+				return next;
+			};
+			const form = document.getElementById('rule-form');
+			if (form) {
+				const submitted = JSON.parse(form.dataset.submitted || '{}') || {};
+				for (const control of form.elements) {
+					const values = submitted[control.name];
+					if (!values || !values.length) continue;
+					if (control.type === 'checkbox') {
+						control.checked = values.includes(control.value);
+					} else {
+						if (control.tagName === 'SELECT' && !Array.from(control.options).some(o => o.value === values[0])) {
+							control.add(new Option(values[0], values[0]));
+						}
+						control.value = values[0];
+					}
+				}
+			}
+			if (form && !form.dataset.fixtureInit) {
+				form.dataset.fixtureInit = 'true';
+				form.addEventListener('change', (e) => {
+					if (!e.target || e.target.name !== 'previewFixture') {
+						return;
+					}
+					const opt = e.target.selectedOptions && e.target.selectedOptions[0];
+					const kind = opt && opt.dataset ? opt.dataset.kind : '';
+					const kindSelect = form.querySelector('select[name="previewKind"]');
+					if (kind && kindSelect) {
+						kindSelect.value = kind;
+					}
+				});
+			}
+		})();
+	</script>
+}
+
+// TypeField är match.type-fältet: dropdown från katalogen när mallista
+// finns, annars fritext med hint. Aktuellt värde bevaras alltid som option
+// så att sparning aldrig tappar det.
+templ TypeField(l10n Localizer, current string, options []string) {
+	<div id="match-type-field">
+		<label class="flex flex-col gap-1 text-sm">
+			<span>type</span>
+			if len(options) > 0 {
+				<select name="type" class="rounded-xl border border-border bg-background px-3 py-2">
+					<option value="" selected?={ current == "" }></option>
+					if current != "" && !slices.Contains(options, current) {
+						<option value={ current } selected>{ current }</option>
+					}
+					for _, o := range options {
+						<option value={ o } selected?={ o == current }>{ o }</option>
+					}
+				</select>
+			} else {
+				<input name="type" value={ current } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				<span class="text-xs text-muted-foreground">{ l10n.Get("rules_pick_tenant_first") }</span>
+			}
+		</label>
+	</div>
+}
+
+templ EntityBlock(l10n Localizer, index int, entity apptransform.Entity) {
+	@EntityFormBlock(l10n, index, entity, RuleFormViewModel{}.PropertyRows(index, entity.Properties))
+}
+
+templ EntityFormBlock(l10n Localizer, index int, entity apptransform.Entity, properties []PropertyFormRow) {
+	<fieldset class="flex flex-col gap-4 rounded-xl border border-border p-4" data-entity={ index }>
+		<legend class="px-2 text-sm font-semibold">
+			{ l10n.Get("rules_entity") } { index }
+			if entity.Type != "" {
+				<span class="text-muted-foreground">· { entity.Type }</span>
+			}
+		</legend>
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+			<label class="flex flex-col gap-1 text-sm">
+				<span>name (reusable target role)</span>
+				<input name={ entityField(index, "name") } value={ entity.Name } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>id</span>
+				<input name={ entityField(index, "id") } value={ entity.ID } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>type</span>
+				<input name={ entityField(index, "type") } value={ entity.Type } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>context</span>
+				<input name={ entityField(index, "context") } value={ entity.Context } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>removeAttributes ({ l10n.Get("catalog_one_per_line") })</span>
+				<textarea name={ entityField(index, "removeAttributes") } rows="2" class="rounded-xl border border-border bg-background px-3 py-2">{ removeAttributesText(entity) }</textarea>
+			</label>
+			<div class="flex items-center gap-4 text-sm">
+				<label class="flex items-center gap-2">
+					<input type="checkbox" name={ entityField(index, "create") } value="true" checked?={ entity.Create }/>
+					<span>create</span>
+				</label>
+				<label class="flex items-center gap-2">
+					<input type="checkbox" name={ entityField(index, "delete") } value="true" checked?={ entity.Delete }/>
+					<span>delete</span>
+				</label>
+			</div>
+		</div>
+		for _, row := range properties {
+			@PropertyBlock(l10n, index, row.Index, row.Property)
+		}
+		<div id={ propertyTarget(index) }></div>
+		<div>
+			@button.Button(button.Props{
+				Variant: button.VariantSecondary,
+				Class:   "rounded-xl px-4",
+				Attributes: templ.Attributes{
+					"hx-get":    "/components/rules/property-blank",
+					"hx-vals":   propertyBlankVals(index),
+					"hx-target": "#" + propertyTarget(index),
+					"hx-swap":   "beforeend",
+					"type":      "button",
+				},
+			}) {
+				{ l10n.Get("rules_add_property") }
+			}
+		</div>
+	</fieldset>
+}
+
+templ PropertyBlock(l10n Localizer, entity, index int, property apptransform.Property) {
+	<fieldset class="flex flex-col gap-3 rounded-xl border border-dashed border-border p-3" data-property={ index }>
+		<legend class="px-2 text-sm">{ l10n.Get("rules_property") } { index }</legend>
+		<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+			<label class="flex flex-col gap-1 text-sm">
+				<span>target</span>
+				<input name={ propertyField(entity, index, "target") } value={ property.Target } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>type</span>
+				<select name={ propertyField(entity, index, "type") } class="rounded-xl border border-border bg-background px-3 py-2">
+					if !slices.Contains(propertyTypes(), property.Type) {
+						<option value={ property.Type } selected>{ property.Type }</option>
+					}
+					for _, t := range propertyTypes() {
+						<option value={ t } selected?={ t == property.Type }>{ t }</option>
+					}
+				</select>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>{ l10n.Get("rules_source") }</span>
+				<select name={ propertyField(entity, index, "sourceKind") } class="rounded-xl border border-border bg-background px-3 py-2">
+					for _, s := range sourceKinds() {
+						<option value={ s } selected?={ s == propertySourceKind(property) }>{ s }</option>
+					}
+				</select>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>{ l10n.Get("rules_source_value") }</span>
+				<input name={ propertyField(entity, index, "sourceValue") } value={ propertySourceValue(property) } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				<span class="text-xs">Use the backend's delta/snapshot paths for value sources; field for descriptor/metadata/geometry, ref for reusable target roles. Relationship array describes list form, not persistent set projection.</span>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>unit</span>
+				<input name={ propertyField(entity, index, "unit") } value={ property.Unit } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>observedAt</span>
+				<input name={ propertyField(entity, index, "observedAt") } value={ property.ObservedAt } list="observedAt-options" class="rounded-xl border border-border bg-background px-3 py-2"/>
+				<datalist id="observedAt-options">
+					<option value="header"></option>
+					<option value="record"></option>
+					<option value="message"></option>
+					<option value="none"></option>
+				</datalist>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>observedBy</span>
+				<input name={ propertyField(entity, index, "observedBy") } value={ property.ObservedBy } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>prefix</span>
+				<input name={ propertyField(entity, index, "prefix") } value={ property.Prefix } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>transform</span>
+				<select name={ propertyField(entity, index, "transformOp") } class="rounded-xl border border-border bg-background px-3 py-2">
+					if !slices.Contains(transformOps(), propertyTransformOp(property)) {
+						<option value={ propertyTransformOp(property) } selected>{ propertyTransformOp(property) }</option>
+					}
+					for _, op := range transformOps() {
+						<option value={ op } selected?={ op == propertyTransformOp(property) }>{ op }</option>
+					}
+				</select>
+			</label>
+			<label class="flex flex-col gap-1 text-sm">
+				<span>transform value</span>
+				<input name={ propertyField(entity, index, "transformValue") } value={ propertyTransformValue(property) } class="rounded-xl border border-border bg-background px-3 py-2"/>
+			</label>
+			<div class="flex flex-wrap items-center gap-4 text-sm">
+				<label class="flex items-center gap-2">
+					<input type="checkbox" name={ propertyField(entity, index, "required") } value="true" checked?={ property.Required }/>
+					<span>required</span>
+				</label>
+				<label class="flex flex-col gap-1">
+					<span>when (backend activation condition)</span>
+					<input name={ propertyField(entity, index, "when") } value={ property.When } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<label class="flex items-center gap-2">
+					<input type="checkbox" name={ propertyField(entity, index, "array") } value="true" checked?={ property.Array }/>
+					<span>array (Relationship)</span>
+				</label>
+			</div>
+		</div>
+		<p class="text-xs text-muted-foreground">Required and when are the backend's supported requirement/activation fields. No separate createRequired/updateRequired contract is available; validate and preview each lifecycle/value event rather than assuming those semantics. For inverse relationships, add another target entity with its own ID and Relationship mapping; removal uses removeAttributes or delete, as validated by the backend.</p>
+		<label class="flex flex-col gap-1 text-sm"><span>derive (aggregate JSON: fn, of; sources validated by backend)</span><textarea name={ propertyField(entity, index, "derive") } rows="3" class="rounded-xl border border-border bg-background px-3 py-2 font-mono text-xs">{ propertyDeriveJSON(property) }</textarea></label>
+		<label class="flex flex-col gap-1 text-sm"><span>subproperties (JSON)</span><textarea name={ propertyField(entity, index, "subproperties") } rows="3" class="rounded-xl border border-border bg-background px-3 py-2 font-mono text-xs">{ propertySubpropertiesJSON(property) }</textarea></label>
+		<label class="flex flex-col gap-1 text-sm">
+			<span>convert (JSON: from, to, factor, offset)</span>
+			<textarea name={ propertyField(entity, index, "convert") } class="rounded-xl border border-border bg-background px-3 py-2" rows="2">{ propertyConversionJSON(property) }</textarea>
+		</label>
+		<input type="hidden" name={ propertyField(entity, index, "transform") } value={ propertyTransformJSON(property) }/>
+	</fieldset>
+}

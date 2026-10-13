@@ -31,7 +31,9 @@ templ StartPageWithToast(version string, localizer Localizer, asset AssetLoaderF
 		if apiauth.LoggedIn(ctx) {
 			@Body(version, localizer, asset, mainContent, toastContent)
 		} else {
-			@auth.NotLoggedIn(localizer, asset)
+			<body class="min-h-screen bg-background text-foreground">
+				@auth.NotLoggedIn(localizer, asset)
+			</body>
 		}
 	</html>
 }
@@ -98,8 +100,7 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 			@toastContent
 		</div>
 		@AppShell(l10n, asset, mainContent)
-	</body>
-	<script nonce={ csp.Nonce(ctx) }>
+		<script nonce={ csp.Nonce(ctx) }>
 		function applyThemeClass(theme) {
 			const isDark = theme === 'dark';
 			document.documentElement.classList.toggle('dark', isDark);
@@ -153,7 +154,8 @@ templ Body(version string, l10n Localizer, asset AssetLoaderFunc, mainContent te
 		});
 
 		onPageLoad()
-	</script>
+		</script>
+	</body>
 }
 
 templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Component) {
@@ -164,36 +166,53 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 			</div>
 			<nav class="mt-14 flex flex-col gap-2">
 				@NavItem(l10n.Get("home"), "/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
-				@NavItem(l10n.Get("sensors"), "/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
-				@NavItem(l10n.Get("things"), "/things", isCurrent(ctx, "things"), icon.Shapes(icon.Props{Size: 18}))
+				<hr class="mx-4 my-2 border-t border-border"/>
+				if apiauth.HasScope(ctx, "sensors.read") {
+					@NavItem(l10n.Get("sensors"), "/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
+				}
+				if apiauth.HasScope(ctx, "things.read") {
+					@NavItem(l10n.Get("thingsv2"), "/things-v2", isCurrent(ctx, "things-v2"), icon.Shapes(icon.Props{Size: 18}))
+				}
+				<hr class="mx-4 my-2 border-t border-border"/>
+				if apiauth.HasScope(ctx, "things.read") {
+					@NavItem(l10n.Get("catalog"), "/catalog/templates", isCurrent(ctx, "catalog"), icon.BookOpenText(icon.Props{Size: 18}))
+				}
+				if apiauth.HasScope(ctx, "transforms.read") {
+					@NavItem(l10n.Get("rules"), "/rules", isCurrent(ctx, "rules"), icon.ListChecks(icon.Props{Size: 18}))
+				}
 			</nav>
 			<div class="mt-auto flex flex-col gap-3">
 				@NavItem(l10n.Get("logout"), "/logout", false, icon.LogOut(icon.Props{Size: 18}))
 				@ThemeToggle(l10n)
 			</div>
 		</aside>
-		<div class="flex min-h-screen flex-1 flex-col">
-			<header class="sticky top-0 z-40 border-b border-border bg-background px-6 py-4 shadow-sm md:hidden">
-				<div class="flex items-center gap-6">
-					<div class="flex items-center gap-2">
-						<img src={ asset("/images/diwise-logo.svg").Path() } alt="Diwise" class="h-8 dark:hidden"/>
-						<img src={ asset("/images/diwise-logo-dark.svg").Path() } alt="Diwise" class="hidden h-8 dark:block"/>
+		<div class="flex min-h-screen min-w-0 flex-1 flex-col">
+			<header class="sticky top-0 z-40 border-b border-border bg-background px-4 py-3 shadow-sm md:hidden">
+				<div class="flex flex-wrap items-center justify-between gap-3">
+					<div class="flex shrink-0 items-center [&>svg]:h-8 [&>svg]:w-auto">
+						@shared.DiwiseLogo()
 					</div>
-					<div class="flex items-center gap-1">
-						@IconNav("/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
-						@IconNav("/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
-						@IconNav("/things", isCurrent(ctx, "things"), icon.Shapes(icon.Props{Size: 18}))
-					</div>
+					<nav class="order-3 flex w-full flex-wrap items-center gap-1 border-t border-border pt-3 sm:order-none sm:w-auto sm:border-0 sm:pt-0">
+						@IconNav(l10n.Get("home"), "/home", isCurrent(ctx, "home"), icon.House(icon.Props{Size: 18}))
+						if apiauth.HasScope(ctx, "sensors.read") {
+							@IconNav(l10n.Get("sensors"), "/sensors", isCurrent(ctx, "sensors"), icon.Rss(icon.Props{Size: 18}))
+						}
+						if apiauth.HasScope(ctx, "things.read") {
+							@IconNav(l10n.Get("thingsv2"), "/things-v2", isCurrent(ctx, "things-v2"), icon.Shapes(icon.Props{Size: 18}))
+							@IconNav(l10n.Get("catalog"), "/catalog/templates", isCurrent(ctx, "catalog"), icon.BookOpenText(icon.Props{Size: 18}))
+						}
+						if apiauth.HasScope(ctx, "transforms.read") {
+							@IconNav(l10n.Get("rules"), "/rules", isCurrent(ctx, "rules"), icon.ListChecks(icon.Props{Size: 18}))
+						}
+					</nav>
 					<div class="ml-auto flex items-center gap-1">
-						@IconNav("/logout", false, icon.LogOut(icon.Props{Size: 18}))
+						@IconNav(l10n.Get("logout"), "/logout", false, icon.LogOut(icon.Props{Size: 18}))
 						@ThemeToggleCompact()
 					</div>
 				</div>
 			</header>
-			<main id="main-content" class="flex flex-1 flex-col px-4 py-8 md:px-8 lg:px-12">
-				<div class="flex w-full flex-1 flex-col">
-					@mainContent
-				</div>
+			<main id="main-content" class="mx-auto flex w-full min-w-0 max-w-screen-2xl flex-1 flex-col px-4 py-6 md:px-8 md:py-8 lg:px-12">
+				@mainContent
 			</main>
 		</div>
 	</div>
@@ -201,39 +220,46 @@ templ AppShell(l10n Localizer, asset AssetLoaderFunc, mainContent templ.Componen
 
 templ NavItem(title, href string, selected bool, leading templ.Component) {
 	@button.Button(button.Props{
-		Href: href,
-		Variant: button.VariantGhost,
-		Class: navItemClass(selected),
-		Attributes: shellNavAttributes(href),
+		Href:       href,
+		Variant:    navVariant(selected),
+		Class:      navItemClass(selected),
+		Attributes: shellNavAttributes(href, selected),
 	}) {
 		@leading
 		<span>{ title }</span>
 	}
 }
 
-templ IconNav(href string, selected bool, leading templ.Component) {
+templ IconNav(title, href string, selected bool, leading templ.Component) {
 	@button.Button(button.Props{
-		Href: href,
-		Variant: button.VariantGhost,
-		Size: button.SizeIcon,
-		Class: iconNavClass(selected),
-		Attributes: shellNavAttributes(href),
+		Href:       href,
+		Variant:    navVariant(selected),
+		Size:       button.SizeIcon,
+		Class:      iconNavClass(selected),
+		Attributes: iconNavAttributes(title, href, selected),
 	}) {
 		@leading
 	}
 }
 
-func shellNavAttributes(href string) templ.Attributes {
-	if !shouldSwapShell(href) {
-		return nil
+func shellNavAttributes(href string, selected bool) templ.Attributes {
+	attrs := templ.Attributes{}
+	if selected {
+		attrs["aria-current"] = "page"
 	}
+	if shouldSwapShell(href) {
+		attrs["hx-get"] = href
+		attrs["hx-target"] = "#app-shell"
+		attrs["hx-swap"] = "outerHTML"
+		attrs["hx-replace-url"] = "true"
+	}
+	return attrs
+}
 
-	return templ.Attributes{
-		"hx-get":         href,
-		"hx-target":      "#app-shell",
-		"hx-swap":        "outerHTML",
-		"hx-replace-url": "true",
-	}
+func iconNavAttributes(title, href string, selected bool) templ.Attributes {
+	attrs := shellNavAttributes(href, selected)
+	attrs["aria-label"] = title
+	return attrs
 }
 
 func shouldSwapShell(href string) bool {
@@ -249,14 +275,14 @@ func navVariant(selected bool) button.Variant {
 
 func navItemClass(selected bool) string {
 	if selected {
-		return "w-full justify-start rounded-lg bg-primary px-4 py-6 text-base font-bold text-primary-foreground shadow-none hover:bg-primary/90"
+		return "w-full justify-start rounded-xl bg-primary px-4 py-4 text-base font-bold text-primary-foreground shadow-none hover:bg-primary/90"
 	}
-	return "w-full justify-start rounded-xl px-4 py-6 text-base text-foreground shadow-none hover:bg-muted"
+	return "w-full justify-start rounded-xl px-4 py-4 text-base text-foreground shadow-none hover:bg-muted"
 }
 
 func iconNavClass(selected bool) string {
 	if selected {
-		return "rounded-lg bg-primary text-primary-foreground shadow-none hover:bg-primary/90"
+		return "rounded-xl bg-primary text-primary-foreground shadow-none hover:bg-primary/90"
 	}
 	return "rounded-xl text-foreground shadow-none hover:bg-muted"
 }
@@ -266,23 +292,23 @@ templ ThemeToggle(l10n Localizer) {
 		@button.Button(button.Props{
 			Type:    button.TypeButton,
 			Variant: button.VariantGhost,
-			Class:   "toggle-light h-auto shrink-0 gap-2 rounded-full bg-primary-surface px-3 py-2 text-white shadow-none hover:bg-primary-surface-hover dark:bg-transparent dark:text-white dark:hover:bg-white-30",
+			Class:   "toggle-light h-auto shrink-0 gap-2 rounded-full bg-primary-surface px-3 py-2 text-white shadow-none hover:bg-primary-surface-hover hover:text-white dark:bg-transparent dark:text-white dark:hover:bg-white-30 dark:hover:text-white",
 			Attributes: templ.Attributes{
 				"aria-label": "Light mode",
 			},
 		}) {
-			@icon.SunMedium(icon.Props{Size: 24, Class: "text-white dark:text-primary-dark"})
+			@icon.SunMedium(icon.Props{Size: 20})
 			{ l10n.Get("light") }
 		}
 		@button.Button(button.Props{
 			Type:    button.TypeButton,
 			Variant: button.VariantGhost,
-			Class:   "toggle-dark h-auto shrink-0 gap-2 rounded-full px-3.5 py-2 text-foreground shadow-none hover:bg-tertiary-surface-hover dark:bg-primary-surface-dark dark:text-primary-dark dark:hover:bg-primary-surface-dark-hover",
+			Class:   "toggle-dark h-auto shrink-0 gap-2 rounded-full px-3.5 py-2 text-foreground shadow-none hover:bg-tertiary-surface-hover hover:text-foreground dark:bg-primary-surface-dark dark:text-primary-dark dark:hover:bg-primary-surface-dark-hover dark:hover:text-primary-dark",
 			Attributes: templ.Attributes{
 				"aria-label": "Dark mode",
 			},
 		}) {
-			@icon.Moon(icon.Props{Size: 20, Class: "text-primary-dark"})
+			@icon.Moon(icon.Props{Size: 20})
 			{ l10n.Get("dark") }
 		}
 	</div>
@@ -293,22 +319,22 @@ templ ThemeToggleCompact() {
 		@button.Button(button.Props{
 			Type:    button.TypeButton,
 			Variant: button.VariantGhost,
-			Class:   "toggle-light size-auto shrink-0 rounded-full bg-primary-surface p-2 text-white shadow-none hover:bg-primary-surface-hover dark:bg-transparent dark:text-white dark:hover:bg-white-30",
+			Class:   "toggle-light size-auto shrink-0 rounded-full bg-primary-surface p-2 text-white shadow-none hover:bg-primary-surface-hover hover:text-white dark:bg-transparent dark:text-white dark:hover:bg-white-30 dark:hover:text-white",
 			Attributes: templ.Attributes{
 				"aria-label": "Light mode",
 			},
 		}) {
-			@icon.SunMedium(icon.Props{Size: 24, Class: "text-white dark:text-primary-dark"})
+			@icon.SunMedium(icon.Props{Size: 20})
 		}
 		@button.Button(button.Props{
 			Type:    button.TypeButton,
 			Variant: button.VariantGhost,
-			Class:   "toggle-dark size-auto shrink-0 rounded-full p-2 text-foreground shadow-none hover:bg-tertiary-surface-hover dark:bg-primary-surface-dark dark:text-primary-dark dark:hover:bg-primary-surface-dark-hover",
+			Class:   "toggle-dark size-auto shrink-0 rounded-full p-2 text-foreground shadow-none hover:bg-tertiary-surface-hover hover:text-foreground dark:bg-primary-surface-dark dark:text-primary-dark dark:hover:bg-primary-surface-dark-hover dark:hover:text-primary-dark",
 			Attributes: templ.Attributes{
 				"aria-label": "Dark mode",
 			},
 		}) {
-			@icon.Moon(icon.Props{Size: 20, Class: "text-primary-dark"})
+			@icon.Moon(icon.Props{Size: 20})
 		}
 	</div>
 }

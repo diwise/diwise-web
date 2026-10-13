@@ -18,7 +18,7 @@ func NewAdminPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 	version := helpers.GetVersion(ctx)
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		ctx = helpers.Decorate(
+		ctx := helpers.Decorate(
 			r.Context(),
 			v2layout.CurrentComponent, "admin",
 		)

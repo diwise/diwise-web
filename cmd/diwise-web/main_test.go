@@ -52,11 +52,17 @@ func TestDevModeAuthzPolicyAllowsProtectedRouteScopes(t *testing.T) {
 
 	for _, scope := range []auth.Scope{
 		api.ReadSensors,
+		api.CreateSensors,
 		api.UpdateSensors,
 		api.ReadThings,
 		api.CreateThings,
 		api.UpdateThings,
 		api.DeleteThings,
+		api.ReadTransforms,
+		api.CreateTransforms,
+		api.UpdateTransforms,
+		api.DeleteTransforms,
+		api.WriteTransforms,
 		api.Admin,
 	} {
 		t.Run(string(scope), func(t *testing.T) {

@@ -29,6 +29,7 @@ type Props struct {
 	Max        int
 	Value      int
 	Label      string
+	AriaLabel  string
 	ShowValue  bool
 	Size       Size
 	Variant    Variant
@@ -48,7 +49,10 @@ templ Progress(props ...Props) {
 		class={ utils.TwMerge("w-full", p.Class) }
 		aria-valuemin="0"
 		aria-valuemax={ fmt.Sprintf("%d", maxValue(p.Max)) }
-		aria-valuenow={ fmt.Sprintf("%d", p.Value) }
+		aria-valuenow={ fmt.Sprintf("%d", clampedValue(p.Value, p.Max)) }
+		if p.AriaLabel != "" {
+			aria-label={ p.AriaLabel }
+		}
 		role="progressbar"
 		{ p.Attributes... }
 	>
@@ -89,13 +93,18 @@ func maxValue(max int) int {
 
 func percentage(value int, props Props) int {
 	max := maxValue(props.Max)
+	return (clampedValue(value, max) * 100) / max
+}
+
+func clampedValue(value, max int) int {
+	max = maxValue(max)
 	if value < 0 {
 		value = 0
 	}
 	if value > max {
 		value = max
 	}
-	return (value * 100) / max
+	return value
 }
 
 func sizeClasses(size Size) string {

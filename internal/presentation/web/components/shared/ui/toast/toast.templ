@@ -67,6 +67,9 @@ templ Toast(props ...Props) {
 		data-tui-toast-duration={ strconv.Itoa(p.Duration) }
 		data-position={ string(p.Position) }
 		data-variant={ string(p.Variant) }
+		role={ toastRole(p.Variant) }
+		aria-live={ toastLiveRegion(p.Variant) }
+		aria-atomic="true"
 		class={ utils.TwMerge(
 			// Base styles
 			"z-50 fixed pointer-events-auto p-4 w-full md:max-w-[420px]",
@@ -119,14 +122,14 @@ templ Toast(props ...Props) {
 				}
 			}
 			// Content
-			<span class="flex-1 min-w-0">
+			<div class="flex-1 min-w-0">
 				if p.Title != "" {
 					<p class="text-sm font-semibold truncate">{ p.Title }</p>
 				}
 				if p.Description != "" {
 					<p class="text-sm opacity-90 mt-1">{ p.Description }</p>
 				}
-			</span>
+			</div>
 			// Dismiss button
 			if p.Dismissible {
 				@button.Button(button.Props{
@@ -146,6 +149,20 @@ templ Toast(props ...Props) {
 			}
 		</div>
 	</div>
+}
+
+func toastRole(variant Variant) string {
+	if variant == VariantError || variant == VariantWarning {
+		return "alert"
+	}
+	return "status"
+}
+
+func toastLiveRegion(variant Variant) string {
+	if variant == VariantError || variant == VariantWarning {
+		return "assertive"
+	}
+	return "polite"
 }
 
 templ Script() {

@@ -3,10 +3,10 @@ package shared
 import "github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/separator"
 
 templ SectionHeading(title string, leading templ.Component) {
-	<div class="flex items-center gap-3 self-stretch">
+	<div class="flex min-w-0 items-center gap-3 self-stretch [&>svg]:shrink-0">
 		@leading
-		<h2 class="text-2xl font-bold font-heading leading-loose whitespace-nowrap text-foreground">{ title }</h2>
-		<div class="min-w-8 flex-1">
+		<h2 class="min-w-0 break-words text-2xl font-bold font-heading leading-snug text-foreground">{ title }</h2>
+		<div class="min-w-0 flex-1">
 			@separator.Separator(separator.Props{Class: "[&_span:last-child]:hidden"})
 		</div>
 	</div>

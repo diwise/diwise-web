@@ -1,0 +1,51 @@
+package thingsv2
+
+import "strconv"
+import "net/url"
+
+templ ThingV2RelationFields(slots []RelationSlotViewModel, message string) {
+	<input type="hidden" name="relationsPresent" value="true"/>
+	if len(slots) > 0 {
+		<section class="flex flex-col gap-4 rounded-xl border border-border p-4">
+			<h2 class="font-semibold">Relationer</h2>
+			<p class="text-sm text-muted-foreground">Välj flera mål med Ctrl/Cmd. Avmarkera alla för bortkoppling. Mål och kardinalitet valideras även av backend.</p>
+			if message != "" {
+				<p role="alert" class="text-sm text-destructive">{ message }</p>
+			}
+			for _, slot := range slots {
+				<label class="flex flex-col gap-2 text-sm">
+					<span>{ slot.Name } — min { strconv.Itoa(slot.Min) }, max { strconv.Itoa(slot.Max) } (0 = obegränsat)</span>
+					<select multiple name={ "relation." + slot.Name } class="rounded-xl border border-border bg-background px-3 py-2">
+						for _, option := range slot.Options {
+							<option value={ option.ID } selected?={ option.Selected }>{ option.Label }</option>
+						}
+					</select>
+				</label>
+			}
+		</section>
+	}
+}
+
+templ ThingV2RelationsSection(model ThingV2DetailsViewModel) {
+	<section class="flex flex-col gap-3 rounded-xl border border-border p-4">
+		<h2 class="font-semibold">Utgående och omvända relationer</h2>
+		if model.RelationsError != "" {
+			<p role="alert" class="text-sm text-destructive">{ model.RelationsError }</p>
+		}
+		for _, relation := range model.Relations {
+			<div class="flex gap-2 text-sm">
+				if relation.Incoming {
+					<span>Inkommande</span>
+				} else {
+					<span>Utgående</span>
+				}
+				<span>{ relation.Name }</span>
+				if relation.Broken {
+					<span class="text-destructive">Bruten referens: { relation.ID }</span>
+				} else {
+					<a class="underline" href={ templ.SafeURL("/things-v2/" + url.PathEscape(relation.ID) + "?tenant=" + url.QueryEscape(model.Tenant)) }>{ relation.Label }</a>
+				}
+			</div>
+		}
+	</section>
+}

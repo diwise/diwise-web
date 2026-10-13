@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/diwise/diwise-web/internal/presentation/web/mapconfig"
 	"github.com/diwise/frontend-toolkit/pkg/middleware/csp"
@@ -51,9 +52,22 @@ func NewFeature(point Point) Feature {
 	}
 }
 
+// NewPolygonFeature bär en icke-punktgeometri (Polygon/MultiPolygon):
+// råa GeoJSON-koordinater serialiseras oförändrade till kartan.
+func NewPolygonFeature(geometryType string, coordinates json.RawMessage) Feature {
+	return Feature{
+		Type: "Feature",
+		Geometry: map[string]any{
+			"type":        geometryType,
+			"coordinates": coordinates,
+		},
+		Properties: make(map[string]any),
+	}
+}
+
 type Feature struct {
 	Type       string         `json:"type"`
-	Geometry   Point          `json:"geometry"`
+	Geometry   any            `json:"geometry"`
 	Properties map[string]any `json:"properties"`
 }
 
@@ -84,13 +98,13 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
 		data-edit-mode={ fmt.Sprintf("%t", editmode) }
 		data-basemap-api-key={ mapconfig.APIKey(ctx) }
 		if mapsize == "small" {
-			class="w-full z-0 h-[30vh]"
+			class="z-0 h-[30vh] w-full overflow-hidden rounded-2xl border border-border"
 		}
 		if mapsize == "medium" {
-			class="w-full z-0 h-[50vh]"
+			class="z-0 h-[50vh] w-full overflow-hidden rounded-2xl border border-border"
 		}
 		if mapsize == "large" {
-			class="w-full z-0 h-[60vh]"
+			class="z-0 h-[60vh] w-full overflow-hidden rounded-2xl border border-border"
 		}
 	></div>
 	@mapHandle.Once() {
@@ -150,7 +164,118 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             
             map.on('click', onMapClick);
 
+            // Polygonritning för sakformulär (things-v2): aktiv endast när
+            // formuläret har geometrival (input[name="geometryMode"]).
+            // Klick lägger till hörn, dolt #geometry-fält bär stängd ring
+            // som [[[lon,lat],...]], tomt vid färre än tre hörn.
+            const geometryRadios = document.querySelectorAll('input[name="geometryMode"]');
+            const drawActive = editMode && geometryRadios.length > 0;
+            const geometryField = drawActive ? document.getElementById('geometry') : null;
+            const geometryHolder = m.closest('[data-geometry-mode]');
+            let drawMode = geometryHolder ? (geometryHolder.getAttribute('data-geometry-mode') || 'point') : 'point';
+            let drawVertices = [];
+            const drawLayer = drawActive ? Leaflet.layerGroup().addTo(map) : null;
+
+            function round6(n) { return Math.round(n * 1e6) / 1e6; }
+
+            function readGeometryField() {
+                if (!geometryField || !geometryField.value) { return null; }
+                try {
+                    const rings = JSON.parse(geometryField.value);
+                    if (!Array.isArray(rings) || rings.length === 0 || !Array.isArray(rings[0])) { return null; }
+                    const pts = rings[0].filter(p => Array.isArray(p) && p.length >= 2 && isFinite(p[0]) && isFinite(p[1]));
+                    if (pts.length < 3) { return null; }
+                    return pts;
+                } catch (e) { return null; }
+            }
+
+            function writeGeometryField() {
+                if (!geometryField) { return; }
+                if (drawVertices.length < 3) { geometryField.value = ''; }
+                else {
+                    const ring = drawVertices.map(v => [round6(v.lng), round6(v.lat)]);
+                    ring.push(ring[0].slice());
+                    geometryField.value = JSON.stringify([ring]);
+                }
+                redrawDrawLayer(false);
+            }
+
+            function redrawDrawLayer(fit) {
+                if (!drawActive) { return; }
+                drawLayer.clearLayers();
+                drawVertices.forEach(v => {
+                    Leaflet.circleMarker(v, { radius: 5, interactive: false }).addTo(drawLayer);
+                });
+                if (drawVertices.length >= 3) {
+                    const poly = Leaflet.polygon(drawVertices);
+                    poly.addTo(drawLayer);
+                    if (fit) { try { map.fitBounds(poly.getBounds()); } catch (e) {} }
+                }
+                syncDrawVisibility();
+            }
+
+            function syncDrawVisibility() {
+                if (!drawActive) { return; }
+                if (drawMode === 'polygon') {
+                    if (!map.hasLayer(drawLayer)) { drawLayer.addTo(map); }
+                    map.doubleClickZoom.disable();
+                } else {
+                    if (map.hasLayer(drawLayer)) { map.removeLayer(drawLayer); }
+                    map.doubleClickZoom.enable();
+                }
+                if (newMarker) {
+                    if (drawMode === 'point') {
+                        if (!map.hasLayer(newMarker)) { newMarker.addTo(map); }
+                    } else if (map.hasLayer(newMarker)) {
+                        map.removeLayer(newMarker);
+                    }
+                }
+                const pointFields = document.getElementById('location-point-fields');
+                if (pointFields) { pointFields.hidden = drawMode !== 'point'; }
+                const polygonTools = document.getElementById('location-polygon-tools');
+                if (polygonTools) { polygonTools.hidden = drawMode !== 'polygon'; }
+            }
+
+            function setDrawMode(mode) {
+                drawMode = mode;
+                if (geometryHolder) { geometryHolder.setAttribute('data-geometry-mode', mode); }
+                syncDrawVisibility();
+            }
+
+            if (drawActive) {
+                const initial = readGeometryField();
+                if (initial) {
+                    // Släng avslutningsdubletten (ringen lagras stängd).
+                    const first = initial[0], last = initial[initial.length - 1];
+                    const closed = initial.length > 1 && first[0] === last[0] && first[1] === last[1];
+                    const open = closed ? initial.slice(0, -1) : initial;
+                    drawVertices = open.map(p => Leaflet.latLng(p[1], p[0]));
+                    redrawDrawLayer(true);
+                }
+                syncDrawVisibility();
+                geometryRadios.forEach(r => {
+                    r.addEventListener('change', function() {
+                        if (r.checked) { setDrawMode(r.value); }
+                    });
+                });
+                const undoBtn = document.getElementById('geometry-undo');
+                if (undoBtn) { undoBtn.addEventListener('click', function() { drawVertices.pop(); writeGeometryField(); }); }
+                const clearBtn = document.getElementById('geometry-clear');
+                if (clearBtn) { clearBtn.addEventListener('click', function() { drawVertices = []; writeGeometryField(); }); }
+            }
+
             function onMapClick(e) {
+                if (drawActive) {
+                    if (drawMode === 'polygon') {
+                        // Ignorera oavsiktliga dubbelklick (samma hörn två gånger).
+                        const prev = drawVertices[drawVertices.length - 1];
+                        if (!prev || Math.abs(prev.lat - e.latlng.lat) > 1e-7 || Math.abs(prev.lng - e.latlng.lng) > 1e-7) {
+                            drawVertices.push(e.latlng);
+                            writeGeometryField();
+                        }
+                    }
+                    return;
+                }
                 if (editMode) {
                     let latitude = document.getElementById('latitude');
                     let longitude = document.getElementById('longitude');  
@@ -260,16 +385,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
             }
 
             function generateTipIcon(tipColor) {
-                return `<svg width="41" height="8" viewBox="0 0 41 8" fill="none">
-                            <g clip-path="url(#clip0)">
-                                <rect x="6.5" y="-8" width="20" height="20" transform="rotate(-45 6.5 -8)" fill="${tipColor}"/>
-                            </g>
-                            <defs>
-                                <clipPath id="clip0">
-                                    <rect width="40" height="8" fill="white" transform="translate(0.5)"/>
-                                </clipPath>
-                            </defs>
-                        </svg>`;
+                return `<svg aria-hidden="true" width="41" height="8" viewBox="0 0 41 8"><path d="M12.5 0h16l-8 8Z" fill="${tipColor}"/></svg>`;
             }
 
             function getIconByTypeAndTheme(type, subtype, isDarkMode) {
@@ -291,7 +407,10 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                 break;
                             case 'sandstorage':
                                 iconUrl = isDarkMode ? '/assets/db0e25bc57ab0e6232d08eecd73fc7a0c04c5bc90fb2f7f2ceae114f0644d159/sandstorageblack.svg' : '/assets/c5b697a2a9ba29ba3d356ad069b1cbd04f151dcd1aa90c3f86539a01253e5c72/sandstorage.svg';
-                                break;        
+                                break;
+                            default:
+                                iconUrl = isDarkMode ? '/assets/ea4fbf040ffc101dcc425140ef38ba0f840c63af0f7b5a1d3d5f3868a8c6c5fb/sensorblack.svg' : '/assets/34ed2a96f7750c911539c45ae445b9b3cf95264ac9eb7f194718b86215aadb6b/sensor.svg';
+                                break;
                         }
                         break;
                     case 'lifebuoy':
@@ -364,11 +483,39 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                 }
             }
 
+            function escapePopupHTML(value) {
+                return String(value ?? '')
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#39;');
+            }
+
+            function popupProperties(properties) {
+                return Object.fromEntries(Object.entries(properties || {}).map(([key, value]) => {
+                    if (Array.isArray(value)) {
+                        return [key, value.map(item => typeof item === 'string' ? escapePopupHTML(item) : item)];
+                    }
+                    return [key, typeof value === 'string' ? escapePopupHTML(value) : value];
+                }));
+            }
+
+            function safePopupURL(value) {
+                if (typeof value !== 'string' || value === '') { return ''; }
+                try {
+                    const url = new URL(value, window.location.origin);
+                    return url.protocol === 'http:' || url.protocol === 'https:' ? escapePopupHTML(url.href) : '';
+                } catch (e) {
+                    return '';
+                }
+            }
+
             function createSensorPopup(feature, intro, location, moreinformation, outro) {
                 popup = intro +
                         '<div class="flex flex-col items-start gap-2">' +
                             '<span class="px-2.5 py-1 rounded-full justify-start items-center gap-1.5 ' + (feature.properties.status ? 'bg-primary-green-accent' : 'bg-tertiary-surface') + '">' +
-                                '<span class="text-sm font-bold font-sans leading-none ' + (feature.properties.status ? 'text-primary-green' : 'text-primary-dark"') + '">' +
+                                '<span class="text-sm font-bold font-sans leading-none ' + (feature.properties.status ? 'text-primary-green' : 'text-primary-dark') + '">' +
                                     (feature.properties.status ? feature.properties.text_active : feature.properties.text_inactive) +
                                 '</span>' +
                             '</span>' +
@@ -431,7 +578,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                             html:   '<div class="flex flex-col items-center opacity-100">' +
                                                         '<div class="flex flex-col items-center justify-center opacity-100 p-2 rounded-lg shadow-md gap-2" style="background-color:' + backgroundColor + ';color:' + textColor + ';">' +
                                                             '<div class="flex flex-row items-center gap-2">' +
-                                                                '<img class="opacity-100" style="width:16px;height:16px;display:block;opacity:1;" src="' + iconUrl + '">' + fillingLevelHtml + temperatureHTML + 
+                                                                '<img alt="" class="opacity-100" style="width:16px;height:16px;display:block;opacity:1;" src="' + iconUrl + '">' + fillingLevelHtml + temperatureHTML +
                                                             '</div>' +
                                                         '</div>' +
                                                         '<div class="flex items-center">' + tipIcon + '</div>' +
@@ -451,7 +598,12 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                         return marker;
                                     },
                                     onEachFeature: function(feature, layer) {
+                                        if (layer.getBounds && typeof layer.getBounds === 'function') {
+                                            try { bounds.extend(layer.getBounds()); } catch (e) {}
+                                        }
                                         if (showPopup) {
+                                            const popupURL = safePopupURL(feature.properties.url);
+                                            feature = { ...feature, properties: popupProperties(feature.properties) };
                                             var cv = mapData.CurrentView;
                                             var popupContent = null;
                                             var intro = '<div class="flex flex-col items-start gap-6 py-3 text-base"><div class="flex flex-col items-start self-stretch justify-center gap-6">';
@@ -467,7 +619,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                             }
                                             var name = feature.properties.name ? '<div class="w-[90%] flex items-start gap-2"><div class="font-bold">' + feature.properties.text_name + '</div><div class="break-all">' + feature.properties.name + '</div></div>' : '';
                                             var location = (feature.properties.latitude && feature.properties.longitude) ? '<div class="flex items-start gap-2"><div class="font-bold">' + feature.properties.text_position + '</div><div class="break-word">' + feature.properties.latitude + ', ' + feature.properties.longitude + '</div></div>' : '';
-                                            var moreinformation = feature.properties.url ? '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div><a href="' + feature.properties.url + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a>' : '';
+                                            var moreinformation = popupURL ? '<div class="h-px border-t border-gray-30 dark:border-white-30 w-full"></div><a href="' + popupURL + '" class="flex justify-center items-center gap-2 rounded-xl cursor-pointer font-bold px-4 py-2 text-white dark:text-primary-surface-hover bg-primary-surface hover:bg-primary-surface-hover dark:bg-white dark:hover:bg-primary-surface-dark-hover">' + feature.properties.text_moreinformation + '<div class="w-[20px] h-[20px]"><svg class="stroke-white dark:stroke-primary-surface-hover fill-none h-5 w-5" viewBox="0 0 24 24" stroke-width="2"><path fill-rule="evenodd" d="M4 12a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2H5a1 1 0 0 1-1-1Z" clip-rule="evenodd"></path><path fill-rule="evenodd" d="M11.293 4.293a1 1 0 0 1 1.414 0l7 7a1 1 0 0 1 0 1.414l-7 7a1 1 0 0 1-1.414-1.414L17.586 12l-6.293-6.293a1 1 0 0 1 0-1.414Z" clip-rule="evenodd"></path></svg></div></a>' : '';
                                             var outro = '</div></div>';
 
                                             const featureType = typeof feature.properties.type === 'string' ? feature.properties.type.toLowerCase() : '';
@@ -703,6 +855,48 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                                                                         '</div>' +
                                                                         location +
                                                                         tagList +
+                                                                    '</div>' +
+                                                                    moreinformation +
+                                                                outro;
+                                            } else if (cv === "thing-v2") {
+                                                var primarydata;
+                                                if (feature.properties.hasprimary && feature.properties.primaryunit === '%') {
+                                                    var pct = Math.min(100, Math.max(0, Number(feature.properties.primarynumeric) || 0));
+                                                    var colourClass = "bg-green-700 dark:bg-primary-surface-green-accent";
+                                                    if (pct >= 50) {
+                                                        colourClass = "bg-red-600 dark:bg-err-prim-surf";
+                                                    } else if (pct >= 30) {
+                                                        colourClass = "bg-orange-600 dark:bg-primary-surface-orange-accent";
+                                                    }
+                                                    primarydata = '<div class="flex w-full items-center gap-2 text-sm">' +
+                                                        '<div class="w-[75%] bg-background-200 dark:bg-primary-surface-white rounded-lg">' +
+                                                            '<div class="' + colourClass + ' rounded-lg" style="width: ' + pct + '%; height: 6px;"></div>' +
+                                                        '</div>' +
+                                                        '<div class="text-sm text-right w-auto">' + pct + '%</div>' +
+                                                    '</div>';
+                                                } else if (feature.properties.hasprimary) {
+                                                    primarydata = '<div class="">' + feature.properties.primaryvalue + '</div>';
+                                                } else {
+                                                    primarydata = '<div class="">' + feature.properties.text_missingdata + '</div>';
+                                                }
+                                                var primaryblock;
+                                                if (feature.properties.hasprimary && feature.properties.primaryunit === '%') {
+                                                    primaryblock = '<div class="flex flex-col items-start justify-center gap-2 self-stretch">' + primarydata + '</div>';
+                                                } else {
+                                                    primaryblock = '<div class="flex items-center gap-2">' +
+                                                        '<div class="font-bold">' + feature.properties.text_primary + '</div>' +
+                                                        primarydata +
+                                                    '</div>';
+                                                }
+                                                popupContent = intro +
+                                                                    '<div class="flex flex-col items-start gap-4 text-primary-dark dark:text-white">' +
+                                                                        name +
+                                                                        primaryblock +
+                                                                        '<div class="flex items-center gap-2">' +
+                                                                            '<div class="font-bold">' + feature.properties.text_category + '</div>' +
+                                                                            '<div class="">' + feature.properties.category + '</div>' +
+                                                                        '</div>' +
+                                                                        location +
                                                                     '</div>' +
                                                                     moreinformation +
                                                                 outro;

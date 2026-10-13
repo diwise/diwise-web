@@ -1,0 +1,166 @@
+package thingsv2
+
+import (
+	"fmt"
+	"strings"
+
+	shared "github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/progress"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/table"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ ThingsV2TableSection(l10n Localizer, viewModel ThingsV2PageViewModel) {
+	{{ rightFooter := templ.Component(templ.NopComponent) }}
+	if viewModel.Paging.PageLast > 1 {
+		{{
+			rightFooter = shared.PagingControl(l10n, shared.PagingControlProps{
+				PageIndex: viewModel.Paging.PageIndex,
+				PageLast:  viewModel.Paging.PageLast,
+				PageSize:  viewModel.Paging.PageSize,
+				Query:     viewModel.Paging.Query,
+				TargetURL: viewModel.Paging.TargetURL,
+				TargetID:  viewModel.Paging.TargetID,
+			})
+		}}
+	}
+	@shared.DataTableSection(
+		shared.DataTableHeader(
+			shared.DataTableSummary(fmt.Sprintf("%s %d %s %d", l10n.Get("show"), len(viewModel.Things), l10n.Get("thingsof"), viewModel.Paging.TotalCount)),
+			nil,
+		),
+		shared.TableFooter(
+			shared.PageSizeControl(shared.PageSizeControlProps{
+				FormID:    "things-v2-page-size-form",
+				Label:     l10n.Get("rowsPerPage"),
+				TargetURL: viewModel.Paging.TargetURL,
+				TargetID:  viewModel.Paging.TargetID,
+				Include:   "#things-v2-filters-form",
+				PageSize:  viewModel.Paging.PageSize,
+				Options:   []int{5, 10, 15, 50, 100},
+			}),
+			rightFooter,
+		),
+	) {
+		@table.Table(table.Props{Class: "min-w-[860px]"}) {
+			@table.Header() {
+				@table.Row() {
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("name") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("category") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("primary") }
+					}
+					@table.Head(table.HeadProps{Class: "px-6 py-3"}) {
+						{ l10n.Get("organisation") }
+					}
+				}
+			}
+			@table.Body() {
+				if len(viewModel.Things) == 0 {
+					@table.Row() {
+						@table.Cell(table.CellProps{Class: "px-6 py-10 text-center text-muted-foreground", Attributes: templ.Attributes{"colspan": "4"}}) {
+							{ l10n.Get("missing") }
+						}
+					}
+				} else {
+					for _, thing := range viewModel.Things {
+						@ThingV2Row(l10n, thing)
+					}
+				}
+			}
+		}
+	}
+}
+
+templ ThingV2Row(l10n Localizer, thing ThingV2ViewModel) {
+	@shared.TableRow(shared.TableRowProps{}) {
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			@shared.TableLink(shared.TableLinkProps{Href: fmt.Sprintf("/things-v2/%s", thing.ID), Target: "#app-shell", Swap: "outerHTML", Replace: true}) {
+				if strings.TrimSpace(thing.Name) != "" {
+					{ thing.Name }
+				} else {
+					{ thing.ID }
+				}
+			}
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			{ thing.Category }
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			@ThingV2StatusCell(l10n, thing)
+		}
+		@table.Cell(table.CellProps{Class: "px-6 py-3"}) {
+			{ thing.Tenant }
+		}
+	}
+}
+
+// ThingV2StatusCell visar sakens huvuddata generiskt (ingen typswitch):
+// mallens primaryProperty upplöst mot aktuella värden. Procentvärden
+// får en progressbar som i things v1, utan rubrik.
+templ ThingV2StatusCell(l10n Localizer, thing ThingV2ViewModel) {
+	if thing.HasPrimaryValue && thing.PrimaryUnit == "%" {
+		@progress.Progress(progress.Props{
+			Value:     clampPercent(thing.PrimaryValue),
+			Max:       100,
+			AriaLabel: l10n.Get("value"),
+			ShowValue: true,
+			Variant:   progressVariant(percentTone(thing.PrimaryValue)),
+			Class:     "min-w-[180px]",
+		})
+	} else if thing.HasPrimaryValue {
+		<span>
+			if strings.TrimSpace(thing.PrimaryLabel) != "" {
+				{ thing.PrimaryLabel }: 
+			}
+			{ formatPrimaryValue(thing) }
+		</span>
+	} else {
+		<span class="text-muted-foreground">{ l10n.Get("nodata") }</span>
+	}
+}
+
+func clampPercent(value float64) int {
+	if value < 0 {
+		return 0
+	}
+	if value > 100 {
+		return 100
+	}
+	return int(value)
+}
+
+func percentTone(value float64) string {
+	switch {
+	case value >= 50:
+		return "critical"
+	case value <= 30:
+		return "good"
+	default:
+		return "warning"
+	}
+}
+
+func progressVariant(tone string) progress.Variant {
+	switch tone {
+	case "critical":
+		return progress.VariantDanger
+	case "warning":
+		return progress.VariantWarning
+	case "good":
+		return progress.VariantSuccess
+	default:
+		return progress.VariantDefault
+	}
+}
+
+func formatPrimaryValue(thing ThingV2ViewModel) string {
+	if thing.PrimaryUnit != "" {
+		return fmt.Sprintf("%g %s", thing.PrimaryValue, thing.PrimaryUnit)
+	}
+	return fmt.Sprintf("%g", thing.PrimaryValue)
+}

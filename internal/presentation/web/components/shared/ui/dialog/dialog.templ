@@ -33,6 +33,8 @@ type TriggerProps struct {
 
 type ContentProps struct {
 	ID               string
+	TitleID          string
+	DescriptionID    string
 	Class            string
 	Attributes       templ.Attributes
 	HideCloseButton  bool
@@ -196,6 +198,14 @@ templ Content(props ...ContentProps) {
 		}
 		data-tui-dialog-content
 		data-dialog-instance={ instanceID }
+		role="dialog"
+		aria-modal="true"
+		if p.TitleID != "" {
+			aria-labelledby={ p.TitleID }
+		}
+		if p.DescriptionID != "" {
+			aria-describedby={ p.DescriptionID }
+		}
 		if p.DisableAutoFocus {
 			data-tui-dialog-disable-autofocus="true"
 		}

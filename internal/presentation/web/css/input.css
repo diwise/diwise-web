@@ -57,6 +57,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -77,6 +78,7 @@
   --accent: #1c1c281f;
   --accent-foreground: #1f1f25;
   --destructive: #d62e2e;
+  --destructive-foreground: #ffffff;
   --border: rgba(28, 28, 40, 0.16);
   --input: rgba(28, 28, 40, 0.5);
   --ring: rgba(28, 28, 40, 0.28);
@@ -104,13 +106,14 @@
   --card-foreground: #f9fafb;
   --primary: #fffffff2;
   --primary-foreground: #1f1f25;
-  --secondary: #e5e5e5;
+  --secondary: #454552;
   --secondary-foreground: #f9fafb;
   --muted: #ffffff33;
   --muted-foreground: rgba(255, 255, 255, 0.68);
   --accent: #ffffff33;
   --accent-foreground: #f9fafb;
   --destructive: #fbc1c1;
+  --destructive-foreground: #651616;
   --border: rgba(255, 255, 255, 0.16);
   --input: rgba(255, 255, 255, 0.5);
   --ring: rgba(255, 255, 255, 0.3);
@@ -139,5 +142,60 @@
     background: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
+  }
+}
+
+@layer components {
+  .diwise-filter-form {
+    @apply rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-6;
+  }
+
+  .diwise-filter-form > label {
+    @apply min-w-0 w-full gap-2 font-medium sm:w-auto sm:min-w-40;
+  }
+
+  :is(.diwise-filter-form, .diwise-native-form) :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    @apply w-full min-w-0 rounded-xl border-input bg-background text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50;
+  }
+
+  :is(.diwise-filter-form, .diwise-native-form) :is(input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]), select) {
+    @apply h-10;
+  }
+
+  .diwise-native-form {
+    @apply rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-6;
+  }
+
+  .diwise-data-table {
+    @apply bg-card;
+  }
+
+  .diwise-data-table thead {
+    @apply bg-muted/40;
+  }
+
+  .diwise-data-table th {
+    @apply px-6 py-3 text-left font-medium;
+  }
+
+  .diwise-data-table td {
+    @apply px-6 py-3 align-middle;
+  }
+
+  .diwise-data-table tbody tr {
+    @apply transition-colors hover:bg-muted/50;
+  }
+
+  .diwise-data-table a {
+    @apply font-medium underline-offset-4 outline-none hover:text-primary focus-visible:rounded-sm focus-visible:ring-[3px] focus-visible:ring-ring/50;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

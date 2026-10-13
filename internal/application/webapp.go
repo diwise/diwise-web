@@ -12,10 +12,13 @@ import (
 
 	"github.com/diwise/diwise-web/internal/application/admin"
 	"github.com/diwise/diwise-web/internal/application/alarms"
+	"github.com/diwise/diwise-web/internal/application/catalog"
 	"github.com/diwise/diwise-web/internal/application/client"
 	"github.com/diwise/diwise-web/internal/application/devices"
 	"github.com/diwise/diwise-web/internal/application/measurements"
 	"github.com/diwise/diwise-web/internal/application/things"
+	"github.com/diwise/diwise-web/internal/application/thingsv2"
+	"github.com/diwise/diwise-web/internal/application/transform"
 	"github.com/diwise/diwise-web/internal/presentation/api/auth"
 	"github.com/diwise/diwise-web/internal/presentation/api/helpers"
 	"github.com/diwise/service-chassis/pkg/infrastructure/o11y/tracing"
@@ -31,11 +34,14 @@ type App struct {
 	devices      *devices.Service
 	measurements *measurements.Service
 	things       *things.Service
+	thingsv2     *thingsv2.Service
+	catalog      *catalog.Service
+	transforms   *transform.Service
 }
 
-func New(ctx context.Context, devmgmt, thingsURL, adminURL, alarmsURL, measurementURL string) (*App, error) {
+func New(ctx context.Context, devmgmt, thingsURL, thingsV2URL, transformURL, adminURL, alarmsURL, measurementURL string) (*App, error) {
 	_ = ctx
-	client := client.NewClient(devmgmt, thingsURL, adminURL, alarmsURL, measurementURL)
+	client := client.NewClient(devmgmt, thingsURL, adminURL, alarmsURL, measurementURL, transformURL)
 	return &App{
 		client:       client,
 		admin:        admin.NewService(client),
@@ -43,6 +49,9 @@ func New(ctx context.Context, devmgmt, thingsURL, adminURL, alarmsURL, measureme
 		devices:      devices.NewService(client),
 		measurements: measurements.NewService(client),
 		things:       things.NewService(client),
+		thingsv2:     thingsv2.NewService(client, thingsV2URL),
+		catalog:      catalog.NewService(client, thingsV2URL),
+		transforms:   transform.NewService(client, transformURL),
 	}, nil
 }
 
@@ -145,6 +154,18 @@ func (a *App) GetTags(ctx context.Context) ([]string, error) {
 	return a.things.GetTags(ctx)
 }
 
+func (a *App) ThingsV2() *thingsv2.Service {
+	return a.thingsv2
+}
+
+func (a *App) Transforms() *transform.Service {
+	return a.transforms
+}
+
+func (a *App) Catalog() *catalog.Service {
+	return a.catalog
+}
+
 func (a *App) GetTypes(ctx context.Context) ([]string, error) {
 	return a.things.GetTypes(ctx)
 }
@@ -221,6 +242,10 @@ func (a *App) Export(ctx context.Context, params url.Values) ([]byte, error) {
 		return nil, fmt.Errorf("export parameter is invalid")
 	}
 
+	if auth.Token(ctx) == "" {
+		return nil, fmt.Errorf("request failed: %w", client.ErrUnauthorized)
+	}
+
 	headers := map[string][]string{
 		"Authorization": {"Bearer " + auth.Token(ctx)},
 		"Accept":        {accept},
@@ -238,6 +263,10 @@ func (a *App) Import(ctx context.Context, t string, f io.Reader) error {
 	var err error
 	ctx, span := tracer.Start(ctx, "import")
 	defer func() { tracing.RecordAnyErrorAndEndSpan(err, span) }()
+
+	if auth.Token(ctx) == "" {
+		return fmt.Errorf("request failed: %w", client.ErrUnauthorized)
+	}
 
 	headers := map[string][]string{
 		"Authorization": {"Bearer " + auth.Token(ctx)},

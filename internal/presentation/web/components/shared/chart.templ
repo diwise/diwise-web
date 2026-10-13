@@ -55,25 +55,25 @@ type AxisBorder struct {
 }
 
 type ScaleTime struct {
-	Unit          string            `json:"unit,omitempty"`
-	TooltipFormat string            `json:"tooltipFormat,omitempty"`
-	Parser        string            `json:"parser,omitempty"`
+	Unit           string            `json:"unit,omitempty"`
+	TooltipFormat  string            `json:"tooltipFormat,omitempty"`
+	Parser         string            `json:"parser,omitempty"`
 	DisplayFormats map[string]string `json:"displayFormats,omitempty"`
 }
 
 type AxisScale struct {
-	Type         string       `json:"type,omitempty"`
-	Distribution string       `json:"distribution,omitempty"`
-	Position     string       `json:"position,omitempty"`
-	Min          *float64     `json:"min,omitempty"`
-	Max          *float64     `json:"max,omitempty"`
-	BeginAtZero  *bool        `json:"beginAtZero,omitempty"`
-	Offset       *bool        `json:"offset,omitempty"`
-	Title        *AxisTitle   `json:"title,omitempty"`
-	Ticks        *AxisTicks   `json:"ticks,omitempty"`
-	Grid         *AxisGrid    `json:"grid,omitempty"`
-	Border       *AxisBorder  `json:"border,omitempty"`
-	Time         *ScaleTime   `json:"time,omitempty"`
+	Type         string      `json:"type,omitempty"`
+	Distribution string      `json:"distribution,omitempty"`
+	Position     string      `json:"position,omitempty"`
+	Min          *float64    `json:"min,omitempty"`
+	Max          *float64    `json:"max,omitempty"`
+	BeginAtZero  *bool       `json:"beginAtZero,omitempty"`
+	Offset       *bool       `json:"offset,omitempty"`
+	Title        *AxisTitle  `json:"title,omitempty"`
+	Ticks        *AxisTicks  `json:"ticks,omitempty"`
+	Grid         *AxisGrid   `json:"grid,omitempty"`
+	Border       *AxisBorder `json:"border,omitempty"`
+	Time         *ScaleTime  `json:"time,omitempty"`
 }
 
 type PluginLegendLabels struct {
@@ -81,7 +81,7 @@ type PluginLegendLabels struct {
 }
 
 type PluginLegend struct {
-	Display bool               `json:"display"`
+	Display bool                `json:"display"`
 	Labels  *PluginLegendLabels `json:"labels,omitempty"`
 }
 

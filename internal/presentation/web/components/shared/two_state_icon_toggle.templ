@@ -6,18 +6,18 @@ import (
 )
 
 type TwoStateIconToggleProps struct {
-	BaseID             string
-	HiddenInputID      string
-	ActiveLeft         bool
-	LeftLabel          string
-	RightLabel         string
-	LeftValue          string
-	RightValue         string
-	LeftIcon           templ.Component
-	RightIcon          templ.Component
-	LeftAttributes     templ.Attributes
-	RightAttributes    templ.Attributes
-	StorageKey         string
+	BaseID          string
+	HiddenInputID   string
+	ActiveLeft      bool
+	LeftLabel       string
+	RightLabel      string
+	LeftValue       string
+	RightValue      string
+	LeftIcon        templ.Component
+	RightIcon       templ.Component
+	LeftAttributes  templ.Attributes
+	RightAttributes templ.Attributes
+	StorageKey      string
 }
 
 templ TwoStateIconToggle(props TwoStateIconToggleProps) {
@@ -27,34 +27,38 @@ templ TwoStateIconToggle(props TwoStateIconToggleProps) {
 	}
 	{{ leftID := baseID + "-left" }}
 	{{ rightID := baseID + "-right" }}
-	{{ leftAttrs := templ.Attributes{
-		"type":                              "button",
-		"aria-label":                        props.LeftLabel,
-		"aria-pressed":                      boolString(props.ActiveLeft),
-		"title":                             props.LeftLabel,
-		"data-two-state-hidden-input-id":    props.HiddenInputID,
-		"data-two-state-left-button-id":     leftID,
-		"data-two-state-right-button-id":    rightID,
-		"data-two-state-active-left":        "true",
-		"data-two-state-left-value":         props.LeftValue,
-		"data-two-state-right-value":        props.RightValue,
-		"data-two-state-storage-key":        props.StorageKey,
-		"data-two-state-icon-toggle-trigger": "true",
-	} }}
-	{{ rightAttrs := templ.Attributes{
-		"type":                              "button",
-		"aria-label":                        props.RightLabel,
-		"aria-pressed":                      boolString(!props.ActiveLeft),
-		"title":                             props.RightLabel,
-		"data-two-state-hidden-input-id":    props.HiddenInputID,
-		"data-two-state-left-button-id":     leftID,
-		"data-two-state-right-button-id":    rightID,
-		"data-two-state-active-left":        "false",
-		"data-two-state-left-value":         props.LeftValue,
-		"data-two-state-right-value":        props.RightValue,
-		"data-two-state-storage-key":        props.StorageKey,
-		"data-two-state-icon-toggle-trigger": "true",
-	} }}
+	{{
+		leftAttrs := templ.Attributes{
+			"type":                               "button",
+			"aria-label":                         props.LeftLabel,
+			"aria-pressed":                       boolString(props.ActiveLeft),
+			"title":                              props.LeftLabel,
+			"data-two-state-hidden-input-id":     props.HiddenInputID,
+			"data-two-state-left-button-id":      leftID,
+			"data-two-state-right-button-id":     rightID,
+			"data-two-state-active-left":         "true",
+			"data-two-state-left-value":          props.LeftValue,
+			"data-two-state-right-value":         props.RightValue,
+			"data-two-state-storage-key":         props.StorageKey,
+			"data-two-state-icon-toggle-trigger": "true",
+		}
+	}}
+	{{
+		rightAttrs := templ.Attributes{
+			"type":                               "button",
+			"aria-label":                         props.RightLabel,
+			"aria-pressed":                       boolString(!props.ActiveLeft),
+			"title":                              props.RightLabel,
+			"data-two-state-hidden-input-id":     props.HiddenInputID,
+			"data-two-state-left-button-id":      leftID,
+			"data-two-state-right-button-id":     rightID,
+			"data-two-state-active-left":         "false",
+			"data-two-state-left-value":          props.LeftValue,
+			"data-two-state-right-value":         props.RightValue,
+			"data-two-state-storage-key":         props.StorageKey,
+			"data-two-state-icon-toggle-trigger": "true",
+		}
+	}}
 	for key, value := range props.LeftAttributes {
 		{{ leftAttrs[key] = value }}
 	}
@@ -63,17 +67,17 @@ templ TwoStateIconToggle(props TwoStateIconToggleProps) {
 	}
 	<div class="flex items-center gap-2 rounded-2xl border border-border/80 bg-background p-1 shadow-xs">
 		@button.Button(button.Props{
-			ID:      leftID,
-			Variant: toggleButtonVariant(props.ActiveLeft),
-			Class:   toggleButtonClass(props.ActiveLeft),
+			ID:         leftID,
+			Variant:    toggleButtonVariant(props.ActiveLeft),
+			Class:      toggleButtonClass(props.ActiveLeft),
 			Attributes: leftAttrs,
 		}) {
 			@props.LeftIcon
 		}
 		@button.Button(button.Props{
-			ID:      rightID,
-			Variant: toggleButtonVariant(!props.ActiveLeft),
-			Class:   toggleButtonClass(!props.ActiveLeft),
+			ID:         rightID,
+			Variant:    toggleButtonVariant(!props.ActiveLeft),
+			Class:      toggleButtonClass(!props.ActiveLeft),
 			Attributes: rightAttrs,
 		}) {
 			@props.RightIcon

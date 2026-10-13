@@ -24,7 +24,12 @@ type accessContextKey struct{ name string }
 
 var accessCtxKey = &accessContextKey{"access"}
 
-var tracer = otel.Tracer("iot-device-mgmt/authz")
+// The policy's complete access object is kept separately from the tenants
+// authorized for the current endpoint. Navigation must not lose rights in
+// other tenants when RequireAccess filters the endpoint's tenant set.
+var navigationAccessCtxKey = &accessContextKey{"navigation-access"}
+
+var tracer = otel.Tracer("diwise-web/authz")
 
 type Scope string
 
@@ -66,7 +71,7 @@ func (a *impl) OptionalAuth(scopes ...Scope) func(http.Handler) http.Handler {
 				return
 			}
 
-			accessObj, ok := a.optionalAccessFromToken(r, token, requiredScopes, validateScopes)
+			accessObj, navigationAccess, ok := a.optionalAccessFromToken(r, token, requiredScopes, validateScopes)
 			if !ok {
 				next.ServeHTTP(w, r)
 				return
@@ -74,6 +79,7 @@ func (a *impl) OptionalAuth(scopes ...Scope) func(http.Handler) http.Handler {
 
 			ctx := WithToken(r.Context(), token)
 			ctx = WithAccess(ctx, accessObj)
+			ctx = context.WithValue(ctx, navigationAccessCtxKey, navigationAccess)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -145,7 +151,8 @@ func (a *impl) RequireAccess(scopes ...Scope) func(http.Handler) http.Handler {
 					return
 				}
 
-				accessObj, err := a.accessFromResult(result, requiredScopes)
+				var accessObj accessMap
+				accessObj, err = a.accessFromResult(result, requiredScopes)
 				if err != nil {
 					logger.Error("opa error", "err", err.Error())
 					http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -161,8 +168,17 @@ func (a *impl) RequireAccess(scopes ...Scope) func(http.Handler) http.Handler {
 					return
 				}
 
+				var navigationAccess accessMap
+				navigationAccess, err = navigationAccessFromResult(result)
+				if err != nil {
+					logger.Error("opa error", "err", err.Error())
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+					return
+				}
+
 				r = r.WithContext(WithToken(r.Context(), token))
 				r = r.WithContext(WithAccess(r.Context(), accessObj))
+				r = r.WithContext(context.WithValue(r.Context(), navigationAccessCtxKey, navigationAccess))
 			}
 
 			// Token is authenticated, pass it through
@@ -177,7 +193,7 @@ func NewAuthenticator(ctx context.Context, policies io.Reader, opts ...Option) (
 		return nil, fmt.Errorf("unable to read authz policies: %s", err.Error())
 	}
 
-	authOptions := options{}
+	authOptions := options{accessObjectAuthz: true}
 	for _, apply := range opts {
 		apply(&authOptions)
 	}
@@ -261,7 +277,16 @@ func legacyTenantsFromResult(result map[string]any, requiredScopes []Scope) (acc
 	return accessObj, nil
 }
 
-func (a *impl) optionalAccessFromToken(r *http.Request, token string, requiredScopes []Scope, validateScopes []string) (accessMap, bool) {
+// Legacy tenants alone do not prove any concrete scopes. Only an access
+// object returned by the policy can enable scope-gated navigation.
+func navigationAccessFromResult(result map[string]any) (accessMap, error) {
+	if _, ok := result["access"]; !ok {
+		return accessMap{}, nil
+	}
+	return accessObjectFromResult(result, nil)
+}
+
+func (a *impl) optionalAccessFromToken(r *http.Request, token string, requiredScopes []Scope, validateScopes []string) (accessMap, accessMap, bool) {
 	path := strings.Split(r.URL.Path, "/")
 
 	input := map[string]any{
@@ -273,25 +298,29 @@ func (a *impl) optionalAccessFromToken(r *http.Request, token string, requiredSc
 
 	results, err := a.query.Eval(r.Context(), rego.EvalInput(input))
 	if err != nil || len(results) == 0 {
-		return nil, false
+		return nil, nil, false
 	}
 
 	binding := results[0].Bindings["x"]
 	if allowed, ok := binding.(bool); ok && !allowed {
-		return nil, false
+		return nil, nil, false
 	}
 
 	result, ok := binding.(map[string]any)
 	if !ok {
-		return nil, false
+		return nil, nil, false
 	}
 
 	accessObj, err := a.accessFromResult(result, requiredScopes)
 	if err != nil || len(accessObj) == 0 {
-		return nil, false
+		return nil, nil, false
 	}
 
-	return accessObj, true
+	navigationAccess, err := navigationAccessFromResult(result)
+	if err != nil {
+		return nil, nil, false
+	}
+	return accessObj, navigationAccess, true
 }
 
 func normalizeRequiredScopes(scopes ...Scope) []Scope {
@@ -370,7 +399,28 @@ func IsAllowed(allowedTenants []string, s string) bool {
 }
 
 func WithAccess(ctx context.Context, access accessMap) context.Context {
+	ctx = context.WithValue(ctx, navigationAccessCtxKey, access)
 	return context.WithValue(ctx, accessCtxKey, access)
+}
+
+// HasScope reports whether the policy grants the exact scope in any tenant.
+// Wildcards are not expanded: sensors.* does not imply sensors.read.
+func HasScope(ctx context.Context, scope Scope) bool {
+	access, _ := ctx.Value(navigationAccessCtxKey).(accessMap)
+	for _, scopes := range access {
+		if _, ok := scopes[scope]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+// HasScopeInTenant checks the complete policy result, not the endpoint's
+// filtered tenant set. API handlers must keep using GetTenantsWithAllowedScopes.
+func HasScopeInTenant(ctx context.Context, tenant string, scope Scope) bool {
+	access, _ := ctx.Value(navigationAccessCtxKey).(accessMap)
+	_, ok := access[tenant][scope]
+	return ok
 }
 
 func WithToken(ctx context.Context, token string) context.Context {

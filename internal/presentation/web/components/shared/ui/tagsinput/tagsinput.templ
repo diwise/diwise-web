@@ -68,6 +68,7 @@ templ TagsInput(props ...Props) {
 					<button
 						type="button"
 						class="ml-1 text-current hover:text-destructive disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+						aria-label={ "Remove " + tag }
 						disabled?={ p.Disabled }
 						data-tui-tagsinput-remove
 					>
@@ -105,12 +106,15 @@ templ TagsInput(props ...Props) {
 					MatchWidth:       true,
 					DisableClickAway: true,
 					Class:            "p-1 max-h-[200px] overflow-y-auto",
+					Attributes:       templ.Attributes{"role": "listbox"},
 				}) {
 					for _, suggestion := range p.Suggestions {
 						<div
 							class="relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
 							data-tui-tagsinput-suggestion
 							data-tui-tagsinput-suggestion-value={ suggestion }
+							role="option"
+							tabindex="-1"
 						>
 							{ suggestion }
 						</div>

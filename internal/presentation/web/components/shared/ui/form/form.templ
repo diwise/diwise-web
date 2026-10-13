@@ -113,6 +113,9 @@ templ Message(props ...MessageProps) {
 		if p.ID != "" {
 			id={ p.ID }
 		}
+		if p.Variant == MessageVariantError {
+			role="alert"
+		}
 		class={
 			utils.TwMerge(
 				"text-[0.8rem] font-medium",

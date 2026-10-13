@@ -14,26 +14,22 @@ type AdminViewModel struct {
 }
 
 templ AdminPage(l10n Localizer, model AdminViewModel) {
-	<div class="flex flex-col gap-8">
+	<div class="flex flex-col gap-6 md:gap-8">
 		<div class="flex flex-col gap-4">
 			<h1 class="text-3xl font-bold font-heading text-foreground">{ l10n.Get("Admin") }</h1>
 		</div>
-
 		@shared.DetailSectionCard(
 			l10n.Get("token"),
 			icon.KeyRound(icon.Props{Size: 24, Class: "text-black dark:text-white"}),
 		) {
-			<div class="px-8 py-6">
-				<div
-					id="admin-token-block"
-					class="overflow-x-auto rounded-2xl bg-slate-950 p-4 font-mono text-sm text-slate-100 dark:bg-slate-900 dark:text-slate-50"
-				>
-					<pre class="whitespace-pre-wrap break-all"><code>{ model.Token }</code></pre>
-				</div>
+			<div
+				id="admin-token-block"
+				class="overflow-x-auto rounded-2xl bg-slate-950 p-4 font-mono text-sm text-slate-100 dark:bg-slate-900 dark:text-slate-50"
+			>
+				<pre class="whitespace-pre-wrap break-all"><code>{ model.Token }</code></pre>
 			</div>
 		}
-
-		<div class="grid gap-8 xl:grid-cols-2">
+		<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 			@ImportCard(l10n, l10n.Get("sensors"), "devices", "admin-sensors-file")
 			@ImportCard(l10n, l10n.Get("things"), "things", "admin-things-file")
 		</div>
@@ -57,7 +53,7 @@ templ AdminPage(l10n Localizer, model AdminViewModel) {
 }
 
 templ ImportCard(l10n Localizer, title, importType, fieldID string) {
-	@card.Card(card.Props{Class: "rounded-3xl border-border/80 bg-card/90 shadow-sm"}) {
+	@card.Card(card.Props{Class: "rounded-2xl border-border/80 bg-card/90 shadow-sm"}) {
 		@card.Header(card.HeaderProps{Class: "space-y-2"}) {
 			@card.Title(card.TitleProps{Class: "text-2xl font-bold font-heading text-foreground"}) {
 				{ title }

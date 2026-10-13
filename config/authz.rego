@@ -7,6 +7,7 @@ package example.authz
   default_scopes := [
     "sensors.read",
     "things.read",
+    "transforms.read",
     "admin",
   ]
 
@@ -17,6 +18,11 @@ package example.authz
     "things.create",
     "things.update",
     "things.delete",
+    "transforms.read",
+    "transforms.create",
+    "transforms.update",
+    "transforms.delete",
+    "transforms.write",
     "admin",
   ]
 

@@ -73,8 +73,20 @@ other = "Building"
 [cancel]
 other = "Cancel"
 
+[create]
+other = "Create"
+
+[new]
+other = "New"
+
 [category]
 other = "Category"
+
+[change]
+other = "Change"
+
+[changeparent]
+other = "Change parent"
 
 [choose]
 other = "Choose"
@@ -114,6 +126,9 @@ other = "degrees"
 
 [delete]
 other = "Delete"
+
+[deleteblocked]
+other = "The thing has active children and cannot be deleted."
 
 [deletethingconfirm]
 other = "Do you want to delete"
@@ -160,6 +175,27 @@ other = "Functions"
 [graph]
 other = "Graph"
 
+[geometry]
+other = "Geometry"
+
+[geometryclear]
+other = "Clear"
+
+[geometrydrawhint]
+other = "Click the map to add corners. At least three corners are required."
+
+[geometrynone]
+other = "No location"
+
+[geometrypoint]
+other = "Point"
+
+[geometrypolygon]
+other = "Polygon"
+
+[geometryundo]
+other = "Undo corner"
+
 [home]
 other = "Home"
 
@@ -189,6 +225,15 @@ other = "Present"
 
 [lastseen]
 other = "Last seen"
+
+[last24h]
+other = "Last 24 hours"
+
+[last7d]
+other = "Last 7 days"
+
+[last30d]
+other = "Last 30 days"
 
 [latitude]
 other = "Latitude"
@@ -268,6 +313,12 @@ other = "Measurement value"
 [measurementvalues]
 other = "Measurement values"
 
+[managesensors]
+other = "Manage sensors"
+
+[metadata]
+other = "Metadata"
+
 [missing]
 other = "Missing"
 
@@ -289,6 +340,12 @@ other = "More information"
 [name]
 other = "Name"
 
+[thingid]
+other = "Thing ID"
+
+[tenant]
+other = "Tenant"
+
 [no]
 other = "No"
 
@@ -300,6 +357,9 @@ other = "-"
 
 [nofilterselected]
 other = "No filter selected"
+
+[norelations]
+other = "No related things"
 
 [notloggedin]
 other = "Please log in"
@@ -318,6 +378,9 @@ other = "Number of sensors"
 
 [observationinterval]
 other = "Observation interval"
+
+[observed]
+other = "Observed"
 
 [occupied]
 other = "Occupied"
@@ -340,11 +403,23 @@ other = "Online"
 [previous]
 other = "Previous"
 
+[primary]
+other = "Primary value"
+
+[quality]
+other = "Quality"
+
 [next]
 other = "Next"
 
+[revision]
+other = "Revision"
+
 [recentalarms]
 other = "Recent alarms and status changes from sensors"
+
+[related]
+other = "Related things"
 
 [oops]
 other = "Oops..."
@@ -408,6 +483,9 @@ other = "Sand storage"
 
 [save]
 other = "Save"
+
+[saveconflict]
+other = "Someone else changed the thing. Reload the page and try again."
 
 [search]
 other = "Search"
@@ -499,10 +577,16 @@ other = "Tags"
 [temperature]
 other = "Temperature"
 
+[template]
+other = "Template"
+
 [thingtype]
 other = "Type of thing"
 
 [things]
+other = "Things"
+
+[thingsv2]
 other = "Things"
 
 [thingsof]
@@ -510,6 +594,9 @@ other = "things out of"
 
 [time]
 other = "Time"
+
+[today]
+other = "Today"
 
 [timeinterval]
 other = "Time interval"
@@ -526,11 +613,20 @@ other = "Yes"
 [type]
 other = "Type"
 
+[unbind]
+other = "Disconnect"
+
 [unknown]
 other = "Unknown"
 
 [unknownsensors]
 other = "Unknown sensors"
+
+[values]
+other = "Values"
+
+[variant]
+other = "Variant"
 
 [water]
 other = "Water"
@@ -667,6 +763,12 @@ other = "Combined sewer overflow"
 [passage]
 other = "Passage"
 
+[parent]
+other = "Parent"
+
+[unlinkparent]
+other = "Remove link"
+
 [sewagepumpingstation]
 other = "Sewage pumping station"
 
@@ -690,3 +792,177 @@ other = "Choose a file"
 
 [upload]
 other = "Upload"
+
+[catalog]
+other = "Templates"
+
+[catalog_templates]
+other = "Templates"
+
+[catalog_all_categories]
+other = "All categories"
+
+[catalog_required]
+other = "Required properties"
+
+[catalog_optional]
+other = "Optional properties"
+
+[catalog_relations]
+other = "Relations"
+
+[catalog_recipes]
+other = "Calculations"
+
+[catalog_not_configured]
+other = "Catalog service is not configured"
+
+[catalog_new_version]
+other = "New template version"
+
+[catalog_copy_from]
+other = "Copying from"
+
+[catalog_one_per_line]
+other = "one per line"
+
+[catalog_key_value_lines]
+other = "key=value per line"
+
+[catalog_geometries]
+other = "Allowed geometries"
+
+[catalog_allow_no_location]
+other = "Allow thing without location"
+
+[catalog_params]
+other = "Parameters"
+
+[catalog_overridable]
+other = "Overridable parameters"
+
+[catalog_copied]
+other = "Relations, calculations and property definitions ride along read-only"
+
+[catalog_publish]
+other = "Publish"
+
+[catalog_pick_tenant]
+other = "Pick a tenant to list templates (templates are global but reads need a tenant)"
+
+[rules]
+other = "Rules"
+
+[rules_kind]
+other = "Kind"
+
+[rules_event]
+other = "Event"
+
+[rules_source]
+other = "Source"
+
+[rules_summary]
+other = "Summary"
+
+[rules_all]
+other = "All"
+
+[rules_rule]
+other = "Rule"
+
+[rules_entities]
+other = "Entities"
+
+[rules_delete]
+other = "Delete"
+
+[rules_confirm_delete]
+other = "Confirm deletion — this cannot be undone."
+
+[rules_delete_confirmed]
+other = "Yes, delete the rule"
+
+[rules_seed_banner]
+other = "Seed rule: editing takes it over to api (seed never overwrites manual changes)."
+
+[rules_seed_delete_warning]
+other = "Seed rule: deletion tombstones the row (never revived) and prune removes it on deploy."
+
+[rules_not_configured]
+other = "Rule service is not configured (TRANSFORM_URL missing)"
+
+[rules_notice_deleted]
+other = "The rule was deleted."
+
+[rules_new]
+other = "New rule"
+
+[rules_save]
+other = "Save"
+
+[rules_match]
+other = "Match"
+
+[rules_entity]
+other = "Smart data model"
+
+[rules_property]
+other = "Property"
+
+[rules_add_entity]
+other = "Add entity"
+
+[rules_add_property]
+other = "Add property"
+
+[rules_pick_tenant_first]
+other = "Pick a tenant for the template list"
+
+[rules_source_value]
+other = "Source value"
+
+[rules_conflict]
+other = "The rule was changed by another user — reload and try again."
+
+[rules_notice_created]
+other = "The rule was created."
+
+[rules_notice_updated]
+other = "The rule was updated."
+
+[rules_preview]
+other = "Dry run"
+
+[rules_fixture]
+other = "Example event"
+
+[rules_message]
+other = "Message (exactly one JSON document)"
+
+[rules_optional]
+other = "optional"
+
+[rules_validate]
+other = "Validate"
+
+[rules_preview_run]
+other = "Dry run"
+
+[rules_valid]
+other = "The rule is valid."
+
+[rules_matched]
+other = "The rule matched"
+
+[rules_not_matched]
+other = "No rule matched the event."
+
+[catalog_variants]
+other = "Variants"
+
+[catalog_template]
+other = "Template"
+
+[version]
+other = "Version"

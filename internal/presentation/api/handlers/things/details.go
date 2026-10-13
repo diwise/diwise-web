@@ -579,8 +579,7 @@ func (e unresolvedConnectedSensorError) Error() string {
 }
 
 func localizeThingValidationMessage(localizer Localizer, err error) string {
-	var unresolvedErr unresolvedConnectedSensorError
-	if errors.As(err, &unresolvedErr) {
+	if unresolvedErr, ok := errors.AsType[unresolvedConnectedSensorError](err); ok {
 		return localizer.GetWithData("invalidconnectedsensor", map[string]any{
 			"sensor": unresolvedErr.value,
 		})

@@ -73,8 +73,20 @@ other = "Byggnad"
 [cancel]
 other = "Avbryt"
 
+[create]
+other = "Skapa"
+
+[new]
+other = "Ny"
+
 [category]
 other = "Kategori"
+
+[change]
+other = "Byt"
+
+[changeparent]
+other = "Byt förälder"
 
 [choose]
 other = "Välj"
@@ -114,6 +126,9 @@ other = "grader"
 
 [delete]
 other = "Radera"
+
+[deleteblocked]
+other = "Saken har aktiva underobjekt och kan inte tas bort."
 
 [deletethingconfirm]
 other = "Vill du radera"
@@ -160,6 +175,27 @@ other = "Funktioner"
 [graph]
 other = "Graf"
 
+[geometry]
+other = "Geometri"
+
+[geometryclear]
+other = "Rensa"
+
+[geometrydrawhint]
+other = "Klicka i kartan för att lägga till hörn. Minst tre hörn krävs."
+
+[geometrynone]
+other = "Ingen plats"
+
+[geometrypoint]
+other = "Punkt"
+
+[geometrypolygon]
+other = "Polygon"
+
+[geometryundo]
+other = "Ångra hörn"
+
 [home]
 other = "Hem"
 
@@ -189,6 +225,15 @@ other = "På plats"
 
 [lastseen]
 other = "Senast sedd"
+
+[last24h]
+other = "Senaste dygnet"
+
+[last7d]
+other = "Senaste 7 dygnen"
+
+[last30d]
+other = "Senaste 30 dagarna"
 
 [level]
 other = "Nivå"
@@ -268,6 +313,12 @@ other = "Mätvärde"
 [measurementvalues]
 other = "Mätvärden"
 
+[managesensors]
+other = "Hantera sensorer"
+
+[metadata]
+other = "Metadata"
+
 [missing]
 other = "Saknas"
 
@@ -289,6 +340,12 @@ other = "Mer information"
 [name]
 other = "Namn"
 
+[thingid]
+other = "Sak-ID"
+
+[tenant]
+other = "Tenant"
+
 [no]
 other = "Nej"
 
@@ -300,6 +357,9 @@ other = "-"
 
 [nofilterselected]
 other = "Inga filter valda"
+
+[norelations]
+other = "Inga kopplade saker"
 
 [notloggedin]
 other = "Du behöver logga in"
@@ -318,6 +378,9 @@ other = "Antal sensorer"
 
 [observationinterval]
 other = "Observationsintervall"
+
+[observed]
+other = "Observerad"
 
 [occupied]
 other = "Upptagen"
@@ -340,11 +403,23 @@ other = "Online"
 [previous]
 other = "Föregående"
 
+[primary]
+other = "Huvudvärde"
+
+[quality]
+other = "Kvalitet"
+
 [next]
 other = "Nästa"
 
+[revision]
+other = "Revision"
+
 [recentalarms]
 other = "Senaste larmen och statusforandringarna fran sensorer"
+
+[related]
+other = "Relaterade saker"
 
 [oops]
 other = "Oops..."
@@ -408,6 +483,9 @@ other = "Sandficka"
 
 [save]
 other = "Spara"
+
+[saveconflict]
+other = "Saken har ändrats av någon annan. Ladda om sidan och försök igen."
 
 [search]
 other = "Sök"
@@ -499,10 +577,16 @@ other = "Taggar"
 [temperature]
 other = "Temperatur"
 
+[template]
+other = "Mall"
+
 [thingtype]
 other = "Typ av sak"
 
 [things]
+other = "Saker"
+
+[thingsv2]
 other = "Saker"
 
 [thingsof]
@@ -510,6 +594,9 @@ other = "saker av"
 
 [time]
 other = "Tid"
+
+[today]
+other = "Idag"
 
 [timeinterval]
 other = "Tidsintervall"
@@ -526,11 +613,20 @@ other = "Ja"
 [type]
 other = "Typ"
 
+[unbind]
+other = "Koppla loss"
+
 [unknown]
 other = "Okänd"
 
 [unknownsensors]
 other = "Okända sensorer"
+
+[values]
+other = "Värden"
+
+[variant]
+other = "Variant"
 
 [water]
 other = "Vatten"
@@ -672,6 +768,12 @@ other = "Bräddavlopp"
 [passage]
 other = "Passage"
 
+[parent]
+other = "Förälder"
+
+[unlinkparent]
+other = "Ta bort koppling"
+
 [sewagepumpingstation]
 other = "Pumpstation"
 
@@ -695,3 +797,177 @@ other = "Välj en fil"
 
 [upload]
 other = "Ladda upp"
+
+[catalog]
+other = "Mallar"
+
+[catalog_templates]
+other = "Mallar"
+
+[catalog_all_categories]
+other = "Alla kategorier"
+
+[catalog_required]
+other = "Obligatoriska egenskaper"
+
+[catalog_optional]
+other = "Valfria egenskaper"
+
+[catalog_relations]
+other = "Relationer"
+
+[catalog_recipes]
+other = "Beräkningar"
+
+[catalog_not_configured]
+other = "Katalogtjänsten är inte konfigurerad"
+
+[catalog_new_version]
+other = "Ny mallversion"
+
+[catalog_copy_from]
+other = "Kopierar från"
+
+[catalog_one_per_line]
+other = "en per rad"
+
+[catalog_key_value_lines]
+other = "nyckel=värde per rad"
+
+[catalog_geometries]
+other = "Tillåtna geometrier"
+
+[catalog_allow_no_location]
+other = "Tillåt sak utan plats"
+
+[catalog_params]
+other = "Parametrar"
+
+[catalog_overridable]
+other = "Överstyrbara parametrar"
+
+[catalog_copied]
+other = "Relationer, beräkningar och egenskapsdefinitioner kopieras med read-only"
+
+[catalog_publish]
+other = "Publicera"
+
+[catalog_pick_tenant]
+other = "Välj tenant för att lista mallar (mallar är globala men läsning kräver tenant)"
+
+[rules]
+other = "Regler"
+
+[rules_kind]
+other = "Typ"
+
+[rules_event]
+other = "Händelse"
+
+[rules_source]
+other = "Källa"
+
+[rules_summary]
+other = "Sammanfattning"
+
+[rules_all]
+other = "Alla"
+
+[rules_rule]
+other = "Regel"
+
+[rules_entities]
+other = "Entiteter"
+
+[rules_delete]
+other = "Ta bort"
+
+[rules_confirm_delete]
+other = "Bekräfta borttagning — åtgärden går inte att ångra."
+
+[rules_delete_confirmed]
+other = "Ja, ta bort regeln"
+
+[rules_seed_banner]
+other = "Seed-regel: redigering tar över regeln till api (seed skriver aldrig över manuella ändringar)."
+
+[rules_seed_delete_warning]
+other = "Seed-regel: borttagning tombstonar raden (återupplivas aldrig) och prune tar bort den vid deploy."
+
+[rules_not_configured]
+other = "Regeltjänsten är inte konfigurerad (TRANSFORM_URL saknas)"
+
+[rules_notice_deleted]
+other = "Regeln är borttagen."
+
+[rules_new]
+other = "Ny regel"
+
+[rules_save]
+other = "Spara"
+
+[rules_match]
+other = "Matchning"
+
+[rules_entity]
+other = "Smart datamodell"
+
+[rules_property]
+other = "Egenskap"
+
+[rules_add_entity]
+other = "Lägg till entitet"
+
+[rules_add_property]
+other = "Lägg till egenskap"
+
+[rules_pick_tenant_first]
+other = "Välj tenant för mallista"
+
+[rules_source_value]
+other = "Källvärde"
+
+[rules_conflict]
+other = "Regeln ändrades av annan användare — ladda om sidan och försök igen."
+
+[rules_notice_created]
+other = "Regeln är skapad."
+
+[rules_notice_updated]
+other = "Regeln är uppdaterad."
+
+[rules_preview]
+other = "Torrkörning"
+
+[rules_fixture]
+other = "Exempelhändelse"
+
+[rules_message]
+other = "Meddelande (exakt ett JSON-dokument)"
+
+[rules_optional]
+other = "valfritt"
+
+[rules_validate]
+other = "Validera"
+
+[rules_preview_run]
+other = "Torrkör"
+
+[rules_valid]
+other = "Regeln är giltig."
+
+[rules_matched]
+other = "Regeln matchade"
+
+[rules_not_matched]
+other = "Ingen regel matchade händelsen."
+
+[catalog_variants]
+other = "Varianter"
+
+[catalog_template]
+other = "Mall"
+
+[version]
+other = "Version"

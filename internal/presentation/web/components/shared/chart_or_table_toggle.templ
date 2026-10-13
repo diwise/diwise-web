@@ -20,17 +20,17 @@ templ ChartOrTableToggle(_ Localizer, props ChartOrTableToggleProps) {
 	}
 	<div>
 		@TwoStateIconToggle(TwoStateIconToggleProps{
-		BaseID:         baseID,
-		HiddenInputID:  props.HiddenInputID,
-		ActiveLeft:     props.ChartView,
-		LeftLabel:      props.ChartLabel,
-		RightLabel:     props.TableLabel,
-		LeftValue:      "chart",
-		RightValue:     "table",
-		LeftIcon:       icon.Icon("chart-column")(icon.Props{Size: 16}),
-		RightIcon:      icon.Table(icon.Props{Size: 16}),
-		StorageKey:     "thingStatisticsView",
-	})
+			BaseID:        baseID,
+			HiddenInputID: props.HiddenInputID,
+			ActiveLeft:    props.ChartView,
+			LeftLabel:     props.ChartLabel,
+			RightLabel:    props.TableLabel,
+			LeftValue:     "chart",
+			RightValue:    "table",
+			LeftIcon:      icon.Icon("chart-column")(icon.Props{Size: 16}),
+			RightIcon:     icon.Table(icon.Props{Size: 16}),
+			StorageKey:    "thingStatisticsView",
+		})
 		<script nonce={ templ.GetNonce(ctx) }>
 			window.onTwoStateIconToggleChange = function(hiddenInputID, value) {
 				if (hiddenInputID !== 'thingStatisticsView') {

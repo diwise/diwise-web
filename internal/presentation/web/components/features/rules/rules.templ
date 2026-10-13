@@ -1,0 +1,128 @@
+package rules
+
+import (
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/button"
+	"github.com/diwise/diwise-web/internal/presentation/web/components/shared/ui/icon"
+	. "github.com/diwise/frontend-toolkit"
+)
+
+templ RulesPage(l10n Localizer, viewModel RulesPageViewModel) {
+	<div class="flex w-full min-w-0 flex-col gap-6 md:gap-8">
+		<header class="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-center sm:justify-between">
+			@shared.SectionHeading(l10n.Get("rules"), icon.Shapes(icon.Props{Size: 28, Class: "text-foreground"}))
+			@button.Button(button.Props{
+				Href:    "/rules/new",
+				Variant: button.VariantDefault,
+				Class:   "w-fit shrink-0 rounded-xl px-4 whitespace-nowrap",
+				Attributes: templ.Attributes{
+					"hx-get":         "/rules/new",
+					"hx-target":      "#app-shell",
+					"hx-swap":        "outerHTML",
+					"hx-replace-url": "true",
+				},
+			}) {
+				{ l10n.Get("new") }
+			}
+		</header>
+		if !viewModel.TransformConfigured {
+			<p class="text-sm text-muted-foreground">{ l10n.Get("rules_not_configured") }</p>
+		}
+		if viewModel.Notice != "" {
+			<p class="text-sm text-green-700 dark:text-green-400">{ viewModel.Notice }</p>
+		}
+		if viewModel.ErrorMessage != "" {
+			<p class="text-sm text-destructive">{ viewModel.ErrorMessage }</p>
+		}
+		<section class="flex min-w-0 flex-col gap-6">
+			<form
+				method="get"
+				action="/rules"
+				hx-get="/rules"
+				hx-target="#app-shell"
+				hx-swap="outerHTML"
+				hx-replace-url="true"
+				class="diwise-filter-form flex flex-wrap items-end gap-4"
+			>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("rules_kind") }</span>
+					<select name="kind" class="rounded-xl border border-border bg-background px-3 py-2">
+						<option value="">{ l10n.Get("rules_all") }</option>
+						<option value="measurement" selected?={ viewModel.Kind == "measurement" }>measurement</option>
+						<option value="thing" selected?={ viewModel.Kind == "thing" }>thing</option>
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("rules_event") }</span>
+					<select name="event" class="rounded-xl border border-border bg-background px-3 py-2">
+						<option value="">{ l10n.Get("rules_all") }</option>
+						<option value="things.v1.values" selected?={ viewModel.Event == "things.v1.values" }>things.v1.values</option>
+						<option value="things.v1.relations" selected?={ viewModel.Event == "things.v1.relations" }>things.v1.relations</option>
+						<option value="things.v1.lifecycle" selected?={ viewModel.Event == "things.v1.lifecycle" }>things.v1.lifecycle</option>
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("tenant") }</span>
+					<select name="tenant" class="rounded-xl border border-border bg-background px-3 py-2">
+						<option value="">{ l10n.Get("rules_all") }</option>
+						for _, t := range viewModel.Tenants {
+							<option value={ t } selected?={ t == viewModel.Tenant }>{ t }</option>
+						}
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("rules_source") }</span>
+					<select name="source" class="rounded-xl border border-border bg-background px-3 py-2">
+						<option value="">{ l10n.Get("rules_all") }</option>
+						<option value="seed" selected?={ viewModel.Source == "seed" }>seed</option>
+						<option value="api" selected?={ viewModel.Source == "api" }>api</option>
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("search") }</span>
+					<input name="search" value={ viewModel.Search } class="rounded-xl border border-border bg-background px-3 py-2"/>
+				</label>
+				<div>
+					@button.Button(button.Props{Variant: button.VariantSecondary, Class: "rounded-xl px-4", Type: button.TypeSubmit}) {
+						{ l10n.Get("search") }
+					}
+				</div>
+			</form>
+			<div class="overflow-x-auto rounded-2xl border border-border/80 shadow-sm">
+				<table class="diwise-data-table w-full min-w-[640px] text-sm">
+					<thead>
+						<tr class="border-b border-border text-left text-muted-foreground">
+							<th scope="col">{ l10n.Get("name") }</th>
+							<th scope="col">{ l10n.Get("rules_kind") }</th>
+							<th scope="col">{ l10n.Get("rules_summary") }</th>
+							<th scope="col">{ l10n.Get("tenant") }</th>
+							<th scope="col">{ l10n.Get("rules_source") }</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, rule := range viewModel.Rules {
+							<tr class="border-b border-border last:border-0">
+								<td>
+									<a
+										class="block truncate underline"
+										style="max-width: 16rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+										title={ rule.DisplayName() }
+										href={ templ.SafeURL("/rules/" + rule.ID) }
+										hx-get={ "/rules/" + rule.ID }
+										hx-target="#app-shell"
+										hx-swap="outerHTML"
+										hx-replace-url="true"
+									>{ rule.DisplayName() }</a>
+								</td>
+								<td>{ rule.Kind }</td>
+								<td>{ rule.Summary }</td>
+								<td>{ rule.Tenant }</td>
+								<td>{ rule.Source }</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</div>
+}
