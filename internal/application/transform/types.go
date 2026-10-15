@@ -345,7 +345,7 @@ type CompatibilityIssue struct {
 // both views from either wire shape.
 type CompatibilityRequest struct {
 	Template       TemplateVersion `json:"template"`
-	Sources        SourceContract  `json:"sources,omitempty"`
+	Sources        SourceContract  `json:"sources"`
 	Rules          []Rule          `json:"rules"`
 	Tenant         string          `json:"tenant,omitempty"`
 	ThingID        string          `json:"thingId,omitempty"`
@@ -360,7 +360,7 @@ type CompatibilityRequest struct {
 // compatWire is the D wire shape for CompatibilityRequest.
 type compatWire struct {
 	Template       TemplateVersion `json:"template"`
-	Sources        SourceContract  `json:"sources,omitempty"`
+	Sources        SourceContract  `json:"sources"`
 	Rules          []Rule          `json:"rules"`
 	Tenant         string          `json:"tenant,omitempty"`
 	ThingID        string          `json:"thingId,omitempty"`
