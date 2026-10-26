@@ -963,6 +963,24 @@ other = "Regeln matchade"
 [rules_not_matched]
 other = "Ingen regel matchade händelsen."
 
+[rules_status]
+other = "Status"
+
+[rules_active]
+other = "Aktiv"
+
+[rules_inactive]
+other = "Inaktiv"
+
+[rules_activate]
+other = "Aktivera"
+
+[rules_deactivate]
+other = "Inaktivera"
+
+[rules_disabled]
+other = "Inaktiv (matchar aldrig)"
+
 [catalog_variants]
 other = "Varianter"
 

@@ -45,6 +45,14 @@ templ RulesPage(l10n Localizer, viewModel RulesPageViewModel) {
 				class="diwise-filter-form flex flex-wrap items-end gap-4"
 			>
 				<label class="flex flex-col gap-1 text-sm">
+					<span>{ l10n.Get("rules_status") }</span>
+					<select name="status" class="rounded-xl border border-border bg-background px-3 py-2">
+						<option value="" selected?={ viewModel.Status == "" || viewModel.Status == "all" }>{ l10n.Get("rules_all") }</option>
+						<option value="active" selected?={ viewModel.Status == "active" }>{ l10n.Get("rules_active") }</option>
+						<option value="inactive" selected?={ viewModel.Status == "inactive" }>{ l10n.Get("rules_inactive") }</option>
+					</select>
+				</label>
+				<label class="flex flex-col gap-1 text-sm">
 					<span>{ l10n.Get("rules_kind") }</span>
 					<select name="kind" class="rounded-xl border border-border bg-background px-3 py-2">
 						<option value="">{ l10n.Get("rules_all") }</option>
@@ -89,7 +97,7 @@ templ RulesPage(l10n Localizer, viewModel RulesPageViewModel) {
 				</div>
 			</form>
 			<div class="overflow-x-auto rounded-2xl border border-border/80 shadow-sm">
-				<table class="diwise-data-table w-full min-w-[640px] text-sm">
+				<table class="diwise-data-table w-full min-w-[960px] text-sm">
 					<thead>
 						<tr class="border-b border-border text-left text-muted-foreground">
 							<th scope="col">{ l10n.Get("name") }</th>
@@ -97,6 +105,8 @@ templ RulesPage(l10n Localizer, viewModel RulesPageViewModel) {
 							<th scope="col">{ l10n.Get("rules_summary") }</th>
 							<th scope="col">{ l10n.Get("tenant") }</th>
 							<th scope="col">{ l10n.Get("rules_source") }</th>
+							<th scope="col">{ l10n.Get("rules_status") }</th>
+							<th scope="col"><span class="sr-only">{ l10n.Get("rules_activate") } / { l10n.Get("rules_deactivate") }</span></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -115,9 +125,37 @@ templ RulesPage(l10n Localizer, viewModel RulesPageViewModel) {
 									>{ rule.DisplayName() }</a>
 								</td>
 								<td>{ rule.Kind }</td>
-								<td>{ rule.Summary }</td>
+								<td>
+									<span class="block font-medium">{ rule.ControlGroup }</span>
+									<span class="text-muted-foreground">{ rule.Summary }</span>
+								</td>
 								<td>{ rule.Tenant }</td>
 								<td>{ rule.Source }</td>
+								<td>
+									if rule.Disabled {
+										<span class="inline-flex whitespace-nowrap rounded-full bg-muted px-2 py-1 text-xs text-muted-foreground">{ l10n.Get("rules_inactive") }</span>
+									} else {
+										<span class="inline-flex whitespace-nowrap rounded-full bg-green-100 px-2 py-1 text-xs text-green-800 dark:bg-green-900 dark:text-green-200">{ l10n.Get("rules_active") }</span>
+									}
+								</td>
+								<td>
+									<form
+										method="post"
+										action={ "/rules/" + rule.ID + "/toggle" }
+										hx-post={ "/rules/" + rule.ID + "/toggle" }
+										hx-target="#app-shell"
+										hx-swap="outerHTML"
+										hx-replace-url="true"
+									>
+										<button type="submit" class="whitespace-nowrap rounded-xl border border-border px-3 py-1 text-xs hover:bg-muted">
+											if rule.Disabled {
+												{ l10n.Get("rules_activate") }
+											} else {
+												{ l10n.Get("rules_deactivate") }
+											}
+										</button>
+									</form>
+								</td>
 							</tr>
 						}
 					</tbody>

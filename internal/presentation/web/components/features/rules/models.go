@@ -9,6 +9,14 @@ type RuleRowViewModel struct {
 	Summary string
 	Tenant  string
 	Source  string
+	// Disabled styr aktiv/inaktiv (backend disabled-flagga). Revision bär
+	// CAS-stake för toggle utan att läsa om sidan.
+	Disabled bool
+	Revision int64
+	// ControlGroup grupperar vad regeln styr (thing: match.type,
+	// measurement: object/sensorType/device). Används för sortering så att
+	// t.ex. alla container-regler hamnar tillsammans.
+	ControlGroup string
 }
 
 // DisplayName keeps the full identity; visual truncation belongs to CSS.
@@ -31,6 +39,7 @@ type RulesPageViewModel struct {
 	Tenant              string
 	Source              string
 	Search              string
+	Status              string
 	Rules               []RuleRowViewModel
 	Notice              string
 	ErrorMessage        string

@@ -50,6 +50,7 @@ func parseRuleForm(form map[string][]string) (apptransform.Rule, error) {
 	}
 
 	rule.Name = get("name")
+	rule.Disabled = get("disabled") == "true"
 	rule.Match = apptransform.Match{
 		Kind:             get("kind"),
 		Device:           get("device"),

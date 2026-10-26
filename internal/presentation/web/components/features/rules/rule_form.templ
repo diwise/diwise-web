@@ -33,6 +33,10 @@ templ RuleFormPage(l10n Localizer, viewModel RuleFormViewModel) {
 					class="diwise-native-form flex flex-col gap-6"
 				>
 					<input type="hidden" name="ruleID" value={ viewModel.ID }/>
+					<label class="flex items-center gap-2 text-sm">
+						<input type="checkbox" name="disabled" value="true" checked?={ viewModel.Rule.Disabled }/>
+						<span>{ l10n.Get("rules_disabled") }</span>
+					</label>
 					<label class="flex flex-col gap-1 text-sm">
 						<span>{ l10n.Get("name") }</span>
 						<input name="name" value={ viewModel.SubmittedValue("name", viewModel.Rule.Name) } class="rounded-xl border border-border bg-background px-3 py-2"/>

@@ -110,6 +110,9 @@ type Match struct {
 // Rule matches a source and describes entities to write.
 type Rule struct {
 	Priority int `json:"priority,omitempty"`
+	// Disabled stänger av regeln utan att radera den: avstängda regler
+	// valideras men matchar aldrig (backend engine.go/match).
+	Disabled bool `json:"disabled,omitempty"`
 	// Name är fritext endast för användaren. Påverkar aldrig matchning,
 	// körning, prioritet eller specificitet.
 	Name     string   `json:"name,omitempty"`

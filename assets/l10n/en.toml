@@ -958,6 +958,24 @@ other = "The rule matched"
 [rules_not_matched]
 other = "No rule matched the event."
 
+[rules_status]
+other = "Status"
+
+[rules_active]
+other = "Active"
+
+[rules_inactive]
+other = "Inactive"
+
+[rules_activate]
+other = "Activate"
+
+[rules_deactivate]
+other = "Deactivate"
+
+[rules_disabled]
+other = "Disabled (inactive, never matches)"
+
 [catalog_variants]
 other = "Variants"
 

@@ -41,6 +41,55 @@ func ruleTokenTenants(r *http.Request) []string {
 	return unique
 }
 
+// ruleControlGroup grupperar vad regeln styr för listsortering: thing-regler
+// på match.type (t.ex. container), mätvärdesregler på object/sensorType/device.
+// Tomt faller tillbaka på kind/event så grupperingen aldrig blir tom.
+func ruleControlGroup(rule apptransform.Rule) string {
+	m := rule.Match
+	if m.Kind == "thing" {
+		if m.Type != "" {
+			return m.Type
+		}
+		if m.Event != "" {
+			return m.Event
+		}
+		return "thing"
+	}
+	if m.Object != "" {
+		return m.Object
+	}
+	if m.SensorType != "" {
+		return m.SensorType
+	}
+	if m.Device != "" {
+		return m.Device
+	}
+	return "measurement"
+}
+
+// sortRuleRows sorterar aktiva överst, därefter grupperat på vad regeln styr
+// (controlGroup), sedan subtype/event/namn/id för stabil ordning.
+func sortRuleRows(rows []featurerules.RuleRowViewModel) {
+	slices.SortFunc(rows, func(a, b featurerules.RuleRowViewModel) int {
+		if a.Disabled != b.Disabled {
+			if a.Disabled {
+				return 1
+			}
+			return -1
+		}
+		if c := strings.Compare(strings.ToLower(a.ControlGroup), strings.ToLower(b.ControlGroup)); c != 0 {
+			return c
+		}
+		if c := strings.Compare(a.Summary, b.Summary); c != 0 {
+			return c
+		}
+		if c := strings.Compare(a.Name, b.Name); c != 0 {
+			return c
+		}
+		return strings.Compare(a.ID, b.ID)
+	})
+}
+
 // ruleSummary sammanfattar en regel för listan: sakregler visar
 // händelse + typ ( + relation/lifecycle), mätvärdesregler objekt/miljö.
 func ruleSummary(rule apptransform.Rule) string {
@@ -182,6 +231,7 @@ func NewRulesPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 			Tenant:              strings.TrimSpace(r.URL.Query().Get("tenant")),
 			Source:              strings.TrimSpace(r.URL.Query().Get("source")),
 			Search:              strings.TrimSpace(r.URL.Query().Get("search")),
+			Status:              strings.TrimSpace(r.URL.Query().Get("status")),
 			Rules:               []featurerules.RuleRowViewModel{},
 			TransformConfigured: app.Transforms().Configured(),
 		}
@@ -209,19 +259,29 @@ func NewRulesPage(ctx context.Context, l10n LocaleBundle, assets AssetLoaderFunc
 				if model.Source != "" && m.Source != model.Source {
 					continue
 				}
+				if model.Status == "active" && m.Rule.Disabled {
+					continue
+				}
+				if model.Status == "inactive" && !m.Rule.Disabled {
+					continue
+				}
 				if model.Search != "" && !strings.Contains(strings.ToLower(m.Rule.Name+m.Rule.Match.Type+m.Rule.Match.Event+m.ID), strings.ToLower(model.Search)) {
 					continue
 				}
 				model.Rules = append(model.Rules, featurerules.RuleRowViewModel{
-					ID:      m.ID,
-					Name:    m.Rule.Name,
-					ShortID: shortID(m.ID),
-					Kind:    m.Rule.Match.Kind,
-					Summary: ruleSummary(m.Rule),
-					Tenant:  m.Rule.Match.Tenant,
-					Source:  m.Source,
+					ID:           m.ID,
+					Name:         m.Rule.Name,
+					ShortID:      shortID(m.ID),
+					Kind:         m.Rule.Match.Kind,
+					Summary:      ruleSummary(m.Rule),
+					Tenant:       m.Rule.Match.Tenant,
+					Source:       m.Source,
+					Disabled:     m.Rule.Disabled,
+					Revision:     m.Revision,
+					ControlGroup: ruleControlGroup(m.Rule),
 				})
 			}
+			sortRuleRows(model.Rules)
 		}
 
 		content := featurerules.RulesPage(localizer, model)
