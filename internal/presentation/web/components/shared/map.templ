@@ -274,7 +274,7 @@ templ Map(mapsize string, showPopup, editmode bool, data mapData, featureCollect
                             writeGeometryField();
                         }
                     }
-                    return;
+                    if (drawMode !== 'point') { return; }
                 }
                 if (editMode) {
                     let latitude = document.getElementById('latitude');
